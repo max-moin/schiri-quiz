@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schiri-Quiz – Auswertung</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="auswertung.css" />
+</head>
+<body>
+  <main class="wrap wrap-breit">
+    <header>
+      <h1>📊 Schiri-Quiz – Auswertung</h1>
+      <p class="subtitle">Nur für den Obmann. Nicht in der Signal-Gruppe teilen.</p>
+    </header>
+
+    <section id="login-schritt" class="card">
+      <label for="passwort-eingabe">Obmann-Passwort</label>
+      <input id="passwort-eingabe" type="password" autocomplete="off" placeholder="Passwort" />
+      <button id="login-button">Anmelden</button>
+    </section>
+
+    <section id="dashboard-schritt" hidden>
+      <div id="stat-grid" class="stat-grid"></div>
+
+      <div class="card filter-row">
+        <label for="schiedsrichter-filter">Nach Schiedsrichter filtern</label>
+        <select id="schiedsrichter-filter">
+          <option value="">Alle anzeigen</option>
+        </select>
+      </div>
+
+      <div id="runden-liste"></div>
+    </section>
+
+    <p id="fehler-hinweis" class="fehler" hidden></p>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="auswertung.js"></script>
+</body>
+</html>
