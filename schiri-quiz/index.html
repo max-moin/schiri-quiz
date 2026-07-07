@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schiri-Quiz der Woche</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <h1>⚽ Schiri-Quiz der Woche</h1>
+      <p class="subtitle">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
+    </header>
+
+    <!-- Schritt 1: Name auswählen -->
+    <section id="name-schritt" class="card">
+      <label for="name-auswahl">Wer bist du?</label>
+      <select id="name-auswahl">
+        <option value="">– bitte auswählen –</option>
+      </select>
+      <button id="start-button" disabled>Los geht's</button>
+      <p id="name-hinweis" class="hinweis"></p>
+    </section>
+
+    <!-- Schritt 2: Fragen -->
+    <section id="fragen-schritt" class="card" hidden>
+      <div id="fragen-liste"></div>
+      <p id="fertig-hinweis" class="hinweis" hidden>
+        Danke fürs Mitmachen! 🎉 Nächste Woche gibt's neue Fragen.
+      </p>
+    </section>
+
+    <p id="fehler-hinweis" class="fehler" hidden></p>
+  </main>
+
+  <!-- Supabase Client (aus CDN, kein Build-Tool nötig) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
