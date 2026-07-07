@@ -5,15 +5,17 @@
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const nameAuswahl = document.getElementById("name-auswahl");
+const pinEingabe = document.getElementById("pin-eingabe");
 const startButton = document.getElementById("start-button");
-const nameHinweis = document.getElementById("name-hinweis");
 const nameSchritt = document.getElementById("name-schritt");
 const fragenSchritt = document.getElementById("fragen-schritt");
 const fragenListe = document.getElementById("fragen-liste");
+const keineFragenHinweis = document.getElementById("keine-fragen-hinweis");
 const fertigHinweis = document.getElementById("fertig-hinweis");
 const fehlerHinweis = document.getElementById("fehler-hinweis");
 
 let ausgewaehlteSchiedsrichterId = null;
+let eingegebenePin = null;
 let offeneFragenAnzahl = 0;
 
 function zeigeFehler(text) {
@@ -21,9 +23,13 @@ function zeigeFehler(text) {
   fehlerHinweis.hidden = false;
 }
 
+function versteckeFehler() {
+  fehlerHinweis.hidden = true;
+}
+
 async function ladeSchiedsrichter() {
   const { data, error } = await sb
-    .from("schiedsrichter")
+    .from("schiedsrichter_oeffentlich")
     .select("id, name")
     .order("name");
 
@@ -40,12 +46,44 @@ async function ladeSchiedsrichter() {
   }
 }
 
-nameAuswahl.addEventListener("change", () => {
-  startButton.disabled = !nameAuswahl.value;
-});
+function pruefeEingabenVollstaendig() {
+  startButton.disabled = !(nameAuswahl.value && pinEingabe.value.trim().length > 0);
+}
+
+nameAuswahl.addEventListener("change", pruefeEingabenVollstaendig);
+pinEingabe.addEventListener("input", pruefeEingabenVollstaendig);
 
 startButton.addEventListener("click", async () => {
-  ausgewaehlteSchiedsrichterId = nameAuswahl.value;
+  versteckeFehler();
+  const schiedsrichterId = nameAuswahl.value;
+  const pin = pinEingabe.value.trim();
+
+  startButton.disabled = true;
+  startButton.textContent = "Prüfe PIN ...";
+
+  const { data: pinOk, error } = await sb.rpc("pin_pruefen", {
+    p_schiedsrichter_id: schiedsrichterId,
+    p_pin: pin,
+  });
+
+  startButton.textContent = "Los geht's";
+
+  if (error) {
+    zeigeFehler("PIN konnte nicht geprüft werden: " + error.message);
+    startButton.disabled = false;
+    return;
+  }
+
+  if (!pinOk) {
+    zeigeFehler("PIN ist falsch. Bitte nochmal versuchen.");
+    startButton.disabled = false;
+    pinEingabe.value = "";
+    pinEingabe.focus();
+    return;
+  }
+
+  ausgewaehlteSchiedsrichterId = schiedsrichterId;
+  eingegebenePin = pin;
   nameSchritt.hidden = true;
   fragenSchritt.hidden = false;
   await ladeFragen();
@@ -54,8 +92,7 @@ startButton.addEventListener("click", async () => {
 async function ladeFragen() {
   const { data: fragen, error } = await sb
     .from("fragen_oeffentlich")
-    .select("id, frage_text, option_a, option_b, option_c")
-    .order("erstellt_am");
+    .select("id, frage_text, option_a, option_b, option_c");
 
   if (error) {
     zeigeFehler("Fragen konnten nicht geladen werden: " + error.message);
@@ -63,7 +100,7 @@ async function ladeFragen() {
   }
 
   if (!fragen || fragen.length === 0) {
-    fragenListe.innerHTML = "<p>Aktuell sind keine Fragen aktiv. Schau später nochmal vorbei.</p>";
+    keineFragenHinweis.hidden = false;
     return;
   }
 
@@ -128,7 +165,7 @@ async function antwortAbschicken(frageId, container, button) {
     zeigeFehler("Bitte erst eine Antwort auswählen.");
     return;
   }
-  fehlerHinweis.hidden = true;
+  versteckeFehler();
 
   button.disabled = true;
   container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
@@ -137,6 +174,7 @@ async function antwortAbschicken(frageId, container, button) {
     p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
     p_frage_id: frageId,
     p_gegebene_option: gewaehlt.value,
+    p_pin: eingegebenePin,
   });
 
   const feedback = container.querySelector(".feedback");
@@ -149,7 +187,13 @@ async function antwortAbschicken(frageId, container, button) {
   }
 
   const ergebnis = data[0];
-  if (ergebnis.korrekt) {
+
+  if (ergebnis.bereits_beantwortet) {
+    feedback.textContent =
+      "Diese Frage hattest du schon beantwortet - dein erstes Ergebnis zählt: " +
+      (ergebnis.korrekt ? "Richtig ✅" : "Falsch (richtig wäre " + ergebnis.richtige_option.toUpperCase() + " gewesen)");
+    feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+  } else if (ergebnis.korrekt) {
     feedback.textContent = "Richtig! ✅";
     feedback.classList.add("richtig");
   } else {
