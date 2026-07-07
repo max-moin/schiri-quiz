@@ -13,21 +13,36 @@
       <p class="subtitle">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
     </header>
 
-    <!-- Schritt 1: Name auswählen -->
+    <!-- Schritt 1: Name + PIN -->
     <section id="name-schritt" class="card">
       <label for="name-auswahl">Wer bist du?</label>
       <select id="name-auswahl">
         <option value="">– bitte auswählen –</option>
       </select>
+
+      <label for="pin-eingabe">Deine PIN</label>
+      <input
+        id="pin-eingabe"
+        type="password"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="z.B. 1234"
+      />
+
       <button id="start-button" disabled>Los geht's</button>
-      <p id="name-hinweis" class="hinweis"></p>
+      <p id="name-hinweis" class="hinweis">
+        Deine PIN kennst nur du – frag beim Obmann nach, falls du sie noch nicht hast.
+      </p>
     </section>
 
     <!-- Schritt 2: Fragen -->
     <section id="fragen-schritt" class="card" hidden>
       <div id="fragen-liste"></div>
+      <p id="keine-fragen-hinweis" class="hinweis" hidden>
+        Aktuell ist keine Runde aktiv. Schau später nochmal vorbei.
+      </p>
       <p id="fertig-hinweis" class="hinweis" hidden>
-        Danke fürs Mitmachen! 🎉 Nächste Woche gibt's neue Fragen.
+        Danke fürs Mitmachen! 🎉 Nächste Runde gibt's neue Fragen.
       </p>
     </section>
 
