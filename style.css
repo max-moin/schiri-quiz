@@ -400,6 +400,36 @@ button {
 .beantwortet-ergebnis.richtig { color: var(--green-dark); background: var(--green-light); }
 .beantwortet-ergebnis.falsch { color: var(--red); background: var(--red-light); }
 
+/* ---------- Gemeinsam abschicken ---------- */
+
+.sammel-absenden-wrap {
+  margin-top: 18px;
+  text-align: center;
+}
+
+.sammel-absenden-button {
+  background: var(--blue);
+  color: white;
+  padding: 13px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+}
+
+.sammel-absenden-button:hover {
+  background: #1d4ed8;
+}
+
+.sammel-absenden-button:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+}
+
+.sammel-absenden-hinweis {
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin: 8px 0 0;
+}
+
 /* ---------- Fertig-Karte ---------- */
 
 .fertig-card {
@@ -419,19 +449,14 @@ button {
   margin: 4px 0;
 }
 
-.fertig-untertext {
+.naechste-runde {
   color: var(--muted);
-  margin: 0;
+  margin: 6px 0 0;
   font-size: 0.92rem;
 }
 
-/* ---------- Fuß ---------- */
-
-.fuss {
-  text-align: center;
-  color: var(--muted);
-  font-size: 0.82rem;
-  padding: 10px 20px 40px;
+.naechste-runde strong {
+  color: var(--green-dark);
 }
 
 /* ---------- Konfetti ---------- */
@@ -492,6 +517,14 @@ button {
   .fertig-card,
   #keine-fragen-hinweis {
     grid-column: 1 / -1;
+  }
+
+  .sammel-absenden-wrap {
+    margin-top: 22px;
+  }
+
+  .sammel-absenden-button {
+    padding: 14px 32px;
   }
 
   .frage-karte {

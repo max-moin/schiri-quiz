@@ -65,28 +65,34 @@
     <!-- Angemeldet-Leiste -->
     <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
       <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
-      <button id="wechseln-button" class="link-button" type="button">wechseln</button>
+      <button id="wechseln-button" class="link-button" type="button">Abmelden</button>
     </div>
 
     <!-- Schritt 2: Fragen -->
     <section id="fragen-schritt" hidden>
       <div id="fragen-liste" class="fragen-liste"></div>
+
+      <div id="sammel-absenden-wrap" class="sammel-absenden-wrap" hidden>
+        <button id="sammel-absenden-button" class="sammel-absenden-button" type="button">
+          Alle ausgewählten Antworten abschicken
+        </button>
+        <p class="sammel-absenden-hinweis">
+          Du kannst jede Frage einzeln abschicken – oder mehrere auswählen und hier gesammelt abschicken.
+        </p>
+      </div>
+
       <p id="keine-fragen-hinweis" class="hinweis card" hidden>
         Aktuell ist keine Runde aktiv. Schau später nochmal vorbei.
       </p>
       <div id="fertig-hinweis" class="card fertig-card" hidden>
         <div class="fertig-emoji" aria-hidden="true">🎉</div>
         <p class="fertig-text">Danke fürs Mitmachen!</p>
-        <p class="fertig-untertext">Nächste Runde gibt's neue Fragen.</p>
+        <p id="naechste-runde-text" class="naechste-runde" hidden></p>
       </div>
     </section>
 
     <p id="fehler-hinweis" class="fehler" hidden></p>
   </main>
-
-  <footer class="fuss">
-    <p>Viel Erfolg beim Regeln-Büffeln! 📖</p>
-  </footer>
 
   <div id="konfetti-schicht" class="konfetti-schicht" aria-hidden="true"></div>
 

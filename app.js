@@ -4,6 +4,8 @@
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const SESSION_KEY = "schiriQuizSession";
+
 const nameAuswahl = document.getElementById("name-auswahl");
 const pinEingabe = document.getElementById("pin-eingabe");
 const startButton = document.getElementById("start-button");
@@ -13,8 +15,11 @@ const angemeldetName = document.getElementById("angemeldet-name");
 const wechselnButton = document.getElementById("wechseln-button");
 const fragenSchritt = document.getElementById("fragen-schritt");
 const fragenListe = document.getElementById("fragen-liste");
+const sammelAbsendenWrap = document.getElementById("sammel-absenden-wrap");
+const sammelAbsendenButton = document.getElementById("sammel-absenden-button");
 const keineFragenHinweis = document.getElementById("keine-fragen-hinweis");
 const fertigHinweis = document.getElementById("fertig-hinweis");
+const naechsteRundeText = document.getElementById("naechste-runde-text");
 const fehlerHinweis = document.getElementById("fehler-hinweis");
 const fortschrittWrap = document.getElementById("fortschritt-wrap");
 const fortschrittText = document.getElementById("fortschritt-text");
@@ -26,6 +31,7 @@ let ausgewaehlteSchiedsrichterId = null;
 let eingegebenePin = null;
 let gesamtFragenAnzahl = 0;
 let beantworteFragenAnzahl = 0;
+let countdownInterval = null;
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -34,6 +40,40 @@ function zeigeFehler(text) {
 
 function versteckeFehler() {
   fehlerHinweis.hidden = true;
+}
+
+function speichereSession(id, pin, name) {
+  try {
+    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id, pin, name }));
+  } catch (e) {
+    // Falls sessionStorage mal nicht verfügbar ist (z.B. privates Fenster) -
+    // kein Problem, dann bleibt man einfach ohne Session-Merken angemeldet.
+  }
+}
+
+function leseGespeicherteSession() {
+  try {
+    const roh = sessionStorage.getItem(SESSION_KEY);
+    return roh ? JSON.parse(roh) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function loescheGespeicherteSession() {
+  try {
+    sessionStorage.removeItem(SESSION_KEY);
+  } catch (e) {
+    // ignorieren
+  }
+}
+
+function zeigeAngemeldetenZustand(name) {
+  nameSchritt.hidden = true;
+  angemeldetName.textContent = name;
+  angemeldetLeiste.hidden = false;
+  fragenSchritt.hidden = false;
+  fortschrittWrap.hidden = false;
 }
 
 async function ladeSchiedsrichter() {
@@ -96,16 +136,15 @@ startButton.addEventListener("click", async () => {
   ausgewaehlteSchiedsrichterId = schiedsrichterId;
   eingegebenePin = pin;
 
-  nameSchritt.hidden = true;
-  angemeldetName.textContent = nameAuswahl.options[nameAuswahl.selectedIndex].textContent;
-  angemeldetLeiste.hidden = false;
-  fragenSchritt.hidden = false;
-  fortschrittWrap.hidden = false;
+  const name = nameAuswahl.options[nameAuswahl.selectedIndex].textContent;
+  speichereSession(schiedsrichterId, pin, name);
+  zeigeAngemeldetenZustand(name);
 
   await ladeFragenUndAntworten();
 });
 
 wechselnButton.addEventListener("click", () => {
+  loescheGespeicherteSession();
   location.reload();
 });
 
@@ -156,9 +195,11 @@ async function ladeFragenUndAntworten() {
   }
 
   aktualisiereFortschritt();
+  aktualisiereSammelButtonSichtbarkeit();
 
   if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
     fertigHinweis.hidden = false;
+    zeigeNaechsteRundeCountdown();
   }
 }
 
@@ -330,11 +371,53 @@ async function antwortAbschicken(frageId, container, button) {
 
   beantworteFragenAnzahl += 1;
   aktualisiereFortschritt();
+  aktualisiereSammelButtonSichtbarkeit();
 
   if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
     fertigHinweis.hidden = false;
-    spawnKonfetti();
+    zeigeNaechsteRundeCountdown();
   }
+}
+
+// Sammel-Button: schickt alle offenen Fragen ab, bei denen schon eine Antwort
+// ausgewählt (aber noch nicht abgeschickt) wurde - vor allem am Desktop praktisch,
+// wo man mehrere Fragen bequem nacheinander anklicken kann, statt jede einzeln
+// abzuschicken. Die einzelnen "Antwort abschicken"-Buttons bleiben trotzdem nutzbar.
+sammelAbsendenButton.addEventListener("click", async () => {
+  const offeneMitAuswahl = Array.from(fragenListe.querySelectorAll(".frage-karte:not(.beantwortet)")).filter(
+    (karte) => {
+      const button = karte.querySelector(".absenden-button");
+      return karte.querySelector('input[type="radio"]:checked') && button && !button.disabled;
+    }
+  );
+
+  if (offeneMitAuswahl.length === 0) {
+    zeigeFehler("Bitte wähle zuerst bei mindestens einer offenen Frage eine Antwort aus.");
+    return;
+  }
+
+  versteckeFehler();
+  sammelAbsendenButton.disabled = true;
+
+  for (const karte of offeneMitAuswahl) {
+    const frageId = karte.dataset.frageId;
+    const button = karte.querySelector(".absenden-button");
+    await antwortAbschicken(frageId, karte, button);
+  }
+
+  sammelAbsendenButton.disabled = false;
+  aktualisiereSammelButtonSichtbarkeit();
+});
+
+function aktualisiereSammelButtonSichtbarkeit() {
+  // "Offen" heißt hier: weder als bereits-beantwortet-Karte gerendert (beim Laden
+  // erkannt) NOCH schon in dieser Sitzung abgeschickt (Button dann disabled) -
+  // eine Karte, die man gerade eben abgeschickt hat, zählt also nicht mehr mit.
+  const offeneAnzahl = Array.from(fragenListe.querySelectorAll(".frage-karte:not(.beantwortet)")).filter((karte) => {
+    const button = karte.querySelector(".absenden-button");
+    return button && !button.disabled;
+  }).length;
+  sammelAbsendenWrap.hidden = offeneAnzahl < 2;
 }
 
 function aktualisiereFortschritt() {
@@ -360,4 +443,51 @@ function spawnKonfetti() {
   }
 }
 
-ladeSchiedsrichter();
+// Zeigt einen Live-Countdown bis zum Start der nächsten Fragen-Runde (aus der
+// echten DB, keine feste Annahme wie "immer Montag"). Wird nur einmal gestartet,
+// egal ob man schon fertig war beim Laden oder gerade eben fertig geworden ist.
+async function zeigeNaechsteRundeCountdown() {
+  if (countdownInterval) return;
+
+  const { data, error } = await sb.rpc("naechste_runde_start");
+  if (error || !data || data.length === 0) return;
+
+  const zielZeit = new Date(data[0].startet_am).getTime();
+  if (Number.isNaN(zielZeit)) return;
+
+  function formatUndAktualisieren() {
+    const restMs = zielZeit - Date.now();
+    if (restMs <= 0) {
+      naechsteRundeText.textContent = "Die nächste Runde müsste schon da sein - lade die Seite neu.";
+      clearInterval(countdownInterval);
+      return;
+    }
+    const tage = Math.floor(restMs / 86400000);
+    const stunden = Math.floor((restMs % 86400000) / 3600000);
+    const minuten = Math.floor((restMs % 3600000) / 60000);
+
+    let dauer = "";
+    if (tage > 0) dauer += tage + (tage === 1 ? " Tag, " : " Tagen, ");
+    dauer += stunden + " Std. " + minuten + " Min.";
+
+    naechsteRundeText.replaceChildren("Nächste Fragen in ", Object.assign(document.createElement("strong"), { textContent: dauer }));
+  }
+
+  naechsteRundeText.hidden = false;
+  formatUndAktualisieren();
+  countdownInterval = setInterval(formatUndAktualisieren, 30000);
+}
+
+async function start() {
+  await ladeSchiedsrichter();
+
+  const gespeichert = leseGespeicherteSession();
+  if (gespeichert && gespeichert.id && gespeichert.pin) {
+    ausgewaehlteSchiedsrichterId = gespeichert.id;
+    eingegebenePin = gespeichert.pin;
+    zeigeAngemeldetenZustand(gespeichert.name || "");
+    await ladeFragenUndAntworten();
+  }
+}
+
+start();
