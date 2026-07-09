@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Schiri-Quiz der Woche</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="kopf">
+    <div class="kopf-inhalt">
+      <div class="kopf-titelzeile">
+        <span class="ball" aria-hidden="true">⚽</span>
+        <div>
+          <h1>Schiri-Quiz der Woche</h1>
+          <p class="subtitle">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
+        </div>
+      </div>
+
+      <div id="fortschritt-wrap" class="fortschritt-wrap" hidden>
+        <div class="fortschritt-zeile">
+          <span id="fortschritt-text">0 von 0 beantwortet</span>
+          <span id="fortschritt-prozent">0%</span>
+        </div>
+        <div class="fortschritt-track">
+          <div id="fortschritt-fill" class="fortschritt-fill"></div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- Schritt 1: Name + PIN -->
+    <section id="name-schritt" class="card login-card">
+      <div class="login-icon" aria-hidden="true">🧑‍⚖️</div>
+      <h2 class="card-titel">Wer bist du?</h2>
+
+      <label for="name-auswahl">Name</label>
+      <select id="name-auswahl">
+        <option value="">– bitte auswählen –</option>
+      </select>
+
+      <label for="pin-eingabe">Deine PIN</label>
+      <input
+        id="pin-eingabe"
+        type="password"
+        inputmode="numeric"
+        autocomplete="off"
+        placeholder="z.B. 1234"
+      />
+
+      <button id="start-button" disabled>
+        <span>Los geht's</span>
+        <span aria-hidden="true">→</span>
+      </button>
+      <p id="name-hinweis" class="hinweis">
+        Deine PIN kennst nur du – frag beim Obmann nach, falls du sie noch nicht hast.
+      </p>
+    </section>
+
+    <!-- Angemeldet-Leiste -->
+    <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
+      <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
+      <button id="wechseln-button" class="link-button" type="button">wechseln</button>
+    </div>
+
+    <!-- Schritt 2: Fragen -->
+    <section id="fragen-schritt" hidden>
+      <div id="fragen-liste" class="fragen-liste"></div>
+      <p id="keine-fragen-hinweis" class="hinweis card" hidden>
+        Aktuell ist keine Runde aktiv. Schau später nochmal vorbei.
+      </p>
+      <div id="fertig-hinweis" class="card fertig-card" hidden>
+        <div class="fertig-emoji" aria-hidden="true">🎉</div>
+        <p class="fertig-text">Danke fürs Mitmachen!</p>
+        <p class="fertig-untertext">Nächste Runde gibt's neue Fragen.</p>
+      </div>
+    </section>
+
+    <p id="fehler-hinweis" class="fehler" hidden></p>
+  </main>
+
+  <footer class="fuss">
+    <p>Viel Erfolg beim Regeln-Büffeln! 📖</p>
+  </footer>
+
+  <div id="konfetti-schicht" class="konfetti-schicht" aria-hidden="true"></div>
+
+  <!-- Supabase Client (aus CDN, kein Build-Tool nötig) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
