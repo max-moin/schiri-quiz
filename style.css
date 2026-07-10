@@ -398,9 +398,9 @@ button {
   margin: 0 0 10px;
 }
 
-/* Lade-Hinweis während der KI die Freitext-Antwort bewertet - verhindert,
-   dass ungeduldige Nutzer:innen mehrfach klicken (Button/Feld sind während
-   dieser Zeit ohnehin per JS deaktiviert, dieser Hinweis erklärt nur warum). */
+/* Lade-Hinweis während die Freitext-Antwort geprüft wird - verhindert, dass
+   ungeduldige Nutzer:innen mehrfach klicken (Button/Feld sind während dieser
+   Zeit ohnehin per JS deaktiviert, dieser Hinweis erklärt nur warum). */
 .freitext-lade-hinweis {
   display: flex;
   align-items: center;
@@ -409,6 +409,40 @@ button {
   font-size: 0.88rem;
   font-style: italic;
   margin-top: 12px;
+}
+
+/* WICHTIG: ohne diese Zeile überschreibt die obige "display: flex"-Regel das
+   HTML-"hidden"-Attribut (Browser-Standardverhalten für [hidden] ist zwar
+   "display: none", aber jede eigene CSS-Regel mit "display" für dieselbe
+   Klasse hat Vorrang) - der Lade-Hinweis wäre sonst die ganze Zeit sichtbar,
+   auch bevor man überhaupt etwas abgeschickt hat (genau der Bug, den Max
+   gemeldet hat). Dieselbe Falle gilt für jedes Element, das gleichzeitig
+   "hidden" UND eine eigene "display"-Regel bekommt. */
+.freitext-lade-hinweis[hidden] {
+  display: none;
+}
+
+.freitext-ergebnis-kopf {
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.freitext-ergebnis-muster {
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.freitext-ergebnis-ki {
+  font-weight: 400;
+  font-size: 0.88rem;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.freitext-ergebnis-hinweis {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0 0 6px;
 }
 
 .spinner {

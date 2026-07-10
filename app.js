@@ -459,27 +459,62 @@ function baueFreitextFrageElement(frage) {
   );
   container.appendChild(absendenButton);
 
-  // Lade-Hinweis: erscheint erst beim Absenden. Wichtig für Freitext, weil
-  // die KI-Bewertung ein paar Sekunden dauert (anders als bei Multiple
-  // Choice, wo die Rückmeldung sofort da ist) - ohne diesen Hinweis würden
-  // ungeduldige Nutzer:innen vermutlich mehrfach auf den Button klicken.
+  // Lade-Hinweis: erscheint erst beim Absenden (nicht vorher!). Wichtig für
+  // Freitext, weil die Auswertung ein paar Sekunden dauert (anders als bei
+  // Multiple Choice, wo die Rückmeldung sofort da ist) - ohne diesen Hinweis
+  // würden ungeduldige Nutzer:innen vermutlich mehrfach auf den Button
+  // klicken. Bewusst ohne "KI"-Erwähnung im Text (Max' Feedback: die
+  // KI-Anbindung soll im Hintergrund bleiben, nicht ständig betont werden).
   const ladeHinweis = document.createElement("p");
   ladeHinweis.className = "freitext-lade-hinweis";
   ladeHinweis.hidden = true;
   const spinner = document.createElement("span");
   spinner.className = "spinner";
   ladeHinweis.appendChild(spinner);
-  ladeHinweis.append(
-    " Einen Moment, deine Antwort wird von der KI ausgewertet - das kann bis zu einer halben Minute dauern ..."
-  );
+  ladeHinweis.append(" Einen Moment, deine Antwort wird geprüft ...");
   container.appendChild(ladeHinweis);
 
-  const feedback = document.createElement("p");
+  // Als <div> statt <p> angelegt, weil hier gleich mehrere <p>-Zeilen
+  // (Kopf/Musterantwort/KI-Feedback) reingehängt werden - ein <p> darf laut
+  // HTML-Spec kein Block-Element wie ein weiteres <p> enthalten.
+  const feedback = document.createElement("div");
   feedback.className = "feedback";
   feedback.hidden = true;
   container.appendChild(feedback);
 
   return container;
+}
+
+// Baut den Ergebnis-Inhalt für eine Freitext-Antwort - fest formuliert
+// ("Antwort korrekt"/"Antwort nicht korrekt" + die tatsächliche Musterantwort
+// wortwörtlich), die freie KI-Formulierung kommt nur noch als zusätzliche,
+// kleiner gesetzte Zeile dazu. Max' Feedback nach dem ersten Test: die
+// bisherige, komplett KI-generierte Formulierung wirkte zu variabel/informell -
+// die feste Musterantwort sorgt dafür, dass die eigentlich richtige Antwort
+// (z.B. "Gelbe Karte") immer exakt und gleich dargestellt wird.
+function baueFreitextErgebnisInhalt(ergebnis) {
+  const wrap = document.createElement("div");
+
+  const kopf = document.createElement("p");
+  kopf.className = "freitext-ergebnis-kopf";
+  kopf.textContent = ergebnis.korrekt ? "Antwort korrekt ✅" : "Antwort nicht korrekt";
+  wrap.appendChild(kopf);
+
+  if (ergebnis.musterantwort) {
+    const musterZeile = document.createElement("p");
+    musterZeile.className = "freitext-ergebnis-muster";
+    musterZeile.textContent = "Richtige Antwort: " + ergebnis.musterantwort;
+    wrap.appendChild(musterZeile);
+  }
+
+  if (ergebnis.ki_feedback) {
+    const kiZeile = document.createElement("p");
+    kiZeile.className = "freitext-ergebnis-ki";
+    kiZeile.textContent = ergebnis.ki_feedback;
+    wrap.appendChild(kiZeile);
+  }
+
+  return wrap;
 }
 
 function baueBeantworteteFreitextElement(frage, antwort) {
@@ -512,11 +547,10 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   deineAntwort.textContent = "Deine Antwort: " + (antwort.gegebener_freitext || "");
   container.appendChild(deineAntwort);
 
-  const ergebnis = document.createElement("p");
-  ergebnis.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
-  ergebnis.textContent =
-    (antwort.korrekt ? "Richtig! ✅ " : "Leider nicht ganz richtig. ") + (antwort.ki_feedback || "");
-  container.appendChild(ergebnis);
+  const ergebnisWrap = document.createElement("div");
+  ergebnisWrap.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
+  ergebnisWrap.appendChild(baueFreitextErgebnisInhalt(antwort));
+  container.appendChild(ergebnisWrap);
 
   return container;
 }
@@ -567,18 +601,16 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
 
   const feedback = container.querySelector(".feedback");
   feedback.hidden = false;
+  feedback.innerHTML = "";
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
 
   if (ergebnis.bereits_beantwortet) {
-    feedback.textContent =
-      "Diese Frage hattest du schon beantwortet - dein erstes Ergebnis zählt: " +
-      (ergebnis.korrekt ? "Richtig ✅" : "Leider nicht ganz richtig") +
-      (ergebnis.ki_feedback ? " - " + ergebnis.ki_feedback : "");
-  } else if (ergebnis.korrekt) {
-    feedback.textContent = "Richtig! ✅ " + (ergebnis.ki_feedback || "");
-  } else {
-    feedback.textContent = "Leider nicht ganz richtig. " + (ergebnis.ki_feedback || "");
+    const hinweisZeile = document.createElement("p");
+    hinweisZeile.className = "freitext-ergebnis-hinweis";
+    hinweisZeile.textContent = "Diese Frage hattest du schon beantwortet - dein erstes Ergebnis zählt:";
+    feedback.appendChild(hinweisZeile);
   }
-  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+  feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
 
   beantworteFragenAnzahl += 1;
   aktualisiereFortschritt();

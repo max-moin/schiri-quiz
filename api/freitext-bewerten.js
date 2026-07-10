@@ -85,15 +85,28 @@ export default async function handler(req, res) {
   }
 
   // Schritt 2: Gemini fragen
+  //
+  // ALLGEMEINE_BEWERTUNGSREGELN gelten für JEDE Freitext-Frage (fest im Code,
+  // nicht pro Frage einstellbar) - Ergänzung nach Max' erstem Praxistest:
+  // die KI hatte "es gibt eine Karte" als richtig durchgehen lassen, obwohl
+  // die Musterantwort eine bestimmte Farbe (Gelb) verlangte. Diese Regeln
+  // sollen das systematisch verhindern, nicht nur für diese eine Frage.
+  const ALLGEMEINE_BEWERTUNGSREGELN = `Allgemeine Regeln für die Bewertung (gelten für JEDE Frage, zusätzlich zu den Bewertungshinweisen unten):
+- Wenn die Musterantwort eine bestimmte persönliche Strafe nennt (keine Strafe / Gelbe Karte = Verwarnung / Rote Karte = Feldverweis), muss die gegebene Antwort genau diese Strafe klar benennen. Eine vage Formulierung wie "es gibt eine Karte" oder "er wird bestraft" reicht NICHT, wenn die Musterantwort eine bestimmte Farbe/Konsequenz verlangt.
+- Allgemein: wenn die Musterantwort einen konkreten Begriff, eine Zahl oder eine bestimmte Konsequenz nennt, muss die gegebene Antwort genau diesen Punkt ebenfalls klar benennen - Umschreibungen/Synonyme sind erlaubt, das Weglassen oder Verallgemeinern des entscheidenden Details nicht.
+- Umgangssprache/lockerer Satzbau ist erlaubt und soll NICHT negativ bewertet werden, solange der fachliche Inhalt stimmt.`;
+
   const prompt = `Du bewertest die Antwort eines Fußball-Schiedsrichters auf eine Regelfrage.
+
+${ALLGEMEINE_BEWERTUNGSREGELN}
 
 Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
-Bewertungshinweise: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
+Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
 Gegebene Antwort: ${bereinigterFreitext}
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"korrekt": true oder false, "feedback": "kurze, freundliche Begründung auf Deutsch, 1-2 Sätze"}`;
+{"korrekt": true oder false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz, warum die gegebene Antwort richtig oder falsch ist - kein Smalltalk, keine Anrede"}`;
 
   let kiErgebnis;
   try {
@@ -145,7 +158,11 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
       p_ki_feedback: kiErgebnis.feedback || "",
     });
     const ergebnis = Array.isArray(gespeichert) ? gespeichert[0] : gespeichert;
-    res.status(200).json(ergebnis);
+    // Musterantwort mit ausliefern (steht schon aus Schritt 1 im Speicher,
+    // kein weiterer DB-Aufruf nötig) - die Website zeigt sie als feste
+    // "Richtige Antwort"-Zeile, statt sich nur auf die freie KI-Formulierung
+    // zu verlassen (Max' Feedback: die KI-Formulierung wirkte zu variabel).
+    res.status(200).json({ ...ergebnis, musterantwort: kontext.musterantwort });
   } catch (e) {
     res.status(500).json({ fehler: "Speichern fehlgeschlagen.", details: String(e.message || e) });
   }
