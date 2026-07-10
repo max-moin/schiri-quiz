@@ -63,6 +63,9 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
         },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            thinkingConfig: { thinkingLevel: "minimal" },
+          },
         }),
       }
     );

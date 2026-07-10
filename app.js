@@ -152,7 +152,9 @@ async function ladeFragenUndAntworten() {
   const [fragenErgebnis, antwortenErgebnis] = await Promise.all([
     sb
       .from("fragen_oeffentlich")
-      .select("id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position")
+      .select(
+        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis"
+      )
       .order("position", { ascending: true, nullsFirst: false }),
     sb.rpc("meine_antworten", {
       p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
@@ -187,11 +189,16 @@ async function ladeFragenUndAntworten() {
 
   for (const frage of fragen) {
     const bisherigeAntwort = antwortenNachFrageId.get(frage.id);
+    const istFreitext = frage.typ === "freitext";
     if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
       beantworteFragenAnzahl += 1;
-      fragenListe.appendChild(baueBeantworteteFrageElement(frage, bisherigeAntwort));
+      fragenListe.appendChild(
+        istFreitext
+          ? baueBeantworteteFreitextElement(frage, bisherigeAntwort)
+          : baueBeantworteteFrageElement(frage, bisherigeAntwort)
+      );
     } else {
-      fragenListe.appendChild(baueFrageElement(frage));
+      fragenListe.appendChild(istFreitext ? baueFreitextFrageElement(frage) : baueFrageElement(frage));
     }
   }
 
@@ -398,6 +405,191 @@ function baueBeantworteteFrageElement(frage, antwort) {
   return container;
 }
 
+// ============================================================
+// Freitext-Fragen mit KI-Auswertung (10.07.2026)
+// ============================================================
+const FREITEXT_ZEICHENLIMIT = 400;
+
+function baueFreitextFrageElement(frage) {
+  const container = document.createElement("div");
+  container.className = "frage-karte frage-karte-freitext";
+  container.dataset.frageId = frage.id;
+
+  const badges = baueBadges(frage);
+  if (badges) container.appendChild(badges);
+
+  const titel = document.createElement("div");
+  titel.className = "frage-text";
+  titel.textContent = frage.frage_text;
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
+
+  if (frage.antwort_hinweis) {
+    const hinweis = document.createElement("p");
+    hinweis.className = "freitext-hinweis";
+    hinweis.textContent = frage.antwort_hinweis;
+    container.appendChild(hinweis);
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.className = "freitext-eingabe";
+  textarea.maxLength = FREITEXT_ZEICHENLIMIT;
+  textarea.rows = 3;
+  textarea.placeholder = "Deine Antwort ...";
+  container.appendChild(textarea);
+
+  const zaehler = document.createElement("div");
+  zaehler.className = "freitext-zaehler";
+  zaehler.textContent = "0 / " + FREITEXT_ZEICHENLIMIT;
+  textarea.addEventListener("input", () => {
+    zaehler.textContent = textarea.value.length + " / " + FREITEXT_ZEICHENLIMIT;
+  });
+  container.appendChild(zaehler);
+
+  const absendenButton = document.createElement("button");
+  absendenButton.className = "absenden-button";
+  absendenButton.textContent = "Antwort abschicken";
+  absendenButton.addEventListener("click", () =>
+    freitextAntwortAbschicken(frage.id, container, absendenButton, textarea)
+  );
+  container.appendChild(absendenButton);
+
+  // Lade-Hinweis: erscheint erst beim Absenden. Wichtig für Freitext, weil
+  // die KI-Bewertung ein paar Sekunden dauert (anders als bei Multiple
+  // Choice, wo die Rückmeldung sofort da ist) - ohne diesen Hinweis würden
+  // ungeduldige Nutzer:innen vermutlich mehrfach auf den Button klicken.
+  const ladeHinweis = document.createElement("p");
+  ladeHinweis.className = "freitext-lade-hinweis";
+  ladeHinweis.hidden = true;
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  ladeHinweis.appendChild(spinner);
+  ladeHinweis.append(
+    " Einen Moment, deine Antwort wird von der KI ausgewertet - das kann bis zu einer halben Minute dauern ..."
+  );
+  container.appendChild(ladeHinweis);
+
+  const feedback = document.createElement("p");
+  feedback.className = "feedback";
+  feedback.hidden = true;
+  container.appendChild(feedback);
+
+  return container;
+}
+
+function baueBeantworteteFreitextElement(frage, antwort) {
+  const container = document.createElement("div");
+  container.className =
+    "frage-karte beantwortet frage-karte-freitext " + (antwort.korrekt ? "richtig-karte" : "falsch-karte");
+  container.dataset.frageId = frage.id;
+
+  const badges = baueBadges(frage);
+  if (badges) container.appendChild(badges);
+
+  const tag = document.createElement("div");
+  tag.className = "beantwortet-tag";
+  tag.textContent = "🔒 Bereits beantwortet";
+  container.appendChild(tag);
+
+  const titel = document.createElement("div");
+  titel.className = "frage-text";
+  titel.textContent = frage.frage_text;
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
+
+  const deineAntwort = document.createElement("p");
+  deineAntwort.className = "freitext-eigene-antwort";
+  deineAntwort.textContent = "Deine Antwort: " + (antwort.gegebener_freitext || "");
+  container.appendChild(deineAntwort);
+
+  const ergebnis = document.createElement("p");
+  ergebnis.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
+  ergebnis.textContent =
+    (antwort.korrekt ? "Richtig! ✅ " : "Leider nicht ganz richtig. ") + (antwort.ki_feedback || "");
+  container.appendChild(ergebnis);
+
+  return container;
+}
+
+async function freitextAntwortAbschicken(frageId, container, button, textarea) {
+  const freitext = textarea.value.trim();
+  if (freitext.length === 0) {
+    zeigeFehler("Bitte erst eine Antwort eingeben.");
+    return;
+  }
+  versteckeFehler();
+
+  // Button UND Textfeld sperren, solange die KI-Bewertung läuft - verhindert
+  // Doppel-Absenden durch ungeduldiges Mehrfachklicken (Max' ausdrücklicher
+  // Wunsch nach dem ersten Live-Test).
+  button.disabled = true;
+  textarea.disabled = true;
+
+  const ladeHinweis = container.querySelector(".freitext-lade-hinweis");
+  if (ladeHinweis) ladeHinweis.hidden = false;
+
+  let ergebnis;
+  try {
+    const antwort = await fetch("/api/freitext-bewerten", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schiedsrichterId: ausgewaehlteSchiedsrichterId,
+        frageId,
+        pin: eingegebenePin,
+        freitext,
+      }),
+    });
+    ergebnis = await antwort.json();
+    if (!antwort.ok) throw new Error(ergebnis.fehler || "Unbekannter Fehler");
+  } catch (e) {
+    if (ladeHinweis) ladeHinweis.hidden = true;
+    const feedback = container.querySelector(".feedback");
+    feedback.hidden = false;
+    feedback.textContent = "Fehler bei der Auswertung: " + e.message + " - bitte nochmal versuchen.";
+    feedback.classList.add("falsch");
+    button.disabled = false;
+    textarea.disabled = false;
+    return;
+  }
+
+  if (ladeHinweis) ladeHinweis.hidden = true;
+
+  const feedback = container.querySelector(".feedback");
+  feedback.hidden = false;
+
+  if (ergebnis.bereits_beantwortet) {
+    feedback.textContent =
+      "Diese Frage hattest du schon beantwortet - dein erstes Ergebnis zählt: " +
+      (ergebnis.korrekt ? "Richtig ✅" : "Leider nicht ganz richtig") +
+      (ergebnis.ki_feedback ? " - " + ergebnis.ki_feedback : "");
+  } else if (ergebnis.korrekt) {
+    feedback.textContent = "Richtig! ✅ " + (ergebnis.ki_feedback || "");
+  } else {
+    feedback.textContent = "Leider nicht ganz richtig. " + (ergebnis.ki_feedback || "");
+  }
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+
+  beantworteFragenAnzahl += 1;
+  aktualisiereFortschritt();
+  aktualisiereSammelButtonSichtbarkeit();
+
+  if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
+    fertigHinweis.hidden = false;
+    zeigeNaechsteRundeCountdown();
+  }
+}
+
 async function antwortAbschicken(frageId, container, button) {
   const gewaehlt = container.querySelector('input[type="radio"]:checked');
   if (!gewaehlt) {
@@ -457,12 +649,15 @@ async function antwortAbschicken(frageId, container, button) {
 // wo man mehrere Fragen bequem nacheinander anklicken kann, statt jede einzeln
 // abzuschicken. Die einzelnen "Antwort abschicken"-Buttons bleiben trotzdem nutzbar.
 sammelAbsendenButton.addEventListener("click", async () => {
-  const offeneMitAuswahl = Array.from(fragenListe.querySelectorAll(".frage-karte:not(.beantwortet)")).filter(
-    (karte) => {
-      const button = karte.querySelector(".absenden-button");
-      return karte.querySelector('input[type="radio"]:checked') && button && !button.disabled;
-    }
-  );
+  // Freitext-Karten haben keine Radio-Buttons und werden hier bewusst nicht
+  // mit erfasst (eigener "Antwort abschicken"-Button je Karte, wegen der
+  // KI-Wartezeit lieber einzeln als im Sammel-Rutsch).
+  const offeneMitAuswahl = Array.from(
+    fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext)")
+  ).filter((karte) => {
+    const button = karte.querySelector(".absenden-button");
+    return karte.querySelector('input[type="radio"]:checked') && button && !button.disabled;
+  });
 
   if (offeneMitAuswahl.length === 0) {
     zeigeFehler("Bitte wähle zuerst bei mindestens einer offenen Frage eine Antwort aus.");
@@ -486,7 +681,9 @@ function aktualisiereSammelButtonSichtbarkeit() {
   // "Offen" heißt hier: weder als bereits-beantwortet-Karte gerendert (beim Laden
   // erkannt) NOCH schon in dieser Sitzung abgeschickt (Button dann disabled) -
   // eine Karte, die man gerade eben abgeschickt hat, zählt also nicht mehr mit.
-  const offeneAnzahl = Array.from(fragenListe.querySelectorAll(".frage-karte:not(.beantwortet)")).filter((karte) => {
+  const offeneAnzahl = Array.from(
+    fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext)")
+  ).filter((karte) => {
     const button = karte.querySelector(".absenden-button");
     return button && !button.disabled;
   }).length;

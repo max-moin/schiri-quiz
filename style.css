@@ -350,6 +350,82 @@ button {
   color: #fff;
 }
 
+/* ---------- Freitext-Fragen mit KI-Auswertung (10.07.2026) ---------- */
+
+.freitext-hinweis {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 10px;
+}
+
+.freitext-eingabe {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  background: #fafafa;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.freitext-eingabe:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-light);
+  background: #ffffff;
+}
+
+.freitext-eingabe:disabled {
+  opacity: 0.7;
+}
+
+.freitext-zaehler {
+  text-align: right;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 4px 0 12px;
+}
+
+.freitext-eigene-antwort {
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg-end);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 10px;
+}
+
+/* Lade-Hinweis während der KI die Freitext-Antwort bewertet - verhindert,
+   dass ungeduldige Nutzer:innen mehrfach klicken (Button/Feld sind während
+   dieser Zeit ohnehin per JS deaktiviert, dieser Hinweis erklärt nur warum). */
+.freitext-lade-hinweis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-top: 12px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spinner-drehen 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spinner-drehen {
+  to { transform: rotate(360deg); }
+}
+
 .option-liste {
   display: flex;
   flex-direction: column;
