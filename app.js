@@ -203,6 +203,37 @@ async function ladeFragenUndAntworten() {
   }
 }
 
+// Vorlese-Option (Text-to-Speech, 10.07.2026, Backlog-Idee "klein, schnell
+// machbar"): nutzt die im Browser eingebaute Web Speech API, kein eigener
+// Server/Dienst nötig. "unterstuetztVorlesen" wird einmal beim Laden geprüft
+// - auf Browsern ohne Unterstützung erscheint der Button gar nicht erst,
+// statt beim Klick wirkungslos zu bleiben.
+const unterstuetztVorlesen = "speechSynthesis" in window;
+
+function vorlesen(text) {
+  if (!unterstuetztVorlesen) return;
+  window.speechSynthesis.cancel(); // falls schon eine andere Frage vorgelesen wird
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = "de-DE";
+  window.speechSynthesis.speak(utterance);
+}
+
+function baueVorlesenButton(text) {
+  if (!unterstuetztVorlesen) return null;
+
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "vorlesen-button";
+  button.setAttribute("aria-label", "Frage vorlesen");
+  button.title = "Frage vorlesen";
+  button.textContent = "🔊";
+  button.addEventListener("click", (e) => {
+    e.preventDefault();
+    vorlesen(text);
+  });
+  return button;
+}
+
 function schwierigkeitSterne(schwierigkeit) {
   if (!schwierigkeit) return null;
   const voll = "★".repeat(schwierigkeit);
@@ -243,7 +274,13 @@ function baueFrageElement(frage) {
   const titel = document.createElement("div");
   titel.className = "frage-text";
   titel.textContent = frage.frage_text;
-  container.appendChild(titel);
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
 
   const optionListe = document.createElement("div");
   optionListe.className = "option-liste";
@@ -304,7 +341,13 @@ function baueBeantworteteFrageElement(frage, antwort) {
   const titel = document.createElement("div");
   titel.className = "frage-text";
   titel.textContent = frage.frage_text;
-  container.appendChild(titel);
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
 
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
 
