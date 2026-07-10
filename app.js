@@ -152,7 +152,8 @@ async function ladeFragenUndAntworten() {
   const [fragenErgebnis, antwortenErgebnis] = await Promise.all([
     sb
       .from("fragen_oeffentlich")
-      .select("id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit"),
+      .select("id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position")
+      .order("position", { ascending: true, nullsFirst: false }),
     sb.rpc("meine_antworten", {
       p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
       p_pin: eingegebenePin,
@@ -210,11 +211,36 @@ async function ladeFragenUndAntworten() {
 // statt beim Klick wirkungslos zu bleiben.
 const unterstuetztVorlesen = "speechSynthesis" in window;
 
-function vorlesen(text) {
+// Merkt sich den Button, der gerade eine Frage vorliest - so kann ein
+// zweiter Klick auf DENSELBEN Button die Sprachausgabe stoppen (10.07.2026-
+// Feedback: einmal klicken startet, nochmal klicken bricht ab, sonst nervt's).
+let vorlesenAktiverButton = null;
+
+function vorlesenBeendetAnzeigen(button) {
+  button.classList.remove("spricht");
+  button.textContent = "🔊";
+  button.title = "Frage vorlesen";
+  if (vorlesenAktiverButton === button) vorlesenAktiverButton = null;
+}
+
+function stoppeVorlesen() {
+  window.speechSynthesis.cancel();
+  if (vorlesenAktiverButton) vorlesenBeendetAnzeigen(vorlesenAktiverButton);
+}
+
+function vorlesen(text, button) {
   if (!unterstuetztVorlesen) return;
-  window.speechSynthesis.cancel(); // falls schon eine andere Frage vorgelesen wird
+  stoppeVorlesen(); // falls schon eine andere Frage vorgelesen wird
+
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.lang = "de-DE";
+  utterance.onend = () => vorlesenBeendetAnzeigen(button);
+  utterance.onerror = () => vorlesenBeendetAnzeigen(button);
+
+  vorlesenAktiverButton = button;
+  button.classList.add("spricht");
+  button.textContent = "⏹";
+  button.title = "Vorlesen stoppen";
   window.speechSynthesis.speak(utterance);
 }
 
@@ -229,7 +255,11 @@ function baueVorlesenButton(text) {
   button.textContent = "🔊";
   button.addEventListener("click", (e) => {
     e.preventDefault();
-    vorlesen(text);
+    if (button.classList.contains("spricht")) {
+      stoppeVorlesen();
+    } else {
+      vorlesen(text, button);
+    }
   });
   return button;
 }

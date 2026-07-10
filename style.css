@@ -344,6 +344,12 @@ button {
   transform: scale(0.95);
 }
 
+/* Aktiver Zustand während die Frage vorgelesen wird - Klick stoppt sie. */
+.vorlesen-button.spricht {
+  background: var(--green);
+  color: #fff;
+}
+
 .option-liste {
   display: flex;
   flex-direction: column;
