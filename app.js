@@ -34,9 +34,21 @@ const historieStartButton = document.getElementById("historie-start-button");
 const historieSchritt = document.getElementById("historie-schritt");
 const historieZurueckButton = document.getElementById("historie-zurueck-button");
 const historieNeuLadenButton = document.getElementById("historie-neu-laden-button");
+const historieNeuLadenIcon = historieNeuLadenButton ? historieNeuLadenButton.querySelector(".historie-neu-laden-icon") : null;
 const historieFortschrittText = document.getElementById("historie-fortschritt-text");
 const historieFrageBereich = document.getElementById("historie-frage-bereich");
 const historieLeerHinweis = document.getElementById("historie-leer-hinweis");
+
+// Kopf/Untertitel (11.07.2026, Update nach Max' Feedback): werden im
+// "Üben"-Modus umgestaltet (andere Kopf-Farbe, anderer Untertitel-Text, die
+// wöchentliche Fortschrittsleiste ausgeblendet), damit klar erkennbar ist,
+// dass man sich nicht mehr im normalen Wochen-Quiz befindet. Der
+// Original-Untertitel wird einmal beim Laden gemerkt, um beim Verlassen des
+// Üben-Modus wieder exakt den ursprünglichen Text herzustellen.
+const kopf = document.getElementById("kopf");
+const kopfUntertitel = document.getElementById("kopf-untertitel");
+const kopfUntertitelOriginal = kopfUntertitel ? kopfUntertitel.textContent : "";
+const UEBEN_UNTERTITEL = "Übe hier so viele alte Fragen, wie du möchtest - ganz ohne Zeitdruck.";
 
 let ausgewaehlteSchiedsrichterId = null;
 let eingegebenePin = null;
@@ -44,6 +56,19 @@ let gesamtFragenAnzahl = 0;
 let beantworteFragenAnzahl = 0;
 let countdownInterval = null;
 let historieAktuelleFrageId = null;
+
+// Historie-Fortschritt (11.07.2026, Update nach Max' Feedback): wird nicht
+// mehr nach jeder Antwort neu vom Server abgefragt (das ließ die Anzeige bei
+// Test-Konten wie "Dummy" für immer bei "0" stehen, weil deren Antworten
+// bewusst nicht in der DB landen, siehe Migration v43). Stattdessen wird der
+// Server-Stand einmal beim Betreten des Üben-Modus als Basis geladen, und
+// jede Antwort in dieser Sitzung wird direkt lokal draufgerechnet - so
+// stimmt die Anzeige immer sofort, unabhängig vom Test-Konto-Sonderfall.
+let historieBasisGesamt = 0;
+let historieBasisRichtig = 0;
+let historieSessionGesamt = 0;
+let historieSessionRichtig = 0;
+let historieAutoTimer = null;
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -810,44 +835,91 @@ async function zeigeNaechsteRundeCountdown() {
 // antworten zu müssen.
 // ============================================================
 
-historieStartButton.addEventListener("click", () => {
+// Betreten/Verlassen des "Üben"-Modus (11.07.2026, Update nach Max'
+// Feedback): der Kopf bekommt eine eigene Farbe + einen eigenen Untertitel,
+// und die wöchentliche "X von Y beantwortet"-Leiste verschwindet - im
+// Üben-Modus weiß man ja per Definition schon, dass man "in dem Menü" ist,
+// da störte die Leiste laut Max nur noch.
+function betreteUebenModus() {
+  if (kopf) kopf.classList.add("kopf-uebung");
+  if (kopfUntertitel) kopfUntertitel.textContent = UEBEN_UNTERTITEL;
+  fortschrittWrap.hidden = true;
   fragenSchritt.hidden = true;
   historieSchritt.hidden = false;
   ladeHistorieFortschritt();
   ladeHistorieFrage(null);
-});
+}
 
-historieZurueckButton.addEventListener("click", () => {
+function verlasseUebenModus() {
+  if (historieAutoTimer) {
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  }
   stoppeVorlesen();
+  if (kopf) kopf.classList.remove("kopf-uebung");
+  if (kopfUntertitel) kopfUntertitel.textContent = kopfUntertitelOriginal;
+  // Die wöchentliche Fortschrittsleiste gehört nur ins normale Quiz - war sie
+  // vorher (angemeldeter Zustand) sichtbar, kommt sie jetzt einfach wieder.
+  fortschrittWrap.hidden = false;
   historieSchritt.hidden = true;
   fragenSchritt.hidden = false;
-});
+}
+
+historieStartButton.addEventListener("click", betreteUebenModus);
+
+historieZurueckButton.addEventListener("click", verlasseUebenModus);
 
 historieNeuLadenButton.addEventListener("click", () => {
+  if (historieNeuLadenIcon) {
+    historieNeuLadenIcon.classList.remove("dreht-sich");
+    // Reflow erzwingen, damit die Animation bei mehrfachem Klick hintereinander
+    // jedes Mal neu abspielt, statt beim erneuten Hinzufügen derselben Klasse
+    // einfach ignoriert zu werden.
+    void historieNeuLadenIcon.offsetWidth;
+    historieNeuLadenIcon.classList.add("dreht-sich");
+  }
   ladeHistorieFrage(historieAktuelleFrageId);
 });
 
 async function ladeHistorieFortschritt() {
+  historieSessionGesamt = 0;
+  historieSessionRichtig = 0;
+
   const { data, error } = await sb.rpc("historie_fortschritt_uebersicht", {
     p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
     p_pin: eingegebenePin,
   });
 
   if (error || !data || data.length === 0) {
-    historieFortschrittText.textContent = "";
-    return;
+    historieBasisGesamt = 0;
+    historieBasisRichtig = 0;
+  } else {
+    historieBasisGesamt = data[0].gesamt_beantwortet;
+    historieBasisRichtig = data[0].richtig_beantwortet;
   }
 
-  const { gesamt_beantwortet, richtig_beantwortet } = data[0];
+  aktualisiereHistorieFortschrittText();
+}
+
+// Rendert die Fortschrittsanzeige rein aus lokalem Zustand (Server-Basis +
+// Antworten dieser Sitzung) - siehe Kommentar bei den Variablen weiter oben,
+// warum das nicht mehr bei jeder Antwort neu vom Server geladen wird.
+function aktualisiereHistorieFortschrittText() {
+  const gesamt = historieBasisGesamt + historieSessionGesamt;
+  const richtig = historieBasisRichtig + historieSessionRichtig;
   historieFortschrittText.textContent =
-    gesamt_beantwortet === 0
+    gesamt === 0
       ? "Noch keine Wiederholungsfragen beantwortet."
-      : "Du hast schon " + gesamt_beantwortet + " Wiederholungsfragen gemacht, " + richtig_beantwortet + " davon richtig.";
+      : "Du hast schon " + gesamt + " Wiederholungsfragen gemacht, " + richtig + " davon richtig.";
 }
 
 async function ladeHistorieFrage(ausschlussFrageId) {
   versteckeFehler();
   stoppeVorlesen();
+  if (historieAutoTimer) {
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  }
   historieFrageBereich.innerHTML = "";
   historieLeerHinweis.hidden = true;
 
@@ -873,6 +945,66 @@ async function ladeHistorieFrage(ausschlussFrageId) {
   historieFrageBereich.appendChild(
     frage.typ === "freitext" ? baueHistorieFreitextFrageElement(frage) : baueHistorieFrageElement(frage)
   );
+}
+
+// "Nächste Frage"-Button direkt in der Karte (11.07.2026, Max' Feedback:
+// vorher blieb man nach dem Antworten einfach "hängen" - jetzt ist der Weg
+// zur nächsten Frage Teil der Karte selbst statt eines weit entfernten
+// Icons oben). Bei Multiple-Choice zählt zusätzlich ein automatischer
+// Weiterschalt-Timer mit sichtbarer Countdown-Linie (bei Freitext bewusst
+// nicht, weil das KI-Feedback erst gelesen werden soll). Der Timer ist über
+// "historieAutoTimer" jederzeit abbrechbar (Reload-Klick, Zurück-Klick,
+// eigener Klick auf den Weiter-Button).
+function zeigeHistorieWeiterButton(container, bisherigeFrageId, automatisch) {
+  if (historieAutoTimer) {
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  }
+
+  const alterButton = container.querySelector(".historie-weiter-button");
+  if (alterButton) alterButton.remove();
+
+  const weiterButton = document.createElement("button");
+  weiterButton.type = "button";
+  weiterButton.className = "historie-weiter-button";
+
+  const label = document.createElement("span");
+  label.textContent = "Nächste Frage →";
+  weiterButton.appendChild(label);
+
+  const fortschrittsLinie = document.createElement("span");
+  fortschrittsLinie.className = "historie-weiter-fortschritt";
+  weiterButton.appendChild(fortschrittsLinie);
+
+  function weiter() {
+    if (historieAutoTimer) {
+      clearTimeout(historieAutoTimer);
+      historieAutoTimer = null;
+    }
+    ladeHistorieFrage(bisherigeFrageId);
+  }
+
+  weiterButton.addEventListener("click", weiter);
+  container.appendChild(weiterButton);
+
+  if (automatisch) {
+    // Bei falscher Antwort etwas mehr Zeit zum Lesen der richtigen Lösung,
+    // bei richtiger Antwort geht's flotter weiter.
+    const istKorrekt = !!container.querySelector(".feedback.richtig");
+    const dauerMs = istKorrekt ? 1800 : 3200;
+
+    // Countdown-Linie: startet bei voller Breite (scaleX(1), siehe CSS) und
+    // läuft in "dauerMs" linear auf 0 - der kurze Timeout davor sorgt dafür,
+    // dass der Browser den Startzustand erst rendert, bevor die
+    // CSS-Transition zum Zielwert losläuft (sonst würde direkt der Endwert
+    // gezeichnet, ohne sichtbare Animation).
+    requestAnimationFrame(() => {
+      fortschrittsLinie.style.transition = "transform " + dauerMs + "ms linear";
+      fortschrittsLinie.style.transform = "scaleX(0)";
+    });
+
+    historieAutoTimer = setTimeout(weiter, dauerMs);
+  }
 }
 
 function baueHistorieFrageElement(frage) {
@@ -975,7 +1107,10 @@ async function historieAntwortAbschicken(frageId, container, button) {
     feedback.classList.add("falsch");
   }
 
-  ladeHistorieFortschritt();
+  historieSessionGesamt += 1;
+  if (ergebnis.korrekt) historieSessionRichtig += 1;
+  aktualisiereHistorieFortschrittText();
+  zeigeHistorieWeiterButton(container, frageId, true);
 }
 
 function baueHistorieFreitextFrageElement(frage) {
@@ -1092,7 +1227,13 @@ async function historieFreitextAntwortAbschicken(frageId, container, button, tex
   feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
 
-  ladeHistorieFortschritt();
+  historieSessionGesamt += 1;
+  if (ergebnis.korrekt) historieSessionRichtig += 1;
+  aktualisiereHistorieFortschrittText();
+  // Bewusst OHNE automatisches Weiterschalten (anders als bei Multiple
+  // Choice) - das KI-Feedback braucht Lesezeit, die sich nicht sinnvoll
+  // pauschal timen lässt.
+  zeigeHistorieWeiterButton(container, frageId, false);
 }
 
 async function start() {

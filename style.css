@@ -700,12 +700,38 @@ button {
   }
 }
 
-/* ---------- Historie (Wiederholung alter Fragen, 11.07.2026) ---------- */
+/* ---------- "Üben" (Wiederholung alter Fragen, 11.07.2026) ---------- */
 /* Wiederhergestellt am 11.07.2026: die erste Auslieferung dieses Blocks
    basierte versehentlich auf einer veralteten style.css OHNE die
    Freitext-Styles - dadurch sahen Freitext-Fragen "gequetscht" aus
    (Hinweistext groß, Zähler links statt klein rechts unten). Diese Datei
-   ist jetzt wieder: kompletter Stand von Commit 13f523e + Historie-Block. */
+   ist jetzt wieder: kompletter Stand von Commit 13f523e + Historie-Block.
+
+   Update (11.07.2026, zweite Feedback-Runde nach Max' Live-Test): der
+   Bereich heißt auf der Website ab jetzt "Üben" (Wording-Wunsch, das
+   App-Wording "Wiederholung" bleibt unangetastet). Drei konkrete Punkte:
+   1) Der Kopfbereich (grüner Balken + Wochen-Fortschritt) sah im Üben-
+      Modus identisch zur normalen Quiz-Seite aus, obwohl er dort nichts
+      mehr bedeutet (die Wochen-Fragen sind ja schon fertig) - bekommt jetzt
+      per ".kopf-uebung"-Klasse (in app.js beim Betreten/Verlassen des
+      Modus umgeschaltet) einen blauen statt grünen Verlauf, der
+      Fortschrittsbalken wird komplett ausgeblendet, der Untertitel-Text
+      wechselt.
+   2) Der Neu-laden-Button wirkte als reiner Emoji-Kreis "billig" - jetzt
+      ein richtiger Pillen-Button mit SVG-Icon + Beschriftung, gleiche
+      Bauart wie die anderen sekundären Buttons im Projekt.
+   3) Neu: ".historie-weiter-button" erscheint direkt in der Frage-Karte,
+      nachdem eine Antwort abgeschickt wurde - vorher blieb man nach dem
+      Antworten "hängen" (Max' Wortwahl), jetzt ist der Weg zur nächsten
+      Frage Teil der Karte selbst statt eines weit entfernten Icons. Bei
+      Multiple-Choice zusätzlich mit einer dünnen Fortschrittslinie, die
+      eine automatische Weiterleitung ankündigt (abbrechbar per Klick) -
+      bei Freitext bewusst ohne Automatik, weil das KI-Feedback erst
+      gelesen werden soll. */
+
+.kopf.kopf-uebung {
+  background: linear-gradient(120deg, var(--blue) 0%, #1e3a8a 100%);
+}
 
 .historie-start-button {
   margin: 14px auto 0;
@@ -731,21 +757,42 @@ button {
   margin-top: 4px;
 }
 
-.historie-reload-button {
+.historie-neu-laden-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
   background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  font-size: 1.05rem;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 9px 16px 9px 12px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
   cursor: pointer;
   box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s;
 }
 
-.historie-reload-button:hover {
+.historie-neu-laden-button:hover {
+  border-color: var(--blue);
+  color: var(--blue);
   box-shadow: var(--shadow-hover);
-  transform: rotate(45deg);
+}
+
+.historie-neu-laden-icon {
+  flex-shrink: 0;
+}
+
+/* Volle 360°-Drehung bei jedem Klick (per JS kurz angehängte Klasse, siehe
+   app.js) statt der alten reinen Hover-Drehung - fühlt sich wie eine echte
+   "neu laden"-Aktion an statt einer Spielerei. */
+@keyframes historie-icon-dreht-sich {
+  to { transform: rotate(360deg); }
+}
+
+.historie-neu-laden-icon.dreht-sich {
+  animation: historie-icon-dreht-sich 0.5s ease;
 }
 
 .historie-fortschritt-text {
@@ -756,4 +803,44 @@ button {
 
 .frage-karte-historie {
   margin-top: 16px;
+}
+
+/* "Nächste Frage"-Button, wird nach dem Beantworten direkt in die
+   Frage-Karte eingehängt (siehe app.js "zeigeHistorieWeiterButton"). */
+.historie-weiter-button {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  margin-top: 10px;
+  background: var(--blue);
+  color: white;
+  padding: 13px 18px;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.1s;
+}
+
+.historie-weiter-button:hover {
+  background: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+/* Dünne, von rechts nach links schrumpfende Linie unten am Button - zeigt
+   die automatische Weiterleitung an (nur bei Multiple-Choice-Fragen, siehe
+   app.js). Start-Zustand hier "scaleX(1)"; app.js setzt den Ziel-Zustand
+   ("scaleX(0)") einen Frame später, damit der Browser die CSS-Transition
+   tatsächlich abspielt statt direkt im Endzustand zu starten. */
+.historie-weiter-fortschritt {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.6);
+  transform-origin: left;
+  transform: scaleX(1);
 }

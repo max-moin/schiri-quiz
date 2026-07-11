@@ -11,13 +11,13 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header class="kopf">
+  <header class="kopf" id="kopf">
     <div class="kopf-inhalt">
       <div class="kopf-titelzeile">
         <span class="ball" aria-hidden="true">⚽</span>
         <div>
           <h1>Schiri-Quiz der Woche</h1>
-          <p class="subtitle">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
+          <p class="subtitle" id="kopf-untertitel">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
         </div>
       </div>
 
@@ -88,24 +88,30 @@
         <div class="fertig-emoji" aria-hidden="true">🎉</div>
         <p class="fertig-text">Danke fürs Mitmachen!</p>
         <button id="historie-start-button" class="historie-start-button" type="button" hidden>
-          Alte Fragen wiederholen 🔁
+          Alte Fragen üben 🔁
         </button>
         <p id="naechste-runde-text" class="naechste-runde" hidden></p>
       </div>
     </section>
 
-    <!-- Schritt 3: Historie (Wiederholung alter Fragen, 11.07.2026) -->
+    <!-- Schritt 3: "Üben" (Wiederholung alter Fragen, 11.07.2026 - Update
+         nach Max' Live-Feedback: eigener Bereich heißt auf der Website
+         "Üben" statt "Wiederholung", das App-interne Wording bleibt
+         unverändert "Wiederholung"). -->
     <section id="historie-schritt" hidden>
       <div class="historie-kopf">
         <button id="historie-zurueck-button" class="link-button" type="button">← Zurück</button>
         <button
           id="historie-neu-laden-button"
-          class="historie-reload-button"
+          class="historie-neu-laden-button"
           type="button"
           title="Andere Frage anzeigen"
           aria-label="Andere Frage anzeigen"
         >
-          🔄
+          <svg class="historie-neu-laden-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
+            <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 6h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor" />
+          </svg>
+          <span>Neue Frage</span>
         </button>
       </div>
       <p id="historie-fortschritt-text" class="historie-fortschritt-text"></p>
