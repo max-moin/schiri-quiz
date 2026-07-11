@@ -344,6 +344,122 @@ button {
   transform: scale(0.95);
 }
 
+/* Aktiver Zustand während die Frage vorgelesen wird - Klick stoppt sie. */
+.vorlesen-button.spricht {
+  background: var(--green);
+  color: #fff;
+}
+
+/* ---------- Freitext-Fragen mit KI-Auswertung (10.07.2026) ---------- */
+
+.freitext-hinweis {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin: 0 0 10px;
+}
+
+.freitext-eingabe {
+  font-family: inherit;
+  font-size: 0.95rem;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  width: 100%;
+  resize: vertical;
+  min-height: 70px;
+  background: #fafafa;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.freitext-eingabe:focus {
+  outline: none;
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px var(--green-light);
+  background: #ffffff;
+}
+
+.freitext-eingabe:disabled {
+  opacity: 0.7;
+}
+
+.freitext-zaehler {
+  text-align: right;
+  font-size: 0.76rem;
+  color: var(--muted);
+  margin: 4px 0 12px;
+}
+
+.freitext-eigene-antwort {
+  font-size: 0.9rem;
+  color: var(--text);
+  background: var(--bg-end);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  margin: 0 0 10px;
+}
+
+/* Lade-Hinweis während die Freitext-Antwort geprüft wird - verhindert, dass
+   ungeduldige Nutzer:innen mehrfach klicken (Button/Feld sind während dieser
+   Zeit ohnehin per JS deaktiviert, dieser Hinweis erklärt nur warum). */
+.freitext-lade-hinweis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-style: italic;
+  margin-top: 12px;
+}
+
+/* WICHTIG: ohne diese Zeile überschreibt die obige "display: flex"-Regel das
+   HTML-"hidden"-Attribut (Browser-Standardverhalten für [hidden] ist zwar
+   "display: none", aber jede eigene CSS-Regel mit "display" für dieselbe
+   Klasse hat Vorrang) - der Lade-Hinweis wäre sonst die ganze Zeit sichtbar,
+   auch bevor man überhaupt etwas abgeschickt hat (genau der Bug, den Max
+   gemeldet hat). Dieselbe Falle gilt für jedes Element, das gleichzeitig
+   "hidden" UND eine eigene "display"-Regel bekommt. */
+.freitext-lade-hinweis[hidden] {
+  display: none;
+}
+
+.freitext-ergebnis-kopf {
+  font-weight: 700;
+  margin: 0 0 4px;
+}
+
+.freitext-ergebnis-muster {
+  font-weight: 600;
+  margin: 0 0 4px;
+}
+
+.freitext-ergebnis-ki {
+  font-weight: 400;
+  font-size: 0.88rem;
+  opacity: 0.85;
+  margin: 0;
+}
+
+.freitext-ergebnis-hinweis {
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.spinner {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--border);
+  border-top-color: var(--green);
+  border-radius: 50%;
+  animation: spinner-drehen 0.7s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spinner-drehen {
+  to { transform: rotate(360deg); }
+}
+
 .option-liste {
   display: flex;
   flex-direction: column;
@@ -500,59 +616,6 @@ button {
   color: var(--green-dark);
 }
 
-/* ---------- Historie (Wiederholung alter Fragen, 11.07.2026) ---------- */
-
-.historie-start-button {
-  margin: 14px auto 0;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: var(--blue);
-  color: white;
-  padding: 12px 22px;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
-  font-size: 0.95rem;
-}
-
-.historie-start-button:hover {
-  background: #1d4ed8;
-}
-
-.historie-kopf {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 4px;
-}
-
-.historie-reload-button {
-  background: var(--card-bg);
-  border: 1px solid var(--border);
-  border-radius: 50%;
-  width: 38px;
-  height: 38px;
-  font-size: 1.05rem;
-  cursor: pointer;
-  box-shadow: var(--shadow);
-  transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.historie-reload-button:hover {
-  box-shadow: var(--shadow-hover);
-  transform: rotate(45deg);
-}
-
-.historie-fortschritt-text {
-  color: var(--muted);
-  font-size: 0.88rem;
-  margin: 10px 0 0;
-}
-
-.frage-karte-historie {
-  margin-top: 16px;
-}
-
 /* ---------- Konfetti ---------- */
 
 .konfetti-schicht {
@@ -635,4 +698,62 @@ button {
   .fragen-liste {
     grid-template-columns: repeat(2, 1fr);
   }
+}
+
+/* ---------- Historie (Wiederholung alter Fragen, 11.07.2026) ---------- */
+/* Wiederhergestellt am 11.07.2026: die erste Auslieferung dieses Blocks
+   basierte versehentlich auf einer veralteten style.css OHNE die
+   Freitext-Styles - dadurch sahen Freitext-Fragen "gequetscht" aus
+   (Hinweistext groß, Zähler links statt klein rechts unten). Diese Datei
+   ist jetzt wieder: kompletter Stand von Commit 13f523e + Historie-Block. */
+
+.historie-start-button {
+  margin: 14px auto 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--blue);
+  color: white;
+  padding: 12px 22px;
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.historie-start-button:hover {
+  background: #1d4ed8;
+}
+
+.historie-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 4px;
+}
+
+.historie-reload-button {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  font-size: 1.05rem;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.historie-reload-button:hover {
+  box-shadow: var(--shadow-hover);
+  transform: rotate(45deg);
+}
+
+.historie-fortschritt-text {
+  color: var(--muted);
+  font-size: 0.88rem;
+  margin: 10px 0 0;
+}
+
+.frage-karte-historie {
+  margin-top: 16px;
 }
