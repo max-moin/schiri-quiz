@@ -19,6 +19,15 @@
 // der anon-Key sind bewusst öffentlich (dieselben Werte wie in config.js),
 // kein Geheimnis - der eigentliche Schutz kommt aus der PIN-Prüfung in
 // den Postgres-Funktionen.
+//
+// Update (11.07.2026, Historie-Feature): derselbe Endpunkt bewertet jetzt
+// auch Freitext-Antworten auf HISTORISCHE Fragen (Wiederholung alter
+// Fragen, eigener Reiter auf der Website) - erkennbar am zusätzlichen
+// Feld "historie: true" im Request-Body. In dem Fall werden die
+// "historie_"-RPC-Varianten genutzt (Kontext laden ohne die "aktuelle
+// Runde läuft"-Einschränkung, Speichern ins getrennte historie_antworten-
+// Log statt "antworten" - siehe Migration v41). Der Gemini-Bewertungsteil
+// (Prompt, Sicherheitsregeln) bleibt für beide Fälle exakt identisch.
 // ============================================================
 
 const SUPABASE_URL = "https://ivwmixaicpmtvcjtnbjv.supabase.co";
@@ -56,7 +65,8 @@ export default async function handler(req, res) {
     return;
   }
 
-  const { schiedsrichterId, frageId, pin, freitext } = req.body || {};
+  const { schiedsrichterId, frageId, pin, freitext, historie } = req.body || {};
+  const istHistorie = historie === true;
 
   if (!schiedsrichterId || !frageId || !pin || !freitext || typeof freitext !== "string") {
     res.status(400).json({ fehler: "Fehlende Angaben." });
@@ -69,10 +79,10 @@ export default async function handler(req, res) {
     return;
   }
 
-  // Schritt 1: Kontext laden (prüft PIN + Frage-Typ + Aktiv-Status serverseitig)
+  // Schritt 1: Kontext laden (prüft PIN + Frage-Typ + Aktiv-Status/Historisch-Status serverseitig)
   let kontext;
   try {
-    const ergebnis = await supabaseRpc("freitext_kontext_laden", {
+    const ergebnis = await supabaseRpc(istHistorie ? "historie_freitext_kontext_laden" : "freitext_kontext_laden", {
       p_schiedsrichter_id: schiedsrichterId,
       p_frage_id: frageId,
       p_pin: pin,
@@ -171,9 +181,12 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
     return;
   }
 
-  // Schritt 3: Ergebnis speichern (schützt zusätzlich vor Doppel-Absenden)
+  // Schritt 3: Ergebnis speichern (schützt zusätzlich vor Doppel-Absenden -
+  // bei Historie-Fragen gibt es kein Doppel-Absenden-Schutz in dem Sinn,
+  // da dieselbe Frage bewusst mehrfach wiederholt werden kann/soll - siehe
+  // "historie_freitext_antwort_speichern" in Migration v41)
   try {
-    const gespeichert = await supabaseRpc("freitext_antwort_speichern", {
+    const gespeichert = await supabaseRpc(istHistorie ? "historie_freitext_antwort_speichern" : "freitext_antwort_speichern", {
       p_schiedsrichter_id: schiedsrichterId,
       p_frage_id: frageId,
       p_pin: pin,

@@ -87,8 +87,34 @@
       <div id="fertig-hinweis" class="card fertig-card" hidden>
         <div class="fertig-emoji" aria-hidden="true">🎉</div>
         <p class="fertig-text">Danke fürs Mitmachen!</p>
+        <button id="historie-start-button" class="historie-start-button" type="button" hidden>
+          Alte Fragen wiederholen 🔁
+        </button>
         <p id="naechste-runde-text" class="naechste-runde" hidden></p>
       </div>
+    </section>
+
+    <!-- Schritt 3: Historie (Wiederholung alter Fragen, 11.07.2026) -->
+    <section id="historie-schritt" hidden>
+      <div class="historie-kopf">
+        <button id="historie-zurueck-button" class="link-button" type="button">← Zurück</button>
+        <button
+          id="historie-neu-laden-button"
+          class="historie-reload-button"
+          type="button"
+          title="Andere Frage anzeigen"
+          aria-label="Andere Frage anzeigen"
+        >
+          🔄
+        </button>
+      </div>
+      <p id="historie-fortschritt-text" class="historie-fortschritt-text"></p>
+
+      <div id="historie-frage-bereich"></div>
+
+      <p id="historie-leer-hinweis" class="hinweis card" hidden>
+        Es gibt noch keine alten Fragen zum Wiederholen – schau nach der nächsten Runde nochmal vorbei.
+      </p>
     </section>
 
     <p id="fehler-hinweis" class="fehler" hidden></p>

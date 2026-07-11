@@ -27,11 +27,23 @@ const fortschrittProzent = document.getElementById("fortschritt-prozent");
 const fortschrittFill = document.getElementById("fortschritt-fill");
 const konfettiSchicht = document.getElementById("konfetti-schicht");
 
+// Historie ("Wiederholung alter Fragen", 11.07.2026) - eigener Bereich,
+// erreichbar über einen Button in der bestehenden "Fertig"-Meldung
+// (bewusst KEIN automatischer Redirect, Max' ausdrücklicher Wunsch).
+const historieStartButton = document.getElementById("historie-start-button");
+const historieSchritt = document.getElementById("historie-schritt");
+const historieZurueckButton = document.getElementById("historie-zurueck-button");
+const historieNeuLadenButton = document.getElementById("historie-neu-laden-button");
+const historieFortschrittText = document.getElementById("historie-fortschritt-text");
+const historieFrageBereich = document.getElementById("historie-frage-bereich");
+const historieLeerHinweis = document.getElementById("historie-leer-hinweis");
+
 let ausgewaehlteSchiedsrichterId = null;
 let eingegebenePin = null;
 let gesamtFragenAnzahl = 0;
 let beantworteFragenAnzahl = 0;
 let countdownInterval = null;
+let historieAktuelleFrageId = null;
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -207,6 +219,7 @@ async function ladeFragenUndAntworten() {
 
   if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
     fertigHinweis.hidden = false;
+    historieStartButton.hidden = false;
     zeigeNaechsteRundeCountdown();
   }
 }
@@ -618,6 +631,7 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
 
   if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
     fertigHinweis.hidden = false;
+    historieStartButton.hidden = false;
     zeigeNaechsteRundeCountdown();
   }
 }
@@ -672,6 +686,7 @@ async function antwortAbschicken(frageId, container, button) {
 
   if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
     fertigHinweis.hidden = false;
+    historieStartButton.hidden = false;
     zeigeNaechsteRundeCountdown();
   }
 }
@@ -778,6 +793,306 @@ async function zeigeNaechsteRundeCountdown() {
   naechsteRundeText.hidden = false;
   formatUndAktualisieren();
   countdownInterval = setInterval(formatUndAktualisieren, 30000);
+}
+
+// ============================================================
+// Historie - Wiederholung alter Fragen (11.07.2026)
+//
+// Eigener Bereich, erreichbar über den Button in der "Fertig"-Meldung.
+// Zeigt immer genau EINE zufällige historische Frage (Multiple-Choice oder
+// Freitext, gleiche Kartenoptik/TTS wie im normalen Quiz), gewichtet nach
+// einer sanften Leitner-Stufe (RPC "historie_naechste_frage" macht die
+// Gewichtung serverseitig, siehe Migration v41). Die Antworten landen in
+// einem eigenen DB-Log (historie_antworten), NICHT in "antworten" - die
+// normale wöchentliche Auswertung bleibt dadurch unverfälscht (Max'
+// ausdrücklicher Wunsch). Über den Kreis-Button ("🔄") kann man sich
+// jederzeit eine andere Frage anzeigen lassen, statt auf die aktuelle
+// antworten zu müssen.
+// ============================================================
+
+historieStartButton.addEventListener("click", () => {
+  fragenSchritt.hidden = true;
+  historieSchritt.hidden = false;
+  ladeHistorieFortschritt();
+  ladeHistorieFrage(null);
+});
+
+historieZurueckButton.addEventListener("click", () => {
+  stoppeVorlesen();
+  historieSchritt.hidden = true;
+  fragenSchritt.hidden = false;
+});
+
+historieNeuLadenButton.addEventListener("click", () => {
+  ladeHistorieFrage(historieAktuelleFrageId);
+});
+
+async function ladeHistorieFortschritt() {
+  const { data, error } = await sb.rpc("historie_fortschritt_uebersicht", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+  });
+
+  if (error || !data || data.length === 0) {
+    historieFortschrittText.textContent = "";
+    return;
+  }
+
+  const { gesamt_beantwortet, richtig_beantwortet } = data[0];
+  historieFortschrittText.textContent =
+    gesamt_beantwortet === 0
+      ? "Noch keine Wiederholungsfragen beantwortet."
+      : "Du hast schon " + gesamt_beantwortet + " Wiederholungsfragen gemacht, " + richtig_beantwortet + " davon richtig.";
+}
+
+async function ladeHistorieFrage(ausschlussFrageId) {
+  versteckeFehler();
+  stoppeVorlesen();
+  historieFrageBereich.innerHTML = "";
+  historieLeerHinweis.hidden = true;
+
+  const { data, error } = await sb.rpc("historie_naechste_frage", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+    p_ausschluss_frage_id: ausschlussFrageId,
+  });
+
+  if (error) {
+    zeigeFehler("Wiederholungsfrage konnte nicht geladen werden: " + error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    historieAktuelleFrageId = null;
+    historieLeerHinweis.hidden = false;
+    return;
+  }
+
+  const frage = data[0];
+  historieAktuelleFrageId = frage.frage_id;
+  historieFrageBereich.appendChild(
+    frage.typ === "freitext" ? baueHistorieFreitextFrageElement(frage) : baueHistorieFrageElement(frage)
+  );
+}
+
+function baueHistorieFrageElement(frage) {
+  const container = document.createElement("div");
+  container.className = "frage-karte frage-karte-historie";
+  container.dataset.frageId = frage.frage_id;
+
+  const badges = baueBadges(frage);
+  if (badges) container.appendChild(badges);
+
+  const titel = document.createElement("div");
+  titel.className = "frage-text";
+  titel.textContent = frage.frage_text;
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
+
+  const optionListe = document.createElement("div");
+  optionListe.className = "option-liste";
+
+  const optionen = [
+    { key: "a", text: frage.option_a },
+    { key: "b", text: frage.option_b },
+    { key: "c", text: frage.option_c },
+  ];
+
+  for (const opt of optionen) {
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "historie-frage-" + frage.frage_id;
+    radio.value = opt.key;
+    radio.addEventListener("change", () => {
+      optionListe.querySelectorAll(".option").forEach((el) => el.classList.remove("ausgewaehlt"));
+      label.classList.add("ausgewaehlt");
+    });
+
+    label.appendChild(radio);
+    label.append(opt.text);
+    optionListe.appendChild(label);
+  }
+
+  container.appendChild(optionListe);
+
+  const absendenButton = document.createElement("button");
+  absendenButton.className = "absenden-button";
+  absendenButton.textContent = "Antwort abschicken";
+  absendenButton.addEventListener("click", () => historieAntwortAbschicken(frage.frage_id, container, absendenButton));
+  container.appendChild(absendenButton);
+
+  const feedback = document.createElement("p");
+  feedback.className = "feedback";
+  feedback.hidden = true;
+  container.appendChild(feedback);
+
+  return container;
+}
+
+async function historieAntwortAbschicken(frageId, container, button) {
+  const gewaehlt = container.querySelector('input[type="radio"]:checked');
+  if (!gewaehlt) {
+    zeigeFehler("Bitte erst eine Antwort auswählen.");
+    return;
+  }
+  versteckeFehler();
+
+  button.disabled = true;
+  container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
+
+  const { data, error } = await sb.rpc("historie_antwort_abgeben", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+    p_frage_id: frageId,
+    p_gegebene_option: gewaehlt.value,
+  });
+
+  const feedback = container.querySelector(".feedback");
+  feedback.hidden = false;
+
+  if (error) {
+    feedback.textContent = "Fehler beim Speichern: " + error.message;
+    feedback.classList.add("falsch");
+    button.disabled = false;
+    container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = false));
+    return;
+  }
+
+  const ergebnis = data[0];
+  if (ergebnis.korrekt) {
+    feedback.textContent = "Richtig! ✅";
+    feedback.classList.add("richtig");
+  } else {
+    feedback.textContent = "Leider falsch. Richtig wäre gewesen: " + ergebnis.richtige_option.toUpperCase();
+    feedback.classList.add("falsch");
+  }
+
+  ladeHistorieFortschritt();
+}
+
+function baueHistorieFreitextFrageElement(frage) {
+  const container = document.createElement("div");
+  container.className = "frage-karte frage-karte-freitext frage-karte-historie";
+  container.dataset.frageId = frage.frage_id;
+
+  const badges = baueBadges(frage);
+  if (badges) container.appendChild(badges);
+
+  const titel = document.createElement("div");
+  titel.className = "frage-text";
+  titel.textContent = frage.frage_text;
+
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  const vorlesenButton = baueVorlesenButton(frage.frage_text);
+  if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
+  container.appendChild(titelZeile);
+
+  if (frage.antwort_hinweis) {
+    const hinweis = document.createElement("p");
+    hinweis.className = "freitext-hinweis";
+    hinweis.textContent = frage.antwort_hinweis;
+    container.appendChild(hinweis);
+  }
+
+  const textarea = document.createElement("textarea");
+  textarea.className = "freitext-eingabe";
+  textarea.maxLength = FREITEXT_ZEICHENLIMIT;
+  textarea.rows = 3;
+  textarea.placeholder = "Deine Antwort ...";
+  container.appendChild(textarea);
+
+  const zaehler = document.createElement("div");
+  zaehler.className = "freitext-zaehler";
+  zaehler.textContent = "0 / " + FREITEXT_ZEICHENLIMIT;
+  textarea.addEventListener("input", () => {
+    zaehler.textContent = textarea.value.length + " / " + FREITEXT_ZEICHENLIMIT;
+  });
+  container.appendChild(zaehler);
+
+  const absendenButton = document.createElement("button");
+  absendenButton.className = "absenden-button";
+  absendenButton.textContent = "Antwort abschicken";
+  absendenButton.addEventListener("click", () =>
+    historieFreitextAntwortAbschicken(frage.frage_id, container, absendenButton, textarea)
+  );
+  container.appendChild(absendenButton);
+
+  const ladeHinweis = document.createElement("p");
+  ladeHinweis.className = "freitext-lade-hinweis";
+  ladeHinweis.hidden = true;
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  ladeHinweis.appendChild(spinner);
+  ladeHinweis.append(" Einen Moment, deine Antwort wird geprüft ...");
+  container.appendChild(ladeHinweis);
+
+  const feedback = document.createElement("div");
+  feedback.className = "feedback";
+  feedback.hidden = true;
+  container.appendChild(feedback);
+
+  return container;
+}
+
+async function historieFreitextAntwortAbschicken(frageId, container, button, textarea) {
+  const freitext = textarea.value.trim();
+  if (freitext.length === 0) {
+    zeigeFehler("Bitte erst eine Antwort eingeben.");
+    return;
+  }
+  versteckeFehler();
+
+  button.disabled = true;
+  textarea.disabled = true;
+
+  const ladeHinweis = container.querySelector(".freitext-lade-hinweis");
+  if (ladeHinweis) ladeHinweis.hidden = false;
+
+  let ergebnis;
+  try {
+    const antwort = await fetch("/api/freitext-bewerten", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schiedsrichterId: ausgewaehlteSchiedsrichterId,
+        frageId,
+        pin: eingegebenePin,
+        freitext,
+        historie: true,
+      }),
+    });
+    ergebnis = await antwort.json();
+    if (!antwort.ok) throw new Error(ergebnis.fehler || "Unbekannter Fehler");
+  } catch (e) {
+    if (ladeHinweis) ladeHinweis.hidden = true;
+    const feedback = container.querySelector(".feedback");
+    feedback.hidden = false;
+    feedback.textContent = "Fehler bei der Auswertung: " + e.message + " - bitte nochmal versuchen.";
+    feedback.classList.add("falsch");
+    button.disabled = false;
+    textarea.disabled = false;
+    return;
+  }
+
+  if (ladeHinweis) ladeHinweis.hidden = true;
+
+  const feedback = container.querySelector(".feedback");
+  feedback.hidden = false;
+  feedback.innerHTML = "";
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+  feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
+
+  ladeHistorieFortschritt();
 }
 
 async function start() {
