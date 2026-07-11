@@ -244,6 +244,16 @@ button {
   padding: 4px 4px 0;
 }
 
+/* Gleiche Falle wie bei ".freitext-lade-hinweis" oben (siehe Kommentar dort):
+   ohne diese Zeile überschreibt "display: flex" das HTML-"hidden"-Attribut -
+   die Leiste ("Angemeldet als ..." + Abmelden-Button) wäre dann die ganze
+   Zeit sichtbar, auch schon auf der allerersten "Wer bist du"-Seite, bevor
+   überhaupt jemand angemeldet ist (Max' Feedback, 11.07.2026: die Kästchen
+   sollen dort weg, nach echtem Login aber unverändert bleiben). */
+.angemeldet-leiste[hidden] {
+  display: none;
+}
+
 .angemeldet-badge {
   display: inline-flex;
   align-items: center;
