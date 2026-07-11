@@ -62,10 +62,14 @@
       </p>
     </section>
 
-    <!-- Angemeldet-Leiste -->
+    <!-- Angemeldet-Leiste (11.07.2026, drittes Feedback: wirkte als reiner
+         Text/Link "billig" - jetzt Badge + echter Button). -->
     <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
-      <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
-      <button id="wechseln-button" class="link-button" type="button">Abmelden</button>
+      <div class="angemeldet-badge">
+        <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
+        <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
+      </div>
+      <button id="wechseln-button" class="sekundaer-button" type="button">Abmelden</button>
     </div>
 
     <!-- Schritt 2: Fragen -->
@@ -100,7 +104,7 @@
          unverändert "Wiederholung"). -->
     <section id="historie-schritt" hidden>
       <div class="historie-kopf">
-        <button id="historie-zurueck-button" class="link-button" type="button">← Zurück</button>
+        <button id="historie-zurueck-button" class="sekundaer-button" type="button">← Zurück</button>
         <button
           id="historie-neu-laden-button"
           class="historie-neu-laden-button"
@@ -114,7 +118,27 @@
           <span>Neue Frage</span>
         </button>
       </div>
-      <p id="historie-fortschritt-text" class="historie-fortschritt-text"></p>
+
+      <!-- Scoreboard (11.07.2026, drittes Feedback: der reine Fließtext
+           "Du hast schon X ... gemacht" wirkte "billig" - jetzt ein
+           eingerahmter, animierter Zähler im Stil einer Anzeigetafel). -->
+      <div id="historie-scoreboard" class="historie-scoreboard" hidden>
+        <div class="historie-scoreboard-kopf">
+          <span class="historie-scoreboard-label">Heute geübt</span>
+          <span id="historie-scoreboard-gesamt-hinweis" class="historie-scoreboard-gesamt-hinweis"></span>
+        </div>
+        <div class="historie-scoreboard-anzeige">
+          <div class="historie-scoreboard-feld">
+            <span id="historie-scoreboard-gesamt" class="historie-scoreboard-ziffer">0</span>
+            <span class="historie-scoreboard-ziffer-label">Fragen</span>
+          </div>
+          <div class="historie-scoreboard-trenner" aria-hidden="true"></div>
+          <div class="historie-scoreboard-feld">
+            <span id="historie-scoreboard-richtig" class="historie-scoreboard-ziffer historie-scoreboard-ziffer-richtig">0</span>
+            <span class="historie-scoreboard-ziffer-label">Richtig</span>
+          </div>
+        </div>
+      </div>
 
       <div id="historie-frage-bereich"></div>
 

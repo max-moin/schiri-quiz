@@ -35,9 +35,15 @@ const historieSchritt = document.getElementById("historie-schritt");
 const historieZurueckButton = document.getElementById("historie-zurueck-button");
 const historieNeuLadenButton = document.getElementById("historie-neu-laden-button");
 const historieNeuLadenIcon = historieNeuLadenButton ? historieNeuLadenButton.querySelector(".historie-neu-laden-icon") : null;
-const historieFortschrittText = document.getElementById("historie-fortschritt-text");
 const historieFrageBereich = document.getElementById("historie-frage-bereich");
 const historieLeerHinweis = document.getElementById("historie-leer-hinweis");
+
+// Scoreboard (11.07.2026, drittes Feedback: ersetzt den reinen
+// Fließtext-Fortschritt - siehe style.css für die Optik/Flip-Animation).
+const historieScoreboard = document.getElementById("historie-scoreboard");
+const historieScoreboardGesamt = document.getElementById("historie-scoreboard-gesamt");
+const historieScoreboardRichtig = document.getElementById("historie-scoreboard-richtig");
+const historieScoreboardGesamtHinweis = document.getElementById("historie-scoreboard-gesamt-hinweis");
 
 // Kopf/Untertitel (11.07.2026, Update nach Max' Feedback): werden im
 // "Üben"-Modus umgestaltet (andere Kopf-Farbe, anderer Untertitel-Text, die
@@ -69,6 +75,11 @@ let historieBasisRichtig = 0;
 let historieSessionGesamt = 0;
 let historieSessionRichtig = 0;
 let historieAutoTimer = null;
+// Merkt sich den zuletzt gerenderten Scoreboard-Stand, damit eine Flip-
+// Animation nur bei einer TATSÄCHLICHEN Änderung abgespielt wird (siehe
+// animiereScoreboardZiffer weiter unten).
+let historieScoreboardLetzterGesamt = null;
+let historieScoreboardLetzterRichtig = null;
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -846,6 +857,7 @@ function betreteUebenModus() {
   fortschrittWrap.hidden = true;
   fragenSchritt.hidden = true;
   historieSchritt.hidden = false;
+  if (historieScoreboard) historieScoreboard.hidden = false;
   ladeHistorieFortschritt();
   ladeHistorieFrage(null);
 }
@@ -884,6 +896,12 @@ historieNeuLadenButton.addEventListener("click", () => {
 async function ladeHistorieFortschritt() {
   historieSessionGesamt = 0;
   historieSessionRichtig = 0;
+  // Zähler-Tracking zurücksetzen, damit der erste Render dieser Sitzung nie
+  // eine Flip-Animation auslöst (siehe animiereScoreboardZiffer) - sonst
+  // würde beim erneuten Betreten des Üben-Modus kurz sichtbar von der alten
+  // Sitzungszahl auf 0 "geklappt".
+  historieScoreboardLetzterGesamt = null;
+  historieScoreboardLetzterRichtig = null;
 
   const { data, error } = await sb.rpc("historie_fortschritt_uebersicht", {
     p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
@@ -901,16 +919,38 @@ async function ladeHistorieFortschritt() {
   aktualisiereHistorieFortschrittText();
 }
 
-// Rendert die Fortschrittsanzeige rein aus lokalem Zustand (Server-Basis +
-// Antworten dieser Sitzung) - siehe Kommentar bei den Variablen weiter oben,
-// warum das nicht mehr bei jeder Antwort neu vom Server geladen wird.
+// Rendert das Scoreboard rein aus lokalem Zustand (Server-Basis + Antworten
+// dieser Sitzung) - siehe Kommentar bei den Variablen weiter oben, warum das
+// nicht mehr bei jeder Antwort neu vom Server geladen wird. Zeigt groß den
+// Sitzungs-Fortschritt ("Heute geübt"), der Gesamt-Stand seit Beginn steht
+// klein im Kopf des Kastens. Jede Zahl, die sich seit dem letzten Aufruf
+// geändert hat, bekommt kurz die Flip-Animation (".aktualisiert",
+// siehe style.css) - beim allerersten Rendern (Betreten des Üben-Modus)
+// bewusst ohne Animation, das würde nur unruhig wirken.
 function aktualisiereHistorieFortschrittText() {
-  const gesamt = historieBasisGesamt + historieSessionGesamt;
-  const richtig = historieBasisRichtig + historieSessionRichtig;
-  historieFortschrittText.textContent =
-    gesamt === 0
-      ? "Noch keine Wiederholungsfragen beantwortet."
-      : "Du hast schon " + gesamt + " Wiederholungsfragen gemacht, " + richtig + " davon richtig.";
+  if (!historieScoreboard) return;
+
+  const gesamtGesamt = historieBasisGesamt + historieSessionGesamt;
+  const gesamtRichtig = historieBasisRichtig + historieSessionRichtig;
+
+  animiereScoreboardZiffer(historieScoreboardGesamt, historieSessionGesamt, historieScoreboardLetzterGesamt);
+  animiereScoreboardZiffer(historieScoreboardRichtig, historieSessionRichtig, historieScoreboardLetzterRichtig);
+  historieScoreboardLetzterGesamt = historieSessionGesamt;
+  historieScoreboardLetzterRichtig = historieSessionRichtig;
+
+  historieScoreboardGesamtHinweis.textContent =
+    gesamtGesamt === 0
+      ? ""
+      : "Insgesamt " + gesamtGesamt + " gemacht, " + gesamtRichtig + " davon richtig";
+}
+
+function animiereScoreboardZiffer(element, neuerWert, alterWert) {
+  if (!element) return;
+  element.textContent = String(neuerWert);
+  if (alterWert === null || alterWert === neuerWert) return;
+  element.classList.remove("aktualisiert");
+  void element.offsetWidth; // Reflow erzwingen, damit die Animation bei mehreren Änderungen hintereinander jedes Mal neu abspielt.
+  element.classList.add("aktualisiert");
 }
 
 async function ladeHistorieFrage(ausschlussFrageId) {
@@ -989,9 +1029,10 @@ function zeigeHistorieWeiterButton(container, bisherigeFrageId, automatisch) {
 
   if (automatisch) {
     // Bei falscher Antwort etwas mehr Zeit zum Lesen der richtigen Lösung,
-    // bei richtiger Antwort geht's flotter weiter.
+    // bei richtiger Antwort geht's flotter weiter. Werte am 11.07.2026 nach
+    // Max' Feedback verlängert (vorher 1800ms/3200ms - ging ihm zu schnell).
     const istKorrekt = !!container.querySelector(".feedback.richtig");
-    const dauerMs = istKorrekt ? 1800 : 3200;
+    const dauerMs = istKorrekt ? 3200 : 5000;
 
     // Countdown-Linie: startet bei voller Breite (scaleX(1), siehe CSS) und
     // läuft in "dauerMs" linear auf 0 - der kurze Timeout davor sorgt dafür,

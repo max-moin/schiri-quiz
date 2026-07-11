@@ -227,25 +227,66 @@ button {
 }
 
 /* ---------- Angemeldet-Leiste ---------- */
+/* Update 11.07.2026 (drittes Feedback): "Angemeldet als X" + "Abmelden"
+   wirkten als reiner Fließtext/Link "billig" - jetzt ein Badge mit Avatar
+   fürs Angemeldet-sein plus ein echter, umrahmter Button fürs Abmelden
+   (".sekundaer-button", siehe unten - dieselbe Bauart wird auch für den
+   "← Zurück"-Button im Üben-Bereich verwendet). */
 
 .angemeldet-leiste {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
   font-size: 0.88rem;
   color: var(--muted);
   padding: 4px 4px 0;
 }
 
-.link-button {
-  background: none;
-  border: none;
-  color: var(--green-dark);
-  font-weight: 600;
-  padding: 4px 8px;
-  text-decoration: underline;
-  cursor: pointer;
+.angemeldet-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 14px 6px 10px;
   font-size: 0.85rem;
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.angemeldet-avatar {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+/* Gemeinsamer, umrahmter Pillen-Button für sekundäre Aktionen (Abmelden,
+   Zurück) - gleiche Bauart wie ".historie-neu-laden-button" weiter unten,
+   nur ohne festes Icon, damit er auch für reinen Text taugt. */
+.sekundaer-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--card-bg);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 16px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.sekundaer-button:hover {
+  border-color: var(--blue);
+  color: var(--blue);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
 }
 
 /* ---------- Fragen-Liste ---------- */
@@ -795,10 +836,102 @@ button {
   animation: historie-icon-dreht-sich 0.5s ease;
 }
 
-.historie-fortschritt-text {
+/* Scoreboard (11.07.2026, drittes Feedback: ersetzt den reinen
+   Fließtext-Fortschritt "Du hast schon X ... gemacht", der Max zu "billig"
+   wirkte). Angelehnt an eine Stadion-Anzeigetafel: dunkles Ziffernfeld mit
+   fetten, monospaced Zahlen in einem umrahmten Kasten (gleiche Bauart wie
+   die Frage-Karten), die Zahl "wippt" kurz per Flip-Animation, sobald sie
+   sich ändert (Klasse ".aktualisiert", per JS in
+   "aktualisiereHistorieFortschrittText" gesetzt). Zeigt bewusst den
+   Sitzungs-Fortschritt ("Heute geübt") groß an, der Gesamt-Stand seit
+   Beginn steht klein daneben. */
+.historie-scoreboard {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 14px 18px 16px;
+  margin: 14px 0 0;
+}
+
+.historie-scoreboard-kopf {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.historie-scoreboard-label {
+  font-family: var(--font-titel);
+  font-weight: 700;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
-  font-size: 0.88rem;
-  margin: 10px 0 0;
+}
+
+.historie-scoreboard-gesamt-hinweis {
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.historie-scoreboard-anzeige {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.historie-scoreboard-feld {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: #0f172a;
+  border-radius: var(--radius-sm);
+  padding: 10px 8px 8px;
+}
+
+.historie-scoreboard-trenner {
+  width: 1px;
+  background: var(--border);
+  margin: 4px 0;
+}
+
+.historie-scoreboard-ziffer {
+  font-family: "Poppins", "Segoe UI", sans-serif;
+  font-variant-numeric: tabular-nums;
+  font-weight: 800;
+  font-size: 2.1rem;
+  line-height: 1;
+  color: #f8fafc;
+  display: inline-block;
+}
+
+.historie-scoreboard-ziffer-richtig {
+  color: #4ade80;
+}
+
+.historie-scoreboard-ziffer-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #94a3b8;
+}
+
+/* Flip-Effekt (kurzes Kippen um die X-Achse, wie eine Anzeigetafel-Klappe),
+   spielt genau einmal ab, sobald sich die jeweilige Zahl ändert. */
+@keyframes historie-scoreboard-flip {
+  0% { transform: rotateX(0deg); }
+  45% { transform: rotateX(90deg); }
+  55% { transform: rotateX(90deg); }
+  100% { transform: rotateX(0deg); }
+}
+
+.historie-scoreboard-ziffer.aktualisiert {
+  animation: historie-scoreboard-flip 0.5s ease;
 }
 
 .frage-karte-historie {
