@@ -34,32 +34,72 @@
   </header>
 
   <main class="wrap">
-    <!-- Schritt 1: Name + PIN -->
+    <!-- Schritt 1: Vereinskennung -> Wer bist du?/PIN (oder Gast) -->
+    <!-- Update (13.07.2026, Baustein A/B, Max' genaue Vorgabe): EINE
+         durchgehende Karte statt zweier Seiten. Die Vereinskennung bleibt
+         immer oben stehen, darunter poppen erst nach korrekter Kennung die
+         bestehenden "Wer bist du?"/PIN-Felder auf (oder bei "Als Gast
+         weiter" stattdessen das Gast-Feld) - "Los geht's" bleibt ganz unten,
+         ein einziger Button für beide Wege. -->
     <section id="name-schritt" class="card login-card">
       <div class="login-icon" aria-hidden="true">🧑‍⚖️</div>
-      <h2 class="card-titel">Wer bist du?</h2>
+      <h2 class="card-titel">Anmelden</h2>
 
-      <label for="name-auswahl">Name</label>
-      <select id="name-auswahl">
-        <option value="">– bitte auswählen –</option>
-      </select>
+      <div id="kennung-bereich">
+        <label for="kennung-eingabe">Vereinskennung</label>
+        <input
+          id="kennung-eingabe"
+          type="text"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="z.B. 456789"
+        />
+        <button id="kennung-weiter-button" class="sekundaer-button" type="button">
+          Weiter
+        </button>
+        <p id="kennung-hinweis" class="hinweis" hidden></p>
+        <button id="gast-wechsel-button" class="linktext-button" type="button">
+          Kennung nicht bekannt? Als Gast weiter
+        </button>
+      </div>
 
-      <label for="pin-eingabe">Deine PIN</label>
-      <input
-        id="pin-eingabe"
-        type="password"
-        inputmode="numeric"
-        autocomplete="off"
-        placeholder="z.B. 1234"
-      />
+      <div id="mitglied-bereich" hidden>
+        <label for="name-auswahl">Wer bist du?</label>
+        <select id="name-auswahl">
+          <option value="">– bitte auswählen –</option>
+        </select>
 
-      <button id="start-button" disabled>
+        <label for="pin-eingabe">Deine PIN</label>
+        <input
+          id="pin-eingabe"
+          type="password"
+          inputmode="numeric"
+          autocomplete="off"
+          placeholder="z.B. 1234"
+        />
+        <p id="name-hinweis" class="hinweis">
+          Deine PIN kennst nur du – frag beim Obmann nach, falls du sie noch nicht hast.
+        </p>
+      </div>
+
+      <div id="gast-bereich" hidden>
+        <label for="gast-name-eingabe">Dein Wunsch-Username</label>
+        <input
+          id="gast-name-eingabe"
+          type="text"
+          autocomplete="off"
+          placeholder="z.B. Lisa"
+        />
+        <p class="hinweis">Kein Passwort nötig – probier gleich ein paar Fragen aus.</p>
+        <button id="gast-zurueck-button" class="linktext-button" type="button">
+          ← Zurück zur Vereinskennung
+        </button>
+      </div>
+
+      <button id="start-button" type="button" hidden disabled>
         <span>Los geht's</span>
         <span aria-hidden="true">→</span>
       </button>
-      <p id="name-hinweis" class="hinweis">
-        Deine PIN kennst nur du – frag beim Obmann nach, falls du sie noch nicht hast.
-      </p>
     </section>
 
     <!-- Angemeldet-Leiste (11.07.2026, drittes Feedback: wirkte als reiner
@@ -96,6 +136,22 @@
         </button>
         <p id="naechste-runde-text" class="naechste-runde" hidden></p>
       </div>
+    </section>
+
+    <!-- Schritt 2b: Gast-Quiz (13.07.2026, Baustein B/C) - eigener, schlanker
+         Bereich statt Wiederverwendung von "fragen-schritt": Gast-Fragen
+         sind bewusst nur Multiple-Choice, ohne Video/Freitext/KI, ohne
+         Persistenz - eine eigene, einfachere Render-Logik hält das Risiko
+         für den bestehenden, gut getesteten Hauptablauf klein. -->
+    <section id="gast-quiz-schritt" hidden>
+      <div class="gast-kopfzeile">
+        <span>Als Gast: <strong id="gast-name-anzeige"></strong></span>
+        <span id="gast-fortschritt-anzeige">0 von 0 richtig</span>
+      </div>
+      <!-- Bewusster Ausstiegsweg (Max' Grundregel: nie ohne Weg zurück in
+           einem Modus gefangen sein) - führt zurück zur Login-Karte. -->
+      <button id="gast-verlassen-button" class="sekundaer-button" type="button">← Gast-Modus verlassen</button>
+      <div id="gast-frage-bereich" class="fragen-liste"></div>
     </section>
 
     <!-- Schritt 3: "Üben" (Wiederholung alter Fragen, 11.07.2026 - Update
@@ -173,6 +229,51 @@
       <div id="erklaerung-inhalt" class="erklaerung-inhalt">
         <p class="erklaerung-lade-hinweis"><span class="spinner"></span> Einen Moment, die Erklärung wird erstellt ...</p>
       </div>
+    </div>
+  </div>
+
+  <!-- Interesse-Popup (13.07.2026, Baustein C) - erscheint im Gast-Quiz nach
+       INTERESSE_TRIGGER_ANZAHL beantworteten Fragen, wegklickbar, Quiz läuft
+       danach normal weiter. Wiederverwendet die Overlay/Popup-Klassen des
+       Erklärungs-Popups oben (gleiche Optik, kein neues CSS nötig). -->
+  <div id="interesse-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interesse-titel">
+      <h3 id="interesse-titel">🎉 Na, scheint dir Spaß zu machen?</h3>
+      <p>Interesse, Schiri zu werden?</p>
+      <div class="interesse-optionen">
+        <button id="interesse-ja-button" type="button">Ja, interessiert!</button>
+        <button id="interesse-nein-button" class="sekundaer-button" type="button">Nein danke</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interessenten-Formular (13.07.2026, Baustein D/E) - erscheint nach
+       "Ja, interessiert!" oben. Einziges Feld ist die (optionale) E-Mail,
+       Absenden legt einen Interessenten in der DB an (RPC
+       "gast_interesse_melden"). -->
+  <div id="interessenten-formular-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interessenten-formular-titel">
+      <h3 id="interessenten-formular-titel">Schön, dass du dabeibleiben willst! 🎉</h3>
+
+      <div id="interessenten-formular-inhalt">
+        <label for="interessent-email-eingabe">E-Mail (optional)</label>
+        <input id="interessent-email-eingabe" type="email" autocomplete="off" placeholder="du@beispiel.de" />
+        <p class="hinweis">Du bekommst darüber weitere Infos zugeschickt, falls du magst - ganz freiwillig.</p>
+        <button id="interessent-absenden-button" type="button">Absenden</button>
+        <a
+          id="svfd-link"
+          href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
+          target="_blank"
+          rel="noopener"
+          class="linktext-button"
+        >Mehr Infos beim SVFD →</a>
+      </div>
+
+      <div id="interessenten-formular-erfolg" hidden>
+        <p>Danke! Wir melden uns bei dir.</p>
+      </div>
+
+      <button id="interessenten-formular-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
     </div>
   </div>
 

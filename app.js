@@ -27,6 +27,32 @@ const fortschrittProzent = document.getElementById("fortschritt-prozent");
 const fortschrittFill = document.getElementById("fortschritt-fill");
 const konfettiSchicht = document.getElementById("konfetti-schicht");
 
+// Vereinskennung / Gast-Zugang (13.07.2026, Baustein A/B/C/D) - siehe
+// eigener Block weiter unten für die Ablauf-Logik.
+const kennungBereich = document.getElementById("kennung-bereich");
+const kennungEingabe = document.getElementById("kennung-eingabe");
+const kennungWeiterButton = document.getElementById("kennung-weiter-button");
+const kennungHinweis = document.getElementById("kennung-hinweis");
+const gastWechselButton = document.getElementById("gast-wechsel-button");
+const mitgliedBereich = document.getElementById("mitglied-bereich");
+const gastBereich = document.getElementById("gast-bereich");
+const gastNameEingabe = document.getElementById("gast-name-eingabe");
+const gastZurueckButton = document.getElementById("gast-zurueck-button");
+const gastQuizSchritt = document.getElementById("gast-quiz-schritt");
+const gastNameAnzeige = document.getElementById("gast-name-anzeige");
+const gastFortschrittAnzeige = document.getElementById("gast-fortschritt-anzeige");
+const gastFrageBereich = document.getElementById("gast-frage-bereich");
+const gastVerlassenButton = document.getElementById("gast-verlassen-button");
+const interesseOverlay = document.getElementById("interesse-overlay");
+const interesseJaButton = document.getElementById("interesse-ja-button");
+const interesseNeinButton = document.getElementById("interesse-nein-button");
+const interessentenFormularOverlay = document.getElementById("interessenten-formular-overlay");
+const interessentenFormularInhalt = document.getElementById("interessenten-formular-inhalt");
+const interessentenFormularErfolg = document.getElementById("interessenten-formular-erfolg");
+const interessentEmailEingabe = document.getElementById("interessent-email-eingabe");
+const interessentAbsendenButton = document.getElementById("interessent-absenden-button");
+const interessentenFormularSchliessenButton = document.getElementById("interessenten-formular-schliessen-button");
+
 // Historie ("Wiederholung alter Fragen", 11.07.2026) - eigener Bereich,
 // erreichbar über einen Button in der bestehenden "Fertig"-Meldung
 // (bewusst KEIN automatischer Redirect, Max' ausdrücklicher Wunsch).
@@ -62,6 +88,21 @@ let gesamtFragenAnzahl = 0;
 let beantworteFragenAnzahl = 0;
 let countdownInterval = null;
 let historieAktuelleFrageId = null;
+
+// Vereinskennung / Gast-Zugang (13.07.2026): "loginModus" steuert, welcher
+// der drei Bereiche in der Login-Karte gerade aktiv ist, und wie der
+// gemeinsame "Los geht's"-Button (startButton) reagiert.
+const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
+// Nach wie vielen beantworteten Gast-Fragen das Interesse-Popup erscheint
+// (Baustein C, Max' Vorschlag "z.B. drei") - hier zentral anpassbar.
+const GAST_INTERESSE_TRIGGER_ANZAHL = 3;
+let loginModus = "kennung"; // "kennung" | "mitglied" | "gast"
+let gastName = null;
+let gastFragenPool = [];
+let gastFrageIndex = 0;
+let gastBeantwortetAnzahl = 0;
+let gastRichtigAnzahl = 0;
+let gastInteressePopupGezeigt = false;
 
 // Historie-Fortschritt (11.07.2026, Update nach Max' Feedback): wird nicht
 // mehr nach jeder Antwort neu vom Server abgefragt (das ließ die Anzeige bei
@@ -116,6 +157,35 @@ function loescheGespeicherteSession() {
   }
 }
 
+// Vereinskennung-Session (13.07.2026, Baustein A) - gleiches Muster wie
+// die Schiedsrichter-Session oben, eigener Key, damit ein "Abmelden" (das
+// nur die Schiedsrichter-Session löscht) die bestätigte Kennung nicht
+// mit wegwirft.
+function speichereKennungSession(kennung) {
+  try {
+    sessionStorage.setItem(KENNUNG_SESSION_KEY, kennung);
+  } catch (e) {
+    // Falls sessionStorage nicht verfügbar ist, bleibt man einfach ohne
+    // Merken angemeldet (wie beim bestehenden Schiedsrichter-Login oben).
+  }
+}
+
+function leseGespeicherteKennung() {
+  try {
+    return sessionStorage.getItem(KENNUNG_SESSION_KEY);
+  } catch (e) {
+    return null;
+  }
+}
+
+function loescheGespeicherteKennungSession() {
+  try {
+    sessionStorage.removeItem(KENNUNG_SESSION_KEY);
+  } catch (e) {
+    // ignorieren
+  }
+}
+
 function zeigeAngemeldetenZustand(name) {
   nameSchritt.hidden = true;
   angemeldetName.textContent = name;
@@ -144,13 +214,131 @@ async function ladeSchiedsrichter() {
 }
 
 function pruefeEingabenVollstaendig() {
-  startButton.disabled = !(nameAuswahl.value && pinEingabe.value.trim().length > 0);
+  // Update (13.07.2026, Baustein A/B): der gemeinsame "Los geht's"-Button
+  // gilt je nach "loginModus" für unterschiedliche Felder - im
+  // "kennung"-Zustand ist er ohnehin unsichtbar (siehe zeigeMitgliedBereich/
+  // zeigeGastBereich), daher hier einfach dauerhaft deaktiviert lassen.
+  if (loginModus === "gast") {
+    startButton.disabled = !(gastNameEingabe.value.trim().length > 0);
+  } else if (loginModus === "mitglied") {
+    startButton.disabled = !(nameAuswahl.value && pinEingabe.value.trim().length > 0);
+  } else {
+    startButton.disabled = true;
+  }
 }
 
 nameAuswahl.addEventListener("change", pruefeEingabenVollstaendig);
 pinEingabe.addEventListener("input", pruefeEingabenVollstaendig);
+gastNameEingabe.addEventListener("input", pruefeEingabenVollstaendig);
+
+// ============================================================
+// Vereinskennung / Gast-Zugang (13.07.2026, Baustein A/B) - siehe
+// Kopf-Kommentar in index.html für den genauen Ablauf: die Vereinskennung
+// bleibt sichtbar stehen, darunter poppt entweder der Mitglieder- oder der
+// Gast-Bereich auf, "Los geht's" ganz unten gilt für beide Wege.
+// ============================================================
+
+function zeigeMitgliedBereich() {
+  loginModus = "mitglied";
+  kennungEingabe.disabled = true;
+  kennungWeiterButton.hidden = true;
+  gastWechselButton.hidden = true;
+  gastBereich.hidden = true;
+  mitgliedBereich.hidden = false;
+  startButton.hidden = false;
+  pruefeEingabenVollstaendig();
+}
+
+function zeigeGastBereich() {
+  loginModus = "gast";
+  kennungBereich.hidden = true;
+  mitgliedBereich.hidden = true;
+  gastBereich.hidden = false;
+  startButton.hidden = false;
+  pruefeEingabenVollstaendig();
+  gastNameEingabe.focus();
+}
+
+function zeigeKennungBereich() {
+  loginModus = "kennung";
+  kennungBereich.hidden = false;
+  kennungEingabe.disabled = false;
+  kennungWeiterButton.hidden = false;
+  gastWechselButton.hidden = false;
+  mitgliedBereich.hidden = true;
+  gastBereich.hidden = true;
+  startButton.hidden = true;
+  pruefeEingabenVollstaendig();
+}
+
+async function pruefeVereinskennung(kennungWert, options) {
+  const ausSession = !!(options && options.ausSession);
+  const kennung = kennungWert.trim();
+  if (!kennung) return;
+
+  kennungHinweis.hidden = true;
+  kennungHinweis.classList.remove("hinweis-fehler", "hinweis-erfolg");
+  kennungWeiterButton.disabled = true;
+
+  const { data: istOk, error } = await sb.rpc("vereinskennung_pruefen", { p_kennung: kennung });
+
+  kennungWeiterButton.disabled = false;
+
+  if (error) {
+    kennungHinweis.textContent = "Kennung konnte nicht geprüft werden: " + error.message;
+    kennungHinweis.classList.add("hinweis-fehler");
+    kennungHinweis.hidden = false;
+    return;
+  }
+
+  if (!istOk) {
+    if (ausSession) {
+      // Eine gespeicherte Kennung, die jetzt nicht mehr gültig ist (z.B.
+      // zwischenzeitlich geändert) - Session verwerfen, normal von vorn
+      // starten, kein Fehler-Hinweis nötig (Person hat ja nichts falsch
+      // gemacht).
+      loescheGespeicherteKennungSession();
+      return;
+    }
+    kennungHinweis.textContent = "Diese Vereinskennung ist uns nicht bekannt.";
+    kennungHinweis.classList.add("hinweis-fehler");
+    kennungHinweis.hidden = false;
+    kennungEingabe.value = "";
+    kennungEingabe.focus();
+    return;
+  }
+
+  speichereKennungSession(kennung);
+  kennungHinweis.textContent = "✓ Vereinskennung bestätigt";
+  kennungHinweis.classList.add("hinweis-erfolg");
+  kennungHinweis.hidden = false;
+  zeigeMitgliedBereich();
+}
+
+kennungWeiterButton.addEventListener("click", () => pruefeVereinskennung(kennungEingabe.value));
+kennungEingabe.addEventListener("keydown", (event) => {
+  if (event.key === "Enter") {
+    event.preventDefault();
+    pruefeVereinskennung(kennungEingabe.value);
+  }
+});
+
+gastWechselButton.addEventListener("click", () => {
+  versteckeFehler();
+  zeigeGastBereich();
+});
+
+gastZurueckButton.addEventListener("click", () => {
+  versteckeFehler();
+  zeigeKennungBereich();
+});
 
 startButton.addEventListener("click", async () => {
+  if (loginModus === "gast") {
+    await starteGastModus();
+    return;
+  }
+
   versteckeFehler();
   const schiedsrichterId = nameAuswahl.value;
   const pin = pinEingabe.value.trim();
@@ -194,6 +382,257 @@ startButton.addEventListener("click", async () => {
 wechselnButton.addEventListener("click", () => {
   loescheGespeicherteSession();
   location.reload();
+});
+
+// ============================================================
+// Gast-Quiz (13.07.2026, Baustein B/C/D) - eigener, schlanker Ablauf statt
+// Wiederverwendung von "ladeFragenUndAntworten": Gast-Fragen sind bewusst
+// nur Multiple-Choice ohne Video/Freitext/KI, und nichts wird serverseitig
+// gespeichert (Fortschritt lebt nur in den Variablen oben, siehe
+// "AskUserQuestion"-Entscheidung im Backlog: "nur im Browser merken"). Baut
+// bewusst auf demselben Options-/Feedback-Markup wie die echten Fragen auf
+// (".option-liste"/".option"/".absenden-button"/".feedback"), damit sich der
+// Gast-Modus optisch nicht wie ein Fremdkörper anfühlt.
+// ============================================================
+
+async function starteGastModus() {
+  versteckeFehler();
+  const name = gastNameEingabe.value.trim();
+  if (!name) return;
+
+  gastName = name;
+  gastBeantwortetAnzahl = 0;
+  gastRichtigAnzahl = 0;
+  gastFrageIndex = 0;
+  gastInteressePopupGezeigt = false;
+
+  nameSchritt.hidden = true;
+  gastQuizSchritt.hidden = false;
+  gastNameAnzeige.textContent = gastName;
+  aktualisiereGastFortschrittAnzeige();
+
+  await ladeGastFragen();
+}
+
+async function ladeGastFragen() {
+  const { data, error } = await sb.rpc("gast_fragen_liste");
+
+  if (error) {
+    zeigeFehler("Fragen konnten nicht geladen werden: " + error.message);
+    return;
+  }
+
+  gastFragenPool = data || [];
+  gastFrageIndex = 0;
+  zeigeNaechsteGastFrage();
+}
+
+function zeigeNaechsteGastFrage() {
+  gastFrageBereich.innerHTML = "";
+
+  if (gastFrageIndex >= gastFragenPool.length) {
+    const hinweis = document.createElement("p");
+    hinweis.className = "hinweis card";
+    hinweis.textContent = "Das waren erstmal alle Fragen – danke fürs Ausprobieren! 🎉";
+    gastFrageBereich.appendChild(hinweis);
+    return;
+  }
+
+  gastFrageBereich.appendChild(baueGastFrageElement(gastFragenPool[gastFrageIndex]));
+}
+
+function baueGastFrageElement(frage) {
+  const container = document.createElement("div");
+  container.className = "frage-karte";
+  container.dataset.frageId = frage.frage_id;
+
+  const titel = document.createElement("div");
+  titel.className = "frage-text";
+  titel.textContent = frage.frage_text;
+  const titelZeile = document.createElement("div");
+  titelZeile.className = "frage-text-zeile";
+  titelZeile.appendChild(titel);
+  container.appendChild(titelZeile);
+
+  const optionListe = document.createElement("div");
+  optionListe.className = "option-liste";
+
+  const optionen = [
+    { key: "a", text: frage.option_a },
+    { key: "b", text: frage.option_b },
+    { key: "c", text: frage.option_c },
+  ];
+
+  for (const opt of optionen) {
+    if (!opt.text) continue;
+    const label = document.createElement("label");
+    label.className = "option";
+
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "gast-frage-" + frage.frage_id;
+    radio.value = opt.key;
+    radio.addEventListener("change", () => {
+      optionListe.querySelectorAll(".option").forEach((el) => el.classList.remove("ausgewaehlt"));
+      label.classList.add("ausgewaehlt");
+    });
+
+    label.appendChild(radio);
+    label.append(opt.text);
+    optionListe.appendChild(label);
+  }
+  container.appendChild(optionListe);
+
+  const absendenButton = document.createElement("button");
+  absendenButton.className = "absenden-button";
+  absendenButton.textContent = "Antwort abschicken";
+  absendenButton.addEventListener("click", () => gastAntwortAbschicken(frage.frage_id, container, absendenButton));
+  container.appendChild(absendenButton);
+
+  const feedback = document.createElement("p");
+  feedback.className = "feedback";
+  feedback.hidden = true;
+  container.appendChild(feedback);
+
+  return container;
+}
+
+async function gastAntwortAbschicken(frageId, container, button) {
+  const gewaehlt = container.querySelector('input[type="radio"]:checked');
+  if (!gewaehlt) {
+    zeigeFehler("Bitte erst eine Antwort auswählen.");
+    return;
+  }
+  versteckeFehler();
+
+  button.disabled = true;
+  container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
+
+  const { data, error } = await sb.rpc("gast_antwort_pruefen", {
+    p_frage_id: frageId,
+    p_option: gewaehlt.value,
+  });
+
+  const feedback = container.querySelector(".feedback");
+  feedback.hidden = false;
+
+  if (error || !data || !data[0]) {
+    feedback.textContent = "Antwort konnte nicht geprüft werden" + (error ? ": " + error.message : ".");
+    feedback.classList.add("falsch");
+    button.disabled = false;
+    container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = false));
+    return;
+  }
+
+  const ergebnis = data[0];
+  gastBeantwortetAnzahl += 1;
+  if (ergebnis.korrekt) {
+    gastRichtigAnzahl += 1;
+    feedback.textContent = "Richtig! ✅";
+    feedback.classList.add("richtig");
+  } else {
+    feedback.textContent = "Leider falsch. Richtig wäre gewesen: " + ergebnis.richtige_option.toUpperCase();
+    feedback.classList.add("falsch");
+  }
+
+  aktualisiereGastFortschrittAnzeige();
+
+  const weiterButton = document.createElement("button");
+  weiterButton.className = "historie-weiter-button";
+  weiterButton.type = "button";
+  weiterButton.textContent = "Nächste Frage →";
+  weiterButton.addEventListener("click", () => {
+    gastFrageIndex += 1;
+    zeigeNaechsteGastFrage();
+  });
+  container.appendChild(weiterButton);
+
+  // Baustein C: Interesse-Popup nach GAST_INTERESSE_TRIGGER_ANZAHL
+  // beantworteten Fragen, nur einmal pro Sitzung.
+  if (gastBeantwortetAnzahl === GAST_INTERESSE_TRIGGER_ANZAHL && !gastInteressePopupGezeigt) {
+    gastInteressePopupGezeigt = true;
+    interesseOverlay.hidden = false;
+  }
+}
+
+function aktualisiereGastFortschrittAnzeige() {
+  gastFortschrittAnzeige.textContent = gastRichtigAnzahl + " von " + gastBeantwortetAnzahl + " richtig";
+}
+
+// Ausstiegsweg aus dem Gast-Modus zurück zur Login-Karte (siehe Kommentar
+// am Button in index.html) - setzt den kompletten Gast-Zustand zurück und
+// zeigt wieder den Bereich, der zur gerade aktiven Vereinskennung passt.
+gastVerlassenButton.addEventListener("click", () => {
+  gastQuizSchritt.hidden = true;
+  gastFrageBereich.innerHTML = "";
+  gastName = null;
+  gastFragenPool = [];
+  gastFrageIndex = 0;
+  gastBeantwortetAnzahl = 0;
+  gastRichtigAnzahl = 0;
+  gastInteressePopupGezeigt = false;
+  gastNameEingabe.value = "";
+
+  nameSchritt.hidden = false;
+  if (leseGespeicherteKennung()) {
+    zeigeMitgliedBereich();
+  } else {
+    zeigeKennungBereich();
+  }
+});
+
+// ---------- Interesse-Popup + Interessenten-Formular (Baustein C/D/E) ----------
+
+function schliesseInteressePopup() {
+  interesseOverlay.hidden = true;
+}
+
+interesseNeinButton.addEventListener("click", schliesseInteressePopup);
+interesseOverlay.addEventListener("click", (event) => {
+  if (event.target === interesseOverlay) schliesseInteressePopup();
+});
+
+interesseJaButton.addEventListener("click", () => {
+  schliesseInteressePopup();
+  interessentenFormularInhalt.hidden = false;
+  interessentenFormularErfolg.hidden = true;
+  interessentEmailEingabe.value = "";
+  interessentenFormularOverlay.hidden = false;
+});
+
+function schliesseInteressentenFormular() {
+  interessentenFormularOverlay.hidden = true;
+}
+
+interessentenFormularSchliessenButton.addEventListener("click", schliesseInteressentenFormular);
+interessentenFormularOverlay.addEventListener("click", (event) => {
+  if (event.target === interessentenFormularOverlay) schliesseInteressentenFormular();
+});
+
+interessentAbsendenButton.addEventListener("click", async () => {
+  interessentAbsendenButton.disabled = true;
+  const email = interessentEmailEingabe.value.trim();
+
+  const { error } = await sb.rpc("gast_interesse_melden", {
+    p_gast_name: gastName || "Gast",
+    p_email: email || null,
+  });
+
+  interessentAbsendenButton.disabled = false;
+
+  if (error) {
+    zeigeFehler("Konnte leider nicht gespeichert werden: " + error.message);
+    return;
+  }
+
+  interessentenFormularInhalt.hidden = true;
+  interessentenFormularErfolg.hidden = false;
+});
+
+document.addEventListener("keydown", (event) => {
+  if (event.key !== "Escape") return;
+  if (interesseOverlay && !interesseOverlay.hidden) schliesseInteressePopup();
+  if (interessentenFormularOverlay && !interessentenFormularOverlay.hidden) schliesseInteressentenFormular();
 });
 
 async function ladeFragenUndAntworten() {
@@ -1793,6 +2232,17 @@ async function start() {
     eingegebenePin = gespeichert.pin;
     zeigeAngemeldetenZustand(gespeichert.name || "");
     await ladeFragenUndAntworten();
+    return;
+  }
+
+  // Vereinskennung (13.07.2026, Baustein A): eine schon einmal bestätigte
+  // Kennung wird gemerkt, damit man nicht bei jedem Neuladen erneut tippen
+  // muss - wird aber sicherheitshalber erneut serverseitig geprüft (falls
+  // sie sich zwischenzeitlich geändert hat), nicht blind übernommen.
+  const gespeicherteKennung = leseGespeicherteKennung();
+  if (gespeicherteKennung) {
+    kennungEingabe.value = gespeicherteKennung;
+    await pruefeVereinskennung(gespeicherteKennung, { ausSession: true });
   }
 }
 

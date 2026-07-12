@@ -200,6 +200,8 @@ button {
   transition: background 0.15s, transform 0.1s;
 }
 
+#start-button[hidden] { display: none; }
+
 #start-button:not(:disabled):hover {
   background: var(--green-dark);
   transform: translateY(-1px);
@@ -291,6 +293,8 @@ button {
   box-shadow: var(--shadow);
   transition: border-color 0.15s, color 0.15s, box-shadow 0.15s, transform 0.1s;
 }
+
+.sekundaer-button[hidden] { display: none; }
 
 .sekundaer-button:hover {
   border-color: var(--blue);
@@ -1372,4 +1376,67 @@ button {
 
 .video-gross-schliessen-button:hover {
   background: rgba(255, 255, 255, 0.2);
+}
+
+/* ---------- Vereinskennung / Gast-Zugang (13.07.2026) ---------- */
+
+/* Reiner Text-Link im Button-Gewand (z.B. "Kennung nicht bekannt? Als Gast
+   weiter", "Mehr Infos beim SVFD") - bewusst ohne Rahmen/Hintergrund, um sich
+   klar vom primären "Los geht's"-Button und vom umrahmten
+   ".sekundaer-button" abzusetzen. */
+.linktext-button {
+  display: inline-block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 6px 0 14px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--blue);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.linktext-button:hover {
+  color: var(--green-dark);
+}
+
+.linktext-button[hidden] { display: none; }
+
+#kennung-hinweis.hinweis-fehler {
+  color: var(--red);
+}
+
+#kennung-hinweis.hinweis-erfolg {
+  color: var(--green-dark);
+}
+
+#mitglied-bereich,
+#gast-bereich {
+  margin-top: 4px;
+}
+
+.gast-kopfzeile {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.88rem;
+  color: var(--muted);
+  padding: 4px 4px 0;
+  margin-bottom: 4px;
+}
+
+#gast-fortschritt-anzeige {
+  font-weight: 700;
+  color: var(--green-dark);
+}
+
+.interesse-optionen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
 }
