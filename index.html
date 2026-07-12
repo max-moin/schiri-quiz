@@ -124,7 +124,13 @@
         </button>
         <div id="profil-panel" class="profil-panel" hidden role="menu">
           <button id="panel-anfrage-stellen-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">📋</span> Anfrage stellen
+            <span aria-hidden="true">📋</span> Ausrüstung anfragen
+          </button>
+          <!-- Baustein 5c (12.07.2026, Baustein E - Max' eigene Wortwahl
+               "Anträge und Anliegen" statt "Sorgenkasten"): dritter
+               Panel-Eintrag für allgemeine Anliegen (nicht nur Ausrüstung). -->
+          <button id="panel-anliegen-melden-button" class="profil-panel-item" type="button" role="menuitem">
+            <span aria-hidden="true">💬</span> Anliegen melden
           </button>
           <button id="panel-meine-anfragen-button" class="profil-panel-item" type="button" role="menuitem">
             <span aria-hidden="true">📦</span> Meine Anfragen
@@ -369,8 +375,37 @@
     </div>
   </div>
 
-  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a) - eigene gestellte
-       Anfragen mit Status, erreichbar über das Profil-Panel. -->
+  <!-- Anliegen-Formular (12.07.2026, Baustein 5c: Baustein E der
+       Backlog-Spec, dort "Sorgenkasten" genannt - hier bewusst "Anliegen",
+       Max' eigene Wortwahl beim Anfordern dieses Bausteins) - freier Text
+       statt eines Formulars mit festen Feldern, damit die Hürde niedrig
+       bleibt (jedes Anliegen, nicht nur Ausrüstung). -->
+  <div id="anliegen-formular-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anliegen-formular-titel">
+      <div class="erklaerung-kopf">
+        <h3 id="anliegen-formular-titel">Anliegen melden 💬</h3>
+        <button id="anliegen-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
+      </div>
+
+      <div id="anliegen-formular-inhalt">
+        <p class="hinweis">Egal ob große oder kleine Sache - schreib einfach, was los ist. Nur der Schiri-Obmann sieht das hier.</p>
+        <label for="anliegen-text-eingabe">Was möchtest du uns wissen lassen?</label>
+        <textarea id="anliegen-text-eingabe" rows="5" placeholder="Schreib hier, was dich beschäftigt ..."></textarea>
+
+        <p id="anliegen-formular-hinweis" class="hinweis" hidden></p>
+        <button id="anliegen-absenden-button" type="button">Absenden</button>
+      </div>
+
+      <div id="anliegen-formular-erfolg" hidden>
+        <p>Danke, deine Nachricht ist angekommen! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
+        <button id="anliegen-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a; erweitert 5c um
+       Anliegen + Rechnungs-Upload) - eigene gestellte Anfragen/Anliegen mit
+       Status, erreichbar über das Profil-Panel. -->
   <div id="meine-anfragen-overlay" class="erklaerung-overlay" hidden>
     <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="meine-anfragen-titel">
       <div class="erklaerung-kopf">
@@ -380,6 +415,34 @@
 
       <div id="meine-anfragen-liste"></div>
       <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
+    </div>
+  </div>
+
+  <!-- Rechnungs-Upload (12.07.2026, Baustein 5c: Baustein D, Weg 2) - nur
+       erreichbar über eine Zeile in "Meine Anfragen", die angenommen ist
+       UND wo der Obmann "Schiri besorgt es selbst" gewählt hat. Foto wird
+       vor dem Hochladen im Browser verkleinert (siehe app.js
+       "komprimiereBildAufBase64"), damit auch normale Handyfotos
+       problemlos als Base64 übertragen werden können. -->
+  <div id="rechnung-upload-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="rechnung-upload-titel">
+      <div class="erklaerung-kopf">
+        <h3 id="rechnung-upload-titel">Rechnung hochladen 🧾</h3>
+        <button id="rechnung-upload-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
+      </div>
+
+      <div id="rechnung-upload-inhalt">
+        <p class="hinweis">Mach ein Foto von der Rechnung oder wähle eins aus deiner Galerie - der Schiri-Obmann sieht es dann in seinem Dashboard und überweist dir das Geld.</p>
+        <input id="rechnung-datei-eingabe" type="file" accept="image/*" />
+        <img id="rechnung-vorschau-bild" alt="Vorschau der Rechnung" hidden />
+        <p id="rechnung-upload-hinweis" class="hinweis" hidden></p>
+        <button id="rechnung-hochladen-button" type="button" disabled>Hochladen</button>
+      </div>
+
+      <div id="rechnung-upload-erfolg" hidden>
+        <p>Danke, die Rechnung ist beim Schiri-Obmann angekommen!</p>
+        <button id="rechnung-upload-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
+      </div>
     </div>
   </div>
 

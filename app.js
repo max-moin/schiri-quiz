@@ -84,6 +84,28 @@ const meineAnfragenSchliessenButton = document.getElementById("meine-anfragen-sc
 const meineAnfragenListe = document.getElementById("meine-anfragen-liste");
 const meineAnfragenLeerHinweis = document.getElementById("meine-anfragen-leer-hinweis");
 
+// Anliegen-Formular & Rechnungs-Upload (12.07.2026, Baustein 5c: Baustein D
+// + Baustein E). "Anliegen" ist Max' eigene Wortwahl statt "Sorgenkasten".
+const panelAnliegenMeldenButton = document.getElementById("panel-anliegen-melden-button");
+const anliegenFormularOverlay = document.getElementById("anliegen-formular-overlay");
+const anliegenFormularSchliessenButton = document.getElementById("anliegen-formular-schliessen-button");
+const anliegenFormularInhalt = document.getElementById("anliegen-formular-inhalt");
+const anliegenFormularErfolg = document.getElementById("anliegen-formular-erfolg");
+const anliegenFormularErfolgSchliessenButton = document.getElementById("anliegen-formular-erfolg-schliessen-button");
+const anliegenTextEingabe = document.getElementById("anliegen-text-eingabe");
+const anliegenFormularHinweis = document.getElementById("anliegen-formular-hinweis");
+const anliegenAbsendenButton = document.getElementById("anliegen-absenden-button");
+
+const rechnungUploadOverlay = document.getElementById("rechnung-upload-overlay");
+const rechnungUploadSchliessenButton = document.getElementById("rechnung-upload-schliessen-button");
+const rechnungUploadInhalt = document.getElementById("rechnung-upload-inhalt");
+const rechnungUploadErfolg = document.getElementById("rechnung-upload-erfolg");
+const rechnungUploadErfolgSchliessenButton = document.getElementById("rechnung-upload-erfolg-schliessen-button");
+const rechnungDateiEingabe = document.getElementById("rechnung-datei-eingabe");
+const rechnungVorschauBild = document.getElementById("rechnung-vorschau-bild");
+const rechnungUploadHinweis = document.getElementById("rechnung-upload-hinweis");
+const rechnungHochladenButton = document.getElementById("rechnung-hochladen-button");
+
 // Historie ("Wiederholung alter Fragen", 11.07.2026) - eigener Bereich,
 // erreichbar über einen Button in der bestehenden "Fertig"-Meldung
 // (bewusst KEIN automatischer Redirect, Max' ausdrücklicher Wunsch).
@@ -708,6 +730,8 @@ document.addEventListener("keydown", (event) => {
   if (profilPanel && !profilPanel.hidden) schliesseProfilPanel();
   if (anfrageFormularOverlay && !anfrageFormularOverlay.hidden) schliesseAnfrageFormular();
   if (meineAnfragenOverlay && !meineAnfragenOverlay.hidden) schliesseMeineAnfragen();
+  if (anliegenFormularOverlay && !anliegenFormularOverlay.hidden) schliesseAnliegenFormular();
+  if (rechnungUploadOverlay && !rechnungUploadOverlay.hidden) schliesseRechnungUpload();
 });
 
 // ---------- Profil-Panel & Anfragen-System (Baustein 5a) ----------
@@ -808,6 +832,7 @@ anfrageAbsendenButton.addEventListener("click", async () => {
 
 const ANFRAGE_KATEGORIE_LABEL = { trikot: "Trikot", hose: "Hose", stutzen: "Stutzen", schuhe: "Schuhe" };
 const ANFRAGE_STATUS_LABEL = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
+const ANFRAGE_TYP_LABEL = { ausruestung: "Antrag", anliegen: "Anliegen" };
 
 function formatiereAnfrageDatum(iso) {
   try {
@@ -817,16 +842,28 @@ function formatiereAnfrageDatum(iso) {
   }
 }
 
+// Merkt sich, für welche Anfrage gerade eine Rechnung hochgeladen wird
+// (gesetzt beim Öffnen von "#rechnung-upload-overlay" über eine Zeile in
+// "Meine Anfragen") sowie das im Browser schon komprimierte Bild.
+let rechnungUploadAnfrageId = null;
+let rechnungUploadBase64 = null;
+let rechnungUploadMime = null;
+
 function baueAnfrageZeile(anfrage) {
   const zeile = document.createElement("div");
   zeile.className = "anfrage-zeile";
+
+  const typZeile = document.createElement("span");
+  typZeile.className = "anfrage-typ-badge";
+  typZeile.textContent = ANFRAGE_TYP_LABEL[anfrage.typ] || anfrage.typ;
+  zeile.appendChild(typZeile);
 
   const kopf = document.createElement("div");
   kopf.className = "anfrage-zeile-kopf";
 
   const titel = document.createElement("span");
   titel.className = "anfrage-zeile-titel";
-  titel.textContent = ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
+  titel.textContent = anfrage.typ === "anliegen" ? "Anliegen" : ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
   kopf.appendChild(titel);
 
   const statusBadge = document.createElement("span");
@@ -852,6 +889,27 @@ function baueAnfrageZeile(anfrage) {
     anmerkung.className = "anfrage-zeile-detail";
     anmerkung.textContent = "„" + anfrage.anmerkung + "“";
     zeile.appendChild(anmerkung);
+  }
+
+  // Baustein 5c (Baustein D, Weg 2): sobald der Obmann "Schiri besorgt es
+  // selbst" gewählt hat, kann hier die Rechnung hochgeladen werden - genau
+  // einmal, danach nur noch ein Status-Hinweis statt des Buttons.
+  if (anfrage.typ !== "anliegen" && anfrage.status === "angenommen" && anfrage.beschaffungsweg === "weg2_schiri_besorgt") {
+    if (anfrage.rechnung_hochgeladen_am) {
+      const rechnungStatus = document.createElement("p");
+      rechnungStatus.className = "anfrage-zeile-rechnung-status";
+      rechnungStatus.textContent = anfrage.erstattet
+        ? "✓ Rechnung hochgeladen, Geld überwiesen"
+        : "✓ Rechnung hochgeladen am " + formatiereAnfrageDatum(anfrage.rechnung_hochgeladen_am);
+      zeile.appendChild(rechnungStatus);
+    } else {
+      const rechnungButton = document.createElement("button");
+      rechnungButton.type = "button";
+      rechnungButton.className = "anfrage-zeile-rechnung-button";
+      rechnungButton.textContent = "🧾 Rechnung hochladen";
+      rechnungButton.addEventListener("click", () => oeffneRechnungUpload(anfrage.id));
+      zeile.appendChild(rechnungButton);
+    }
   }
 
   return zeile;
@@ -900,6 +958,185 @@ panelMeineAnfragenButton.addEventListener("click", async () => {
     p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
     p_pin: eingegebenePin,
   });
+});
+
+// ---------- Anliegen-Formular (Baustein 5c, Baustein E) ----------
+
+function setzeAnliegenFormularZurueck() {
+  anliegenTextEingabe.value = "";
+  anliegenFormularHinweis.hidden = true;
+  anliegenFormularInhalt.hidden = false;
+  anliegenFormularErfolg.hidden = true;
+}
+
+panelAnliegenMeldenButton.addEventListener("click", () => {
+  schliesseProfilPanel();
+  setzeAnliegenFormularZurueck();
+  anliegenFormularOverlay.hidden = false;
+});
+
+function schliesseAnliegenFormular() {
+  anliegenFormularOverlay.hidden = true;
+}
+
+anliegenFormularSchliessenButton.addEventListener("click", schliesseAnliegenFormular);
+anliegenFormularErfolgSchliessenButton.addEventListener("click", schliesseAnliegenFormular);
+anliegenFormularOverlay.addEventListener("click", (event) => {
+  if (event.target === anliegenFormularOverlay) schliesseAnliegenFormular();
+});
+
+anliegenAbsendenButton.addEventListener("click", async () => {
+  const text = anliegenTextEingabe.value.trim();
+  if (!text) {
+    anliegenFormularHinweis.textContent = "Schreib kurz, was los ist - dann kann ich mich darum kümmern.";
+    anliegenFormularHinweis.hidden = false;
+    return;
+  }
+
+  anliegenFormularHinweis.hidden = true;
+  anliegenAbsendenButton.disabled = true;
+
+  const { error } = await sb.rpc("schiri_anfrage_erstellen", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+    p_kategorie: null,
+    p_anmerkung: text,
+    p_typ: "anliegen",
+  });
+
+  anliegenAbsendenButton.disabled = false;
+
+  if (error) {
+    anliegenFormularHinweis.textContent = "Konnte leider nicht gespeichert werden: " + error.message;
+    anliegenFormularHinweis.hidden = false;
+    return;
+  }
+
+  anliegenFormularInhalt.hidden = true;
+  anliegenFormularErfolg.hidden = false;
+});
+
+// ---------- Rechnungs-Upload (Baustein 5c, Baustein D Weg 2) ----------
+
+/// Verkleinert ein Foto im Browser auf max. 1600px Kantenlänge und
+/// re-kodiert es als JPEG (Qualität 0.8), bevor es als Base64 an die RPC
+/// geht - normale Handyfotos sind sonst oft mehrere MB groß, das würde die
+/// Anfrage unnötig aufblähen bzw. an Limits stoßen können.
+function komprimiereBildAufBase64(datei) {
+  return new Promise((resolve, reject) => {
+    const bild = new Image();
+    const objektUrl = URL.createObjectURL(datei);
+    bild.onload = () => {
+      const MAX_KANTE = 1600;
+      let breite = bild.naturalWidth;
+      let hoehe = bild.naturalHeight;
+      if (breite > MAX_KANTE || hoehe > MAX_KANTE) {
+        if (breite >= hoehe) {
+          hoehe = Math.round((hoehe * MAX_KANTE) / breite);
+          breite = MAX_KANTE;
+        } else {
+          breite = Math.round((breite * MAX_KANTE) / hoehe);
+          hoehe = MAX_KANTE;
+        }
+      }
+
+      const canvas = document.createElement("canvas");
+      canvas.width = breite;
+      canvas.height = hoehe;
+      const ctx = canvas.getContext("2d");
+      ctx.drawImage(bild, 0, 0, breite, hoehe);
+      URL.revokeObjectURL(objektUrl);
+
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
+      const base64 = dataUrl.split(",")[1];
+      resolve({ base64, mime: "image/jpeg", vorschauUrl: dataUrl });
+    };
+    bild.onerror = () => {
+      URL.revokeObjectURL(objektUrl);
+      reject(new Error("Bild konnte nicht gelesen werden"));
+    };
+    bild.src = objektUrl;
+  });
+}
+
+function setzeRechnungUploadZurueck() {
+  rechnungDateiEingabe.value = "";
+  rechnungVorschauBild.hidden = true;
+  rechnungVorschauBild.src = "";
+  rechnungUploadHinweis.hidden = true;
+  rechnungHochladenButton.disabled = true;
+  rechnungUploadInhalt.hidden = false;
+  rechnungUploadErfolg.hidden = true;
+  rechnungUploadBase64 = null;
+  rechnungUploadMime = null;
+}
+
+function oeffneRechnungUpload(anfrageId) {
+  rechnungUploadAnfrageId = anfrageId;
+  setzeRechnungUploadZurueck();
+  rechnungUploadOverlay.hidden = false;
+}
+
+function schliesseRechnungUpload() {
+  rechnungUploadOverlay.hidden = true;
+  rechnungUploadAnfrageId = null;
+}
+
+rechnungUploadSchliessenButton.addEventListener("click", schliesseRechnungUpload);
+rechnungUploadOverlay.addEventListener("click", (event) => {
+  if (event.target === rechnungUploadOverlay) schliesseRechnungUpload();
+});
+
+rechnungUploadErfolgSchliessenButton.addEventListener("click", async () => {
+  schliesseRechnungUpload();
+  // Zeile in "Meine Anfragen" direkt aktualisieren, damit der Button
+  // sofort durch den "hochgeladen"-Hinweis ersetzt wird.
+  await ladeMeineAnfragen();
+});
+
+rechnungDateiEingabe.addEventListener("change", async () => {
+  const datei = rechnungDateiEingabe.files && rechnungDateiEingabe.files[0];
+  if (!datei) return;
+
+  rechnungUploadHinweis.hidden = true;
+  rechnungHochladenButton.disabled = true;
+
+  try {
+    const { base64, mime, vorschauUrl } = await komprimiereBildAufBase64(datei);
+    rechnungUploadBase64 = base64;
+    rechnungUploadMime = mime;
+    rechnungVorschauBild.src = vorschauUrl;
+    rechnungVorschauBild.hidden = false;
+    rechnungHochladenButton.disabled = false;
+  } catch (e) {
+    rechnungUploadHinweis.textContent = "Foto konnte nicht gelesen werden - bitte nochmal versuchen.";
+    rechnungUploadHinweis.hidden = false;
+  }
+});
+
+rechnungHochladenButton.addEventListener("click", async () => {
+  if (!rechnungUploadAnfrageId || !rechnungUploadBase64) return;
+
+  rechnungHochladenButton.disabled = true;
+  rechnungUploadHinweis.hidden = true;
+
+  const { error } = await sb.rpc("schiri_anfrage_rechnung_hochladen", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+    p_anfrage_id: rechnungUploadAnfrageId,
+    p_bild_base64: rechnungUploadBase64,
+    p_mime: rechnungUploadMime,
+  });
+
+  if (error) {
+    rechnungHochladenButton.disabled = false;
+    rechnungUploadHinweis.textContent = "Konnte leider nicht hochgeladen werden: " + error.message;
+    rechnungUploadHinweis.hidden = false;
+    return;
+  }
+
+  rechnungUploadInhalt.hidden = true;
+  rechnungUploadErfolg.hidden = false;
 });
 
 // Prüft beim Anmelden, ob es unerledigte Status-Änderungen gibt (Ersatz für
