@@ -717,6 +717,22 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
           baueUndZeigePlatzhalter();
         }
 
+        // Nachbesserung Runde 3/4 (12.07.2026): Untertitel sollen IMMER aus
+        // bleiben. "cc_load_policy: 0" oben in "playerVars" verhindert nur,
+        // dass Untertitel automatisch nach Zuschauer-Voreinstellung
+        // eingeschaltet werden - reicht laut Max' Beobachtung in der Praxis
+        // nicht zuverlässig aus. Das komplette Entladen des Untertitel-
+        // Moduls über die (offiziell nicht dokumentierte, aber weithin
+        // genutzte) Player-API-Methode "unloadModule" ist der zuverlässigste
+        // bekannte Weg. Als eigene Funktion, weil sie an mehreren Stellen
+        // aufgerufen wird (siehe Kommentar bei "onStateChange" unten, wieso
+        // einmaliges Aufrufen in "onReady" allein nicht reichte).
+        function unterdrueckeUntertitel() {
+          if (typeof spieler.unloadModule === "function") {
+            spieler.unloadModule("captions");
+          }
+        }
+
         const spieler = new YT.Player(spielerZiel, {
           host: "https://www.youtube-nocookie.com",
           videoId,
@@ -754,19 +770,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                 }
               }
 
-              // Nachbesserung Runde 3 (12.07.2026, Max' drittes Live-Test-
-              // Feedback): Untertitel sollen IMMER aus bleiben. "cc_load_policy: 0"
-              // oben verhindert nur, dass Untertitel automatisch nach
-              // Zuschauer-Voreinstellung eingeschaltet werden - reicht laut
-              // Max' Beobachtung in der Praxis nicht zuverlässig aus. Das
-              // komplette Entladen des Untertitel-Moduls über die (offiziell
-              // nicht dokumentierte, aber weithin genutzte) Player-API-Methode
-              // "unloadModule" ist der zuverlässige Weg, Untertitel für diesen
-              // Player-Aufruf komplett zu unterbinden statt nur "nicht
-              // standardmäßig einzuschalten".
-              if (typeof spieler.unloadModule === "function") {
-                spieler.unloadModule("captions");
-              }
+              unterdrueckeUntertitel();
             },
             onStateChange: (ereignis) => {
               if (ereignis.data === YT.PlayerState.ENDED) {
@@ -776,6 +780,24 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
               if (ereignis.data === YT.PlayerState.PLAYING) {
                 abspielButton.textContent = "⏸";
                 abspielButton.setAttribute("aria-label", "Pause");
+                // Nachbesserung Runde 4 (12.07.2026, Max' Rückmeldung: der
+                // Runde-3-Fix "unloadModule('captions')" EINMALIG in
+                // "onReady" hat in der Praxis nicht gereicht). Bekanntes,
+                // offiziell nicht dokumentiertes Verhalten des Untertitel-
+                // Moduls: es kann sich beim TATSÄCHLICHEN Start der
+                // Wiedergabe (nicht schon bei "onReady", das vor dem
+                // eigentlichen Abspielen feuert) selbst neu laden, auch
+                // nachdem es einmal entladen wurde. Deshalb hier zusätzlich
+                // bei JEDEM "PLAYING" nochmal entladen, plus zwei verzögerte
+                // Nachschläge (300ms/1500ms), um ein eventuell erst leicht
+                // verzögert nachladendes Untertitel-Modul ebenfalls zu
+                // erwischen. Es gibt dafür keinen offiziellen, garantiert
+                // hundertprozentigen Weg von YouTube selbst (bestätigt durch
+                // mehrere offene YouTube-eigene Bugreports zu genau diesem
+                // Verhalten) - das hier ist der robusteste bekannte Ansatz.
+                unterdrueckeUntertitel();
+                setTimeout(unterdrueckeUntertitel, 300);
+                setTimeout(unterdrueckeUntertitel, 1500);
                 // Startet die Endzeit-Überwachung (siehe Kommentar bei
                 // "VORLAUF_SEKUNDEN" oben) - nur, wenn nicht schon eine läuft,
                 // damit mehrfaches Play/Pause nicht mehrere Intervalle parallel
