@@ -201,7 +201,7 @@ async function ladeFragenUndAntworten() {
     sb
       .from("fragen_oeffentlich")
       .select(
-        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis, video_url, video_start_sekunden, video_end_sekunden, video_antworttyp"
+        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis, video_url, video_start_sekunden, video_end_sekunden, video_antworttyp, video_stumm"
       )
       .order("position", { ascending: true, nullsFirst: false }),
     sb.rpc("meine_antworten", {
@@ -450,14 +450,52 @@ function baueWarumButton(frageId, istHistorie) {
 }
 
 // ============================================================
-// Video-Fragetyp (12.07.2026): YouTube-Einbettung mit Start-/End-Zeit im
-// datenschutzfreundlichen "Zwei-Klick"-Muster - es wird KEIN Kontakt zu
-// YouTube aufgebaut, bevor aktiv auf den Platzhalter geklickt wird, und die
-// Einbettung läuft über youtube-nocookie.com statt youtube.com (siehe
-// Rechtsrecherche im Backlog, Baustein 1v). Funktioniert für beide
-// Video-Antworttypen (video_mc/video_freitext) gleich - deshalb rein am
-// Vorhandensein von "frage.video_url" festgemacht statt am typ-Feld.
+// Video-Fragetyp (12.07.2026, Grundgerüst - nachgebessert 12.07.2026):
+// YouTube-Einbettung mit Start-/End-Zeit im datenschutzfreundlichen
+// "Zwei-Klick"-Muster - es wird KEIN Kontakt zu YouTube aufgebaut, bevor
+// aktiv auf den Platzhalter geklickt wird, und die Einbettung läuft über
+// youtube-nocookie.com statt youtube.com (siehe Rechtsrecherche im
+// Backlog, Baustein 1v). Funktioniert für beide Video-Antworttypen
+// (video_mc/video_freitext) gleich - deshalb rein am Vorhandensein von
+// "frage.video_url" festgemacht statt am typ-Feld.
+//
+// Nachbesserung (Max' Live-Test-Feedback, 12.07.2026): die erste Version
+// hat nur eine statische <iframe src="...?start=X&end=Y">-URL gesetzt.
+// Das Problem: start/end sind reine Lade-Parameter, keine dauerhafte
+// Beschränkung - nach dem ersten Ansehen "vergisst" der Player den
+// Ausschnitt, ein erneutes Play spielt vom letzten Stand weiter statt
+// wieder vom Snippet-Anfang. Fix: echte YouTube-IFrame-Player-API
+// (kostenlos, kein API-Key, kein Kontingent - reines JS um denselben
+// Embed-Player) statt einer statischen iframe-URL. Damit bekommen wir das
+// "onStateChange"-Ereignis mit, und sobald der Player den Zustand ENDED
+// meldet (tritt zuverlässig genau beim erreichten End-Timestamp ein),
+// wird der Player komplett zerstört und der graue Platzhalter wieder
+// gezeigt - ein erneuter Klick lädt sauber wieder ab Start-Sekunde.
+// "playsinline: 1" verhindert außerdem, dass iOS beim Abspielen von sich
+// aus in den nativen Vollbildmodus springt (das war vermutlich die
+// eigentliche Ursache für Max' beobachtetes Reload-Verhalten auf dem
+// Handy) - zusammen mit "fs: 0" (YouTubes eigener Vollbild-Button wird
+// entfernt) läuft jede "groß ansehen"-Interaktion jetzt ausschließlich
+// über unser eigenes Overlay (siehe "oeffneVideoGrossansicht" unten),
+// nicht mehr über YouTubes eigenes, browserabhängiges Vollbildverhalten.
 // ============================================================
+let youtubeApiPromise = null;
+function ladeYoutubeApi() {
+  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
+  if (youtubeApiPromise) return youtubeApiPromise;
+  youtubeApiPromise = new Promise((resolve) => {
+    const vorherigerHandler = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = () => {
+      if (typeof vorherigerHandler === "function") vorherigerHandler();
+      resolve(window.YT);
+    };
+    const script = document.createElement("script");
+    script.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(script);
+  });
+  return youtubeApiPromise;
+}
+
 function extrahiereYoutubeId(url) {
   if (!url) return null;
   try {
@@ -476,46 +514,147 @@ function extrahiereYoutubeId(url) {
   return null;
 }
 
-function baueVideoEinbettung(videoUrl, startSekunden, endSekunden) {
+// Gemeinsames "Groß ansehen"-Overlay (ein einziges für die ganze Seite,
+// analog zum Erklärung-Popup) - merkt sich, in welchen Wrapper der Player
+// beim Schließen zurückwandert. Die eigentliche Größenanpassung bei
+// Drehung des Handys passiert rein über CSS (siehe style.css,
+// ".video-gross-spieler-halter": Breite = das Minimum aus 94% der
+// Viewport-Breite UND einer aus 94% der Viewport-Höhe abgeleiteten
+// 16:9-Breite) - dadurch reagiert die Größe automatisch und ohne eigenen
+// JS-Resize-Handler auf jede Drehung/Größenänderung, auch zuverlässiger
+// als ein "orientationchange"-Event-Listener.
+let aktuellerGrossSpielerWrap = null;
+let aktuellerGrossSpielerRueckgabeStelle = null;
+
+function schliesseVideoGrossansicht() {
+  const overlay = document.getElementById("video-gross-overlay");
+  const halter = document.getElementById("video-gross-spieler-halter");
+  if (!overlay || !halter) return;
+  if (aktuellerGrossSpielerWrap && aktuellerGrossSpielerRueckgabeStelle && halter.firstChild) {
+    aktuellerGrossSpielerRueckgabeStelle.appendChild(halter.firstChild);
+  }
+  overlay.hidden = true;
+  aktuellerGrossSpielerWrap = null;
+  aktuellerGrossSpielerRueckgabeStelle = null;
+}
+
+function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle) {
+  const overlay = document.getElementById("video-gross-overlay");
+  const halter = document.getElementById("video-gross-spieler-halter");
+  if (!overlay || !halter) return;
+  halter.innerHTML = "";
+  halter.appendChild(spielerElement);
+  aktuellerGrossSpielerWrap = spielerElement;
+  aktuellerGrossSpielerRueckgabeStelle = rueckgabeStelle;
+  overlay.hidden = false;
+}
+
+(function initVideoGrossansichtOverlay() {
+  const overlay = document.getElementById("video-gross-overlay");
+  if (!overlay) return;
+  const schliessenButton = document.getElementById("video-gross-schliessen-button");
+  if (schliessenButton) schliessenButton.addEventListener("click", schliesseVideoGrossansicht);
+  overlay.addEventListener("click", (ereignis) => {
+    if (ereignis.target === overlay) schliesseVideoGrossansicht();
+  });
+  document.addEventListener("keydown", (ereignis) => {
+    if (ereignis.key === "Escape" && !overlay.hidden) schliesseVideoGrossansicht();
+  });
+})();
+
+function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
   const videoId = extrahiereYoutubeId(videoUrl);
   if (!videoId) return null;
 
   const wrap = document.createElement("div");
   wrap.className = "video-einbettung";
 
-  const platzhalter = document.createElement("button");
-  platzhalter.type = "button";
-  platzhalter.className = "video-platzhalter";
-
-  const icon = document.createElement("span");
-  icon.className = "video-platzhalter-icon";
-  icon.textContent = "▶";
-  platzhalter.appendChild(icon);
-
-  const text = document.createElement("span");
-  text.className = "video-platzhalter-text";
-  text.textContent = "Video laden und ansehen";
-  platzhalter.appendChild(text);
-
-  const hinweis = document.createElement("span");
-  hinweis.className = "video-platzhalter-hinweis";
-  hinweis.textContent = "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.";
-  platzhalter.appendChild(hinweis);
-
-  platzhalter.addEventListener("click", () => {
-    const iframe = document.createElement("iframe");
-    let src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
-    if (Number.isFinite(startSekunden)) src += `&start=${Math.max(0, Math.floor(startSekunden))}`;
-    if (Number.isFinite(endSekunden)) src += `&end=${Math.max(0, Math.floor(endSekunden))}`;
-    iframe.src = src;
-    iframe.title = "Video zur Frage";
-    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
-    iframe.allowFullscreen = true;
+  function baueUndZeigePlatzhalter() {
     wrap.innerHTML = "";
-    wrap.appendChild(iframe);
-  });
 
-  wrap.appendChild(platzhalter);
+    const platzhalter = document.createElement("button");
+    platzhalter.type = "button";
+    platzhalter.className = "video-platzhalter";
+
+    const icon = document.createElement("span");
+    icon.className = "video-platzhalter-icon";
+    icon.textContent = "▶";
+    platzhalter.appendChild(icon);
+
+    const text = document.createElement("span");
+    text.className = "video-platzhalter-text";
+    text.textContent = "Video laden und ansehen";
+    platzhalter.appendChild(text);
+
+    const hinweis = document.createElement("span");
+    hinweis.className = "video-platzhalter-hinweis";
+    hinweis.textContent = stumm
+      ? "Lädt erst nach Klick von YouTube - ohne Ton, damit kein Kommentator die Antwort verrät."
+      : "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.";
+    platzhalter.appendChild(hinweis);
+
+    platzhalter.addEventListener("click", () => {
+      platzhalter.disabled = true;
+      text.textContent = "Wird geladen ...";
+      ladeYoutubeApi().then((YT) => {
+        // Falls der Nutzer während des Ladens schon weitergeklickt/die Frage
+        // verlassen hat, könnte "wrap" inzwischen woanders hinzeigen - hier
+        // bewusst kein zusätzlicher Check nötig, der Platzhalter bleibt Teil
+        // von "wrap" bis er ersetzt wird.
+        const spielerHalter = document.createElement("div");
+        spielerHalter.className = "video-spieler-halter";
+        const spielerZiel = document.createElement("div");
+        spielerHalter.appendChild(spielerZiel);
+        wrap.innerHTML = "";
+        wrap.appendChild(spielerHalter);
+
+        const playerVars = {
+          autoplay: 1,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          cc_load_policy: 0,
+          fs: 0,
+          playsinline: 1,
+          mute: stumm ? 1 : 0,
+        };
+        // "start"/"end" nur mitgeben, wenn tatsächlich gesetzt - ein
+        // "undefined"-Wert im Objekt würde beim Zusammenbauen der
+        // YouTube-Embed-URL sonst als Literal-String "undefined" landen.
+        if (Number.isFinite(startSekunden)) playerVars.start = Math.max(0, Math.floor(startSekunden));
+        if (Number.isFinite(endSekunden)) playerVars.end = Math.max(0, Math.floor(endSekunden));
+
+        const spieler = new YT.Player(spielerZiel, {
+          host: "https://www.youtube-nocookie.com",
+          videoId,
+          playerVars,
+          events: {
+            onReady: () => {
+              const grossButton = document.createElement("button");
+              grossButton.type = "button";
+              grossButton.className = "video-gross-button";
+              grossButton.textContent = "⤢ Groß ansehen";
+              grossButton.addEventListener("click", () => {
+                oeffneVideoGrossansicht(spielerHalter, wrap);
+              });
+              wrap.appendChild(grossButton);
+            },
+            onStateChange: (ereignis) => {
+              if (ereignis.data === YT.PlayerState.ENDED) {
+                if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
+                spieler.destroy();
+                baueUndZeigePlatzhalter();
+              }
+            },
+          },
+        });
+      });
+    });
+
+    wrap.appendChild(platzhalter);
+  }
+
+  baueUndZeigePlatzhalter();
   return wrap;
 }
 
@@ -538,7 +677,7 @@ function baueFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
   if (video) container.appendChild(video);
 
   const optionListe = document.createElement("div");
@@ -608,7 +747,7 @@ function baueBeantworteteFrageElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
   if (video) container.appendChild(video);
 
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
@@ -655,7 +794,7 @@ function baueFreitextFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
   if (video) container.appendChild(video);
 
   if (frage.antwort_hinweis) {
@@ -771,7 +910,7 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
   if (video) container.appendChild(video);
 
   const deineAntwort = document.createElement("p");

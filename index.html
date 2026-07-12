@@ -176,6 +176,14 @@
     </div>
   </div>
 
+  <!-- "Groß ansehen"-Overlay für Video-Fragen (12.07.2026, Nachbesserung) -->
+  <div id="video-gross-overlay" class="video-gross-overlay" hidden>
+    <div class="video-gross-inhalt" role="dialog" aria-modal="true" aria-label="Video groß ansehen">
+      <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button">✕ Schließen</button>
+      <div id="video-gross-spieler-halter" class="video-gross-spieler-halter"></div>
+    </div>
+  </div>
+
   <!-- Supabase Client (aus CDN, kein Build-Tool nötig) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
