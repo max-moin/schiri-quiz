@@ -107,11 +107,30 @@
     </section>
 
     <!-- Angemeldet-Leiste (11.07.2026, drittes Feedback: wirkte als reiner
-         Text/Link "billig" - jetzt Badge + echter Button). -->
+         Text/Link "billig" - jetzt Badge + echter Button).
+         Update (12.07.2026, Baustein 5a, Anfragen-System - Nav-Konzept B
+         aus der Brainstorm-Skizze): der Badge ist jetzt selbst ein Button
+         und öffnet ein kleines Profil-Panel mit "Anfrage stellen"/"Meine
+         Anfragen" - bewusst KEIN separater neuer Button in der Leiste,
+         damit hier später weitere Menüpunkte (z.B. Sorgenkasten) einfach
+         ergänzt werden können, ohne dass die Leiste voller wird. -->
     <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
-      <div class="angemeldet-badge">
-        <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
-        <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
+      <div class="angemeldet-badge-wrapper">
+        <button id="angemeldet-badge-button" class="angemeldet-badge" type="button" aria-haspopup="true" aria-expanded="false">
+          <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
+          <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
+          <span class="angemeldet-pfeil" aria-hidden="true">▾</span>
+          <span id="profil-status-punkt" class="profil-status-punkt" hidden title="Es gibt Neuigkeiten zu deinen Anfragen"></span>
+        </button>
+        <div id="profil-panel" class="profil-panel" hidden role="menu">
+          <button id="panel-anfrage-stellen-button" class="profil-panel-item" type="button" role="menuitem">
+            <span aria-hidden="true">📋</span> Anfrage stellen
+          </button>
+          <button id="panel-meine-anfragen-button" class="profil-panel-item" type="button" role="menuitem">
+            <span aria-hidden="true">📦</span> Meine Anfragen
+            <span id="panel-anfragen-status-punkt" class="profil-status-punkt" hidden></span>
+          </button>
+        </div>
       </div>
       <button id="wechseln-button" class="sekundaer-button" type="button">Abmelden</button>
     </div>
@@ -298,6 +317,69 @@
       </div>
 
       <button id="interessenten-formular-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
+    </div>
+  </div>
+
+  <!-- Anfrage-Formular (12.07.2026, Baustein 5a: Anfragen-System, Baustein A
+       der Backlog-Spec) - Ausrüstungs-Anfrage stellen, erreichbar über das
+       neue Profil-Panel. -->
+  <div id="anfrage-formular-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anfrage-formular-titel">
+      <div class="erklaerung-kopf">
+        <h3 id="anfrage-formular-titel">Ausrüstung anfragen 📋</h3>
+        <button id="anfrage-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
+      </div>
+
+      <div id="anfrage-formular-inhalt">
+        <label for="anfrage-kategorie-auswahl">Was brauchst du?</label>
+        <select id="anfrage-kategorie-auswahl">
+          <option value="">– bitte auswählen –</option>
+          <option value="trikot">Trikot</option>
+          <option value="hose">Hose</option>
+          <option value="stutzen">Stutzen</option>
+          <option value="schuhe">Schuhe</option>
+        </select>
+
+        <label for="anfrage-farbe-eingabe">Farbe (optional)</label>
+        <input id="anfrage-farbe-eingabe" type="text" autocomplete="off" placeholder="z.B. Grün" />
+
+        <label for="anfrage-groesse-eingabe">Größe (optional)</label>
+        <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z.B. L" />
+
+        <div id="anfrage-aermellaenge-bereich" hidden>
+          <label for="anfrage-aermellaenge-auswahl">Ärmellänge</label>
+          <select id="anfrage-aermellaenge-auswahl">
+            <option value="">– bitte auswählen –</option>
+            <option value="kurz">Kurzarm</option>
+            <option value="lang">Langarm</option>
+          </select>
+        </div>
+
+        <label for="anfrage-anmerkung-eingabe">Anmerkung (optional)</label>
+        <textarea id="anfrage-anmerkung-eingabe" rows="3" placeholder="Sonstiges, was wir wissen sollten ..."></textarea>
+
+        <p id="anfrage-formular-hinweis" class="hinweis" hidden></p>
+        <button id="anfrage-absenden-button" type="button">Absenden</button>
+      </div>
+
+      <div id="anfrage-formular-erfolg" hidden>
+        <p>Danke, deine Anfrage ist raus! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
+        <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a) - eigene gestellte
+       Anfragen mit Status, erreichbar über das Profil-Panel. -->
+  <div id="meine-anfragen-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="meine-anfragen-titel">
+      <div class="erklaerung-kopf">
+        <h3 id="meine-anfragen-titel">Meine Anfragen 📦</h3>
+        <button id="meine-anfragen-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
+      </div>
+
+      <div id="meine-anfragen-liste"></div>
+      <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
     </div>
   </div>
 

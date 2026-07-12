@@ -160,7 +160,7 @@ label {
   font-size: 0.92rem;
 }
 
-select, input[type="password"], input[type="text"], input[type="email"] {
+select, input[type="password"], input[type="text"], input[type="email"], textarea {
   font-family: inherit;
   font-size: 1rem;
   padding: 12px 14px;
@@ -170,6 +170,11 @@ select, input[type="password"], input[type="text"], input[type="email"] {
   margin-bottom: 14px;
   background: #fafafa;
   transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+textarea {
+  resize: vertical;
+  min-height: 70px;
 }
 
 select:focus, input:focus {
@@ -301,6 +306,141 @@ button {
   color: var(--blue);
   box-shadow: var(--shadow-hover);
   transform: translateY(-1px);
+}
+
+/* ---------- Profil-Panel (12.07.2026, Baustein 5a: Anfragen-System) ----------
+   Konzept B aus der Nav-Brainstorm-Skizze: der bestehende "Angemeldet
+   als ..."-Badge wird zum Menü-Auslöser statt eines separaten neuen
+   Buttons - so bleibt die Leiste aufgeräumt, auch wenn später mehr
+   Menüpunkte (z.B. Sorgenkasten) dazukommen. */
+
+.angemeldet-badge-wrapper {
+  position: relative;
+}
+
+.angemeldet-badge {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.angemeldet-badge:hover {
+  border-color: var(--green);
+}
+
+.angemeldet-pfeil {
+  font-size: 0.7rem;
+  color: var(--muted);
+}
+
+.profil-status-punkt {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  display: inline-block;
+}
+
+.profil-status-punkt[hidden] { display: none; }
+
+/* Keine "display"-Regel auf ".profil-panel" selbst nötig, die das
+   [hidden]-Attribut überschreiben könnte (bekannte Falle in diesem
+   Projekt, siehe Kommentare oben bei ".angemeldet-leiste"/".erklaerung-
+   overlay") - Positionierung reicht, das Ein-/Ausblenden bleibt allein
+   Sache des hidden-Attributs. */
+.profil-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 220px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-hover);
+  padding: 6px;
+  z-index: 20;
+}
+
+.profil-panel-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.profil-panel-item:hover {
+  background: var(--green-lighter);
+}
+
+.profil-panel-item .profil-status-punkt {
+  margin-left: auto;
+}
+
+/* ---------- Anfrage-Formular & Meine-Anfragen-Liste (Baustein 5a) ---------- */
+
+#anfrage-aermellaenge-bereich[hidden] { display: none; }
+
+#anfrage-absenden-button {
+  width: 100%;
+  background: var(--green);
+  color: white;
+  transition: background 0.15s, transform 0.1s;
+}
+
+#anfrage-absenden-button:hover {
+  background: var(--green-dark);
+  transform: translateY(-1px);
+}
+
+.anfrage-zeile {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+
+.anfrage-zeile:last-child { margin-bottom: 0; }
+
+.anfrage-zeile-kopf {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.anfrage-zeile-titel {
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.anfrage-status-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.anfrage-status-badge.offen { background: var(--amber-light); color: #92400e; }
+.anfrage-status-badge.angenommen { background: var(--green-light); color: var(--green-dark); }
+.anfrage-status-badge.abgelehnt { background: var(--red-light); color: var(--red); }
+.anfrage-status-badge.erledigt { background: #e0e7ff; color: #3730a3; }
+
+.anfrage-zeile-detail {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin: 0;
 }
 
 /* ---------- Fragen-Liste ---------- */

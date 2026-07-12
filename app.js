@@ -56,6 +56,34 @@ const interessentEmailEingabe = document.getElementById("interessent-email-einga
 const interessentAbsendenButton = document.getElementById("interessent-absenden-button");
 const interessentenFormularSchliessenButton = document.getElementById("interessenten-formular-schliessen-button");
 
+// Profil-Panel & Anfragen-System (12.07.2026, Baustein 5a) - Nav-Konzept B
+// aus der Brainstorm-Skizze: der Angemeldet-Badge wird zum Menü-Auslöser.
+const angemeldetBadgeButton = document.getElementById("angemeldet-badge-button");
+const profilPanel = document.getElementById("profil-panel");
+const profilStatusPunkt = document.getElementById("profil-status-punkt");
+const panelAnfrageStellenButton = document.getElementById("panel-anfrage-stellen-button");
+const panelMeineAnfragenButton = document.getElementById("panel-meine-anfragen-button");
+const panelAnfragenStatusPunkt = document.getElementById("panel-anfragen-status-punkt");
+
+const anfrageFormularOverlay = document.getElementById("anfrage-formular-overlay");
+const anfrageFormularSchliessenButton = document.getElementById("anfrage-formular-schliessen-button");
+const anfrageFormularInhalt = document.getElementById("anfrage-formular-inhalt");
+const anfrageFormularErfolg = document.getElementById("anfrage-formular-erfolg");
+const anfrageFormularErfolgSchliessenButton = document.getElementById("anfrage-formular-erfolg-schliessen-button");
+const anfrageKategorieAuswahl = document.getElementById("anfrage-kategorie-auswahl");
+const anfrageFarbeEingabe = document.getElementById("anfrage-farbe-eingabe");
+const anfrageGroesseEingabe = document.getElementById("anfrage-groesse-eingabe");
+const anfrageAermellaengeBereich = document.getElementById("anfrage-aermellaenge-bereich");
+const anfrageAermellaengeAuswahl = document.getElementById("anfrage-aermellaenge-auswahl");
+const anfrageAnmerkungEingabe = document.getElementById("anfrage-anmerkung-eingabe");
+const anfrageFormularHinweis = document.getElementById("anfrage-formular-hinweis");
+const anfrageAbsendenButton = document.getElementById("anfrage-absenden-button");
+
+const meineAnfragenOverlay = document.getElementById("meine-anfragen-overlay");
+const meineAnfragenSchliessenButton = document.getElementById("meine-anfragen-schliessen-button");
+const meineAnfragenListe = document.getElementById("meine-anfragen-liste");
+const meineAnfragenLeerHinweis = document.getElementById("meine-anfragen-leer-hinweis");
+
 // Historie ("Wiederholung alter Fragen", 11.07.2026) - eigener Bereich,
 // erreichbar über einen Button in der bestehenden "Fertig"-Meldung
 // (bewusst KEIN automatischer Redirect, Max' ausdrücklicher Wunsch).
@@ -195,6 +223,10 @@ function zeigeAngemeldetenZustand(name) {
   angemeldetLeiste.hidden = false;
   fragenSchritt.hidden = false;
   fortschrittWrap.hidden = false;
+  // Baustein 5a: prüft im Hintergrund, ob es Neuigkeiten zu bestehenden
+  // Anfragen gibt (Status-Punkt am Profil-Badge) - bewusst "fire and
+  // forget", damit das Login nicht auf diesen Zusatz-Request warten muss.
+  aktualisiereAnfragenStatusPunkt();
 }
 
 async function ladeSchiedsrichter() {
@@ -673,7 +705,218 @@ document.addEventListener("keydown", (event) => {
   if (interesseOverlay && !interesseOverlay.hidden) schliesseInteressePopup();
   if (interesseNeinOverlay && !interesseNeinOverlay.hidden) schliesseInteresseNeinOverlay();
   if (interessentenFormularOverlay && !interessentenFormularOverlay.hidden) schliesseInteressentenFormular();
+  if (profilPanel && !profilPanel.hidden) schliesseProfilPanel();
+  if (anfrageFormularOverlay && !anfrageFormularOverlay.hidden) schliesseAnfrageFormular();
+  if (meineAnfragenOverlay && !meineAnfragenOverlay.hidden) schliesseMeineAnfragen();
 });
+
+// ---------- Profil-Panel & Anfragen-System (Baustein 5a) ----------
+// Nur relevant für echte (angemeldete) Schiedsrichter - im Gast-Modus wird
+// die Angemeldet-Leiste ohnehin nie eingeblendet.
+
+function schliesseProfilPanel() {
+  profilPanel.hidden = true;
+  angemeldetBadgeButton.setAttribute("aria-expanded", "false");
+}
+
+angemeldetBadgeButton.addEventListener("click", (event) => {
+  event.stopPropagation();
+  const istOffen = !profilPanel.hidden;
+  if (istOffen) {
+    schliesseProfilPanel();
+  } else {
+    profilPanel.hidden = false;
+    angemeldetBadgeButton.setAttribute("aria-expanded", "true");
+  }
+});
+
+// Klick außerhalb des Panels schließt es wieder (übliches Dropdown-
+// Verhalten) - auf dem "document", damit auch Klicks außerhalb der
+// Leiste erfasst werden.
+document.addEventListener("click", (event) => {
+  if (profilPanel.hidden) return;
+  if (event.target === angemeldetBadgeButton || angemeldetBadgeButton.contains(event.target)) return;
+  if (event.target === profilPanel || profilPanel.contains(event.target)) return;
+  schliesseProfilPanel();
+});
+
+function setzeAnfrageFormularZurueck() {
+  anfrageKategorieAuswahl.value = "";
+  anfrageFarbeEingabe.value = "";
+  anfrageGroesseEingabe.value = "";
+  anfrageAermellaengeAuswahl.value = "";
+  anfrageAermellaengeBereich.hidden = true;
+  anfrageAnmerkungEingabe.value = "";
+  anfrageFormularHinweis.hidden = true;
+  anfrageFormularInhalt.hidden = false;
+  anfrageFormularErfolg.hidden = true;
+}
+
+// Ärmellänge ist nur bei Trikots eine sinnvolle Angabe.
+anfrageKategorieAuswahl.addEventListener("change", () => {
+  anfrageAermellaengeBereich.hidden = anfrageKategorieAuswahl.value !== "trikot";
+});
+
+panelAnfrageStellenButton.addEventListener("click", () => {
+  schliesseProfilPanel();
+  setzeAnfrageFormularZurueck();
+  anfrageFormularOverlay.hidden = false;
+});
+
+function schliesseAnfrageFormular() {
+  anfrageFormularOverlay.hidden = true;
+}
+
+anfrageFormularSchliessenButton.addEventListener("click", schliesseAnfrageFormular);
+anfrageFormularErfolgSchliessenButton.addEventListener("click", schliesseAnfrageFormular);
+anfrageFormularOverlay.addEventListener("click", (event) => {
+  if (event.target === anfrageFormularOverlay) schliesseAnfrageFormular();
+});
+
+anfrageAbsendenButton.addEventListener("click", async () => {
+  const kategorie = anfrageKategorieAuswahl.value;
+  if (!kategorie) {
+    anfrageFormularHinweis.textContent = "Bitte wähle aus, was du brauchst.";
+    anfrageFormularHinweis.hidden = false;
+    return;
+  }
+
+  anfrageFormularHinweis.hidden = true;
+  anfrageAbsendenButton.disabled = true;
+
+  const { error } = await sb.rpc("schiri_anfrage_erstellen", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+    p_kategorie: kategorie,
+    p_farbe: anfrageFarbeEingabe.value.trim() || null,
+    p_groesse: anfrageGroesseEingabe.value.trim() || null,
+    p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
+    p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
+  });
+
+  anfrageAbsendenButton.disabled = false;
+
+  if (error) {
+    anfrageFormularHinweis.textContent = "Konnte leider nicht gespeichert werden: " + error.message;
+    anfrageFormularHinweis.hidden = false;
+    return;
+  }
+
+  anfrageFormularInhalt.hidden = true;
+  anfrageFormularErfolg.hidden = false;
+});
+
+const ANFRAGE_KATEGORIE_LABEL = { trikot: "Trikot", hose: "Hose", stutzen: "Stutzen", schuhe: "Schuhe" };
+const ANFRAGE_STATUS_LABEL = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
+
+function formatiereAnfrageDatum(iso) {
+  try {
+    return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
+  } catch (e) {
+    return "";
+  }
+}
+
+function baueAnfrageZeile(anfrage) {
+  const zeile = document.createElement("div");
+  zeile.className = "anfrage-zeile";
+
+  const kopf = document.createElement("div");
+  kopf.className = "anfrage-zeile-kopf";
+
+  const titel = document.createElement("span");
+  titel.className = "anfrage-zeile-titel";
+  titel.textContent = ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
+  kopf.appendChild(titel);
+
+  const statusBadge = document.createElement("span");
+  statusBadge.className = "anfrage-status-badge " + anfrage.status;
+  statusBadge.textContent = ANFRAGE_STATUS_LABEL[anfrage.status] || anfrage.status;
+  kopf.appendChild(statusBadge);
+
+  zeile.appendChild(kopf);
+
+  const detailTeile = [];
+  if (anfrage.farbe) detailTeile.push(anfrage.farbe);
+  if (anfrage.groesse) detailTeile.push("Größe " + anfrage.groesse);
+  if (anfrage.aermellaenge) detailTeile.push(anfrage.aermellaenge === "kurz" ? "Kurzarm" : "Langarm");
+  detailTeile.push(formatiereAnfrageDatum(anfrage.erstellt_am));
+
+  const detail = document.createElement("p");
+  detail.className = "anfrage-zeile-detail";
+  detail.textContent = detailTeile.join(" · ");
+  zeile.appendChild(detail);
+
+  if (anfrage.anmerkung) {
+    const anmerkung = document.createElement("p");
+    anmerkung.className = "anfrage-zeile-detail";
+    anmerkung.textContent = "„" + anfrage.anmerkung + "“";
+    zeile.appendChild(anmerkung);
+  }
+
+  return zeile;
+}
+
+async function ladeMeineAnfragen() {
+  meineAnfragenListe.innerHTML = "";
+  meineAnfragenLeerHinweis.hidden = true;
+
+  const { data, error } = await sb.rpc("schiri_anfragen_liste", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+  });
+
+  if (error) {
+    zeigeFehler("Anfragen konnten nicht geladen werden: " + error.message);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    meineAnfragenLeerHinweis.hidden = false;
+    return;
+  }
+
+  data.forEach((anfrage) => meineAnfragenListe.appendChild(baueAnfrageZeile(anfrage)));
+}
+
+function schliesseMeineAnfragen() {
+  meineAnfragenOverlay.hidden = true;
+}
+
+meineAnfragenSchliessenButton.addEventListener("click", schliesseMeineAnfragen);
+meineAnfragenOverlay.addEventListener("click", (event) => {
+  if (event.target === meineAnfragenOverlay) schliesseMeineAnfragen();
+});
+
+panelMeineAnfragenButton.addEventListener("click", async () => {
+  schliesseProfilPanel();
+  meineAnfragenOverlay.hidden = false;
+  await ladeMeineAnfragen();
+
+  // Status-Punkt verschwindet, sobald die Liste einmal geöffnet wurde.
+  profilStatusPunkt.hidden = true;
+  panelAnfragenStatusPunkt.hidden = true;
+  await sb.rpc("schiri_anfragen_als_gesehen_markieren", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+  });
+});
+
+// Prüft beim Anmelden, ob es unerledigte Status-Änderungen gibt (Ersatz für
+// fehlende Push-Benachrichtigungen - siehe Nav-Brainstorm-Skizze, Konzept B).
+async function aktualisiereAnfragenStatusPunkt() {
+  if (!ausgewaehlteSchiedsrichterId || !eingegebenePin) return;
+
+  const { data, error } = await sb.rpc("schiri_anfragen_liste", {
+    p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+    p_pin: eingegebenePin,
+  });
+  if (error || !data) return;
+
+  const gibtUngeseheneUpdates = data.some((anfrage) => !anfrage.schiri_gesehen);
+  profilStatusPunkt.hidden = !gibtUngeseheneUpdates;
+  panelAnfragenStatusPunkt.hidden = !gibtUngeseheneUpdates;
+}
 
 async function ladeFragenUndAntworten() {
   const [fragenErgebnis, antwortenErgebnis] = await Promise.all([
