@@ -669,6 +669,54 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         // mehrfach registriert.
         let bereitsEingerichtet = false;
 
+        // ============================================================
+        // Nachbesserung Runde 3 (12.07.2026, Max' drittes Live-Test-
+        // Feedback): YouTube zeigt am ECHTEN Ende eines Videos automatisch
+        // einen eigenen "weitere Videos ansehen"-Vorschlagsbildschirm mit
+        // klickbaren Vorschau-Kacheln - das ist Teil der Kern-Wiedergabe-UI,
+        // nicht der "controls"-Leiste, und lässt sich über KEINEN
+        // IFrame-Player-Parameter mehr vollständig abschalten ("rel: 0"
+        // schränkt seit einer YouTube-Änderung von 2018 nur noch auf
+        // Videos DESSELBEN Kanals ein, verhindert die Anzeige aber nicht
+        // mehr komplett). Da wir den Player erst REAGIEREN, nachdem
+        // YouTube den "ENDED"-Zustand meldet, konnte dieser Bildschirm
+        // bisher kurz aufblitzen, bevor unser Code den Platzhalter zeigt -
+        // umso auffälliger, seit die restliche Steuerleiste durch
+        // "controls: 0" schon weg ist.
+        //
+        // Fix: wir warten den echten "ENDED"-Zustand gar nicht erst ab,
+        // sondern beobachten die Wiedergabezeit selbst (alle 200ms) und
+        // lösen unser eigenes "Video zu Ende"-Aufräumen (Platzhalter zeigen,
+        // Player zerstören) schon "VORLAUF_SEKUNDEN" VOR dem eigentlichen
+        // Ende aus - der Vorsprung ist größer als das Abfrage-Intervall,
+        // damit er zuverlässig vor YouTubes eigenem Vorschlagsbildschirm
+        // greift. 0,35s vor Schluss abzuschneiden fällt beim Zuschauen
+        // nicht auf, verhindert aber zuverlässig, dass YouTubes Bildschirm
+        // überhaupt erst zu rendern anfängt. Der echte "ENDED"-Fall bleibt
+        // als Rückfallebene bestehen (z.B. falls "getDuration()" mal nichts
+        // Sinnvolles liefert), "beendetAusgeloest" verhindert ein doppeltes
+        // Aufräumen (zweimaliges "destroy()" würde einen Fehler werfen).
+        // ============================================================
+        const VORLAUF_SEKUNDEN = 0.35;
+        let beendetAusgeloest = false;
+        let endUeberwachungsIntervall = null;
+
+        function stoppeEndUeberwachung() {
+          if (endUeberwachungsIntervall) {
+            clearInterval(endUeberwachungsIntervall);
+            endUeberwachungsIntervall = null;
+          }
+        }
+
+        function beendeVideo() {
+          if (beendetAusgeloest) return;
+          beendetAusgeloest = true;
+          stoppeEndUeberwachung();
+          if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
+          spieler.destroy();
+          baueUndZeigePlatzhalter();
+        }
+
         const spieler = new YT.Player(spielerZiel, {
           host: "https://www.youtube-nocookie.com",
           videoId,
@@ -705,20 +753,51 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                     .join("; ");
                 }
               }
+
+              // Nachbesserung Runde 3 (12.07.2026, Max' drittes Live-Test-
+              // Feedback): Untertitel sollen IMMER aus bleiben. "cc_load_policy: 0"
+              // oben verhindert nur, dass Untertitel automatisch nach
+              // Zuschauer-Voreinstellung eingeschaltet werden - reicht laut
+              // Max' Beobachtung in der Praxis nicht zuverlässig aus. Das
+              // komplette Entladen des Untertitel-Moduls über die (offiziell
+              // nicht dokumentierte, aber weithin genutzte) Player-API-Methode
+              // "unloadModule" ist der zuverlässige Weg, Untertitel für diesen
+              // Player-Aufruf komplett zu unterbinden statt nur "nicht
+              // standardmäßig einzuschalten".
+              if (typeof spieler.unloadModule === "function") {
+                spieler.unloadModule("captions");
+              }
             },
             onStateChange: (ereignis) => {
               if (ereignis.data === YT.PlayerState.ENDED) {
-                if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
-                spieler.destroy();
-                baueUndZeigePlatzhalter();
+                beendeVideo();
                 return;
               }
               if (ereignis.data === YT.PlayerState.PLAYING) {
                 abspielButton.textContent = "⏸";
                 abspielButton.setAttribute("aria-label", "Pause");
+                // Startet die Endzeit-Überwachung (siehe Kommentar bei
+                // "VORLAUF_SEKUNDEN" oben) - nur, wenn nicht schon eine läuft,
+                // damit mehrfaches Play/Pause nicht mehrere Intervalle parallel
+                // aufmacht.
+                if (!endUeberwachungsIntervall) {
+                  endUeberwachungsIntervall = setInterval(() => {
+                    if (beendetAusgeloest) return;
+                    const aktuelleZeit = typeof spieler.getCurrentTime === "function" ? spieler.getCurrentTime() : 0;
+                    const gesamtDauer = typeof spieler.getDuration === "function" ? spieler.getDuration() : 0;
+                    const zielEnde = Number.isFinite(endSekunden) && endSekunden > 0 ? endSekunden : gesamtDauer;
+                    if (zielEnde && aktuelleZeit >= zielEnde - VORLAUF_SEKUNDEN) {
+                      beendeVideo();
+                    }
+                  }, 200);
+                }
               } else if (ereignis.data === YT.PlayerState.PAUSED) {
                 abspielButton.textContent = "▶";
                 abspielButton.setAttribute("aria-label", "Abspielen");
+                // Überwachung während der Pause anhalten (spart Ressourcen,
+                // die Wiedergabezeit steht ohnehin still) - startet beim
+                // nächsten "PLAYING" automatisch wieder neu.
+                stoppeEndUeberwachung();
               }
             },
           },
