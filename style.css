@@ -987,3 +987,251 @@ button {
   transform-origin: left;
   transform: scaleX(1);
 }
+
+/* ---------- Footer / Rechtliches (12.07.2026) ---------- */
+
+.fuss {
+  max-width: 620px;
+  margin: 32px auto 0;
+  padding: 0 18px 24px;
+  text-align: center;
+}
+
+.fuss-inhalt {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.fuss-inhalt a {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.fuss-inhalt a:hover {
+  color: var(--blue);
+  text-decoration: underline;
+}
+
+.fuss-trenner {
+  margin: 0 8px;
+}
+
+@media (min-width: 760px) {
+  .fuss {
+    max-width: 920px;
+  }
+}
+
+.rechtstext-card {
+  text-align: left;
+  line-height: 1.6;
+}
+
+.rechtstext-card h2 {
+  font-family: var(--font-titel);
+  font-size: 1rem;
+  margin: 22px 0 8px;
+}
+
+.rechtstext-card h2:first-of-type {
+  margin-top: 4px;
+}
+
+.rechtstext-card p {
+  margin: 0 0 12px;
+  font-size: 0.92rem;
+}
+
+.rechtstext-card .hinweis {
+  margin-top: 20px;
+}
+
+/* ---------- "Warum?"-Erklärpopup (Explain-my-answer, 12.07.2026) ---------- */
+/* KI-generierte Kurzerklärung (Gemini), erscheint als Button unter bereits
+   beantworteten Fragen (egal ob gerade eben oder beim erneuten Laden der
+   Seite) - siehe app.js "oeffneErklaerung"/"baueWarumButton". */
+
+.warum-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--blue);
+  cursor: pointer;
+  margin-top: 10px;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.warum-button:hover {
+  border-color: var(--blue);
+  background: var(--bg-end);
+}
+
+.warum-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.erklaerung-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1000;
+}
+
+/* Gleiche Falle wie bei ".freitext-lade-hinweis"/".angemeldet-leiste" weiter
+   oben: ohne diese Zeile würde die "display: flex"-Regel oben das
+   HTML-"hidden"-Attribut überschreiben und das Popup wäre die ganze Zeit
+   sichtbar. */
+.erklaerung-overlay[hidden] {
+  display: none;
+}
+
+.erklaerung-popup {
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  max-width: 460px;
+  width: 100%;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 20px 22px 22px;
+}
+
+.erklaerung-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.erklaerung-kopf h3 {
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.erklaerung-schliessen-button {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--bg-end);
+  color: var(--muted);
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.erklaerung-schliessen-button:hover {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.erklaerung-inhalt {
+  font-size: 0.94rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.erklaerung-inhalt p {
+  margin: 0;
+}
+
+.erklaerung-lade-hinweis {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-style: italic;
+}
+
+.erklaerung-fehler {
+  color: var(--red);
+}
+
+/* ---------- Video-Fragetyp (12.07.2026) ---------- */
+/* Zwei-Klick-Einbettung: erst ein dunkler Platzhalter mit Play-Icon, echtes
+   YouTube-iframe (youtube-nocookie.com) lädt erst nach Klick - siehe
+   app.js "baueVideoEinbettung". */
+
+.video-einbettung {
+  margin: 0 0 14px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: #0f172a;
+  aspect-ratio: 16 / 9;
+  position: relative;
+}
+
+.video-platzhalter {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+  border: none;
+  width: 100%;
+  height: 100%;
+  padding: 16px;
+  cursor: pointer;
+  color: #fff;
+  font-family: inherit;
+}
+
+.video-platzhalter-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  transition: background 0.15s, transform 0.15s;
+}
+
+.video-platzhalter:hover .video-platzhalter-icon {
+  background: var(--green);
+  transform: scale(1.06);
+}
+
+.video-platzhalter-text {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.video-platzhalter-hinweis {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.55);
+  max-width: 260px;
+  text-align: center;
+}
+
+.video-einbettung iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+}

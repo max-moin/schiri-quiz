@@ -201,7 +201,7 @@ async function ladeFragenUndAntworten() {
     sb
       .from("fragen_oeffentlich")
       .select(
-        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis"
+        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis, video_url, video_start_sekunden, video_end_sekunden, video_antworttyp"
       )
       .order("position", { ascending: true, nullsFirst: false }),
     sb.rpc("meine_antworten", {
@@ -237,7 +237,10 @@ async function ladeFragenUndAntworten() {
 
   for (const frage of fragen) {
     const bisherigeAntwort = antwortenNachFrageId.get(frage.id);
-    const istFreitext = frage.typ === "freitext";
+    // "video_freitext" wird wie "freitext" behandelt (gleiche KI-Bewertung,
+    // gleiche Bau-Funktionen) - der Video-Player wird zusätzlich innerhalb
+    // dieser Funktionen gerendert, siehe "baueVideoEinbettung".
+    const istFreitext = frage.typ === "freitext" || frage.typ === "video_freitext";
     if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
       beantworteFragenAnzahl += 1;
       fragenListe.appendChild(
@@ -349,6 +352,173 @@ function baueBadges(frage) {
   return wrap.childElementCount > 0 ? wrap : null;
 }
 
+// ============================================================
+// "Warum ist das richtig?" - Explain-my-answer (KI-Erklärung via Gemini,
+// 12.07.2026). Erscheint als Button unter jeder bereits beantworteten Frage
+// (Multiple-Choice und Freitext, laufende Runde und Üben-Modus) - öffnet ein
+// Popup mit einer live von der KI erzeugten Kurzerklärung. Die eigentliche
+// Berechtigungsprüfung ("wurde diese Frage von mir überhaupt schon
+// beantwortet?") läuft serverseitig in der RPC erklaerung_kontext_laden
+// (Migration v46) - hier im Frontend geht es nur um Anzeige/Bedienung.
+// ============================================================
+const erklaerungOverlay = document.getElementById("erklaerung-overlay");
+const erklaerungInhalt = document.getElementById("erklaerung-inhalt");
+const erklaerungSchliessenButton = document.getElementById("erklaerung-schliessen-button");
+
+function schliesseErklaerung() {
+  if (erklaerungOverlay) erklaerungOverlay.hidden = true;
+}
+
+if (erklaerungSchliessenButton) {
+  erklaerungSchliessenButton.addEventListener("click", schliesseErklaerung);
+}
+if (erklaerungOverlay) {
+  // Klick auf den abgedunkelten Hintergrund schließt das Popup, ein Klick
+  // auf das Popup selbst (die Karte darin) nicht - deshalb der Vergleich
+  // mit event.target statt eines pauschalen Klick-Listeners.
+  erklaerungOverlay.addEventListener("click", (event) => {
+    if (event.target === erklaerungOverlay) schliesseErklaerung();
+  });
+}
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && erklaerungOverlay && !erklaerungOverlay.hidden) {
+    schliesseErklaerung();
+  }
+});
+
+// Öffnet das Popup und lädt die Erklärung nach. "istHistorie" steuert, ob
+// die erklaerung_kontext_laden-RPC in "antworten" (laufende Runde) oder
+// "historie_antworten" (Üben-Modus) nach der bereits gegebenen Antwort sucht.
+async function oeffneErklaerung(frageId, istHistorie) {
+  if (!erklaerungOverlay || !erklaerungInhalt) return;
+
+  // Im Üben-Modus läuft nach dem Beantworten ein automatischer
+  // Weiterschalt-Timer (siehe "zeigeHistorieWeiterButton") - der würde sonst
+  // mitten im Lesen der Erklärung zur nächsten Frage springen. Gleiches
+  // Verhalten wie beim manuellen Klick auf "Nächste Frage": Timer stoppen.
+  if (historieAutoTimer) {
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  }
+
+  erklaerungOverlay.hidden = false;
+  erklaerungInhalt.innerHTML = "";
+  const ladeHinweis = document.createElement("p");
+  ladeHinweis.className = "erklaerung-lade-hinweis";
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  ladeHinweis.appendChild(spinner);
+  ladeHinweis.append(" Einen Moment, die Erklärung wird erstellt ...");
+  erklaerungInhalt.appendChild(ladeHinweis);
+
+  try {
+    const antwort = await fetch("/api/erklaerung", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schiedsrichterId: ausgewaehlteSchiedsrichterId,
+        frageId,
+        pin: eingegebenePin,
+        historie: istHistorie,
+      }),
+    });
+    const daten = await antwort.json();
+    if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
+
+    erklaerungInhalt.innerHTML = "";
+    const text = document.createElement("p");
+    text.textContent = daten.erklaerung;
+    erklaerungInhalt.appendChild(text);
+  } catch (e) {
+    erklaerungInhalt.innerHTML = "";
+    const fehlerText = document.createElement("p");
+    fehlerText.className = "erklaerung-fehler";
+    fehlerText.textContent = "Erklärung konnte nicht geladen werden: " + e.message;
+    erklaerungInhalt.appendChild(fehlerText);
+  }
+}
+
+// Baut den "Warum?"-Button, der unter einer bereits beantworteten Frage
+// erscheint.
+function baueWarumButton(frageId, istHistorie) {
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "warum-button";
+  button.append("💡 Warum?");
+  button.addEventListener("click", () => oeffneErklaerung(frageId, istHistorie));
+  return button;
+}
+
+// ============================================================
+// Video-Fragetyp (12.07.2026): YouTube-Einbettung mit Start-/End-Zeit im
+// datenschutzfreundlichen "Zwei-Klick"-Muster - es wird KEIN Kontakt zu
+// YouTube aufgebaut, bevor aktiv auf den Platzhalter geklickt wird, und die
+// Einbettung läuft über youtube-nocookie.com statt youtube.com (siehe
+// Rechtsrecherche im Backlog, Baustein 1v). Funktioniert für beide
+// Video-Antworttypen (video_mc/video_freitext) gleich - deshalb rein am
+// Vorhandensein von "frage.video_url" festgemacht statt am typ-Feld.
+// ============================================================
+function extrahiereYoutubeId(url) {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.hostname.includes("youtu.be")) {
+      return u.pathname.slice(1).split("/")[0] || null;
+    }
+    if (u.hostname.includes("youtube.com")) {
+      if (u.searchParams.get("v")) return u.searchParams.get("v");
+      const embedMatch = u.pathname.match(/\/embed\/([^/?]+)/);
+      if (embedMatch) return embedMatch[1];
+    }
+  } catch (e) {
+    // ungültige URL - kein Video anzeigen, Frage bleibt trotzdem nutzbar
+  }
+  return null;
+}
+
+function baueVideoEinbettung(videoUrl, startSekunden, endSekunden) {
+  const videoId = extrahiereYoutubeId(videoUrl);
+  if (!videoId) return null;
+
+  const wrap = document.createElement("div");
+  wrap.className = "video-einbettung";
+
+  const platzhalter = document.createElement("button");
+  platzhalter.type = "button";
+  platzhalter.className = "video-platzhalter";
+
+  const icon = document.createElement("span");
+  icon.className = "video-platzhalter-icon";
+  icon.textContent = "▶";
+  platzhalter.appendChild(icon);
+
+  const text = document.createElement("span");
+  text.className = "video-platzhalter-text";
+  text.textContent = "Video laden und ansehen";
+  platzhalter.appendChild(text);
+
+  const hinweis = document.createElement("span");
+  hinweis.className = "video-platzhalter-hinweis";
+  hinweis.textContent = "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.";
+  platzhalter.appendChild(hinweis);
+
+  platzhalter.addEventListener("click", () => {
+    const iframe = document.createElement("iframe");
+    let src = `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1`;
+    if (Number.isFinite(startSekunden)) src += `&start=${Math.max(0, Math.floor(startSekunden))}`;
+    if (Number.isFinite(endSekunden)) src += `&end=${Math.max(0, Math.floor(endSekunden))}`;
+    iframe.src = src;
+    iframe.title = "Video zur Frage";
+    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture";
+    iframe.allowFullscreen = true;
+    wrap.innerHTML = "";
+    wrap.appendChild(iframe);
+  });
+
+  wrap.appendChild(platzhalter);
+  return wrap;
+}
+
 function baueFrageElement(frage) {
   const container = document.createElement("div");
   container.className = "frage-karte";
@@ -367,6 +537,9 @@ function baueFrageElement(frage) {
   const vorlesenButton = baueVorlesenButton(frage.frage_text);
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
+
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  if (video) container.appendChild(video);
 
   const optionListe = document.createElement("div");
   optionListe.className = "option-liste";
@@ -435,6 +608,9 @@ function baueBeantworteteFrageElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  if (video) container.appendChild(video);
+
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
 
   const ergebnis = document.createElement("p");
@@ -450,6 +626,7 @@ function baueBeantworteteFrageElement(frage, antwort) {
   }
 
   container.appendChild(ergebnis);
+  container.appendChild(baueWarumButton(frage.id, false));
 
   return container;
 }
@@ -477,6 +654,9 @@ function baueFreitextFrageElement(frage) {
   const vorlesenButton = baueVorlesenButton(frage.frage_text);
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
+
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  if (video) container.appendChild(video);
 
   if (frage.antwort_hinweis) {
     const hinweis = document.createElement("p");
@@ -591,6 +771,9 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
+  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden);
+  if (video) container.appendChild(video);
+
   const deineAntwort = document.createElement("p");
   deineAntwort.className = "freitext-eigene-antwort";
   deineAntwort.textContent = "Deine Antwort: " + (antwort.gegebener_freitext || "");
@@ -600,6 +783,7 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   ergebnisWrap.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
   ergebnisWrap.appendChild(baueFreitextErgebnisInhalt(antwort));
   container.appendChild(ergebnisWrap);
+  container.appendChild(baueWarumButton(frage.id, false));
 
   return container;
 }
@@ -660,6 +844,7 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
     feedback.appendChild(hinweisZeile);
   }
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
+  feedback.appendChild(baueWarumButton(frageId, false));
 
   beantworteFragenAnzahl += 1;
   aktualisiereFortschritt();
@@ -715,6 +900,9 @@ async function antwortAbschicken(frageId, container, button) {
     feedback.textContent = "Leider falsch. Richtig wäre gewesen: " + ergebnis.richtige_option.toUpperCase();
     feedback.classList.add("falsch");
   }
+
+  feedback.appendChild(document.createElement("br"));
+  feedback.appendChild(baueWarumButton(frageId, false));
 
   beantworteFragenAnzahl += 1;
   aktualisiereFortschritt();
@@ -1148,6 +1336,9 @@ async function historieAntwortAbschicken(frageId, container, button) {
     feedback.classList.add("falsch");
   }
 
+  feedback.appendChild(document.createElement("br"));
+  feedback.appendChild(baueWarumButton(frageId, true));
+
   historieSessionGesamt += 1;
   if (ergebnis.korrekt) historieSessionRichtig += 1;
   aktualisiereHistorieFortschrittText();
@@ -1267,6 +1458,7 @@ async function historieFreitextAntwortAbschicken(frageId, container, button, tex
   feedback.innerHTML = "";
   feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
+  feedback.appendChild(baueWarumButton(frageId, true));
 
   historieSessionGesamt += 1;
   if (ergebnis.korrekt) historieSessionRichtig += 1;

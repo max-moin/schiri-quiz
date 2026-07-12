@@ -152,6 +152,30 @@
 
   <div id="konfetti-schicht" class="konfetti-schicht" aria-hidden="true"></div>
 
+  <!-- Footer mit rechtlichen Links (12.07.2026) -->
+  <footer class="fuss">
+    <div class="fuss-inhalt">
+      <a href="impressum.html">Impressum</a>
+      <span class="fuss-trenner" aria-hidden="true">·</span>
+      <a href="datenschutz.html">Datenschutz</a>
+      <span class="fuss-trenner" aria-hidden="true">·</span>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+    </div>
+  </footer>
+
+  <!-- Erklärungs-Popup ("Warum?"-Feature, 12.07.2026) -->
+  <div id="erklaerung-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="erklaerung-titel">
+      <div class="erklaerung-kopf">
+        <h3 id="erklaerung-titel">Warum ist das richtig? 💡</h3>
+        <button id="erklaerung-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
+      </div>
+      <div id="erklaerung-inhalt" class="erklaerung-inhalt">
+        <p class="erklaerung-lade-hinweis"><span class="spinner"></span> Einen Moment, die Erklärung wird erstellt ...</p>
+      </div>
+    </div>
+  </div>
+
   <!-- Supabase Client (aus CDN, kein Build-Tool nötig) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
   <script src="config.js"></script>
