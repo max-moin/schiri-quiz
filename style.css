@@ -1258,6 +1258,33 @@ button {
   border: none;
 }
 
+/* Eigener Pause/Play-Button (12.07.2026, Nachbesserung Runde 2) - ersetzt
+   YouTubes native Steuerleiste (jetzt per "controls: 0" komplett
+   abgeschaltet, siehe app.js). Lebt bewusst innerhalb von
+   ".video-spieler-halter", damit er beim "Groß ansehen" per DOM-Move
+   automatisch mitwandert. */
+.video-abspiel-button {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(15, 23, 42, 0.72);
+  color: #fff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.video-abspiel-button:hover {
+  background: rgba(15, 23, 42, 0.9);
+}
+
 .video-gross-button {
   align-self: flex-start;
   display: inline-flex;

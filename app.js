@@ -605,11 +605,48 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         spielerHalter.className = "video-spieler-halter";
         const spielerZiel = document.createElement("div");
         spielerHalter.appendChild(spielerZiel);
+
+        // Eigener Pause/Play-Button (12.07.2026, Nachbesserung Runde 2) -
+        // lebt bewusst INNERHALB von "spielerHalter", nicht in "wrap": beim
+        // "Groß ansehen" wandert "spielerHalter" per DOM-Move ins Overlay,
+        // der Button wandert automatisch mit, ohne eigene Verdrahtung dafür.
+        const abspielButton = document.createElement("button");
+        abspielButton.type = "button";
+        abspielButton.className = "video-abspiel-button";
+        abspielButton.textContent = "⏸";
+        abspielButton.setAttribute("aria-label", "Pause");
+        spielerHalter.appendChild(abspielButton);
+
         wrap.innerHTML = "";
         wrap.appendChild(spielerHalter);
 
+        // "Groß ansehen" bleibt bewusst in "wrap" (nicht in "spielerHalter")
+        // - dadurch verschwindet er automatisch mit dem Rest von "wrap"
+        // hinter dem Overlay, sobald schon groß angesehen wird, statt sich
+        // sinnlos "in sich selbst" nochmal anzubieten. Wird EINMALIG hier
+        // angelegt (nicht erst in "onReady", siehe Kommentar dort) - das ist
+        // der eigentliche Fix für den gemeldeten "Button erscheint mehrfach"-
+        // Bug.
+        const grossButton = document.createElement("button");
+        grossButton.type = "button";
+        grossButton.className = "video-gross-button";
+        grossButton.textContent = "⤢ Groß ansehen";
+        grossButton.addEventListener("click", () => {
+          oeffneVideoGrossansicht(spielerHalter, wrap);
+        });
+        wrap.appendChild(grossButton);
+
         const playerVars = {
           autoplay: 1,
+          // Nachbesserung (Max' zweite Live-Test-Runde, 12.07.2026):
+          // YouTubes komplette native Steuerleiste ausblenden statt nur den
+          // Vollbild-Button ("fs: 0" reichte allein nicht) - damit ist auch
+          // die Fortschritts-/Zeitleiste weg, über die man sonst zu jedem
+          // beliebigen Zeitpunkt hätte springen können (Max' zweiter
+          // gemeldeter Punkt). Eigene, schlanke Pause/Play- und
+          // "Groß ansehen"-Buttons ersetzen sie (s.o.).
+          controls: 0,
+          disablekb: 1,
           modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
@@ -624,26 +661,64 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         if (Number.isFinite(startSekunden)) playerVars.start = Math.max(0, Math.floor(startSekunden));
         if (Number.isFinite(endSekunden)) playerVars.end = Math.max(0, Math.floor(endSekunden));
 
+        // "bereitsEingerichtet" schützt zusätzlich gegen den Fall, dass die
+        // YouTube-API "onReady" tatsächlich mehrfach für denselben Player
+        // feuert (beobachtetes Verhalten auf dem Handy, vermutlich durch
+        // eine interne Neuinitialisierung beim Verlassen eines nativen
+        // Vollbildmodus ausgelöst) - ohne diese Sperre würden Klick-Handler
+        // mehrfach registriert.
+        let bereitsEingerichtet = false;
+
         const spieler = new YT.Player(spielerZiel, {
           host: "https://www.youtube-nocookie.com",
           videoId,
           playerVars,
           events: {
             onReady: () => {
-              const grossButton = document.createElement("button");
-              grossButton.type = "button";
-              grossButton.className = "video-gross-button";
-              grossButton.textContent = "⤢ Groß ansehen";
-              grossButton.addEventListener("click", () => {
-                oeffneVideoGrossansicht(spielerHalter, wrap);
+              if (bereitsEingerichtet) return;
+              bereitsEingerichtet = true;
+
+              abspielButton.addEventListener("click", () => {
+                if (spieler.getPlayerState() === YT.PlayerState.PLAYING) {
+                  spieler.pauseVideo();
+                } else {
+                  spieler.playVideo();
+                }
               });
-              wrap.appendChild(grossButton);
+
+              // Zusätzliche Absicherung GEGEN natives Vollbild auf
+              // DOM-/Berechtigungs-Ebene, nicht nur über "fs: 0"/
+              // "controls: 0" (die schalten nur YouTubes eigene Bedienung
+              // ab, verhindern aber nicht zwingend jede browser-/
+              // OS-seitige Vollbild-Möglichkeit für das iframe). Ein
+              // iframe ohne "allow=fullscreen" darf laut Fullscreen-API-
+              // Spezifikation gar keine Vollbild-Anfrage mehr stellen -
+              // das ist eine echte Browser-Sperre, keine reine Kosmetik.
+              const iframe = spieler.getIframe();
+              if (iframe) {
+                iframe.removeAttribute("allowfullscreen");
+                if (iframe.allow) {
+                  iframe.allow = iframe.allow
+                    .split(";")
+                    .map((teil) => teil.trim())
+                    .filter((teil) => teil && !teil.startsWith("fullscreen"))
+                    .join("; ");
+                }
+              }
             },
             onStateChange: (ereignis) => {
               if (ereignis.data === YT.PlayerState.ENDED) {
                 if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
                 spieler.destroy();
                 baueUndZeigePlatzhalter();
+                return;
+              }
+              if (ereignis.data === YT.PlayerState.PLAYING) {
+                abspielButton.textContent = "⏸";
+                abspielButton.setAttribute("aria-label", "Pause");
+              } else if (ereignis.data === YT.PlayerState.PAUSED) {
+                abspielButton.textContent = "▶";
+                abspielButton.setAttribute("aria-label", "Abspielen");
               }
             },
           },
