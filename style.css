@@ -160,7 +160,7 @@ label {
   font-size: 0.92rem;
 }
 
-select, input[type="password"], input[type="text"] {
+select, input[type="password"], input[type="text"], input[type="email"] {
   font-family: inherit;
   font-size: 1rem;
   padding: 12px 14px;
@@ -1439,4 +1439,54 @@ button {
   flex-direction: column;
   gap: 10px;
   margin-top: 16px;
+}
+
+/* ---------- Feedback-Runde 2 zu Vereinskennung/Gast-Zugang (13.07.2026) ---------- */
+
+/* Vereinskennung wie ein Passwort behandeln (Max' Wunsch: "ist ja irgendwo
+   trotzdem ein Passwort") - Eingabefeld + Augen-Button zum kurzzeitigen
+   Aufdecken in einem gemeinsamen, relativ positionierten Wrapper. */
+.kennung-eingabe-wrapper {
+  position: relative;
+}
+
+.kennung-eingabe-wrapper input {
+  padding-right: 44px;
+}
+
+.auge-button {
+  position: absolute;
+  top: 12px;
+  right: 8px;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--muted);
+}
+
+.auge-button:hover {
+  color: var(--text);
+}
+
+/* Layout-Korrektur (Max' Feedback): "Weiter"-Button UND der Gast-Link
+   standen wegen ihres jeweils inline-artigen "display" nebeneinander statt
+   untereinander, sobald der (anfangs versteckte) Hinweis-Absatz dazwischen
+   keinen Platz beanspruchte. ":not([hidden])" statt einer zusätzlichen
+   "[hidden] { display:none }"-Gegenregel, um genau die schon dreimal in
+   diesem Projekt aufgetretene "eigene display-Regel überschreibt das
+   hidden-Attribut"-Falle von vornherein zu vermeiden. */
+#kennung-weiter-button:not([hidden]) {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+#gast-wechsel-button:not([hidden]) {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin: 4px 0 14px;
 }

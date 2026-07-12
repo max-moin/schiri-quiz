@@ -47,13 +47,17 @@
 
       <div id="kennung-bereich">
         <label for="kennung-eingabe">Vereinskennung</label>
-        <input
-          id="kennung-eingabe"
-          type="text"
-          inputmode="numeric"
-          autocomplete="off"
-          placeholder="z.B. 456789"
-        />
+        <div class="kennung-eingabe-wrapper">
+          <input
+            id="kennung-eingabe"
+            type="password"
+            autocomplete="off"
+            placeholder="Vereinskennung"
+          />
+          <button id="kennung-auge-button" class="auge-button" type="button" aria-label="Vereinskennung anzeigen">
+            👁
+          </button>
+        </div>
         <button id="kennung-weiter-button" class="sekundaer-button" type="button">
           Weiter
         </button>
@@ -247,10 +251,30 @@
     </div>
   </div>
 
+  <!-- "Schade"-Popup bei "Nein danke" (13.07.2026, Max' Feedback) - der
+       SVFD-Link soll auch erreichbar sein, wenn jemand kein direktes
+       Interesse anklickt, sich aber trotzdem informieren will. -->
+  <div id="interesse-nein-overlay" class="erklaerung-overlay" hidden>
+    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interesse-nein-titel">
+      <h3 id="interesse-nein-titel">Schade!</h3>
+      <p>Falls du dich doch mal informieren willst, hier der Link zum Stadtverband Fußball Dresden:</p>
+      <a
+        href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
+        target="_blank"
+        rel="noopener"
+        class="linktext-button"
+      >Mehr Infos beim SVFD →</a>
+      <button id="interesse-nein-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
+    </div>
+  </div>
+
   <!-- Interessenten-Formular (13.07.2026, Baustein D/E) - erscheint nach
        "Ja, interessiert!" oben. Einziges Feld ist die (optionale) E-Mail,
        Absenden legt einen Interessenten in der DB an (RPC
-       "gast_interesse_melden"). -->
+       "gast_interesse_melden"). Update (13.07.2026, Max' Feedback): der
+       SVFD-Link stand vorher HIER mit im Formular - nach dem Absenden kommt
+       man aber gar nicht mehr zurück auf diesen Bildschirm, der Link war
+       praktisch unerreichbar. Jetzt stattdessen im Erfolgs-Screen unten. -->
   <div id="interessenten-formular-overlay" class="erklaerung-overlay" hidden>
     <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interessenten-formular-titel">
       <h3 id="interessenten-formular-titel">Schön, dass du dabeibleiben willst! 🎉</h3>
@@ -260,6 +284,10 @@
         <input id="interessent-email-eingabe" type="email" autocomplete="off" placeholder="du@beispiel.de" />
         <p class="hinweis">Du bekommst darüber weitere Infos zugeschickt, falls du magst - ganz freiwillig.</p>
         <button id="interessent-absenden-button" type="button">Absenden</button>
+      </div>
+
+      <div id="interessenten-formular-erfolg" hidden>
+        <p>Danke, wir melden uns bei dir! Bis dahin kannst du dich hier schon informieren:</p>
         <a
           id="svfd-link"
           href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
@@ -267,10 +295,6 @@
           rel="noopener"
           class="linktext-button"
         >Mehr Infos beim SVFD →</a>
-      </div>
-
-      <div id="interessenten-formular-erfolg" hidden>
-        <p>Danke! Wir melden uns bei dir.</p>
       </div>
 
       <button id="interessenten-formular-schliessen-button" class="sekundaer-button" type="button">Schließen</button>

@@ -31,6 +31,7 @@ const konfettiSchicht = document.getElementById("konfetti-schicht");
 // eigener Block weiter unten für die Ablauf-Logik.
 const kennungBereich = document.getElementById("kennung-bereich");
 const kennungEingabe = document.getElementById("kennung-eingabe");
+const kennungAugeButton = document.getElementById("kennung-auge-button");
 const kennungWeiterButton = document.getElementById("kennung-weiter-button");
 const kennungHinweis = document.getElementById("kennung-hinweis");
 const gastWechselButton = document.getElementById("gast-wechsel-button");
@@ -46,6 +47,8 @@ const gastVerlassenButton = document.getElementById("gast-verlassen-button");
 const interesseOverlay = document.getElementById("interesse-overlay");
 const interesseJaButton = document.getElementById("interesse-ja-button");
 const interesseNeinButton = document.getElementById("interesse-nein-button");
+const interesseNeinOverlay = document.getElementById("interesse-nein-overlay");
+const interesseNeinSchliessenButton = document.getElementById("interesse-nein-schliessen-button");
 const interessentenFormularOverlay = document.getElementById("interessenten-formular-overlay");
 const interessentenFormularInhalt = document.getElementById("interessenten-formular-inhalt");
 const interessentenFormularErfolg = document.getElementById("interessenten-formular-erfolg");
@@ -263,6 +266,7 @@ function zeigeKennungBereich() {
   loginModus = "kennung";
   kennungBereich.hidden = false;
   kennungEingabe.disabled = false;
+  kennungEingabe.type = "password";
   kennungWeiterButton.hidden = false;
   gastWechselButton.hidden = false;
   mitgliedBereich.hidden = true;
@@ -275,6 +279,9 @@ async function pruefeVereinskennung(kennungWert, options) {
   const ausSession = !!(options && options.ausSession);
   const kennung = kennungWert.trim();
   if (!kennung) return;
+
+  // Feld wieder verdecken, falls gerade per Augen-Button aufgedeckt (13.07.2026).
+  kennungEingabe.type = "password";
 
   kennungHinweis.hidden = true;
   kennungHinweis.classList.remove("hinweis-fehler", "hinweis-erfolg");
@@ -322,6 +329,23 @@ kennungEingabe.addEventListener("keydown", (event) => {
     pruefeVereinskennung(kennungEingabe.value);
   }
 });
+
+// Augen-Button (13.07.2026, Max' Feedback): Vereinskennung ist "irgendwo
+// trotzdem ein Passwort" - Eingabefeld deshalb standardmäßig verdeckt
+// (siehe type="password" in index.html), per Klick auf das Auge kurz
+// aufdeckbar. Sobald danach weitergetippt wird, verdeckt sich das Feld
+// automatisch wieder ("aufgedeckt" ist bewusst nur ein kurzer Blick, kein
+// dauerhafter Zustand).
+if (kennungAugeButton) {
+  kennungAugeButton.addEventListener("click", () => {
+    kennungEingabe.type = kennungEingabe.type === "password" ? "text" : "password";
+  });
+  kennungEingabe.addEventListener("input", () => {
+    if (kennungEingabe.type === "text") {
+      kennungEingabe.type = "password";
+    }
+  });
+}
 
 gastWechselButton.addEventListener("click", () => {
   versteckeFehler();
@@ -587,9 +611,24 @@ function schliesseInteressePopup() {
   interesseOverlay.hidden = true;
 }
 
-interesseNeinButton.addEventListener("click", schliesseInteressePopup);
+// "Schade"-Popup (13.07.2026, Max' Feedback): auch wer "Nein danke" klickt,
+// soll noch die Möglichkeit bekommen, sich über den SVFD-Link zu
+// informieren - vorher gab es dafür gar keinen erreichbaren Ort mehr.
+function schliesseInteresseNeinOverlay() {
+  interesseNeinOverlay.hidden = true;
+}
+
+interesseNeinButton.addEventListener("click", () => {
+  schliesseInteressePopup();
+  interesseNeinOverlay.hidden = false;
+});
 interesseOverlay.addEventListener("click", (event) => {
   if (event.target === interesseOverlay) schliesseInteressePopup();
+});
+
+interesseNeinSchliessenButton.addEventListener("click", schliesseInteresseNeinOverlay);
+interesseNeinOverlay.addEventListener("click", (event) => {
+  if (event.target === interesseNeinOverlay) schliesseInteresseNeinOverlay();
 });
 
 interesseJaButton.addEventListener("click", () => {
@@ -632,6 +671,7 @@ interessentAbsendenButton.addEventListener("click", async () => {
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
   if (interesseOverlay && !interesseOverlay.hidden) schliesseInteressePopup();
+  if (interesseNeinOverlay && !interesseNeinOverlay.hidden) schliesseInteresseNeinOverlay();
   if (interessentenFormularOverlay && !interessentenFormularOverlay.hidden) schliesseInteressentenFormular();
 });
 
