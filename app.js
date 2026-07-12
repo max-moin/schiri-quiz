@@ -832,7 +832,6 @@ anfrageAbsendenButton.addEventListener("click", async () => {
 
 const ANFRAGE_KATEGORIE_LABEL = { trikot: "Trikot", hose: "Hose", stutzen: "Stutzen", schuhe: "Schuhe" };
 const ANFRAGE_STATUS_LABEL = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
-const ANFRAGE_TYP_LABEL = { ausruestung: "Antrag", anliegen: "Anliegen" };
 
 function formatiereAnfrageDatum(iso) {
   try {
@@ -850,20 +849,20 @@ let rechnungUploadBase64 = null;
 let rechnungUploadMime = null;
 
 function baueAnfrageZeile(anfrage) {
+  // Bugfix (Feedback nach Baustein 5c, 12.07.2026): "Meine Anfragen" zeigt
+  // seit "ladeMeineAnfragen()" nur noch Ausrüstungs-Anträge (kein "Anliegen"
+  // mehr) - der Typ-Badge war dadurch immer nur noch "Antrag" und damit
+  // reine Redundanz, deshalb hier entfernt statt eines dauerhaft
+  // gleichbleibenden Labels.
   const zeile = document.createElement("div");
   zeile.className = "anfrage-zeile";
-
-  const typZeile = document.createElement("span");
-  typZeile.className = "anfrage-typ-badge";
-  typZeile.textContent = ANFRAGE_TYP_LABEL[anfrage.typ] || anfrage.typ;
-  zeile.appendChild(typZeile);
 
   const kopf = document.createElement("div");
   kopf.className = "anfrage-zeile-kopf";
 
   const titel = document.createElement("span");
   titel.className = "anfrage-zeile-titel";
-  titel.textContent = anfrage.typ === "anliegen" ? "Anliegen" : ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
+  titel.textContent = ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
   kopf.appendChild(titel);
 
   const statusBadge = document.createElement("span");
@@ -929,12 +928,20 @@ async function ladeMeineAnfragen() {
     return;
   }
 
-  if (!data || data.length === 0) {
+  // Bugfix (Feedback nach Baustein 5c, 12.07.2026, Max: "wenn man da was
+  // schreibt [ein Anliegen], dass das nicht mit in meine Anfragen
+  // aufgelistet wird"): "Meine Anfragen" zeigt jetzt bewusst NUR
+  // Ausrüstungs-Anträge - ein Anliegen ist eine einmalige Meldung an den
+  // Obmann, kein Status, den der Schiri selbst weiterverfolgen soll (anders
+  // als ein Ausrüstungs-Antrag mit Annahme/Beschaffungsweg/Rechnung).
+  const antraege = (data || []).filter((anfrage) => anfrage.typ !== "anliegen");
+
+  if (antraege.length === 0) {
     meineAnfragenLeerHinweis.hidden = false;
     return;
   }
 
-  data.forEach((anfrage) => meineAnfragenListe.appendChild(baueAnfrageZeile(anfrage)));
+  antraege.forEach((anfrage) => meineAnfragenListe.appendChild(baueAnfrageZeile(anfrage)));
 }
 
 function schliesseMeineAnfragen() {
