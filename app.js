@@ -1535,21 +1535,42 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
   const wrap = document.createElement("div");
   wrap.className = "video-einbettung";
 
+  // Nachbesserung (13.07.2026, Max' Feedback: bei zwei Video-Fragen
+  // hintereinander sehen beide Platzhalter identisch aus - kombiniert mit
+  // Hoch/Quer-Drehen auf dem Handy wusste er nicht mehr, welches Video er
+  // schon angesehen hatte und zu welcher Frage es gehörte). Der Platzhalter
+  // ist bewusst generisch OHNE YouTube-Vorschaubild (kein Kontakt zu
+  // YouTube vor dem Klick, siehe Hinweistext) - darum braucht er eine
+  // EIGENE, rein lokale Markierung, ob dieses Video schon geöffnet wurde.
+  // "bereitsAngesehen" lebt in diesem Closure, also pro Video-Frage einzeln
+  // (keine Verwechslungsgefahr zwischen mehreren Karten). Wird schon beim
+  // ERSTEN Klick (Start des Ladens) gesetzt, nicht erst nach komplettem
+  // Durchschauen - Max wollte wissen "habe ich mir das überhaupt schon
+  // angeschaut", nicht "habe ich es bis zum Ende geschaut".
+  let bereitsAngesehen = false;
+
   function baueUndZeigePlatzhalter() {
     wrap.innerHTML = "";
 
     const platzhalter = document.createElement("button");
     platzhalter.type = "button";
-    platzhalter.className = "video-platzhalter";
+    platzhalter.className = "video-platzhalter" + (bereitsAngesehen ? " video-platzhalter-angesehen" : "");
+
+    if (bereitsAngesehen) {
+      const badge = document.createElement("span");
+      badge.className = "video-platzhalter-badge";
+      badge.textContent = "✓ Angesehen";
+      platzhalter.appendChild(badge);
+    }
 
     const icon = document.createElement("span");
     icon.className = "video-platzhalter-icon";
-    icon.textContent = "▶";
+    icon.textContent = bereitsAngesehen ? "↻" : "▶";
     platzhalter.appendChild(icon);
 
     const text = document.createElement("span");
     text.className = "video-platzhalter-text";
-    text.textContent = "Video laden und ansehen";
+    text.textContent = bereitsAngesehen ? "Video nochmal ansehen" : "Video laden und ansehen";
     platzhalter.appendChild(text);
 
     const hinweis = document.createElement("span");
@@ -1560,6 +1581,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
     platzhalter.appendChild(hinweis);
 
     platzhalter.addEventListener("click", () => {
+      bereitsAngesehen = true;
       platzhalter.disabled = true;
       text.textContent = "Wird geladen ...";
       ladeYoutubeApi().then((YT) => {
@@ -1736,6 +1758,33 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                 }
               }
 
+              unterdrueckeUntertitel();
+            },
+            // Nachbesserung Runde 5 (13.07.2026, Max meldet: Untertitel sind
+            // trotz Runde 3/4 offenbar auf einem echten Gerät immer noch
+            // manchmal zu sehen). "onApiChange" ist das offizielle YouTube-
+            // IFrame-API-Event dafür, dass sich verfügbare Player-Module
+            // (u.a. das Untertitel-Modul "captions") ändern oder neu laden -
+            // genau der Moment, in dem sich das Modul laut YouTubes eigener
+            // (unvollständiger) Doku unbemerkt selbst neu initialisieren
+            // kann. Zusätzlich zu den bestehenden Aufrufen bei "onReady" und
+            // "PLAYING" hier nochmal an der offiziellen Quelle abgreifen -
+            // deckt zusammen mit den bisherigen Aufrufen praktisch jeden
+            // bekannten Zeitpunkt ab, zu dem das Modul (wieder) aktiv werden
+            // könnte.
+            //
+            // WICHTIG (siehe Notiz in Backlog/Dashboard): sollte es auf dem
+            // iPhone TROTZDEM noch vorkommen, ist die wahrscheinlichste
+            // Ursache keine Lücke mehr in diesem Code, sondern die iOS-
+            // Systemeinstellung "Einstellungen > Bedienungshilfen >
+            // Untertitel & Untertitelung > Untertitel + SDH". Ist die
+            // eingeschaltet, erzwingt iOS/Safari selbst Untertitel bei JEDER
+            // Videowiedergabe (auch eingebettete YouTube-Player) - das
+            // passiert unterhalb der Web-Player-API und lässt sich von
+            // keiner Website per JavaScript übersteuern. Kurzer Check auf
+            // dem eigenen Handy lohnt sich, bevor hier weiter nachgebessert
+            // wird.
+            onApiChange: () => {
               unterdrueckeUntertitel();
             },
             onStateChange: (ereignis) => {
