@@ -181,8 +181,9 @@
         <div class="kennung-eingabe-wrapper">
           <input
             id="kennung-eingabe"
-            type="password"
-            autocomplete="off"
+            type="text"
+            class="maskiert"
+            autocomplete="one-time-code"
             autocapitalize="none"
             spellcheck="false"
             data-gramm="false"
@@ -213,11 +214,14 @@
         </select>
 
         <label for="pin-eingabe">Deine PIN</label>
+        <!-- Bewusst KEIN type="password" - siehe Kommentar bei der
+             Vereinskennung oben bzw. bei "input.maskiert" in style.css. -->
         <input
           id="pin-eingabe"
-          type="password"
+          type="text"
+          class="maskiert"
           inputmode="numeric"
-          autocomplete="off"
+          autocomplete="one-time-code"
           spellcheck="false"
           data-gramm="false"
           data-gramm_editor="false"

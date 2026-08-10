@@ -583,7 +583,10 @@ button {
 .fragen-liste {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  /* Mehr Luft zwischen den Fragen (10.08.2026, Max: "dass das klarer
+     abgegrenzt ist, wo die eine Frage aufhört und die nächste anfängt").
+     16px reichten nicht - die Karten wirkten wie ein durchgehender Block. */
+  gap: 26px;
   margin-top: 16px;
 }
 
@@ -1810,7 +1813,13 @@ button {
 
 .video-gross-spieler-halter {
   position: relative;
-  width: min(94vw, calc(94vh * 16 / 9));
+  /* 84vh statt 94vh (10.08.2026, Max' Meldung): Im Querformat am Handy war
+     das Video zwar schön groß, füllte aber die ganze Höhe - der
+     Schließen-Knopf darüber lag dadurch außerhalb des Sichtbereichs und man
+     musste das Gerät zurückdrehen, um ihn zu treffen. Die etwas kleinere
+     Begrenzung kostet kaum Bildgröße und lässt oben Platz für die
+     Bedienung. */
+  width: min(94vw, calc(84vh * 16 / 9));
   aspect-ratio: 16 / 9;
   border-radius: var(--radius-sm);
   overflow: hidden;
@@ -2286,4 +2295,99 @@ select:focus-visible,
 }
 .badge.schwierigkeit::before {
   content: "";
+}
+
+/* Maskierte Eingabefelder ohne type="password" (10.08.2026).
+   Grund: Safari/iOS blenden bei jedem echten Passwortfeld ungefragt den
+   "Starkes Passwort verwenden"-Vorschlag ein und ignorieren dabei
+   autocomplete="off". Für eine vierstellige Vereins-PIN ist dieses Fenster
+   nur verwirrend - besonders für ältere Nutzer.
+   Diese Felder sind deshalb normale Textfelder und werden nur optisch
+   maskiert. Fällt der Browser bei "-webkit-text-security" durch, schaltet
+   app.js sie automatisch wieder auf type="password" um. */
+input.maskiert {
+  -webkit-text-security: disc;
+  text-security: disc;
+}
+
+/* Beim Anzeigen über das Auge-Symbol wird die Maskierung aufgehoben. */
+input.maskiert.sichtbar {
+  -webkit-text-security: none;
+  text-security: none;
+}
+
+/* ---------- Video-Großansicht: Bedienung im Querformat (10.08.2026) ----------
+   Der Schließen-Knopf saß im normalen Fluss über dem Video. Sobald das Video
+   im Querformat die volle Höhe einnahm, rutschte er aus dem Bild. Jetzt liegt
+   er als Overlay in der oberen rechten Ecke und ist dadurch immer erreichbar,
+   unabhängig von der Bildschirmdrehung. */
+.video-gross-overlay .video-gross-schliessen-button {
+  position: absolute;
+  top: max(12px, env(safe-area-inset-top));
+  right: max(12px, env(safe-area-inset-right));
+  z-index: 5;
+  align-self: auto;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 9px 16px;
+  background: rgba(15, 23, 42, 0.82);
+  border-color: rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(6px);
+}
+
+/* Der Abspiel-Knopf in der Großansicht darf deutlich größer sein als in der
+   kleinen Vorschau - im Querformat wird er sonst zur Zielscheibe für
+   Fehlgriffe. */
+.video-gross-spieler-halter .video-abspiel-button {
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  min-height: 56px;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  font-size: 1.15rem;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+/* Läuft das Video, wird der Knopf zurückhaltender - er soll das Bild nicht
+   dominieren, aber trotzdem sofort findbar bleiben. */
+.video-abspiel-button.laeuft {
+  background: rgba(15, 23, 42, 0.55);
+}
+.video-abspiel-button:hover {
+  background: rgba(15, 23, 42, 0.92);
+}
+
+/* Im flachen Querformat zusätzlich Höhe sparen. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .video-gross-overlay {
+    padding: 8px;
+  }
+  .video-gross-spieler-halter {
+    width: min(96vw, calc(88vh * 16 / 9));
+  }
+}
+
+/* ---------- Kopfzeile je Frage (10.08.2026) ----------
+   Max' Wunsch nach einer klareren Trennung: Jede Frage bekommt über dem
+   Fragetext eine eigene, abgesetzte Zeile mit Nummer und Kennzeichen. Damit
+   ist beim Scrollen sofort erkennbar, wo eine neue Frage beginnt - vorher
+   ging die Badge-Reihe optisch im Fragetext auf. */
+.frage-badges {
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  align-items: center;
+}
+
+.frage-karte.beantwortet .frage-badges {
+  border-bottom-color: #dcdfe4;
+}
+
+/* Die Nummer wird zum wichtigsten Element der Kopfzeile - sie ist der
+   Ankerpunkt, über den im Team gesprochen wird ("bei F3 war ich unsicher"). */
+.badge.frage-nummer {
+  font-size: 0.8rem;
+  padding: 4px 11px;
 }

@@ -317,11 +317,60 @@ function zeigeGastBereich() {
   gastNameEingabe.focus();
 }
 
+// ============================================================
+// Maskierte Eingabefelder ohne type="password" (10.08.2026)
+//
+// Safari und iOS blenden bei JEDEM echten Passwortfeld ungefragt den
+// "Starkes Passwort verwenden"-Vorschlag ein und ignorieren dabei
+// autocomplete="off". Für eine vierstellige Vereins-PIN ist dieses Fenster
+// nur verwirrend - Max' Rückmeldung nach dem Test mit älteren Kollegen.
+//
+// Lösung: Die Felder sind normale Textfelder und werden per CSS
+// ("-webkit-text-security", siehe style.css) maskiert. Das System erkennt
+// sie dadurch nicht als Passwortfelder.
+//
+// Wichtig ist die Rückfallebene: "-webkit-text-security" wird nicht von
+// jedem Browser unterstützt. Kann der Browser es nicht, wären die Zeichen
+// im Klartext zu sehen - dann lieber zurück auf type="password" samt
+// Vorschlagsfenster. Sichtbarkeit der PIN wiegt schwerer als Bequemlichkeit.
+// ============================================================
+const MASKIERUNG_MOEGLICH =
+  typeof CSS !== "undefined" &&
+  typeof CSS.supports === "function" &&
+  (CSS.supports("-webkit-text-security", "disc") || CSS.supports("text-security", "disc"));
+
+if (!MASKIERUNG_MOEGLICH) {
+  document.querySelectorAll("input.maskiert").forEach((feld) => {
+    feld.classList.remove("maskiert");
+    feld.type = "password";
+  });
+}
+
+function istAufgedeckt(feld) {
+  return feld.classList.contains("maskiert") ? feld.classList.contains("sichtbar") : feld.type === "text";
+}
+
+function decke_auf(feld) {
+  if (feld.classList.contains("maskiert")) {
+    feld.classList.add("sichtbar");
+  } else {
+    feld.type = "text";
+  }
+}
+
+function verdecke(feld) {
+  if (feld.classList.contains("maskiert")) {
+    feld.classList.remove("sichtbar");
+  } else {
+    feld.type = "password";
+  }
+}
+
 function zeigeKennungBereich() {
   loginModus = "kennung";
   kennungBereich.hidden = false;
   kennungEingabe.disabled = false;
-  kennungEingabe.type = "password";
+  verdecke(kennungEingabe);
   kennungWeiterButton.hidden = false;
   gastWechselButton.hidden = false;
   mitgliedBereich.hidden = true;
@@ -336,7 +385,7 @@ async function pruefeVereinskennung(kennungWert, options) {
   if (!kennung) return;
 
   // Feld wieder verdecken, falls gerade per Augen-Button aufgedeckt (13.07.2026).
-  kennungEingabe.type = "password";
+  verdecke(kennungEingabe);
 
   kennungHinweis.hidden = true;
   kennungHinweis.classList.remove("hinweis-fehler", "hinweis-erfolg");
@@ -393,8 +442,8 @@ kennungEingabe.addEventListener("keydown", (event) => {
 // dauerhafter Zustand).
 if (kennungAugeButton) {
   kennungAugeButton.addEventListener("click", () => {
-    const wirdSichtbar = kennungEingabe.type === "password";
-    kennungEingabe.type = wirdSichtbar ? "text" : "password";
+    const wirdSichtbar = !istAufgedeckt(kennungEingabe);
+    if (wirdSichtbar) { decke_auf(kennungEingabe); } else { verdecke(kennungEingabe); }
     kennungAugeButton.setAttribute("aria-pressed", String(wirdSichtbar));
     kennungAugeButton.setAttribute(
       "aria-label",
@@ -402,8 +451,8 @@ if (kennungAugeButton) {
     );
   });
   kennungEingabe.addEventListener("input", () => {
-    if (kennungEingabe.type === "text") {
-      kennungEingabe.type = "password";
+    if (istAufgedeckt(kennungEingabe)) {
+      verdecke(kennungEingabe);
       kennungAugeButton.setAttribute("aria-pressed", "false");
       kennungAugeButton.setAttribute("aria-label", "Vereinskennung anzeigen");
     }
@@ -1677,8 +1726,27 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         const abspielButton = document.createElement("button");
         abspielButton.type = "button";
         abspielButton.className = "video-abspiel-button";
-        abspielButton.textContent = "⏸";
-        abspielButton.setAttribute("aria-label", "Pause");
+
+        /// Setzt Zeichen, Vorlesetext und Kurzhinweis des Knopfes in einem
+        /// Rutsch. Vorher wurde das an drei Stellen einzeln gemacht, wodurch
+        /// Zeichen und Beschriftung auseinanderlaufen konnten.
+        function setzeAbspielKnopf(laeuft) {
+          abspielButton.textContent = laeuft ? "❚❚" : "▶";
+          abspielButton.classList.toggle("laeuft", laeuft);
+          const text = laeuft ? "Video anhalten" : "Video abspielen";
+          abspielButton.setAttribute("aria-label", text);
+          abspielButton.title = text;
+        }
+        // Startzustand: WIEDERGABE (10.08.2026, Max' Meldung "der Button
+        // zeigt Pause an, obwohl das Video noch gar nicht gestartet ist").
+        // Der Knopf wurde fest mit dem Pause-Zeichen angelegt, weil der
+        // Player mit "autoplay: 1" gebaut wird - auf dem Handy greift
+        // Autoplay aber häufig nicht (iOS blockiert Wiedergabe ohne
+        // direkte Nutzergeste), sodass der Knopf ohne laufendes Video
+        // Pause anzeigte. Der tatsächliche Zustand wird ohnehin in
+        // "onStateChange" nachgeführt - der Startwert muss also nur den
+        // wahrscheinlicheren Fall treffen, und das ist "läuft noch nicht".
+        setzeAbspielKnopf(false);
         spielerHalter.appendChild(abspielButton);
 
         wrap.innerHTML = "";
@@ -1876,8 +1944,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                 return;
               }
               if (ereignis.data === YT.PlayerState.PLAYING) {
-                abspielButton.textContent = "⏸";
-                abspielButton.setAttribute("aria-label", "Pause");
+                setzeAbspielKnopf(true);
                 // Nachbesserung Runde 4 (12.07.2026, Max' Rückmeldung: der
                 // Runde-3-Fix "unloadModule('captions')" EINMALIG in
                 // "onReady" hat in der Praxis nicht gereicht). Bekanntes,
@@ -1912,8 +1979,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                   }, 200);
                 }
               } else if (ereignis.data === YT.PlayerState.PAUSED) {
-                abspielButton.textContent = "▶";
-                abspielButton.setAttribute("aria-label", "Abspielen");
+                setzeAbspielKnopf(false);
                 // Überwachung während der Pause anhalten (spart Ressourcen,
                 // die Wiedergabezeit steht ohnehin still) - startet beim
                 // nächsten "PLAYING" automatisch wieder neu.
