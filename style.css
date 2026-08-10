@@ -8,6 +8,9 @@
   --red: #dc2626;
   --red-light: #fee2e2;
   --blue: #2563eb;
+  --blue-dark: #1d4ed8;
+  --blue-light: #dbeafe;
+  --blue-lighter: #eff6ff;
   --bg-start: #f0fdf4;
   --bg-end: #eef2ff;
   --card-bg: #ffffff;
@@ -529,12 +532,34 @@ button {
 }
 
 .frage-karte {
+  position: relative;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px;
   box-shadow: var(--shadow);
   transition: box-shadow 0.2s, transform 0.2s;
+  overflow: hidden;
+}
+
+/* Farbiger Akzentstreifen am oberen Rand jeder offenen Frage (07.08.2026,
+   Max: "ein bisschen farbiger und lebendiger"). Bei beantworteten Fragen
+   wird er weiter unten grau/grün/rot überschrieben. */
+.frage-karte::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--green) 0%, var(--blue) 100%);
+}
+.frage-karte.beantwortet::before {
+  background: var(--border);
+}
+.frage-karte.beantwortet.richtig-karte::before {
+  background: var(--green);
+}
+.frage-karte.beantwortet.falsch-karte::before {
+  background: var(--red);
 }
 
 .frage-karte:hover {
@@ -565,6 +590,29 @@ button {
   background: var(--amber-light);
   color: #92400e;
   letter-spacing: 1px;
+}
+
+/* Fragetyp-Badges (07.08.2026): eigene Farbwelt je Typ, damit beim Scrollen
+   sofort auffällt, was einen erwartet. Farbe ist bewusst nur die Zugabe -
+   der Text steht immer mit dabei, sonst wäre der Typ für farbfehlsichtige
+   Nutzer nicht unterscheidbar. */
+.badge.typ-video {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+.badge.typ-freitext {
+  background: var(--blue-light);
+  color: var(--blue-dark);
+}
+
+/* Fragen-Nummer: gibt jeder Frage eine feste, sichtbare Kennung ("F1"),
+   damit man sich beim Besprechen im Team darauf beziehen kann und die
+   Reihenfolge zwischen Website und Planung nachvollziehbar wird
+   (07.08.2026, Max' Wunsch "jede Frage bekommt so eine eigene Rangnummer"). */
+.badge.frage-nummer {
+  background: var(--text);
+  color: #fff;
+  letter-spacing: 0.03em;
 }
 
 .frage-text {
@@ -749,9 +797,17 @@ button {
   transition: border-color 0.15s, background 0.15s;
 }
 
-.option:hover {
-  border-color: var(--green);
-  background: var(--green-lighter);
+/* Farbsystem der Antwortmöglichkeiten (07.08.2026, Max' Wunsch):
+   BLAU = von dir ausgewählt (noch nicht abgeschickt) - bewusst nicht grün,
+          damit die reine Auswahl nicht schon wie eine Erfolgsmeldung wirkt.
+   GRÜN = die richtige Antwort (erst nach dem Abschicken sichtbar).
+   ROT  = deine Antwort, wenn sie falsch war.
+   Der Hover-Effekt greift nur, solange die Frage offen ist - vorher blieb er
+   auch nach dem Abschicken aktiv, wodurch bereits gesperrte Felder weiterhin
+   anklickbar wirkten (Max' Bugmeldung). */
+.option:hover:not(.gesperrt) {
+  border-color: var(--blue);
+  background: var(--blue-lighter);
 }
 
 .option input {
@@ -762,9 +818,38 @@ button {
 }
 
 .option.ausgewaehlt {
-  border-color: var(--green);
-  background: var(--green-lighter);
+  border-color: var(--blue);
+  background: var(--blue-lighter);
+  font-weight: 600;
 }
+
+.option.gesperrt,
+.option.gesperrt input[type="radio"] {
+  cursor: default;
+}
+
+/* Aufgelöste Antwort */
+.option.ist-richtig {
+  border-color: var(--green);
+  background: var(--green-light);
+  font-weight: 600;
+}
+.option.ist-falsch {
+  border-color: var(--red);
+  background: var(--red-light);
+  font-weight: 600;
+}
+
+/* Zeichen am Zeilenende, damit die Auflösung nicht allein über Farbe
+   transportiert wird (Farbfehlsichtigkeit). */
+.option-marke {
+  margin-left: auto;
+  font-weight: 700;
+  font-size: 0.95rem;
+  flex-shrink: 0;
+}
+.option.ist-richtig .option-marke { color: var(--green-dark); }
+.option.ist-falsch .option-marke { color: var(--red); }
 
 .frage-karte .absenden-button {
   width: 100%;
@@ -795,8 +880,14 @@ button {
 
 /* ---------- Bereits beantwortete Fragen ---------- */
 
+/* Beantwortete Fragen heben sich beim Scrollen ab (Max: "ausgrauen"), ohne
+   unlesbar zu werden - zurückgenommener Hintergrund statt globaler Deckkraft,
+   damit "Warum?" und Vorlesen kontraststark bedienbar bleiben. */
 .frage-karte.beantwortet {
-  opacity: 0.92;
+  background: #fafafa;
+}
+.frage-karte.beantwortet .frage-text {
+  color: #4b5563;
 }
 
 .frage-karte.beantwortet.richtig-karte {
@@ -1508,6 +1599,27 @@ button {
    abgeschaltet, siehe app.js). Lebt bewusst innerhalb von
    ".video-spieler-halter", damit er beim "Groß ansehen" per DOM-Move
    automatisch mitwandert. */
+/* Klickfänger über dem Player (07.08.2026) - transparente Fläche, die jeden
+   Klick aufs Video abfängt und stattdessen die Großansicht öffnet. Verhindert,
+   dass man versehentlich YouTubes eigene Bedienelemente (Logo, "Teilen",
+   Titel-Link) trifft und die Seite verlässt.
+   z-index 1: über dem iframe, aber unter dem eigenen Pause/Play-Knopf (2). */
+.video-klickfaenger {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  cursor: zoom-in;
+  padding: 0;
+}
+.video-klickfaenger:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: -3px;
+}
+
 .video-abspiel-button {
   position: absolute;
   left: 10px;
@@ -1549,6 +1661,23 @@ button {
 .video-gross-button:hover {
   border-color: var(--blue);
   background: var(--bg-end);
+}
+
+/* Auffällige Variante (07.08.2026): der schmale Umriss-Button wurde beim
+   Test schlicht übersehen - jetzt gefüllt, breiter und mittig unter dem
+   Video, damit klar ist, wo man zum Vergrößern hinmuss. */
+.video-gross-button.auffaellig {
+  align-self: stretch;
+  justify-content: center;
+  background: var(--blue);
+  border-color: var(--blue);
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 16px;
+}
+.video-gross-button.auffaellig:hover {
+  background: var(--blue-dark);
+  border-color: var(--blue-dark);
 }
 
 /* "Groß ansehen"-Overlay (12.07.2026): eigenes Overlay statt YouTubes
@@ -1730,4 +1859,258 @@ button {
   width: 100%;
   text-align: center;
   margin: 4px 0 14px;
+}
+
+/* ---------- Login-Karte: freundlicher Einstieg (07.08.2026) ---------- */
+/* Vorher stand auf der Startseite ohne jede Erklärung ein Passwortfeld.
+   Für Schiedsrichter, die die Seite zum ersten Mal sehen (und beim Vorführen
+   im Team), ist das unnötig abweisend - die drei Punkte erklären in einem
+   Blick, worum es geht und wie lange es dauert. */
+.login-einleitung {
+  margin: 0 0 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.login-vorteile {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  background: linear-gradient(135deg, var(--green-lighter) 0%, var(--blue-lighter) 100%);
+  border-radius: var(--radius-sm);
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.login-vorteile li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.login-vorteile span {
+  font-size: 1.05rem;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   Barrierefreiheit / WCAG-Grundlagen (07.08.2026, Max' Wunsch)
+
+   Bewusst als Grundausstattung angelegt, nicht als vollständige
+   WCAG-2.2-AA-Konformität - das wäre eine eigene, größere Runde mit
+   echtem Test per Screenreader. Was hier drin ist, deckt die Punkte ab,
+   die im Alltag am meisten bringen und ohne Umbau machbar waren:
+     1.4.1 Nicht allein über Farbe informieren (✓/✗ bei den Antworten)
+     2.1.1 Bedienbarkeit per Tastatur
+     2.4.7 Sichtbarer Fokus
+     2.5.5 Ausreichend große Klickflächen
+     2.3.3 Animationen abschaltbar
+   ============================================================ */
+
+/* Sichtbarer Fokusrahmen für Tastatur-Navigation. ":focus-visible" statt
+   ":focus", damit der Rahmen nur bei Tastaturbedienung erscheint und nicht
+   nach jedem Mausklick stehen bleibt. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Die Antwortmöglichkeiten sind <label>-Elemente - der Fokus liegt technisch
+   auf dem Radio darin. Damit trotzdem die ganze Zeile hervorgehoben wird
+   (und nicht nur der kleine Kreis), wird der Rahmen ans Label durchgereicht. */
+.option:has(input[type="radio"]:focus-visible) {
+  outline: 3px solid var(--blue);
+  outline-offset: 2px;
+}
+
+/* Mindestgröße für Klick-/Tippflächen (WCAG 2.5.5: 44x44 px empfohlen).
+   Betrifft vor allem die kleinen runden Symbolknöpfe (Auge, Vorlesen). */
+.auge-button,
+.vorlesen-button,
+.video-abspiel-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Wer im Betriebssystem "Bewegung reduzieren" eingeschaltet hat, bekommt
+   keine Übergänge und keine Animationen - relevant u.a. bei Migräne und
+   vestibulären Beschwerden. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Nur für Screenreader sichtbarer Text - für Zusatzinformationen, die
+   optisch schon aus dem Zusammenhang hervorgehen. */
+.nur-screenreader {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Freitext: Zwischenstufe "teilweise richtig" (07.08.2026) ----------
+   Max' Beobachtung: Wer den Grundgedanken getroffen, aber z.B. die
+   Spielfortsetzung vergessen hat, bekam bisher dieselbe rote Rückmeldung wie
+   jemand mit einer komplett falschen Antwort - das entmutigt unnötig und ist
+   sachlich ungenau. Orange als eigene Stufe dazwischen. Gewertet wird die
+   Antwort weiterhin als nicht bestanden. */
+.feedback.teilweise {
+  color: #92400e;
+  background: var(--amber-light);
+}
+.freitext-ergebnis-kopf.teilweise {
+  color: #92400e;
+}
+
+/* ============================================================
+   Menü rechts oben (07.08.2026, Max' Wunsch)
+
+   Die Seite soll perspektivisch eine richtige Schiedsrichter-Startseite
+   werden (Stadtverband, Verein, DFBnet), ohne dass beim Anmelden schon
+   alles im Weg steht - deshalb ein Menüknopf statt einer Navigationsleiste.
+   ============================================================ */
+
+/* Der Menü-Knopf sitzt absolut in der oberen rechten Ecke des Kopfbereichs
+   statt im Textfluss (07.08.2026, nach dem Browsertest): im Flex-Fluss nahm
+   er der Überschrift so viel Platz weg, dass "Schiri-Quiz der Woche" auf dem
+   Handy zweizeilig umbrach und der Untertitel abgeschnitten wurde. */
+.kopf-menue {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 30;
+}
+
+/* Bezugspunkt für die absolute Positionierung + Platz, damit der Text nicht
+   unter den Knopf läuft. */
+.kopf-titelzeile {
+  position: relative;
+  padding-right: 56px;
+}
+
+.menue-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s, transform 0.15s;
+}
+.menue-button:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+.menue-button[aria-expanded="true"] {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.menue-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  z-index: 40;
+  width: min(300px, calc(100vw - 32px));
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+}
+.menue-panel[hidden] {
+  display: none;
+}
+
+.menue-titel {
+  margin: 6px 0 4px;
+  padding: 0 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.menue-eintrag {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 8px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.15s;
+}
+.menue-eintrag:hover {
+  background: var(--bg-end);
+}
+.menue-eintrag strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.menue-eintrag small {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--muted);
+}
+.menue-symbol {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  width: 24px;
+  text-align: center;
+}
+
+/* Noch nicht verlinkte Einträge: sichtbar, aber klar als "kommt noch"
+   erkennbar - besser als ein Link, der ins Leere führt. */
+.menue-eintrag.deaktiviert {
+  opacity: 0.5;
+  cursor: default;
+}
+.menue-eintrag.deaktiviert:hover {
+  background: transparent;
+}
+
+.menue-fusszeile {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  padding: 4px 8px 2px;
+}
+.menue-fusszeile a {
+  font-size: 0.78rem;
+  color: var(--muted);
+  text-decoration: none;
+}
+.menue-fusszeile a:hover {
+  color: var(--blue);
+  text-decoration: underline;
 }

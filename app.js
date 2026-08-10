@@ -569,6 +569,11 @@ function baueGastFrageElement(frage) {
 
   const feedback = document.createElement("p");
   feedback.className = "feedback";
+  // "aria-live" sorgt dafür, dass Screenreader die Auflösung ("Richtig!"/
+  // "Leider falsch...") automatisch vorlesen, sobald sie erscheint - ohne
+  // das bliebe sie für blinde Nutzer unbemerkt (07.08.2026, WCAG 4.1.3).
+  feedback.setAttribute("role", "status");
+  feedback.setAttribute("aria-live", "polite");
   feedback.hidden = true;
   container.appendChild(feedback);
 
@@ -603,6 +608,11 @@ async function gastAntwortAbschicken(frageId, container, button) {
   }
 
   const ergebnis = data[0];
+
+  // Gleiche farbige Auflösung wie im eingeloggten Quiz (07.08.2026).
+  loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
+  container.classList.add("beantwortet");
+
   gastBeantwortetAnzahl += 1;
   if (ergebnis.korrekt) {
     gastRichtigAnzahl += 1;
@@ -1201,7 +1211,13 @@ async function ladeFragenUndAntworten() {
   gesamtFragenAnzahl = fragen.length;
   beantworteFragenAnzahl = 0;
 
-  for (const frage of fragen) {
+  for (const [index, frage] of fragen.entries()) {
+    // Feste Anzeigenummer je Frage (07.08.2026, Max' Wunsch "jede Frage
+    // bekommt so eine eigene Rangnummer ... F1 ist überall die gleiche
+    // Frage"). Sie ergibt sich aus der Reihenfolge, in der die Datenbank
+    // die Fragen liefert - und die ist nach der Spalte "position" sortiert,
+    // also derselben Reihenfolge wie im Planung-Reiter der App.
+    frage.anzeigeNummer = index + 1;
     const bisherigeAntwort = antwortenNachFrageId.get(frage.id);
     // "video_freitext" wird wie "freitext" behandelt (gleiche KI-Bewertung,
     // gleiche Bau-Funktionen) - der Video-Player wird zusätzlich innerhalb
@@ -1296,9 +1312,39 @@ function schwierigkeitSterne(schwierigkeit) {
   return voll + leer;
 }
 
+/// Anzeigename und Farbklasse je Fragetyp (07.08.2026, Max' Wunsch:
+/// "vielleicht sieht man da dann auch deutlicher, dass eine Frage Video oder
+/// Freitext ist, vielleicht mit Farben"). Bewusst mit Symbol UND Text, damit
+/// der Typ nicht allein über die Farbe erkennbar ist.
+const FRAGETYP_BADGE = {
+  multiple_choice: null, // Standardfall - kein Badge, sonst steht es überall
+  freitext: { text: "✍️ Freitext", klasse: "typ-freitext" },
+  video_mc: { text: "▶ Video", klasse: "typ-video" },
+  video_freitext: { text: "▶ Video + Freitext", klasse: "typ-video" },
+};
+
 function baueBadges(frage) {
   const wrap = document.createElement("div");
   wrap.className = "frage-badges";
+
+  // Nummer ganz vorn, damit man sie beim Besprechen im Team nennen kann
+  // ("bei F3 war ich unsicher").
+  if (frage.anzeigeNummer) {
+    const nummerBadge = document.createElement("span");
+    nummerBadge.className = "badge frage-nummer";
+    nummerBadge.textContent = "F" + frage.anzeigeNummer;
+    wrap.appendChild(nummerBadge);
+  }
+
+  // Fragetyp danach - die Information, die beim Überfliegen am meisten
+  // hilft ("muss ich hier ein Video ansehen oder etwas schreiben?").
+  const typInfo = FRAGETYP_BADGE[frage.typ];
+  if (typInfo) {
+    const typBadge = document.createElement("span");
+    typBadge.className = "badge " + typInfo.klasse;
+    typBadge.textContent = typInfo.text;
+    wrap.appendChild(typBadge);
+  }
 
   if (frage.regel_nummer && frage.regel_bezeichnung) {
     const regelBadge = document.createElement("span");
@@ -1598,6 +1644,27 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         // lebt bewusst INNERHALB von "spielerHalter", nicht in "wrap": beim
         // "Groß ansehen" wandert "spielerHalter" per DOM-Move ins Overlay,
         // der Button wandert automatisch mit, ohne eigene Verdrahtung dafür.
+        // Klickfänger über dem gesamten Player (07.08.2026, Max' Test mit
+        // seinem Neffen): der hat zum Vergrößern instinktiv auf das
+        // YouTube-Logo im Video geklickt statt auf unseren kleinen
+        // "Groß ansehen"-Knopf darunter - und landete damit auf YouTube.
+        //
+        // Diese transparente Fläche liegt über dem iframe und schluckt JEDEN
+        // Klick aufs Video. Statt YouTubes eigener Bedienelemente (Logo,
+        // "Später ansehen", "Teilen", Titel-Link) öffnet ein Klick jetzt
+        // unsere Großansicht - also genau das, was der Nutzer ohnehin wollte.
+        // Nebeneffekt: die restlichen YouTube-Overlays sind damit gar nicht
+        // mehr erreichbar, auch wenn sie sichtbar bleiben.
+        //
+        // Der eigene Pause/Play-Knopf liegt bewusst DARÜBER (höherer
+        // z-index), sonst würde der Klickfänger auch ihn schlucken.
+        const klickFaenger = document.createElement("button");
+        klickFaenger.type = "button";
+        klickFaenger.className = "video-klickfaenger";
+        klickFaenger.setAttribute("aria-label", "Video groß ansehen");
+        klickFaenger.title = "Groß ansehen";
+        spielerHalter.appendChild(klickFaenger);
+
         const abspielButton = document.createElement("button");
         abspielButton.type = "button";
         abspielButton.className = "video-abspiel-button";
@@ -1617,12 +1684,19 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         // Bug.
         const grossButton = document.createElement("button");
         grossButton.type = "button";
-        grossButton.className = "video-gross-button";
-        grossButton.textContent = "⤢ Groß ansehen";
+        // "auffaellig" seit 07.08.2026: der Knopf war vorher ein schmaler
+        // Umriss-Button und wurde schlicht übersehen.
+        grossButton.className = "video-gross-button auffaellig";
+        grossButton.textContent = "⤢ Video groß ansehen";
         grossButton.addEventListener("click", () => {
           oeffneVideoGrossansicht(spielerHalter, wrap);
         });
         wrap.appendChild(grossButton);
+
+        // Klick irgendwo aufs Video öffnet dieselbe Großansicht.
+        klickFaenger.addEventListener("click", () => {
+          oeffneVideoGrossansicht(spielerHalter, wrap);
+        });
 
         const playerVars = {
           autoplay: 1,
@@ -1908,6 +1982,11 @@ function baueFrageElement(frage) {
 
   const feedback = document.createElement("p");
   feedback.className = "feedback";
+  // "aria-live" sorgt dafür, dass Screenreader die Auflösung ("Richtig!"/
+  // "Leider falsch...") automatisch vorlesen, sobald sie erscheint - ohne
+  // das bliebe sie für blinde Nutzer unbemerkt (07.08.2026, WCAG 4.1.3).
+  feedback.setAttribute("role", "status");
+  feedback.setAttribute("aria-live", "polite");
   feedback.hidden = true;
   container.appendChild(feedback);
 
@@ -1943,19 +2022,51 @@ function baueBeantworteteFrageElement(frage, antwort) {
 
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
 
-  const ergebnis = document.createElement("p");
-  ergebnis.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
+  // Auflösung bei bereits beantworteten Fragen (07.08.2026, überarbeitet):
+  // vorher stand hier ein einzelner Fließtext-Satz ("Damals geantwortet: X ·
+  // Richtig gewesen wäre: Y"). Jetzt dieselbe farbige Darstellung wie direkt
+  // nach dem Abschicken - grün für richtig, rot für die eigene falsche
+  // Antwort -, damit man beim Zurückblättern nicht erst lesen muss, um zu
+  // erkennen, wie es ausgegangen ist. Die Zeichen ✓/✗ tragen dieselbe
+  // Information nochmal ohne Farbe (Farbfehlsichtigkeit).
+  const aufloesung = document.createElement("div");
+  aufloesung.className = "option-liste beantwortet-aufloesung";
 
-  if (antwort.korrekt) {
-    ergebnis.textContent = "Richtig beantwortet: " + optionTexte[antwort.gegebene_option];
-  } else {
-    const richtigerText = optionTexte[antwort.richtige_option];
-    ergebnis.textContent =
-      "Damals geantwortet: " + optionTexte[antwort.gegebene_option] +
-      " · Richtig gewesen wäre: " + richtigerText;
+  ["a", "b", "c"].forEach((schluessel) => {
+    const text = optionTexte[schluessel];
+    if (!text) return;
+
+    const zeile = document.createElement("div");
+    zeile.className = "option gesperrt";
+
+    const istRichtige = antwort.richtige_option
+      ? schluessel === String(antwort.richtige_option).toLowerCase()
+      : antwort.korrekt && schluessel === String(antwort.gegebene_option).toLowerCase();
+    const istGewaehlte = schluessel === String(antwort.gegebene_option).toLowerCase();
+
+    zeile.append(text);
+
+    if (istRichtige) {
+      zeile.classList.add("ist-richtig");
+      zeile.appendChild(marke("\u2713", istGewaehlte ? "Deine Antwort - richtig" : "Richtige Antwort"));
+    } else if (istGewaehlte) {
+      zeile.classList.add("ist-falsch");
+      zeile.appendChild(marke("\u2717", "Deine Antwort - falsch"));
+    }
+
+    aufloesung.appendChild(zeile);
+  });
+
+  container.appendChild(aufloesung);
+
+  function marke(zeichen, beschreibung) {
+    const span = document.createElement("span");
+    span.className = "option-marke";
+    span.textContent = zeichen;
+    span.setAttribute("aria-label", beschreibung);
+    span.title = beschreibung;
+    return span;
   }
-
-  container.appendChild(ergebnis);
   container.appendChild(baueWarumButton(frage.id, false));
 
   return container;
@@ -2054,9 +2165,22 @@ function baueFreitextFrageElement(frage) {
 function baueFreitextErgebnisInhalt(ergebnis) {
   const wrap = document.createElement("div");
 
+  // Drei Stufen statt zwei (07.08.2026, Max' Wunsch): wer den Grundgedanken
+  // richtig hatte und nur ein gefordertes Element vergessen hat, bekommt eine
+  // orange "fast"-Rückmeldung statt derselben roten Ablehnung wie jemand, der
+  // inhaltlich danebenlag ("das verwirrt ja auch, wenn man den Grundgedanken
+  // eigentlich schon verstanden hat"). Gewertet wird eine Teilantwort
+  // weiterhin als nicht bestanden - die Stufe ist reine Rückmeldung.
   const kopf = document.createElement("p");
   kopf.className = "freitext-ergebnis-kopf";
-  kopf.textContent = ergebnis.korrekt ? "Antwort korrekt ✅" : "Antwort nicht korrekt";
+  if (ergebnis.korrekt) {
+    kopf.textContent = "Antwort korrekt ✅";
+  } else if (ergebnis.teilweise) {
+    kopf.textContent = "Fast! Auf dem richtigen Weg 🟠";
+    kopf.classList.add("teilweise");
+  } else {
+    kopf.textContent = "Antwort nicht korrekt";
+  }
   wrap.appendChild(kopf);
 
   if (ergebnis.musterantwort) {
@@ -2165,7 +2289,7 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
   const feedback = container.querySelector(".feedback");
   feedback.hidden = false;
   feedback.innerHTML = "";
-  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : (ergebnis.teilweise ? "teilweise" : "falsch"));
 
   if (ergebnis.bereits_beantwortet) {
     const hinweisZeile = document.createElement("p");
@@ -2184,6 +2308,62 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
     fertigHinweis.hidden = false;
     historieStartButton.hidden = false;
     zeigeNaechsteRundeCountdown();
+  }
+}
+
+
+// ============================================================
+// Auflösung der Antwortmöglichkeiten einfärben (07.08.2026, Max' Wunsch)
+//
+// Nach dem Abschicken soll auf einen Blick erkennbar sein, was richtig war
+// und was man selbst gewählt hat - vorher blieb alles einfarbig und die
+// gesperrten Felder wirkten durch den Hover-Effekt weiterhin anklickbar
+// ("die sind trotzdem wieso getoggeld, das ist halt dumm").
+//
+// Farblogik (siehe auch style.css):
+//   grün = richtige Antwort · rot = eigene Antwort, falls falsch
+//   blau (".ausgewaehlt") wird hier entfernt, weil die Auswahl jetzt
+//   aufgelöst ist und blau sonst mit grün/rot konkurrieren würde.
+//
+// Zusätzlich bekommt jede aufgelöste Zeile ein Zeichen (✓ / ✗) - die
+// Auflösung darf nicht ausschließlich über Farbe transportiert werden,
+// sonst ist sie für farbfehlsichtige Nutzer nicht erkennbar (WCAG 1.4.1).
+// ============================================================
+function loeseOptionenAuf(container, richtigeOption, gewaehlteOption) {
+  const optionen = container.querySelectorAll(".option");
+  optionen.forEach((label) => {
+    const radio = label.querySelector('input[type="radio"]');
+    if (!radio) return;
+
+    // Sperren: Radio deaktivieren UND die Karte als gesperrt markieren,
+    // damit der Hover-Effekt aus dem CSS nicht mehr greift.
+    radio.disabled = true;
+    label.classList.add("gesperrt");
+    label.classList.remove("ausgewaehlt");
+
+    // Doppelte Marken vermeiden, falls diese Funktion zweimal läuft.
+    const alteMarke = label.querySelector(".option-marke");
+    if (alteMarke) alteMarke.remove();
+
+    const istRichtige = richtigeOption && radio.value === richtigeOption.toLowerCase();
+    const istGewaehlte = gewaehlteOption && radio.value === gewaehlteOption.toLowerCase();
+
+    if (istRichtige) {
+      label.classList.add("ist-richtig");
+      label.appendChild(marke("\u2713", istGewaehlte ? "Deine Antwort - richtig" : "Richtige Antwort"));
+    } else if (istGewaehlte) {
+      label.classList.add("ist-falsch");
+      label.appendChild(marke("\u2717", "Deine Antwort - falsch"));
+    }
+  });
+
+  function marke(zeichen, beschreibung) {
+    const span = document.createElement("span");
+    span.className = "option-marke";
+    span.textContent = zeichen;
+    span.setAttribute("aria-label", beschreibung);
+    span.title = beschreibung;
+    return span;
   }
 }
 
@@ -2218,11 +2398,15 @@ async function antwortAbschicken(frageId, container, button) {
 
   const ergebnis = data[0];
 
+  // Farbige Auflösung direkt in den Antwortmöglichkeiten (07.08.2026).
+  loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
+  container.classList.add("beantwortet");
+
   if (ergebnis.bereits_beantwortet) {
     feedback.textContent =
       "Diese Frage hattest du schon beantwortet - dein erstes Ergebnis zählt: " +
       (ergebnis.korrekt ? "Richtig ✅" : "Falsch (richtig wäre " + ergebnis.richtige_option.toUpperCase() + " gewesen)");
-    feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+    feedback.classList.add(ergebnis.korrekt ? "richtig" : (ergebnis.teilweise ? "teilweise" : "falsch"));
   } else if (ergebnis.korrekt) {
     feedback.textContent = "Richtig! ✅";
     feedback.classList.add("richtig");
@@ -2622,6 +2806,11 @@ function baueHistorieFrageElement(frage) {
 
   const feedback = document.createElement("p");
   feedback.className = "feedback";
+  // "aria-live" sorgt dafür, dass Screenreader die Auflösung ("Richtig!"/
+  // "Leider falsch...") automatisch vorlesen, sobald sie erscheint - ohne
+  // das bliebe sie für blinde Nutzer unbemerkt (07.08.2026, WCAG 4.1.3).
+  feedback.setAttribute("role", "status");
+  feedback.setAttribute("aria-live", "polite");
   feedback.hidden = true;
   container.appendChild(feedback);
 
@@ -2786,7 +2975,7 @@ async function historieFreitextAntwortAbschicken(frageId, container, button, tex
   const feedback = container.querySelector(".feedback");
   feedback.hidden = false;
   feedback.innerHTML = "";
-  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : (ergebnis.teilweise ? "teilweise" : "falsch"));
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
   feedback.appendChild(baueWarumButton(frageId, true));
 
@@ -2823,3 +3012,43 @@ async function start() {
 }
 
 start();
+
+
+// ============================================================
+// Menü rechts oben (07.08.2026, Max' Wunsch)
+//
+// Bewusst ohne Framework als kleines Auf-/Zuklapp-Menü. Barrierefreiheit:
+// "aria-expanded" wird mitgeführt, Escape schließt, ein Klick außerhalb
+// schließt ebenfalls, und beim Schließen per Tastatur wandert der Fokus
+// zurück auf den Knopf (sonst landet man beim nächsten Tab am Seitenanfang).
+// ============================================================
+(function initKopfMenue() {
+  const knopf = document.getElementById("menue-button");
+  const panel = document.getElementById("menue-panel");
+  if (!knopf || !panel) return;
+
+  function setzeOffen(offen) {
+    panel.hidden = !offen;
+    knopf.setAttribute("aria-expanded", offen ? "true" : "false");
+    knopf.setAttribute("aria-label", offen ? "Menü schließen" : "Menü öffnen");
+  }
+
+  knopf.addEventListener("click", (ereignis) => {
+    ereignis.stopPropagation();
+    setzeOffen(panel.hidden);
+  });
+
+  document.addEventListener("click", (ereignis) => {
+    if (panel.hidden) return;
+    if (!panel.contains(ereignis.target) && ereignis.target !== knopf) {
+      setzeOffen(false);
+    }
+  });
+
+  document.addEventListener("keydown", (ereignis) => {
+    if (ereignis.key === "Escape" && !panel.hidden) {
+      setzeOffen(false);
+      knopf.focus();
+    }
+  });
+})();

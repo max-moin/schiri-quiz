@@ -139,8 +139,12 @@ Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
 Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
 Gegebene Antwort: ${bereinigterFreitext}
 
+Zusätzlich zur Ja/Nein-Bewertung sollst du erkennen, ob eine Antwort ZWAR NICHT VOLLSTÄNDIG, ABER IM KERN AUF DEM RICHTIGEN WEG ist (07.08.2026, Wunsch aus dem Verein): also wenn der Grundgedanke stimmt und nur ein gefordertes Element fehlt (z.B. die Spielfortsetzung wurde nicht genannt, oder die Begründung fehlt), im Gegensatz zu einer Antwort, die inhaltlich schlicht falsch ist. Setze in diesem Fall "teilweise" auf true. Bei einer vollständig richtigen ODER einer klar falschen Antwort ist "teilweise" immer false.
+
+Wenn "teilweise" true ist, formuliere das Feedback ermutigend und KONKRET: benenne in einem kurzen Nebensatz, was noch gefehlt hat (z.B. "... es fehlt noch die Spielfortsetzung"). Verrate dabei nicht die komplette Musterantwort, sondern nur, WELCHE ART von Angabe fehlt.
+
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"korrekt": true oder false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz, warum die gegebene Antwort richtig oder falsch ist - kein Smalltalk, keine Anrede"}`;
+{"korrekt": true oder false, "teilweise": true oder false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz, warum die gegebene Antwort richtig, teilweise richtig oder falsch ist - kein Smalltalk, keine Anrede"}`;
 
   let kiErgebnis;
   try {
@@ -199,7 +203,16 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
     // kein weiterer DB-Aufruf nötig) - die Website zeigt sie als feste
     // "Richtige Antwort"-Zeile, statt sich nur auf die freie KI-Formulierung
     // zu verlassen (Max' Feedback: die KI-Formulierung wirkte zu variabel).
-    res.status(200).json({ ...ergebnis, musterantwort: kontext.musterantwort });
+    res.status(200).json({
+      ...ergebnis,
+      musterantwort: kontext.musterantwort,
+      // Reine Anzeige-Information: eine teilweise richtige Antwort zählt
+      // weiterhin als nicht bestanden (Spalte "korrekt" bleibt false), soll
+      // aber orange statt rot dargestellt werden, damit jemand mit dem
+      // richtigen Grundgedanken nicht dieselbe Rückmeldung bekommt wie
+      // jemand, der komplett danebenlag.
+      teilweise: kiErgebnis.korrekt === false && kiErgebnis.teilweise === true,
+    });
   } catch (e) {
     res.status(500).json({ fehler: "Speichern fehlgeschlagen.", details: String(e.message || e) });
   }

@@ -19,6 +19,71 @@
           <h1>Schiri-Quiz der Woche</h1>
           <p class="subtitle" id="kopf-untertitel">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
         </div>
+
+        <!-- Menü rechts oben (07.08.2026, Max' Wunsch): die Seite soll sich
+             nach und nach zu einer richtigen Schiedsrichter-Startseite
+             entwickeln (Stadtverband, Verein, DFBnet), ohne dass davon beim
+             Anmelden schon alles im Weg steht. Deshalb bewusst hinter einem
+             Menüknopf statt als sichtbare Navigationsleiste. -->
+        <div class="kopf-menue">
+          <button
+            id="menue-button"
+            class="menue-button"
+            type="button"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-controls="menue-panel"
+            aria-label="Menü öffnen"
+          >
+            <span aria-hidden="true">☰</span>
+          </button>
+
+          <nav id="menue-panel" class="menue-panel" hidden aria-label="Hauptmenü">
+            <p class="menue-titel">Schiedsrichterwesen</p>
+
+            <a href="index.html" class="menue-eintrag">
+              <span class="menue-symbol" aria-hidden="true">⚽</span>
+              <span>
+                <strong>Schiri-Quiz</strong>
+                <small>Die Fragen dieser Woche</small>
+              </span>
+            </a>
+
+            <!-- TODO (Max): echte Adresse eintragen, sobald herausgesucht.
+                 Bis dahin bewusst deaktiviert statt auf eine falsche Seite
+                 zu verlinken. -->
+            <span class="menue-eintrag deaktiviert" aria-disabled="true">
+              <span class="menue-symbol" aria-hidden="true">🏙️</span>
+              <span>
+                <strong>Stadtverband Dresden</strong>
+                <small>Kommt in Kürze</small>
+              </span>
+            </span>
+
+            <span class="menue-eintrag deaktiviert" aria-disabled="true">
+              <span class="menue-symbol" aria-hidden="true">🟢</span>
+              <span>
+                <strong>Unser Verein</strong>
+                <small>Kommt in Kürze</small>
+              </span>
+            </span>
+
+            <a href="https://www.dfbnet.org" class="menue-eintrag" target="_blank" rel="noopener noreferrer">
+              <span class="menue-symbol" aria-hidden="true">🔗</span>
+              <span>
+                <strong>DFBnet</strong>
+                <small>Ansetzungen und Spielberichte</small>
+              </span>
+            </a>
+
+            <p class="menue-titel">Rechtliches</p>
+            <div class="menue-fusszeile">
+              <a href="impressum.html">Impressum</a>
+              <a href="datenschutz.html">Datenschutz</a>
+              <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+            </div>
+          </nav>
+        </div>
       </div>
 
       <div id="fortschritt-wrap" class="fortschritt-wrap" hidden>
@@ -44,6 +109,21 @@
     <section id="name-schritt" class="card login-card">
       <div class="login-icon" aria-hidden="true">🧑‍⚖️</div>
       <h2 class="card-titel">Anmelden</h2>
+
+      <!-- Kurze Einordnung für alle, die die Seite zum ersten Mal sehen
+           (07.08.2026): vorher stand hier ohne jede Erklärung ein
+           Passwortfeld, was gerade beim Vorführen im Team unnötig
+           abweisend wirkte. -->
+      <p class="login-einleitung">
+        Jede Woche ein paar Regelfragen – in unter zwei Minuten erledigt.
+        Melde dich mit der Vereinskennung an, die du vom Obmann bekommen hast.
+      </p>
+
+      <ul class="login-vorteile">
+        <li><span aria-hidden="true">⚡</span> Unter 2 Minuten pro Woche</li>
+        <li><span aria-hidden="true">💡</span> Erklärung zu jeder Antwort</li>
+        <li><span aria-hidden="true">📈</span> Eigener Fortschritt im Blick</li>
+      </ul>
 
       <div id="kennung-bereich">
         <label for="kennung-eingabe">Vereinskennung</label>
