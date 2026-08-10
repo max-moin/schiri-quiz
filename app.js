@@ -25,6 +25,7 @@ const fortschrittWrap = document.getElementById("fortschritt-wrap");
 const fortschrittText = document.getElementById("fortschritt-text");
 const fortschrittProzent = document.getElementById("fortschritt-prozent");
 const fortschrittFill = document.getElementById("fortschritt-fill");
+const fortschrittTrack = fortschrittFill ? fortschrittFill.parentElement : null;
 const konfettiSchicht = document.getElementById("konfetti-schicht");
 
 // Vereinskennung / Gast-Zugang (13.07.2026, Baustein A/B/C/D) - siehe
@@ -392,11 +393,19 @@ kennungEingabe.addEventListener("keydown", (event) => {
 // dauerhafter Zustand).
 if (kennungAugeButton) {
   kennungAugeButton.addEventListener("click", () => {
-    kennungEingabe.type = kennungEingabe.type === "password" ? "text" : "password";
+    const wirdSichtbar = kennungEingabe.type === "password";
+    kennungEingabe.type = wirdSichtbar ? "text" : "password";
+    kennungAugeButton.setAttribute("aria-pressed", String(wirdSichtbar));
+    kennungAugeButton.setAttribute(
+      "aria-label",
+      wirdSichtbar ? "Vereinskennung verbergen" : "Vereinskennung anzeigen"
+    );
   });
   kennungEingabe.addEventListener("input", () => {
     if (kennungEingabe.type === "text") {
       kennungEingabe.type = "password";
+      kennungAugeButton.setAttribute("aria-pressed", "false");
+      kennungAugeButton.setAttribute("aria-label", "Vereinskennung anzeigen");
     }
   });
 }
@@ -611,7 +620,7 @@ async function gastAntwortAbschicken(frageId, container, button) {
 
   // Gleiche farbige Auflösung wie im eingeloggten Quiz (07.08.2026).
   loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
-  container.classList.add("beantwortet");
+  container.classList.add("beantwortet", ergebnis.korrekt ? "richtig-karte" : "falsch-karte");
 
   gastBeantwortetAnzahl += 1;
   if (ergebnis.korrekt) {
@@ -2401,7 +2410,7 @@ async function antwortAbschicken(frageId, container, button) {
 
   // Farbige Auflösung direkt in den Antwortmöglichkeiten (07.08.2026).
   loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
-  container.classList.add("beantwortet");
+  container.classList.add("beantwortet", ergebnis.korrekt ? "richtig-karte" : "falsch-karte");
 
   if (ergebnis.bereits_beantwortet) {
     feedback.textContent =
@@ -2483,6 +2492,13 @@ function aktualisiereFortschritt() {
   fortschrittText.textContent = beantworteFragenAnzahl + " von " + gesamtFragenAnzahl + " beantwortet";
   fortschrittProzent.textContent = prozent + "%";
   fortschrittFill.style.width = prozent + "%";
+  if (fortschrittTrack) {
+    fortschrittTrack.setAttribute("aria-valuenow", String(prozent));
+    fortschrittTrack.setAttribute(
+      "aria-valuetext",
+      beantworteFragenAnzahl + " von " + gesamtFragenAnzahl + " Fragen beantwortet"
+    );
+  }
 }
 
 function spawnKonfetti() {

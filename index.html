@@ -85,7 +85,7 @@
           <span id="fortschritt-text">0 von 0 beantwortet</span>
           <span id="fortschritt-prozent">0%</span>
         </div>
-        <div class="fortschritt-track">
+        <div class="fortschritt-track" role="progressbar" aria-label="Fortschritt der Wochenfragen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
           <div id="fortschritt-fill" class="fortschritt-fill"></div>
         </div>
       </div>
@@ -115,6 +115,14 @@
               <stop offset="0%" stop-color="#1f2937" />
               <stop offset="100%" stop-color="#111827" />
             </linearGradient>
+            <radialGradient id="ball-flaeche" cx="34%" cy="28%" r="72%">
+              <stop offset="0%" stop-color="#ffffff" />
+              <stop offset="72%" stop-color="#f8fafc" />
+              <stop offset="100%" stop-color="#dbe1e8" />
+            </radialGradient>
+            <filter id="ball-schatten" x="-35%" y="-35%" width="170%" height="180%">
+              <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.28" />
+            </filter>
           </defs>
 
           <!-- Spielfeld -->
@@ -148,12 +156,13 @@
           <!-- Fußball auf dem Anstoßpunkt. Eine Pfeife war als Silhouette in
                dieser Größe nicht eindeutig erkennbar (sah wie eine
                Sprechblase aus) - der Ball funktioniert auf einen Blick. -->
-          <g transform="translate(74 56)">
-            <circle cx="20" cy="20" r="19" fill="#f9fafb" />
-            <circle cx="20" cy="20" r="19" fill="none" stroke="#d1d5db" stroke-width="1" />
-            <path d="M20 8 l9 6.5 -3.4 10.6 h-11.2 L11 14.5 z" fill="#1f2937" />
-            <path d="M20 1.4 v6.6 M29 14.5 l6.3 -2 M25.6 25.1 l4 5.6 M14.4 25.1 l-4 5.6 M11 14.5 l-6.3 -2"
-                  stroke="#1f2937" stroke-width="1.6" stroke-linecap="round" fill="none" />
+          <g transform="translate(72 53)" filter="url(#ball-schatten)">
+            <circle cx="22" cy="22" r="21" fill="url(#ball-flaeche)" stroke="#cbd5e1" stroke-width="1" />
+            <path d="M22 10 l8.3 6 -3.2 9.8 H16.9 L13.7 16 z" fill="#172033" />
+            <path d="M22 1.2 l5.7 4.2 -2.2 5.9 h-7 l-2.2-5.9 z M41.5 17.2 l-2.2 7 -6.3.1 -2.1-6.4 5.2-3.8 z M34.1 38.1 l-7.2.1 -1.9-6.1 5.6-4 5.2 3.8 z M9.9 38.1 l-1.7-6.2 5.2-3.8 5.6 4 -1.9 6.1 z M2.5 17.2 l5.4-3.1 5.2 3.8 -2.1 6.4 -6.3-.1 z" fill="#273244" />
+            <path d="M22 10 V5.4 M30.3 16 l5.8-1.9 M27.1 25.8 l3.5 6.3 M16.9 25.8 l-3.5 6.3 M13.7 16 l-5.8-1.9"
+                  stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" fill="none" />
+            <ellipse cx="15" cy="10" rx="5" ry="3" fill="#ffffff" opacity="0.6" transform="rotate(-28 15 10)" />
           </g>
         </svg>
       </div>
@@ -164,15 +173,8 @@
            Passwortfeld, was gerade beim Vorführen im Team unnötig
            abweisend wirkte. -->
       <p class="login-einleitung">
-        Jede Woche ein paar Regelfragen – in unter zwei Minuten erledigt.
-        Melde dich mit der Vereinskennung an, die du vom Obmann bekommen hast.
+        Gib die Vereinskennung ein und starte direkt mit den Fragen dieser Woche.
       </p>
-
-      <ul class="login-vorteile">
-        <li><span aria-hidden="true">⚡</span> Unter 2 Minuten pro Woche</li>
-        <li><span aria-hidden="true">💡</span> Erklärung zu jeder Antwort</li>
-        <li><span aria-hidden="true">📈</span> Eigener Fortschritt im Blick</li>
-      </ul>
 
       <div id="kennung-bereich">
         <label for="kennung-eingabe">Vereinskennung</label>
@@ -181,10 +183,18 @@
             id="kennung-eingabe"
             type="password"
             autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            data-gramm="false"
+            data-gramm_editor="false"
+            data-enable-grammarly="false"
             placeholder="Vereinskennung"
           />
-          <button id="kennung-auge-button" class="auge-button" type="button" aria-label="Vereinskennung anzeigen">
-            👁
+          <button id="kennung-auge-button" class="auge-button" type="button" aria-label="Vereinskennung anzeigen" aria-pressed="false">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+              <circle cx="12" cy="12" r="2.75" />
+            </svg>
           </button>
         </div>
         <button id="kennung-weiter-button" class="sekundaer-button" type="button">
@@ -208,6 +218,10 @@
           type="password"
           inputmode="numeric"
           autocomplete="off"
+          spellcheck="false"
+          data-gramm="false"
+          data-gramm_editor="false"
+          data-enable-grammarly="false"
           placeholder="z.B. 1234"
         />
         <p id="name-hinweis" class="hinweis">

@@ -103,6 +103,11 @@ body {
 
 .fortschritt-wrap {
   margin-top: 18px;
+  padding: 10px 12px 12px;
+  background: rgba(255, 255, 255, 0.09);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  backdrop-filter: blur(4px);
 }
 
 .fortschritt-zeile {
@@ -111,13 +116,25 @@ body {
   font-size: 0.82rem;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.95);
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+#fortschritt-prozent {
+  min-width: 48px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--marke-dunkel);
+  text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .fortschritt-track {
-  height: 9px;
+  height: 11px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.28);
+  background: rgba(255, 255, 255, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   overflow: hidden;
 }
 
@@ -131,6 +148,21 @@ body {
   background: linear-gradient(90deg, var(--karte-gelb) 0%, var(--karte-orange) 100%);
   box-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.fortschritt-fill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 0 42%, rgba(255,255,255,0.42) 50%, transparent 58% 100%);
+  transform: translateX(-100%);
+  animation: fortschritt-glanz 2.8s ease-in-out infinite;
+}
+
+@keyframes fortschritt-glanz {
+  0%, 58% { transform: translateX(-100%); }
+  82%, 100% { transform: translateX(100%); }
 }
 
 /* ---------- Layout ---------- */
@@ -229,12 +261,13 @@ button {
   justify-content: center;
   gap: 8px;
   transition: background 0.15s, transform 0.1s;
+  margin-top: 18px;
 }
 
 #start-button[hidden] { display: none; }
 
 #start-button:not(:disabled):hover {
-  background: var(--green-dark);
+  background: var(--marke-dunkel);
   transform: translateY(-1px);
 }
 
@@ -928,16 +961,18 @@ button {
    Das frühere "🔒 Bereits beantwortet"-Etikett entfällt dadurch - der
    Zustand ist jetzt am Aussehen erkennbar und braucht keine Textzeile mehr. */
 .frage-karte.beantwortet {
-  background: #eceef1;
-  border-color: #dcdfe4;
+  background: #eef0f3;
+  border-color: #cfd4db;
   box-shadow: none;
 }
 .frage-karte.beantwortet .frage-text {
   color: #6b7280;
 }
 .frage-karte.beantwortet .option {
-  opacity: 0.5;
-  background: transparent;
+  opacity: 1;
+  color: #6b7280;
+  background: #f7f8fa;
+  border-color: #c8ced7;
 }
 .frage-karte.beantwortet .option.ist-richtig,
 .frage-karte.beantwortet .option.ist-falsch {
@@ -948,11 +983,13 @@ button {
 }
 
 .frage-karte.beantwortet.richtig-karte {
-  border-left: 4px solid var(--green);
+  border-color: #86d9a2;
+  box-shadow: inset 4px 0 0 var(--green);
 }
 
 .frage-karte.beantwortet.falsch-karte {
-  border-left: 4px solid var(--red);
+  border-color: #f3a3a3;
+  box-shadow: inset 4px 0 0 var(--red);
 }
 
 .beantwortet-tag {
@@ -1883,15 +1920,27 @@ button {
 
 .auge-button {
   position: absolute;
-  top: 12px;
-  right: 8px;
+  top: 0;
+  right: 2px;
+  width: 48px;
+  height: 48px;
   background: none;
   border: none;
-  padding: 4px 6px;
-  font-size: 1.15rem;
-  line-height: 1;
+  padding: 0;
   cursor: pointer;
   color: var(--muted);
+  display: grid;
+  place-items: center;
+}
+
+.auge-button svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .auge-button:hover {
@@ -1921,37 +1970,13 @@ button {
 /* ---------- Login-Karte: freundlicher Einstieg (07.08.2026) ---------- */
 /* Vorher stand auf der Startseite ohne jede Erklärung ein Passwortfeld.
    Für Schiedsrichter, die die Seite zum ersten Mal sehen (und beim Vorführen
-   im Team), ist das unnötig abweisend - die drei Punkte erklären in einem
-   Blick, worum es geht und wie lange es dauert. */
+   im Team), ist das unnötig abweisend. Ein kurzer Einleitungssatz erklärt
+   deshalb den nächsten Schritt, ohne die Startkarte mit Werbetext zu füllen. */
 .login-einleitung {
-  margin: 0 0 14px;
+  margin: 0 0 20px;
   font-size: 0.92rem;
   line-height: 1.5;
   color: var(--muted);
-}
-
-.login-vorteile {
-  list-style: none;
-  margin: 0 0 20px;
-  padding: 14px 16px;
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-  background: var(--marke-lighter);
-  border-radius: var(--radius-sm);
-  font-size: 0.88rem;
-  font-weight: 500;
-}
-
-.login-vorteile li {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-}
-
-.login-vorteile span {
-  font-size: 1.05rem;
-  flex-shrink: 0;
 }
 
 /* ============================================================
