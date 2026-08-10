@@ -11,8 +11,26 @@
   --blue-dark: #1d4ed8;
   --blue-light: #dbeafe;
   --blue-lighter: #eff6ff;
-  --bg-start: #f0fdf4;
-  --bg-end: #eef2ff;
+
+  /* ---------- Farbrollen (07.08.2026, Thema "Schiri-Schwarz") ----------
+     Vorher war Grün gleichzeitig Vereins-/Markenfarbe UND die Farbe für
+     "richtig". Dadurch konkurrierte jede Auswahlfarbe mit dem Erfolgsgrün,
+     und die Seite wirkte grün-blau zusammengewürfelt (Max' Kritik).
+
+     Jetzt sauber getrennt:
+       --marke*   Anthrazit - Kopfbereich, Buttons, Fokus. Thematisch das
+                  schwarze Schiedsrichter-Trikot, nicht "farblos".
+       --karte-*  Gelb/Rot als Akzent - die Karten des Schiedsrichters.
+       Grün und Rot sind ab jetzt AUSSCHLIESSLICH Rückmeldung
+       (richtig/falsch) und werden nirgends mehr dekorativ verwendet. */
+  --marke: #1f2937;
+  --marke-dunkel: #111827;
+  --marke-hell: #374151;
+  --marke-lighter: #f3f4f6;
+  --karte-gelb: #facc15;
+  --karte-orange: #f97316;
+  --bg-start: #f6f7f9;
+  --bg-end: #eef0f4;
   --card-bg: #ffffff;
   --text: #111827;
   --muted: #6b7280;
@@ -39,7 +57,7 @@ body {
 /* ---------- Kopfbereich ---------- */
 
 .kopf {
-  background: linear-gradient(120deg, var(--green) 0%, var(--green-dark) 100%);
+  background: linear-gradient(120deg, var(--marke) 0%, var(--marke-dunkel) 100%);
   padding: 28px 20px 26px;
   border-radius: 0 0 28px 28px;
   box-shadow: var(--shadow);
@@ -97,17 +115,21 @@ body {
 }
 
 .fortschritt-track {
-  height: 8px;
+  height: 9px;
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.28);
   overflow: hidden;
 }
 
+/* Fortschrittsbalken in den Karten-Farben (07.08.2026) statt in reinem
+   Weiß - greift den Akzentstreifen der Fragekarten auf, sodass beides als
+   dieselbe Formensprache gelesen wird. */
 .fortschritt-fill {
   height: 100%;
   width: 0%;
   border-radius: 999px;
-  background: #ffffff;
+  background: linear-gradient(90deg, var(--karte-gelb) 0%, var(--karte-orange) 100%);
+  box-shadow: 0 0 10px rgba(250, 204, 21, 0.45);
   transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -141,7 +163,8 @@ body {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: var(--green-light);
+  background: var(--marke-lighter);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -182,8 +205,8 @@ textarea {
 
 select:focus, input:focus {
   outline: none;
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px var(--green-light);
+  border-color: var(--marke);
+  box-shadow: 0 0 0 3px rgba(31,41,55,0.12);
   background: #ffffff;
 }
 
@@ -199,7 +222,7 @@ button {
 
 #start-button {
   width: 100%;
-  background: var(--green);
+  background: var(--marke);
   color: white;
   display: flex;
   align-items: center;
@@ -327,7 +350,7 @@ button {
 }
 
 .angemeldet-badge:hover {
-  border-color: var(--green);
+  border-color: var(--marke);
 }
 
 .angemeldet-pfeil {
@@ -381,7 +404,7 @@ button {
 }
 
 .profil-panel-item:hover {
-  background: var(--green-lighter);
+  background: var(--marke-lighter);
 }
 
 .profil-panel-item .profil-status-punkt {
@@ -394,13 +417,13 @@ button {
 
 #anfrage-absenden-button {
   width: 100%;
-  background: var(--green);
+  background: var(--marke);
   color: white;
   transition: background 0.15s, transform 0.1s;
 }
 
 #anfrage-absenden-button:hover {
-  background: var(--green-dark);
+  background: var(--marke-dunkel);
   transform: translateY(-1px);
 }
 
@@ -451,7 +474,7 @@ button {
 #anliegen-absenden-button,
 #rechnung-hochladen-button {
   width: 100%;
-  background: var(--green);
+  background: var(--marke);
   color: white;
   transition: background 0.15s, transform 0.1s;
 }
@@ -533,6 +556,7 @@ button {
 
 .frage-karte {
   position: relative;
+  padding-top: 22px;
   background: var(--card-bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -550,7 +574,7 @@ button {
   position: absolute;
   inset: 0 0 auto 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--green) 0%, var(--blue) 100%);
+  background: linear-gradient(90deg, var(--karte-gelb) 0%, var(--karte-orange) 100%);
 }
 .frage-karte.beantwortet::before {
   background: var(--border);
@@ -573,16 +597,20 @@ button {
   margin-bottom: 12px;
 }
 
+/* Standard-Badge neutral (07.08.2026): war vorher grün und konkurrierte
+   damit mit dem Erfolgsgrün der richtigen Antwort - Grün darf auf dieser
+   Seite nur noch "richtig" bedeuten. */
 .badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   font-size: 0.74rem;
   font-weight: 700;
   padding: 4px 10px;
   border-radius: 999px;
-  background: var(--green-light);
-  color: var(--green-dark);
+  background: var(--marke-lighter);
+  color: var(--marke-hell);
+  border: 1px solid var(--border);
   white-space: nowrap;
 }
 
@@ -615,10 +643,15 @@ button {
   letter-spacing: 0.03em;
 }
 
+/* Die Frage bekommt mehr Gewicht und Luft nach unten, damit sie sich klar
+   von den Antwortmöglichkeiten absetzt (07.08.2026) - vorher lief beides
+   fast gleichwertig ineinander. */
 .frage-text {
+  font-family: var(--font-titel);
   font-weight: 600;
-  line-height: 1.45;
-  font-size: 1rem;
+  line-height: 1.5;
+  font-size: 1.02rem;
+  letter-spacing: -0.01em;
 }
 
 .frage-text-zeile {
@@ -654,7 +687,7 @@ button {
 }
 
 .vorlesen-button:hover {
-  background: var(--green);
+  background: var(--marke);
   color: #fff;
   transform: scale(1.08);
 }
@@ -665,7 +698,7 @@ button {
 
 /* Aktiver Zustand während die Frage vorgelesen wird - Klick stoppt sie. */
 .vorlesen-button.spricht {
-  background: var(--green);
+  background: var(--marke);
   color: #fff;
 }
 
@@ -692,8 +725,8 @@ button {
 
 .freitext-eingabe:focus {
   outline: none;
-  border-color: var(--green);
-  box-shadow: 0 0 0 3px var(--green-light);
+  border-color: var(--marke);
+  box-shadow: 0 0 0 3px rgba(31,41,55,0.12);
   background: #ffffff;
 }
 
@@ -769,7 +802,7 @@ button {
   width: 14px;
   height: 14px;
   border: 2px solid var(--border);
-  border-top-color: var(--green);
+  border-top-color: var(--marke);
   border-radius: 50%;
   animation: spinner-drehen 0.7s linear infinite;
   flex-shrink: 0;
@@ -806,21 +839,22 @@ button {
    auch nach dem Abschicken aktiv, wodurch bereits gesperrte Felder weiterhin
    anklickbar wirkten (Max' Bugmeldung). */
 .option:hover:not(.gesperrt) {
-  border-color: var(--blue);
-  background: var(--blue-lighter);
+  border-color: var(--marke-hell);
+  background: var(--marke-lighter);
 }
 
 .option input {
-  accent-color: var(--green);
+  accent-color: var(--marke);
   width: 18px;
   height: 18px;
   flex-shrink: 0;
 }
 
 .option.ausgewaehlt {
-  border-color: var(--blue);
-  background: var(--blue-lighter);
+  border-color: var(--marke);
+  background: var(--marke-lighter);
   font-weight: 600;
+  box-shadow: inset 0 0 0 1px var(--marke);
 }
 
 .option.gesperrt,
@@ -853,7 +887,7 @@ button {
 
 .frage-karte .absenden-button {
   width: 100%;
-  background: var(--green);
+  background: var(--marke);
   color: white;
 }
 
@@ -883,11 +917,34 @@ button {
 /* Beantwortete Fragen heben sich beim Scrollen ab (Max: "ausgrauen"), ohne
    unlesbar zu werden - zurückgenommener Hintergrund statt globaler Deckkraft,
    damit "Warum?" und Vorlesen kontraststark bedienbar bleiben. */
+/* Beantwortete Fragen deutlich zurücknehmen (07.08.2026, zweite Runde nach
+   Max' Rückmeldung: "das ist zwar etwas ausgegraut, aber für das menschliche
+   Auge kaum sichtbar"). Jetzt wirken mehrere Signale zusammen, damit man
+   beim Scrollen sofort trennt "erledigt" von "noch offen":
+     - spürbar grauerer Kartenhintergrund statt fast-weiß
+     - kein Schlagschatten mehr (offene Karten heben sich dadurch ab)
+     - blasserer Text und blasse Antwortzeilen
+     - nur die richtige Antwort bleibt voll kräftig
+   Das frühere "🔒 Bereits beantwortet"-Etikett entfällt dadurch - der
+   Zustand ist jetzt am Aussehen erkennbar und braucht keine Textzeile mehr. */
 .frage-karte.beantwortet {
-  background: #fafafa;
+  background: #eceef1;
+  border-color: #dcdfe4;
+  box-shadow: none;
 }
 .frage-karte.beantwortet .frage-text {
-  color: #4b5563;
+  color: #6b7280;
+}
+.frage-karte.beantwortet .option {
+  opacity: 0.5;
+  background: transparent;
+}
+.frage-karte.beantwortet .option.ist-richtig,
+.frage-karte.beantwortet .option.ist-falsch {
+  opacity: 1;
+}
+.frage-karte.beantwortet .frage-badges .badge {
+  opacity: 0.65;
 }
 
 .frage-karte.beantwortet.richtig-karte {
@@ -1530,7 +1587,7 @@ button {
 }
 
 .video-platzhalter:hover .video-platzhalter-icon {
-  background: var(--green);
+  background: var(--marke);
   transform: scale(1.06);
 }
 
@@ -1669,15 +1726,15 @@ button {
 .video-gross-button.auffaellig {
   align-self: stretch;
   justify-content: center;
-  background: var(--blue);
-  border-color: var(--blue);
+  background: var(--marke);
+  border-color: var(--marke);
   color: #fff;
   font-weight: 600;
   padding: 10px 16px;
 }
 .video-gross-button.auffaellig:hover {
-  background: var(--blue-dark);
-  border-color: var(--blue-dark);
+  background: var(--marke-dunkel);
+  border-color: var(--marke-dunkel);
 }
 
 /* "Groß ansehen"-Overlay (12.07.2026): eigenes Overlay statt YouTubes
@@ -1763,7 +1820,7 @@ button {
   font-family: inherit;
   font-size: 0.85rem;
   font-weight: 600;
-  color: var(--blue);
+  color: var(--muted);
   text-decoration: underline;
   cursor: pointer;
 }
@@ -1880,7 +1937,7 @@ button {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  background: linear-gradient(135deg, var(--green-lighter) 0%, var(--blue-lighter) 100%);
+  background: var(--marke-lighter);
   border-radius: var(--radius-sm);
   font-size: 0.88rem;
   font-weight: 500;
@@ -2010,14 +2067,22 @@ select:focus-visible,
   padding-right: 56px;
 }
 
+/* "display:flex" + "place-items:center" (07.08.2026): vorher sass das
+   ☰-Zeichen sichtbar nach rechts unten versetzt im Knopf - ein Button
+   zentriert seinen Textinhalt nicht zuverlässig, sobald Schriftgröße und
+   Knopfgröße auseinanderliegen. */
 .menue-button {
   width: 44px;
   height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
   border-radius: 12px;
   border: 1px solid rgba(255, 255, 255, 0.35);
   background: rgba(255, 255, 255, 0.15);
   color: #fff;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   line-height: 1;
   cursor: pointer;
   transition: background 0.15s, transform 0.15s;
@@ -2113,4 +2178,87 @@ select:focus-visible,
 .menue-fusszeile a:hover {
   color: var(--blue);
   text-decoration: underline;
+}
+
+/* Der "Weiter"-Knopf unter der Vereinskennung ist auf der Startseite die
+   eigentliche Hauptaktion - als heller Umriss-Button ging er unter
+   (07.08.2026, Max: "sieht noch leer und lasch aus"). Deshalb hier gefüllt
+   und über die volle Breite, während die anderen "sekundaer-button" im
+   Projekt unverändert bleiben. */
+#kennung-weiter-button,
+#mitglied-weiter-button {
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  background: var(--marke);
+  border-color: var(--marke);
+  color: #fff;
+  padding: 12px 16px;
+  font-size: 0.92rem;
+  margin-top: 4px;
+}
+#kennung-weiter-button:hover,
+#mitglied-weiter-button:hover {
+  background: var(--marke-dunkel);
+  border-color: var(--marke-dunkel);
+  color: #fff;
+}
+
+/* Startgrafik auf der Anmeldekarte (07.08.2026). Ersetzt das kleine
+   Emoji-Rundicon - die Karte wirkte darüber sehr leer. Das SVG bringt seine
+   eigene dunkle Fläche mit und greift damit den Kopfbereich auf, sodass die
+   Seite als Ganzes zusammenhängt. */
+.start-grafik {
+  margin: -4px 0 16px;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  line-height: 0;
+  box-shadow: 0 6px 18px rgba(17, 24, 39, 0.18);
+}
+.start-grafik svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Offene Fragen reagieren dezent auf den Mauszeiger - macht die Liste
+   lebendiger, ohne aufdringlich zu sein. Beantwortete Karten bleiben
+   bewusst ruhig (sie sind ja erledigt). */
+.frage-karte:not(.beantwortet):hover {
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+/* Menü-Einträge lebendiger (07.08.2026, Max: "dass die Menüpunkte belebter
+   aussehen"): Symbol auf eigener runder Fläche, Eintrag rückt beim
+   Darüberfahren leicht ein. */
+.menue-symbol {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: var(--marke-lighter);
+  font-size: 1rem;
+}
+.menue-eintrag {
+  transition: background 0.15s, transform 0.15s;
+}
+.menue-eintrag:hover {
+  background: var(--marke-lighter);
+  transform: translateX(2px);
+}
+.menue-eintrag:hover .menue-symbol {
+  background: var(--marke);
+}
+
+/* Regel-Badge mit Symbol, damit die Badge-Reihe nicht rein textlich ist. */
+.badge.regel::before {
+  content: "§";
+  font-weight: 800;
+  opacity: 0.55;
+}
+.badge.schwierigkeit::before {
+  content: "";
 }

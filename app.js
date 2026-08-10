@@ -1348,7 +1348,7 @@ function baueBadges(frage) {
 
   if (frage.regel_nummer && frage.regel_bezeichnung) {
     const regelBadge = document.createElement("span");
-    regelBadge.className = "badge";
+    regelBadge.className = "badge regel";
     regelBadge.textContent = "Regel " + frage.regel_nummer + " · " + frage.regel_bezeichnung;
     wrap.appendChild(regelBadge);
   }
@@ -2001,10 +2001,11 @@ function baueBeantworteteFrageElement(frage, antwort) {
   const badges = baueBadges(frage);
   if (badges) container.appendChild(badges);
 
-  const tag = document.createElement("div");
-  tag.className = "beantwortet-tag";
-  tag.textContent = "🔒 Bereits beantwortet";
-  container.appendChild(tag);
+  // Das frühere "🔒 Bereits beantwortet"-Etikett ist entfallen (07.08.2026,
+  // Max: "das würde ich vielleicht sogar rausnehmen"). Der Zustand ist jetzt
+  // am Aussehen der Karte erkennbar - grauer Hintergrund, kein Schatten,
+  // blasse Antwortzeilen (siehe ".frage-karte.beantwortet" in style.css).
+  // Eine Textzeile, die dasselbe nochmal sagt, kostet nur Platz.
 
   const titel = document.createElement("div");
   titel.className = "frage-text";
