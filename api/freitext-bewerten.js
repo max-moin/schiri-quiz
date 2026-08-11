@@ -118,7 +118,45 @@ Schlechtes Beispiel (verrät die Lösung): "Du hast vergessen zu sagen, dass der
 
 Bei "richtig" und "falsch" ist "nachfrage" immer null.
 
-Das gilt auch für das "feedback": Bei "nachbessern" darf es den fehlenden Punkt NICHT benennen und die Musterantwort nicht andeuten. Es bleibt allgemein, zum Beispiel "Der Kern stimmt, aber ein Punkt fehlt noch." Erst die "nachfrage" führt zur Lücke hin. Bei "richtig" und "falsch" darf das Feedback wie gewohnt konkret begründen.`;
+Das gilt auch für das "feedback": Bei "nachbessern" darf es den fehlenden Punkt NICHT benennen und die Musterantwort nicht andeuten. Erst die "nachfrage" führt zur Lücke hin. Bei "richtig" und "falsch" darf das Feedback wie gewohnt konkret begründen.`;
+
+// Bei "nachbessern" wird die Rückmeldung NICHT vom Modell übernommen,
+// sondern steht fest.
+//
+// Grund: Ein Feedback soll begründen, warum die Antwort noch nicht reicht -
+// und genau diese Begründung würde den fehlenden Punkt benennen. Damit wäre
+// die Rückfrage direkt darunter sinnlos. Die Regel im Prompt oben ist eine
+// Bitte an das Modell, dieser feste Satz ist eine Zusicherung.
+//
+// Die inhaltliche Arbeit macht die Rückfrage - und die kommt sehr wohl vom
+// Modell, denn nur es weiß, welcher Punkt im konkreten Fall fehlt.
+const NACHBESSERN_FEEDBACK = "Der Kern stimmt – ein Punkt fehlt noch.";
+
+// Eigener, sehr enger Prompt nur für die Rückfrage.
+//
+// Er wird gebraucht, wenn das Modell beim Bewerten zwar "nachbessern" sagt,
+// die Rückfrage aber weglässt. Ohne sie stünde die Person vor einem
+// Ergänzungsfeld, ohne zu wissen, worauf sie eingehen soll. Statt dann einen
+// Allgemeinplatz einzusetzen, wird die Frage gezielt nachgefordert - sie ist
+// der eigentliche Wert des ganzen Zwischenschritts.
+function baueNachfragePrompt(kontext, freitext) {
+  return `${SYSTEMKONTEXT}
+
+Frage aus dem Regel-Quiz: ${kontext.frage_text}
+Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
+Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
+Gegebene Antwort: ${freitext}
+
+Diese Antwort ist im Kern richtig, aber unvollständig: Mindestens ein zwingender Punkt aus der Musterantwort fehlt. Formuliere GENAU EINE kurze, freundliche Rückfrage in Du-Form, die die Person zu genau diesem fehlenden Punkt hinführt, OHNE ihn zu verraten.
+
+Benenne, WORAUF sie schauen soll, aber nicht, was dabei herauskommt. Nenne weder die Musterantwort noch die richtige Konsequenz. Höchstens zwei Sätze.
+
+Gutes Beispiel: "Die Toranerkennung hast du eingeordnet. Schau noch auf den Armeinsatz des Gegenspielers: Reicht der Kontakt für ein strafbares Stoßen, Rempeln oder Halten? Begründe kurz."
+Schlechtes Beispiel (verrät die Lösung): "Du hast vergessen zu sagen, dass der Armeinsatz nicht strafbar ist."
+
+Antworte AUSSCHLIESSLICH als JSON-Objekt, ohne Markdown-Codeblock drumherum:
+{"nachfrage": "deine Rückfrage"}`;
+}
 
 function baueErstversuchPrompt(kontext, freitext, mitNachbessern) {
   const statusTeil = mitNachbessern
@@ -167,7 +205,8 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
 {"status": "richtig" oder "falsch", "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": null}`;
 }
 
-async function frageGemini(apiKey, prompt) {
+// Ein Gemini-Aufruf, roh: liefert das geparste JSON zurück.
+async function frageModell(apiKey, prompt) {
   const geminiAntwort = await fetch(
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
     {
@@ -192,7 +231,29 @@ async function frageGemini(apiKey, prompt) {
   const daten = await geminiAntwort.json();
   const rohtext = daten.candidates?.[0]?.content?.parts?.[0]?.text || "";
   const bereinigt = rohtext.replace(/```json|```/g, "").trim();
-  const ergebnis = JSON.parse(bereinigt);
+  return { ergebnis: JSON.parse(bereinigt), rohtext };
+}
+
+function saubereNachfrage(wert) {
+  return typeof wert === "string" && wert.trim().length > 0 ? wert.trim() : null;
+}
+
+// Fordert nur die Rückfrage an. Wird gebraucht, wenn das Modell beim
+// Bewerten "nachbessern" gesagt, die Frage aber vergessen hat.
+async function holeNachfrage(apiKey, kontext, freitext) {
+  try {
+    const { ergebnis } = await frageModell(apiKey, baueNachfragePrompt(kontext, freitext));
+    return saubereNachfrage(ergebnis.nachfrage);
+  } catch (e) {
+    // Ein zweiter Fehlschlag darf die eigentliche Bewertung nicht mitreißen -
+    // die Antwort der Person ist ja schon bewertet.
+    console.warn("Nachfrage konnte nicht nachgefordert werden:", String(e.message || e));
+    return null;
+  }
+}
+
+async function frageGemini(apiKey, prompt) {
+  const { ergebnis, rohtext } = await frageModell(apiKey, prompt);
 
   // Das Modell-Ergebnis wird hier serverseitig gegen die erlaubten Werte
   // geprüft. Ein unbekannter Status darf niemals in Richtung Datenbank
@@ -207,15 +268,10 @@ async function frageGemini(apiKey, prompt) {
     }
   }
 
-  const nachfrage =
-    typeof ergebnis.nachfrage === "string" && ergebnis.nachfrage.trim().length > 0
-      ? ergebnis.nachfrage.trim()
-      : null;
-
   return {
     status,
     feedback: typeof ergebnis.feedback === "string" ? ergebnis.feedback : "",
-    nachfrage: status === "nachbessern" ? nachfrage : null,
+    nachfrage: status === "nachbessern" ? saubereNachfrage(ergebnis.nachfrage) : null,
   };
 }
 
@@ -349,6 +405,26 @@ export default async function handler(req, res) {
   if (istHistorie && kiErgebnis.status === "nachbessern") {
     kiErgebnis.status = "falsch";
     kiErgebnis.nachfrage = null;
+  }
+
+  // Die Rückfrage kommt vom Modell - nur es weiß, welcher Punkt im konkreten
+  // Fall fehlt. Hat es sie beim Bewerten vergessen, wird sie hier gezielt
+  // nachgefordert, statt einen Allgemeinplatz einzusetzen.
+  if (kiErgebnis.status === "nachbessern" && !kiErgebnis.nachfrage) {
+    kiErgebnis.nachfrage = await holeNachfrage(apiKey, kontext, bereinigterFreitext);
+  }
+
+  if (kiErgebnis.status === "nachbessern") {
+    // Das Feedback steht bei Orange fest (siehe NACHBESSERN_FEEDBACK) - die
+    // freie Begründung des Modells würde hier genau den Punkt verraten,
+    // nach dem die Rückfrage darunter gerade fragt.
+    kiErgebnis.feedback = NACHBESSERN_FEEDBACK;
+
+    // Bleibt die Rückfrage auch nach dem Nachfordern leer, setzt die
+    // Speicher-RPC eine neutrale Frage ein ("Begründe bitte noch kurz, warum
+    // du so entscheidest."). Das ist bewusst der schlechteste Fall und nicht
+    // der Normalfall: unspezifisch, aber immer noch besser, als jemandem den
+    // Zwischenschritt ganz zu nehmen.
   }
 
   const istRichtig = kiErgebnis.status === "richtig";

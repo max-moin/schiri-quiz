@@ -2508,12 +2508,13 @@ async function freitextErgaenzungAbschicken(frageId, wrap, button, textarea) {
     }
 
     // Der orange Zwischenstand von vorhin muss weg - sonst stünde direkt
-    // über dem Endergebnis weiterhin "Fast! Da fehlt noch ein Punkt".
+    // über dem Endergebnis weiterhin "Fast! Da fehlt noch ein Punkt" und
+    // darunter der feste Zwischensatz "Der Kern stimmt - ein Punkt fehlt
+    // noch.", was einem roten Endergebnis offen widerspricht.
     karte.querySelectorAll(".beantwortet-ergebnis.teilweise, .feedback.teilweise").forEach((alt) => {
       if (alt === wrap || wrap.contains(alt)) return;
       alt.classList.remove("teilweise");
-      const kopf = alt.querySelector(".freitext-ergebnis-kopf");
-      if (kopf) kopf.remove();
+      alt.querySelectorAll(".freitext-ergebnis-kopf, .freitext-ergebnis-ki").forEach((zeile) => zeile.remove());
     });
   }
 }
@@ -3334,10 +3335,18 @@ async function historieFreitextAntwortAbschicken(frageId, container, button, tex
 
   if (ladeHinweis) ladeHinweis.hidden = true;
 
+  // Im Üben-Bereich gibt es nur richtig oder falsch - hier kann man dieselbe
+  // Frage ohnehin beliebig oft wiederholen, ein zweiter Versuch wäre ohne
+  // Wirkung. Der Server klemmt "nachbessern" bereits ab; die Zuweisung hier
+  // ist die zweite Sicherung, damit in diesem Bereich niemals eine orange
+  // Karte ohne Ergänzungsfeld und ohne Auflösung stehen bleibt.
+  ergebnis.status = ergebnis.korrekt ? "richtig" : "falsch";
+  ergebnis.teilweise = false;
+
   const feedback = container.querySelector(".feedback");
   feedback.hidden = false;
   feedback.innerHTML = "";
-  feedback.classList.add(ergebnis.korrekt ? "richtig" : (ergebnis.teilweise ? "teilweise" : "falsch"));
+  feedback.classList.add(ergebnis.korrekt ? "richtig" : "falsch");
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
   feedback.appendChild(baueWarumButton(frageId, true));
 
