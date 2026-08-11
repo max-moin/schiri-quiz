@@ -2,7 +2,7 @@ const SUPABASE_URL =
   process.env.SUPABASE_URL || "https://ivwmixaicpmtvcjtnbjv.supabase.co";
 const SUPABASE_TIMEOUT_MS = 10_000;
 const GEMINI_TIMEOUT_MS = 25_000;
-export const GEMINI_STANDARD_MODELL = "gemini-2.5-flash-lite";
+export const GEMINI_STANDARD_MODELL = "gemini-3.5-flash-lite";
 
 export class ServerkonfigurationFehlt extends Error {
   constructor(variable) {

@@ -29,9 +29,9 @@ test("knappe richtige Entscheidung wird im Prompt ausdrücklich als vollständig
 });
 
 test("Flash-Lite ist das Standardmodell und nutzt kein Thinking-Budget", async () => {
-  assert.equal(GEMINI_STANDARD_MODELL, "gemini-2.5-flash-lite");
+  assert.equal(GEMINI_STANDARD_MODELL, "gemini-3.5-flash-lite");
   assert.deepEqual(minimaleGeminiThinkingConfig(GEMINI_STANDARD_MODELL), {
-    thinkingBudget: 0,
+    thinkingLevel: "minimal",
   });
 
   const vorherigerFetch = globalThis.fetch;
@@ -43,7 +43,7 @@ test("Flash-Lite ist das Standardmodell und nutzt kein Thinking-Budget", async (
 
   try {
     await geminiAufrufen("test-key", { contents: [] });
-    assert.match(aufgerufeneUrl, /models\/gemini-2\.5-flash-lite:generateContent/);
+    assert.match(aufgerufeneUrl, /models\/gemini-3\.5-flash-lite:generateContent/);
   } finally {
     globalThis.fetch = vorherigerFetch;
   }
