@@ -1,0 +1,21 @@
+name: Technische Prüfungen
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  pruefen:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository laden
+        uses: actions/checkout@v4
+      - name: Node.js einrichten
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax und Sicherheitstests
+        run: npm run check

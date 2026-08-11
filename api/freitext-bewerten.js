@@ -52,29 +52,17 @@
 //   glaubt dem Browser kein Wort davon.
 // ============================================================
 
-const SUPABASE_URL = "https://ivwmixaicpmtvcjtnbjv.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_ceeSGcYMSSLSdAJgqbC8mQ_W93x2oq8";
+import {
+  antworteMitSicheremFehler,
+  geminiAufrufen,
+  istServerkonfigurationFehlt,
+  istZeitueberschreitung,
+  sichereApiAntwort,
+  supabaseRpc,
+} from "../server/api-helpers.js";
+
 const ZEICHENLIMIT = 400;
 const ERLAUBTE_STATUS = ["richtig", "nachbessern", "falsch"];
-
-async function supabaseRpc(name, body) {
-  const antwort = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const daten = await antwort.json();
-  if (!antwort.ok) {
-    const fehlertext = (daten && (daten.message || daten.hint)) || JSON.stringify(daten);
-    throw new Error(fehlertext);
-  }
-  return daten;
-}
 
 // SYSTEMKONTEXT (10.07.2026, nach Max' Sicherheits-Feedback): der Text in
 // "Gegebene Antwort" kommt ungeprüft von einer Person aus dem Verein -
@@ -207,22 +195,12 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
 
 // Ein Gemini-Aufruf, roh: liefert das geparste JSON zurück.
 async function frageModell(apiKey, prompt) {
-  const geminiAntwort = await fetch(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: prompt }] }],
-        generationConfig: {
-          thinkingConfig: { thinkingLevel: "minimal" },
-        },
-      }),
-    }
-  );
+  const geminiAntwort = await geminiAufrufen(apiKey, {
+    contents: [{ parts: [{ text: prompt }] }],
+    generationConfig: {
+      thinkingConfig: { thinkingLevel: "minimal" },
+    },
+  });
 
   if (!geminiAntwort.ok) {
     throw new Error(await geminiAntwort.text());
@@ -236,6 +214,22 @@ async function frageModell(apiKey, prompt) {
 
 function saubereNachfrage(wert) {
   return typeof wert === "string" && wert.trim().length > 0 ? wert.trim() : null;
+}
+
+function supabaseFehlerantwort(res, fehler, sonstigerStatus, sonstigeNachricht) {
+  const konfigurationFehlt = istServerkonfigurationFehlt(fehler);
+  const zeitueberschreitung = istZeitueberschreitung(fehler);
+
+  antworteMitSicheremFehler(
+    res,
+    konfigurationFehlt ? 503 : zeitueberschreitung ? 504 : sonstigerStatus,
+    konfigurationFehlt
+      ? "Die Serverfunktion ist vorübergehend nicht verfügbar."
+      : zeitueberschreitung
+      ? "Der Dienst antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
+      : sonstigeNachricht,
+    fehler
+  );
 }
 
 // Fordert nur die Rückfrage an. Wird gebraucht, wenn das Modell beim
@@ -276,6 +270,8 @@ async function frageGemini(apiKey, prompt) {
 }
 
 export default async function handler(req, res) {
+  sichereApiAntwort(res);
+
   if (req.method !== "POST") {
     res.status(405).json({ fehler: "Nur POST erlaubt" });
     return;
@@ -283,7 +279,12 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ fehler: "GEMINI_API_KEY ist auf Vercel nicht gesetzt." });
+    antworteMitSicheremFehler(
+      res,
+      503,
+      "Die KI-Bewertung ist vorübergehend nicht verfügbar.",
+      new Error("Serverkonfiguration GEMINI_API_KEY fehlt.")
+    );
     return;
   }
 
@@ -322,10 +323,12 @@ export default async function handler(req, res) {
       kontext = Array.isArray(ergebnis) ? ergebnis[0] : ergebnis;
       if (!kontext) throw new Error("Keine offene Ergänzung");
     } catch (e) {
-      res.status(400).json({
-        fehler: "Für diese Frage ist keine Ergänzung mehr offen.",
-        details: String(e.message || e),
-      });
+      supabaseFehlerantwort(
+        res,
+        e,
+        400,
+        "Für diese Frage ist keine Ergänzung mehr offen."
+      );
       return;
     }
 
@@ -333,10 +336,14 @@ export default async function handler(req, res) {
     try {
       kiErgebnis = await frageGemini(apiKey, baueNachbesserungsPrompt(kontext, bereinigterFreitext));
     } catch (e) {
-      res.status(502).json({
-        fehler: "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.",
-        details: String(e.message || e),
-      });
+      antworteMitSicheremFehler(
+        res,
+        istZeitueberschreitung(e) ? 504 : 502,
+        istZeitueberschreitung(e)
+          ? "Die KI antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
+          : "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.",
+        e
+      );
       return;
     }
 
@@ -361,7 +368,7 @@ export default async function handler(req, res) {
         erster_freitext: kontext.erster_freitext,
       });
     } catch (e) {
-      res.status(500).json({ fehler: "Speichern fehlgeschlagen.", details: String(e.message || e) });
+      supabaseFehlerantwort(res, e, 500, "Speichern fehlgeschlagen.");
     }
     return;
   }
@@ -381,9 +388,12 @@ export default async function handler(req, res) {
     kontext = Array.isArray(ergebnis) ? ergebnis[0] : ergebnis;
     if (!kontext) throw new Error("Kein Kontext gefunden");
   } catch (e) {
-    res
-      .status(400)
-      .json({ fehler: "PIN falsch oder Frage aktuell nicht verfügbar.", details: String(e.message || e) });
+    supabaseFehlerantwort(
+      res,
+      e,
+      400,
+      "PIN falsch oder Frage aktuell nicht verfügbar."
+    );
     return;
   }
 
@@ -392,9 +402,14 @@ export default async function handler(req, res) {
   try {
     kiErgebnis = await frageGemini(apiKey, baueErstversuchPrompt(kontext, bereinigterFreitext, !istHistorie));
   } catch (e) {
-    res
-      .status(502)
-      .json({ fehler: "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.", details: String(e.message || e) });
+    antworteMitSicheremFehler(
+      res,
+      istZeitueberschreitung(e) ? 504 : 502,
+      istZeitueberschreitung(e)
+        ? "Die KI antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
+        : "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.",
+      e
+    );
     return;
   }
 
@@ -477,6 +492,6 @@ export default async function handler(req, res) {
       teilweise: nochOffen,
     });
   } catch (e) {
-    res.status(500).json({ fehler: "Speichern fehlgeschlagen.", details: String(e.message || e) });
+    supabaseFehlerantwort(res, e, 500, "Speichern fehlgeschlagen.");
   }
 }

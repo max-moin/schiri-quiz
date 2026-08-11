@@ -27,31 +27,20 @@
 // Anweisung an die KI).
 // ============================================================
 
-const SUPABASE_URL = "https://ivwmixaicpmtvcjtnbjv.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_ceeSGcYMSSLSdAJgqbC8mQ_W93x2oq8";
-
-async function supabaseRpc(name, body) {
-  const antwort = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      apikey: SUPABASE_ANON_KEY,
-      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
-    },
-    body: JSON.stringify(body),
-  });
-
-  const daten = await antwort.json();
-  if (!antwort.ok) {
-    const fehlertext = (daten && (daten.message || daten.hint)) || JSON.stringify(daten);
-    throw new Error(fehlertext);
-  }
-  return daten;
-}
+import {
+  antworteMitSicheremFehler,
+  geminiAufrufen,
+  istServerkonfigurationFehlt,
+  istZeitueberschreitung,
+  sichereApiAntwort,
+  supabaseRpc,
+} from "../server/api-helpers.js";
 
 const OPTIONSBEZEICHNUNG = { a: "A", b: "B", c: "C" };
 
 export default async function handler(req, res) {
+  sichereApiAntwort(res);
+
   if (req.method !== "POST") {
     res.status(405).json({ fehler: "Nur POST erlaubt" });
     return;
@@ -59,7 +48,12 @@ export default async function handler(req, res) {
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    res.status(500).json({ fehler: "GEMINI_API_KEY ist auf Vercel nicht gesetzt." });
+    antworteMitSicheremFehler(
+      res,
+      503,
+      "Die KI-Erklärung ist vorübergehend nicht verfügbar.",
+      new Error("Serverkonfiguration GEMINI_API_KEY fehlt.")
+    );
     return;
   }
 
@@ -84,10 +78,17 @@ export default async function handler(req, res) {
     kontext = Array.isArray(ergebnis) ? ergebnis[0] : ergebnis;
     if (!kontext) throw new Error("Kein Kontext gefunden");
   } catch (e) {
-    res.status(400).json({
-      fehler: "PIN falsch oder Frage wurde von dir noch nicht beantwortet.",
-      details: String(e.message || e),
-    });
+    const konfigurationFehlt = istServerkonfigurationFehlt(e);
+    antworteMitSicheremFehler(
+      res,
+      konfigurationFehlt ? 503 : istZeitueberschreitung(e) ? 504 : 400,
+      konfigurationFehlt
+        ? "Die Serverfunktion ist vorübergehend nicht verfügbar."
+        : istZeitueberschreitung(e)
+        ? "Der Dienst antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
+        : "PIN falsch oder Frage wurde von dir noch nicht beantwortet.",
+      e
+    );
     return;
   }
 
@@ -149,22 +150,12 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
 
   let kiErgebnis;
   try {
-    const geminiAntwort = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-goog-api-key": apiKey,
-        },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            thinkingConfig: { thinkingLevel: "minimal" },
-          },
-        }),
-      }
-    );
+    const geminiAntwort = await geminiAufrufen(apiKey, {
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        thinkingConfig: { thinkingLevel: "minimal" },
+      },
+    });
 
     if (!geminiAntwort.ok) {
       const fehlerText = await geminiAntwort.text();
@@ -180,9 +171,14 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
       throw new Error("Unerwartetes Antwortformat von der KI: " + rohtext);
     }
   } catch (e) {
-    res
-      .status(502)
-      .json({ fehler: "KI-Erklärung fehlgeschlagen, bitte nochmal versuchen.", details: String(e.message || e) });
+    antworteMitSicheremFehler(
+      res,
+      istZeitueberschreitung(e) ? 504 : 502,
+      istZeitueberschreitung(e)
+        ? "Die KI antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
+        : "KI-Erklärung fehlgeschlagen, bitte nochmal versuchen.",
+      e
+    );
     return;
   }
 

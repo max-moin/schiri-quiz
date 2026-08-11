@@ -3,6 +3,12 @@
 // ============================================================
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const {
+  extrahiereYoutubeId,
+  formatiereAnfrageDatum,
+  freitextStatus,
+  schwierigkeitSterne,
+} = SchiriQuizUtils;
 
 const SESSION_KEY = "schiriQuizSession";
 
@@ -972,14 +978,6 @@ anfrageAbsendenButton.addEventListener("click", async () => {
 const ANFRAGE_KATEGORIE_LABEL = { trikot: "Trikot", hose: "Hose", stutzen: "Stutzen", schuhe: "Schuhe" };
 const ANFRAGE_STATUS_LABEL = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
 
-function formatiereAnfrageDatum(iso) {
-  try {
-    return new Date(iso).toLocaleDateString("de-DE", { day: "2-digit", month: "2-digit", year: "numeric" });
-  } catch (e) {
-    return "";
-  }
-}
-
 // Merkt sich, für welche Anfrage gerade eine Rechnung hochgeladen wird
 // (gesetzt beim Öffnen von "#rechnung-upload-overlay" über eine Zeile in
 // "Meine Anfragen") sowie das im Browser schon komprimierte Bild.
@@ -1442,13 +1440,6 @@ function baueVorlesenButton(text) {
   return button;
 }
 
-function schwierigkeitSterne(schwierigkeit) {
-  if (!schwierigkeit) return null;
-  const voll = "★".repeat(schwierigkeit);
-  const leer = "☆".repeat(5 - schwierigkeit);
-  return voll + leer;
-}
-
 /// Anzeigename und Farbklasse je Fragetyp (07.08.2026, Max' Wunsch:
 /// "vielleicht sieht man da dann auch deutlicher, dass eine Frage Video oder
 /// Freitext ist, vielleicht mit Farben"). Bewusst mit Symbol UND Text, damit
@@ -1643,24 +1634,6 @@ function ladeYoutubeApi() {
     document.head.appendChild(script);
   });
   return youtubeApiPromise;
-}
-
-function extrahiereYoutubeId(url) {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    if (u.hostname.includes("youtu.be")) {
-      return u.pathname.slice(1).split("/")[0] || null;
-    }
-    if (u.hostname.includes("youtube.com")) {
-      if (u.searchParams.get("v")) return u.searchParams.get("v");
-      const embedMatch = u.pathname.match(/\/embed\/([^/?]+)/);
-      if (embedMatch) return embedMatch[1];
-    }
-  } catch (e) {
-    // ungültige URL - kein Video anzeigen, Frage bleibt trotzdem nutzbar
-  }
-  return null;
 }
 
 // Gemeinsames "Groß ansehen"-Overlay (ein einziges für die ganze Seite,
@@ -2323,18 +2296,6 @@ function baueFreitextFrageElement(frage) {
 // (bewertungsstatus / nachbesserung_offen) und - als letzte Rückfallebene -
 // den alten Feldern. So macht eine noch nicht neu geladene Seite nichts
 // kaputt.
-function freitextStatus(ergebnis) {
-  if (!ergebnis) return "falsch";
-  if (typeof ergebnis.status === "string" && ergebnis.status) return ergebnis.status;
-  if (typeof ergebnis.bewertungsstatus === "string" && ergebnis.bewertungsstatus) {
-    return ergebnis.bewertungsstatus;
-  }
-  if (ergebnis.nachbesserung_offen) return "nachbessern";
-  if (ergebnis.korrekt) return "richtig";
-  if (ergebnis.teilweise) return "nachbessern";
-  return "falsch";
-}
-
 function baueFreitextErgebnisInhalt(ergebnis) {
   const wrap = document.createElement("div");
   const status = freitextStatus(ergebnis);
