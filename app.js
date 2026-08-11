@@ -1348,7 +1348,13 @@ async function ladeFragenUndAntworten() {
     // Frage"). Sie ergibt sich aus der Reihenfolge, in der die Datenbank
     // die Fragen liefert - und die ist nach der Spalte "position" sortiert,
     // also derselben Reihenfolge wie im Planung-Reiter der App.
-    frage.anzeigeNummer = index + 1;
+    // Seit Migration v75 (11.08.2026) kommt die Nummer fertig vom Server
+    // (View "wochen_frage_nummern"), statt hier aus der Listenposition
+    // abgeleitet zu werden. Vorher stimmte sie nur zufällig, solange alle
+    // Ansichten dieselbe Sortierung hatten - was in der App nicht der Fall
+    // war. Der Rückfall auf "Index + 1" bleibt für den Fall, dass die
+    // Website noch gegen eine ältere Datenbankversion läuft.
+    frage.anzeigeNummer = frage.frage_nummer ?? index + 1;
     const bisherigeAntwort = antwortenNachFrageId.get(frage.id);
     // "video_freitext" wird wie "freitext" behandelt (gleiche KI-Bewertung,
     // gleiche Bau-Funktionen) - der Video-Player wird zusätzlich innerhalb
