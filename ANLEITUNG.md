@@ -132,7 +132,7 @@ RLS allein schützt `SECURITY DEFINER`-Funktionen nicht. Jede Funktion im exponi
 - nur für `service_role` beziehungsweise Secret Key;
 - oder intern und aus dem exponierten Schema zu entfernen.
 
-Neue Funktionen sollen künftig nicht ungeprüft öffentliche Ausführungsrechte behalten. Solange die Default-Privileges noch nicht umgestellt sind, muss jede neue Funktion in ihrer Migration ausdrücklich widerrufen oder gezielt freigegeben werden.
+Neue Funktionen erhalten standardmäßig keine Ausführungsrechte mehr für `PUBLIC`, `anon` oder `authenticated`. Jede neue Funktion muss deshalb in ihrer Migration ausdrücklich und nur für die tatsächlich benötigten Rollen freigegeben werden.
 
 Nach einer Sicherheitsmigration werden mindestens geprüft:
 

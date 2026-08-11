@@ -230,3 +230,18 @@ test("interne und veraltete RPCs bleiben nicht als öffentliche Endpunkte zurüc
   );
   assert.doesNotMatch(migration, /drop\s+function[^;]*\bcascade\b/i);
 });
+
+test("neue Datenbankfunktionen erhalten keine automatischen Browserrechte", () => {
+  const migration = readFileSync(
+    new URL(
+      "../supabase/migrations/20260811224313_v82_standardrechte_fuer_funktionen_sperren.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+
+  assert.match(
+    migration,
+    /alter default privileges for role postgres in schema public\s+revoke execute on functions from public, anon, authenticated/
+  );
+});
