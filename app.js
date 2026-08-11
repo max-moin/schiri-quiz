@@ -639,6 +639,15 @@ async function ladeGastFragen() {
 function zeigeNaechsteGastFrage() {
   gastFrageBereich.innerHTML = "";
 
+  if (gastFragenPool.length === 0) {
+    const hinweis = document.createElement("p");
+    hinweis.className = "hinweis card";
+    hinweis.textContent =
+      "Für den Gast-Modus sind momentan noch keine Fragen freigeschaltet. Du kannst später wiederkommen oder den Gast-Modus verlassen.";
+    gastFrageBereich.appendChild(hinweis);
+    return;
+  }
+
   if (gastFrageIndex >= gastFragenPool.length) {
     const hinweis = document.createElement("p");
     hinweis.className = "hinweis card";
@@ -1395,6 +1404,7 @@ let vorlesenAktiverButton = null;
 function vorlesenBeendetAnzeigen(button) {
   button.classList.remove("spricht");
   button.textContent = "🔊";
+  button.setAttribute("aria-label", "Frage vorlesen");
   button.title = "Frage vorlesen";
   if (vorlesenAktiverButton === button) vorlesenAktiverButton = null;
 }
@@ -1416,6 +1426,7 @@ function vorlesen(text, button) {
   vorlesenAktiverButton = button;
   button.classList.add("spricht");
   button.textContent = "⏹";
+  button.setAttribute("aria-label", "Vorlesen stoppen");
   button.title = "Vorlesen stoppen";
   window.speechSynthesis.speak(utterance);
 }
@@ -1477,7 +1488,14 @@ function baueBadges(frage) {
   if (frage.regel_nummer && frage.regel_bezeichnung) {
     const regelBadge = document.createElement("span");
     regelBadge.className = "badge regel";
-    regelBadge.textContent = "Regel " + frage.regel_nummer + " · " + frage.regel_bezeichnung;
+    const regelSymbol = document.createElement("span");
+    regelSymbol.className = "badge-symbol";
+    regelSymbol.setAttribute("aria-hidden", "true");
+    regelSymbol.textContent = "§";
+    regelBadge.append(
+      regelSymbol,
+      document.createTextNode("Regel " + frage.regel_nummer + " · " + frage.regel_bezeichnung)
+    );
     wrap.appendChild(regelBadge);
   }
 

@@ -2287,14 +2287,12 @@ select:focus-visible,
   background: var(--marke);
 }
 
-/* Regel-Badge mit Symbol, damit die Badge-Reihe nicht rein textlich ist. */
-.badge.regel::before {
-  content: "§";
+/* Regel-Badge mit rein dekorativem Symbol. Das Zeichen steht im HTML mit
+   aria-hidden, damit Screenreader nur "Regel …" und nicht "Paragraph Regel …"
+   ansagen. */
+.badge-symbol {
   font-weight: 800;
   opacity: 0.55;
-}
-.badge.schwierigkeit::before {
-  content: "";
 }
 
 /* Maskierte Eingabefelder ohne type="password" (10.08.2026).

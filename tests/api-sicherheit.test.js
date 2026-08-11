@@ -173,3 +173,60 @@ test("die Sperrmigration umfasst alle sieben KI-nahen RPCs", () => {
     assert.match(migration, new RegExp(`grant execute on function public\\.${name}`));
   }
 });
+
+test("die zweite Sicherheitsmigration entfernt die fünf öffentlichen Alt-Views", () => {
+  const migration = readFileSync(
+    new URL(
+      "../supabase/migrations/20260811221524_v79_legacy_views_und_search_path.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+  const views = [
+    "scoreboard",
+    "schiedsrichter_oeffentlich",
+    "trend_wochen",
+    "fragen_oeffentlich",
+    "fragen_erfolgsquote",
+  ];
+
+  for (const view of views) {
+    assert.match(migration, new RegExp(`drop view if exists public\\.${view}`));
+  }
+
+  assert.match(
+    migration,
+    /alter function public\.ausruestungs_anfragen_touch\(\)\s+set search_path = pg_catalog, public/
+  );
+  assert.doesNotMatch(migration, /drop\s+view[^;]*\bcascade\b/i);
+});
+
+test("interne und veraltete RPCs bleiben nicht als öffentliche Endpunkte zurück", () => {
+  const migration = readFileSync(
+    new URL(
+      "../supabase/migrations/20260811221906_v81_interne_rpc_flaeche_verkleinern.sql",
+      import.meta.url
+    ),
+    "utf8"
+  );
+
+  assert.match(migration, /drop function if exists public\.pin_pruefen\(uuid, text\)/);
+  assert.match(migration, /drop function if exists public\.vereinskennung_pruefen\(text\)/);
+  assert.match(
+    migration,
+    /revoke execute on function public\.historie_fortschritt_auffuellen\(uuid\)/
+  );
+  assert.match(
+    migration,
+    /revoke execute on function public\.frage_ist_sichtbar\(boolean, uuid, boolean\)/
+  );
+  assert.match(
+    migration,
+    /revoke execute on function public\.obmann_verein\(text\)/
+  );
+  assert.match(
+    migration,
+    /alter default privileges for role postgres in schema public\s+revoke execute on functions from public/
+  );
+  assert.doesNotMatch(migration, /drop\s+function[^;]*\bcascade\b/i);
+});

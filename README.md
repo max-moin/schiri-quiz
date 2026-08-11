@@ -83,7 +83,7 @@ Benötigt wird Node.js 22 oder neuer. Es gibt keine zu installierenden Laufzeita
 npm run check
 ```
 
-Der Befehl prüft die JavaScript-Syntax und führt aktuell 22 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+Der Befehl prüft die JavaScript-Syntax und führt aktuell 27 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
 
 ## Konfiguration
 
