@@ -1504,6 +1504,7 @@ function baueBadges(frage) {
 const erklaerungOverlay = document.getElementById("erklaerung-overlay");
 const erklaerungInhalt = document.getElementById("erklaerung-inhalt");
 const erklaerungSchliessenButton = document.getElementById("erklaerung-schliessen-button");
+const erklaerungsCache = new Map();
 
 function schliesseErklaerung() {
   if (erklaerungOverlay) erklaerungOverlay.hidden = true;
@@ -1543,6 +1544,22 @@ async function oeffneErklaerung(frageId, istHistorie) {
 
   erklaerungOverlay.hidden = false;
   erklaerungInhalt.innerHTML = "";
+
+  // Aktuelle Fragen können nur einmal beantwortet werden. Ihre Erklärung
+  // bleibt deshalb in derselben Seitensitzung stabil und muss bei erneutem
+  // Öffnen kein weiteres KI-Kontingent verbrauchen. Historische Fragen werden
+  // nicht gecacht, weil sie später mit einer anderen Antwort wiederkommen
+  // können.
+  const cacheSchluessel = istHistorie
+    ? null
+    : `${ausgewaehlteSchiedsrichterId}:${frageId}`;
+  if (cacheSchluessel && erklaerungsCache.has(cacheSchluessel)) {
+    const text = document.createElement("p");
+    text.textContent = erklaerungsCache.get(cacheSchluessel);
+    erklaerungInhalt.appendChild(text);
+    return;
+  }
+
   const ladeHinweis = document.createElement("p");
   ladeHinweis.className = "erklaerung-lade-hinweis";
   const spinner = document.createElement("span");
@@ -1569,6 +1586,7 @@ async function oeffneErklaerung(frageId, istHistorie) {
     const text = document.createElement("p");
     text.textContent = daten.erklaerung;
     erklaerungInhalt.appendChild(text);
+    if (cacheSchluessel) erklaerungsCache.set(cacheSchluessel, daten.erklaerung);
   } catch (e) {
     erklaerungInhalt.innerHTML = "";
     const fehlerText = document.createElement("p");

@@ -30,13 +30,47 @@
 import {
   antworteMitSicheremFehler,
   geminiAufrufen,
+  geminiModellFuer,
+  istGeminiKontingentErschoepft,
   istServerkonfigurationFehlt,
   istZeitueberschreitung,
+  minimaleGeminiThinkingConfig,
   sichereApiAntwort,
+  stelleGeminiErfolgSicher,
   supabaseRpc,
 } from "../server/api-helpers.js";
 
 const OPTIONSBEZEICHNUNG = { a: "A", b: "B", c: "C" };
+
+function alsSatz(text) {
+  const sauber = String(text || "").trim();
+  if (!sauber) return "";
+  return /[.!?]$/.test(sauber) ? sauber : `${sauber}.`;
+}
+
+// Der Warum-Bereich soll auch dann einen fachlich brauchbaren Kern anzeigen,
+// wenn das externe KI-Kontingent erschöpft ist. Der Kontext wird weiterhin
+// erst nach PIN- und Antwortprüfung serverseitig geladen; vor dem eigenen
+// Versuch kann diese Ersatz-Erklärung daher keine Lösung verraten.
+export function baueStatischeErklaerung(kontext) {
+  const zusatz = alsSatz(kontext.erklaerung_zusatzhinweis);
+
+  if (kontext.typ === "freitext" || kontext.typ === "video_freitext") {
+    const kern = alsSatz(kontext.musterantwort || "Die hinterlegte Musterantwort enthält die maßgebliche Regelentscheidung");
+    const bezug = kontext.korrekt
+      ? "Deine Antwort trifft diesen entscheidenden Kern."
+      : "Deine Antwort weicht von diesem entscheidenden Kern ab oder lässt ihn offen.";
+    return [`Entscheidend ist: ${kern}`, bezug, zusatz].filter(Boolean).join(" ");
+  }
+
+  const schluessel = kontext.richtige_option;
+  const bezeichnung = OPTIONSBEZEICHNUNG[schluessel] || String(schluessel || "").toUpperCase();
+  const richtigeAntwort = alsSatz(kontext[`option_${schluessel}`] || "Die markierte Antwort ist die richtige Regelentscheidung");
+  const bezug = kontext.korrekt
+    ? "Damit hast du die richtige Regelentscheidung gewählt."
+    : "Deine gewählte Antwort führt deshalb nicht zur richtigen Regelentscheidung.";
+  return [`Richtig ist ${bezeichnung}: ${richtigeAntwort}`, bezug, zusatz].filter(Boolean).join(" ");
+}
 
 export default async function handler(req, res) {
   sichereApiAntwort(res);
@@ -47,6 +81,7 @@ export default async function handler(req, res) {
   }
 
   const apiKey = process.env.GEMINI_API_KEY;
+  const modell = geminiModellFuer("GEMINI_ERKLAERUNGS_MODELL");
   if (!apiKey) {
     antworteMitSicheremFehler(
       res,
@@ -153,14 +188,11 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
     const geminiAntwort = await geminiAufrufen(apiKey, {
       contents: [{ parts: [{ text: prompt }] }],
       generationConfig: {
-        thinkingConfig: { thinkingLevel: "minimal" },
+        thinkingConfig: minimaleGeminiThinkingConfig(modell),
       },
-    });
+    }, modell);
 
-    if (!geminiAntwort.ok) {
-      const fehlerText = await geminiAntwort.text();
-      throw new Error(fehlerText);
-    }
+    await stelleGeminiErfolgSicher(geminiAntwort);
 
     const daten = await geminiAntwort.json();
     const rohtext = daten.candidates?.[0]?.content?.parts?.[0]?.text || "";
@@ -171,6 +203,15 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
       throw new Error("Unerwartetes Antwortformat von der KI: " + rohtext);
     }
   } catch (e) {
+    if (istGeminiKontingentErschoepft(e)) {
+      console.warn("Gemini-Kontingent erschöpft; statische Erklärung wird verwendet.");
+      res.status(200).json({
+        erklaerung: baueStatischeErklaerung(kontext),
+        vereinfacht: true,
+      });
+      return;
+    }
+
     antworteMitSicheremFehler(
       res,
       istZeitueberschreitung(e) ? 504 : 502,

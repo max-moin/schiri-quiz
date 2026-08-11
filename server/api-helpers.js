@@ -2,6 +2,7 @@ const SUPABASE_URL =
   process.env.SUPABASE_URL || "https://ivwmixaicpmtvcjtnbjv.supabase.co";
 const SUPABASE_TIMEOUT_MS = 10_000;
 const GEMINI_TIMEOUT_MS = 25_000;
+export const GEMINI_STANDARD_MODELL = "gemini-2.5-flash-lite";
 
 export class ServerkonfigurationFehlt extends Error {
   constructor(variable) {
@@ -16,6 +17,15 @@ export class ExternerDienstTimeout extends Error {
     super(`${dienst} hat nicht rechtzeitig geantwortet.`);
     this.name = "ExternerDienstTimeout";
     this.code = "UPSTREAM_TIMEOUT";
+  }
+}
+
+export class GeminiAntwortFehler extends Error {
+  constructor(status, antwortText) {
+    super(`Gemini antwortete mit HTTP ${status}: ${antwortText || "keine Antwort"}`);
+    this.name = "GeminiAntwortFehler";
+    this.code = status === 429 ? "UPSTREAM_QUOTA_EXHAUSTED" : "UPSTREAM_ERROR";
+    this.httpStatus = status;
   }
 }
 
@@ -100,9 +110,23 @@ export async function supabaseRpc(name, body) {
   return daten;
 }
 
-export async function geminiAufrufen(apiKey, body) {
+export function geminiModellFuer(umgebungsvariable) {
+  return (
+    process.env[umgebungsvariable] ||
+    process.env.GEMINI_MODELL ||
+    GEMINI_STANDARD_MODELL
+  );
+}
+
+export function minimaleGeminiThinkingConfig(modell) {
+  return modell.startsWith("gemini-2.5-")
+    ? { thinkingBudget: 0 }
+    : { thinkingLevel: "minimal" };
+}
+
+export async function geminiAufrufen(apiKey, body, modell = GEMINI_STANDARD_MODELL) {
   return fetchMitZeitlimit(
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent",
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(modell)}:generateContent`,
     {
       method: "POST",
       headers: {
@@ -116,8 +140,17 @@ export async function geminiAufrufen(apiKey, body) {
   );
 }
 
+export async function stelleGeminiErfolgSicher(antwort) {
+  if (antwort.ok) return;
+  throw new GeminiAntwortFehler(antwort.status, await antwort.text());
+}
+
 export function istZeitueberschreitung(fehler) {
   return fehler && fehler.code === "UPSTREAM_TIMEOUT";
+}
+
+export function istGeminiKontingentErschoepft(fehler) {
+  return fehler && fehler.code === "UPSTREAM_QUOTA_EXHAUSTED";
 }
 
 export function istServerkonfigurationFehlt(fehler) {
