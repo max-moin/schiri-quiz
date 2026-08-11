@@ -28,6 +28,36 @@ test("knappe richtige Entscheidung wird im Prompt ausdrücklich als vollständig
   assert.match(prompt, /Eine Begründung ist nur zwingend, wenn die Frage ausdrücklich danach fragt/);
 });
 
+test("fragenspezifische Rubrik steuert Grün, Orange, Rot und die Rückfrage", () => {
+  const prompt = baueErstversuchPrompt(
+    {
+      frage_text: "Ein Spieler zieht beim Torjubel sein Trikot aus. Wie reagierst du?",
+      musterantwort: "Gelbe Karte wegen unsportlichen Verhaltens.",
+      bewertungshinweise: `Zwingende Kernaussagen:
+Gelbe Karte / Verwarnung
+
+Anerkannte Formulierungen:
+gelb; verwarnen
+
+Orange, wenn:
+Nur "eine Karte" genannt wird.
+
+Rot, wenn:
+Keine Karte oder Rote Karte.
+
+Adaptive Rückfragen:
+Bei unbestimmter Karte: Welche Karte beziehungsweise persönliche Strafe ist erforderlich?`,
+    },
+    "Es gibt eine Karte.",
+    true
+  );
+
+  assert.match(prompt, /Nutze diese Abschnitte als fragenspezifische Rubrik/);
+  assert.match(prompt, /ein passender "Orange, wenn"-Fall ist "nachbessern"/);
+  assert.match(prompt, /Nur "eine Karte" genannt wird/);
+  assert.match(prompt, /Welche Karte beziehungsweise persönliche Strafe ist erforderlich/);
+});
+
 test("Flash-Lite ist das Standardmodell und nutzt kein Thinking-Budget", async () => {
   assert.equal(GEMINI_STANDARD_MODELL, "gemini-3.5-flash-lite");
   assert.deepEqual(minimaleGeminiThinkingConfig(GEMINI_STANDARD_MODELL), {

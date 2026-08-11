@@ -95,6 +95,8 @@ const ALLGEMEINE_BEWERTUNGSREGELN = `Allgemeine Regeln für die Bewertung ernstg
 - Eine Begründung ist nur zwingend, wenn die Frage ausdrücklich danach fragt (z.B. "Warum?", "Begründe" oder "Erläutere") oder die Bewertungshinweise einen Punkt ausdrücklich als zwingend kennzeichnen.
 - Wenn die Musterantwort eine bestimmte persönliche Strafe nennt (keine Strafe / Gelbe Karte = Verwarnung / Rote Karte = Feldverweis), muss die gegebene Antwort genau diese Strafe klar benennen. Eine vage Formulierung wie "es gibt eine Karte" oder "er wird bestraft" reicht NICHT, wenn die Musterantwort eine bestimmte Farbe/Konsequenz verlangt.
 - Allgemein: wenn die Musterantwort einen konkreten Begriff, eine Zahl oder eine bestimmte Konsequenz nennt, muss die gegebene Antwort genau diesen Punkt ebenfalls klar benennen - Umschreibungen/Synonyme sind erlaubt, das Weglassen oder Verallgemeinern des entscheidenden Details nicht.
+- Strukturierte Bewertungshinweise können Abschnitte mit "Zwingende Kernaussagen", "Anerkannte Formulierungen", "Orange, wenn", "Rot, wenn" und "Adaptive Rückfragen" enthalten. Nutze diese Abschnitte als fragenspezifische Rubrik: Für "richtig" müssen die zwingenden Kernaussagen sinngemäß enthalten sein; anerkannte Formulierungen gelten ausdrücklich als gleichwertig; ein passender "Orange, wenn"-Fall ist "nachbessern"; ein passender "Rot, wenn"-Fall ist "falsch". Die Rubrik darf eine fachlich falsche Aussage niemals in richtig oder nachbessern umdeuten.
+- Eine im Grundsatz richtige Antwort, die nur die richtige Kategorie nennt, aber ein entscheidendes Detail offenlässt, darf "nachbessern" sein, WENN die fragenspezifischen Bewertungshinweise diesen Fall unter "Orange, wenn" nennen. Beispiel: "eine Karte" kann orange sein, wenn noch nach der Kartenfarbe/persönlichen Strafe gefragt werden soll; "Gelbe Karte" ist bei der entsprechenden Musterantwort grün, "keine Karte" oder "Rote Karte" rot.
 - Umgangssprache, Tippfehler, knapper Satzbau und fehlende Fachbegriffe sind erlaubt und sollen NICHT negativ bewertet werden, solange die ausdrücklich verlangte fachliche Aussage eindeutig stimmt.
 - Konkretes Kalibrierungsbeispiel: Bei "Ein Spieler zieht beim Torjubel sein Trikot aus. Wie reagierst du?" ist "Der Spieler bekommt die Gelbe Karte" vollständig RICHTIG. Orange wäre hier zu streng, weil die Frage keine Begründung verlangt.`;
 
@@ -103,10 +105,10 @@ const ALLGEMEINE_BEWERTUNGSREGELN = `Allgemeine Regeln für die Bewertung ernstg
 const STATUS_REGELN = `Vergib genau einen Status:
 
 - "richtig": Alles, was die Frage ausdrücklich verlangt, ist fachlich richtig enthalten. Die Antwort darf deutlich kürzer als die Musterantwort sein.
-- "nachbessern": Der Kern stimmt, aber mindestens ein ausdrücklich verlangter und für die Lösung entscheidender Teil fehlt. Beispiele: Die Frage verlangt ausdrücklich Entscheidung UND Begründung, aber es steht nur die Entscheidung da; die Frage verlangt Entscheidung UND Spielfortsetzung, aber die Spielfortsetzung fehlt; zwei Vorgänge sollen bewertet werden, aber nur einer wurde behandelt.
+- "nachbessern": Der Kern stimmt, aber mindestens ein für diese Frage entscheidender Teil fehlt. Das gilt sowohl für ausdrücklich verlangte Teilaufgaben als auch für Fälle, die in den Bewertungshinweisen ausdrücklich unter "Orange, wenn" stehen. Beispiele: Die Frage verlangt Entscheidung UND Begründung, aber es steht nur die Entscheidung da; die Frage verlangt Entscheidung UND Spielfortsetzung, aber die Spielfortsetzung fehlt; zwei Vorgänge sollen bewertet werden, aber nur einer wurde behandelt; die richtige Art der Sanktion wurde erkannt, aber die genaue persönliche Strafe fehlt und die Rubrik sieht dafür Orange vor.
 - "falsch": die Kernaussage widerspricht der Musterantwort, die Begründung ist sachlich falsch, oder die Antwort ist themenfremd bzw. keine ernstgemeinte Antwort.
 
-Wichtig: Kürze allein ist NIEMALS ein Grund für "nachbessern". Verwende Orange nicht, nur weil die Musterantwort ausführlicher ist oder noch eine Regelbezeichnung nennt. Orange ist ausschließlich für eine echte Lücke in dem da, was die Frage ausdrücklich verlangt.
+Wichtig: Kürze allein ist NIEMALS ein Grund für "nachbessern". Verwende Orange nicht, nur weil die Musterantwort ausführlicher ist oder noch eine Regelbezeichnung nennt. Orange ist ausschließlich für eine echte, mit genau einer Rückfrage behebbare Lücke in dem, was die Frage oder ihre fragenspezifische Rubrik verlangt.
 
 Bei "nachbessern" MUSST du zusätzlich eine "nachfrage" liefern: eine kurze, freundliche Rückfrage in Du-Form, die zu genau dem fehlenden Punkt hinführt, OHNE ihn zu verraten. Benenne, WORAUF die Person schauen soll, aber nicht, was dabei herauskommt.
 Gutes Beispiel: "Die Toranerkennung hast du eingeordnet. Schau noch auf den Armeinsatz des Gegenspielers: Reicht der Kontakt für ein strafbares Stoßen, Rempeln oder Halten? Begründe kurz."
@@ -143,7 +145,9 @@ Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
 Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
 Gegebene Antwort: ${freitext}
 
-Diese Antwort ist im Kern richtig, aber unvollständig: Mindestens ein zwingender Punkt aus der Musterantwort fehlt. Formuliere GENAU EINE kurze, freundliche Rückfrage in Du-Form, die die Person zu genau diesem fehlenden Punkt hinführt, OHNE ihn zu verraten.
+Diese Antwort ist im Kern richtig, aber unvollständig: Mindestens ein zwingender Punkt aus der Musterantwort oder der fragenspezifischen Rubrik fehlt. Formuliere GENAU EINE kurze, freundliche Rückfrage in Du-Form, die die Person zu genau diesem fehlenden Punkt hinführt, OHNE ihn zu verraten.
+
+Enthalten die Bewertungshinweise unter "Adaptive Rückfragen" eine Rückfrage für genau diese Lücke, verwende sie sinngemäß. Wähle nur die zur tatsächlichen Lücke passende Rückfrage; übernimm keine Rückfrage zu einem anderen Fall.
 
 Benenne, WORAUF sie schauen soll, aber nicht, was dabei herauskommt. Nenne weder die Musterantwort noch die richtige Konsequenz. Höchstens zwei Sätze.
 
