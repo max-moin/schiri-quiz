@@ -7,6 +7,9 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const SESSION_KEY = "schiriQuizSession";
 
 const nameAuswahl = document.getElementById("name-auswahl");
+const nameEingabe = document.getElementById("name-eingabe");
+const namenslisteBereich = document.getElementById("namensliste-bereich");
+const namenseingabeBereich = document.getElementById("namenseingabe-bereich");
 const pinEingabe = document.getElementById("pin-eingabe");
 const startButton = document.getElementById("start-button");
 const nameSchritt = document.getElementById("name-schritt");
@@ -151,6 +154,11 @@ const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
 // (Baustein C, Max' Vorschlag "z.B. drei") - hier zentral anpassbar.
 const GAST_INTERESSE_TRIGGER_ANZAHL = 3;
 let loginModus = "kennung"; // "kennung" | "mitglied" | "gast"
+// Mehr-Vereine-Umbau (11.08.2026): welcher Verein gerade bestätigt ist und
+// ob er eine Namensliste herausgibt. Beides kommt ausschließlich vom Server
+// (RPC "verein_zugang"); der Browser rät hier nichts.
+let aktuelleKennung = null;
+let vereinZeigtNamensliste = true;
 let gastName = null;
 let gastFragenPool = [];
 let gastFrageIndex = 0;
@@ -252,18 +260,26 @@ function zeigeAngemeldetenZustand(name) {
   aktualisiereAnfragenStatusPunkt();
 }
 
-async function ladeSchiedsrichter() {
-  const { data, error } = await sb
-    .from("schiedsrichter_oeffentlich")
-    .select("id, name")
-    .order("name");
+// Lädt die Namensliste des Vereins zur bestätigten Kennung.
+//
+// Vorher las diese Funktion die View "schiedsrichter_oeffentlich" direkt.
+// Die kannte keinen Verein und gab die Namen ALLER Schiedsrichter heraus -
+// auch ohne jede Kennung. Jetzt entscheidet der Server anhand der Kennung,
+// ob und welche Namen herausgehen; bei Vereinen ohne Liste kommt bewusst
+// eine leere Antwort zurück.
+async function ladeSchiedsrichter(kennung) {
+  nameAuswahl.length = 1; // alles außer "– bitte auswählen –" verwerfen
+
+  if (!kennung) return;
+
+  const { data, error } = await sb.rpc("schiri_liste", { p_kennung: kennung });
 
   if (error) {
     zeigeFehler("Namensliste konnte nicht geladen werden: " + error.message);
     return;
   }
 
-  for (const person of data) {
+  for (const person of data || []) {
     const option = document.createElement("option");
     option.value = person.id;
     option.textContent = person.name;
@@ -279,13 +295,18 @@ function pruefeEingabenVollstaendig() {
   if (loginModus === "gast") {
     startButton.disabled = !(gastNameEingabe.value.trim().length > 0);
   } else if (loginModus === "mitglied") {
-    startButton.disabled = !(nameAuswahl.value && pinEingabe.value.trim().length > 0);
+    // Je nach Verein zählt entweder die Auswahlliste oder das Namensfeld.
+    const nameDa = vereinZeigtNamensliste
+      ? !!nameAuswahl.value
+      : nameEingabe.value.trim().length > 0;
+    startButton.disabled = !(nameDa && pinEingabe.value.trim().length > 0);
   } else {
     startButton.disabled = true;
   }
 }
 
 nameAuswahl.addEventListener("change", pruefeEingabenVollstaendig);
+if (nameEingabe) nameEingabe.addEventListener("input", pruefeEingabenVollstaendig);
 pinEingabe.addEventListener("input", pruefeEingabenVollstaendig);
 gastNameEingabe.addEventListener("input", pruefeEingabenVollstaendig);
 
@@ -304,7 +325,16 @@ function zeigeMitgliedBereich() {
   gastBereich.hidden = true;
   mitgliedBereich.hidden = false;
   startButton.hidden = false;
+
+  // Liste oder Eingabefeld - richtet sich nach dem Verein (siehe
+  // "vereinZeigtNamensliste", gesetzt aus der Serverantwort).
+  if (namenslisteBereich && namenseingabeBereich) {
+    namenslisteBereich.hidden = !vereinZeigtNamensliste;
+    namenseingabeBereich.hidden = vereinZeigtNamensliste;
+  }
+
   pruefeEingabenVollstaendig();
+  if (!vereinZeigtNamensliste && nameEingabe) nameEingabe.focus();
 }
 
 function zeigeGastBereich() {
@@ -391,7 +421,10 @@ async function pruefeVereinskennung(kennungWert, options) {
   kennungHinweis.classList.remove("hinweis-fehler", "hinweis-erfolg");
   kennungWeiterButton.disabled = true;
 
-  const { data: istOk, error } = await sb.rpc("vereinskennung_pruefen", { p_kennung: kennung });
+  // Seit dem Mehr-Vereine-Umbau (11.08.2026) reicht ein Ja/Nein nicht mehr:
+  // "verein_zugang" sagt zusätzlich, wie der Verein heißt und ob er eine
+  // Namensliste herausgibt.
+  const { data: zugangDaten, error } = await sb.rpc("verein_zugang", { p_kennung: kennung });
 
   kennungWeiterButton.disabled = false;
 
@@ -401,6 +434,9 @@ async function pruefeVereinskennung(kennungWert, options) {
     kennungHinweis.hidden = false;
     return;
   }
+
+  const zugang = Array.isArray(zugangDaten) ? zugangDaten[0] : zugangDaten;
+  const istOk = !!(zugang && zugang.gefunden);
 
   if (!istOk) {
     if (ausSession) {
@@ -419,10 +455,23 @@ async function pruefeVereinskennung(kennungWert, options) {
     return;
   }
 
+  aktuelleKennung = kennung;
+  vereinZeigtNamensliste = zugang.namensliste_anzeigen !== false;
+
   speichereKennungSession(kennung);
-  kennungHinweis.textContent = "✓ Vereinskennung bestätigt";
+  kennungHinweis.textContent = zugang.verein_name
+    ? "✓ " + zugang.verein_name
+    : "✓ Vereinskennung bestätigt";
   kennungHinweis.classList.add("hinweis-erfolg");
   kennungHinweis.hidden = false;
+
+  // Die Namensliste wird erst JETZT geladen - vorher ist gar nicht bekannt,
+  // zu welchem Verein sie gehören würde. Bei Vereinen ohne Liste holt die
+  // Funktion nichts und der Block bleibt ohnehin verborgen.
+  if (vereinZeigtNamensliste) {
+    await ladeSchiedsrichter(kennung);
+  }
+
   zeigeMitgliedBereich();
 }
 
@@ -476,41 +525,59 @@ startButton.addEventListener("click", async () => {
   }
 
   versteckeFehler();
-  const schiedsrichterId = nameAuswahl.value;
+
+  // Ein Weg für beide Vereinsarten (11.08.2026): Der Name kommt entweder
+  // aus der Auswahlliste oder aus dem Eingabefeld, geprüft wird beides über
+  // dieselbe RPC "schiri_anmelden". Die liefert bei falscher Kennung,
+  // falschem Namen, falscher PIN und gesperrtem Zugang bewusst DIESELBE
+  // Fehlermeldung - sonst könnte man durch Ausprobieren herausfinden,
+  // welche Namen es in einem Verein überhaupt gibt.
+  const name = vereinZeigtNamensliste
+    ? (nameAuswahl.selectedIndex > 0
+        ? nameAuswahl.options[nameAuswahl.selectedIndex].textContent
+        : "")
+    : nameEingabe.value.trim();
   const pin = pinEingabe.value.trim();
+  const kennung = aktuelleKennung || leseGespeicherteKennung();
+
+  if (!name || !pin || !kennung) return;
 
   startButton.disabled = true;
   const buttonText = startButton.querySelector("span");
   const vorherigerText = buttonText ? buttonText.textContent : null;
   if (buttonText) buttonText.textContent = "Prüfe PIN ...";
 
-  const { data: pinOk, error } = await sb.rpc("pin_pruefen", {
-    p_schiedsrichter_id: schiedsrichterId,
+  const { data: anmeldung, error } = await sb.rpc("schiri_anmelden", {
+    p_kennung: kennung,
+    p_name: name,
     p_pin: pin,
   });
 
   if (buttonText && vorherigerText) buttonText.textContent = vorherigerText;
 
-  if (error) {
-    zeigeFehler("PIN konnte nicht geprüft werden: " + error.message);
-    startButton.disabled = false;
-    return;
-  }
+  const treffer = Array.isArray(anmeldung) ? anmeldung[0] : anmeldung;
 
-  if (!pinOk) {
-    zeigeFehler("PIN ist falsch. Bitte nochmal versuchen.");
+  if (error || !treffer) {
+    zeigeFehler(
+      vereinZeigtNamensliste
+        ? "PIN ist falsch. Bitte nochmal versuchen."
+        : "Name oder PIN stimmt nicht. Bitte nochmal versuchen."
+    );
     startButton.disabled = false;
     pinEingabe.value = "";
     pinEingabe.focus();
     return;
   }
 
-  ausgewaehlteSchiedsrichterId = schiedsrichterId;
+  ausgewaehlteSchiedsrichterId = treffer.schiedsrichter_id;
   eingegebenePin = pin;
 
-  const name = nameAuswahl.options[nameAuswahl.selectedIndex].textContent;
-  speichereSession(schiedsrichterId, pin, name);
-  zeigeAngemeldetenZustand(name);
+  // Den vom Server zurückgegebenen Namen verwenden, nicht den getippten -
+  // sonst stünde bei abweichender Groß-/Kleinschreibung die Eingabe in der
+  // Begrüßung statt der tatsächlich hinterlegte Name.
+  const echterName = treffer.name || name;
+  speichereSession(treffer.schiedsrichter_id, pin, echterName);
+  zeigeAngemeldetenZustand(echterName);
 
   await ladeFragenUndAntworten();
 });
@@ -720,8 +787,12 @@ gastVerlassenButton.addEventListener("click", () => {
   gastNameEingabe.value = "";
 
   nameSchritt.hidden = false;
-  if (leseGespeicherteKennung()) {
-    zeigeMitgliedBereich();
+  const gemerkteKennung = leseGespeicherteKennung();
+  if (gemerkteKennung) {
+    // Nicht einfach zeigeMitgliedBereich(): erst beim Server nachfragen, ob
+    // dieser Verein eine Namensliste hat - sonst stünde nach dem Gast-Modus
+    // womöglich die falsche Eingabeart da.
+    pruefeVereinskennung(gemerkteKennung, { ausSession: true });
   } else {
     zeigeKennungBereich();
   }
@@ -1232,12 +1303,14 @@ async function aktualisiereAnfragenStatusPunkt() {
 
 async function ladeFragenUndAntworten() {
   const [fragenErgebnis, antwortenErgebnis] = await Promise.all([
-    sb
-      .from("fragen_oeffentlich")
-      .select(
-        "id, frage_text, option_a, option_b, option_c, regel_nummer, regel_bezeichnung, schwierigkeit, position, typ, antwort_hinweis, video_url, video_start_sekunden, video_end_sekunden, video_antworttyp, video_stumm"
-      )
-      .order("position", { ascending: true, nullsFirst: false }),
+    // Früher die View "fragen_oeffentlich". Die kannte nur eine einzige
+    // Wochenzuordnung für alle. Seit dem Mehr-Vereine-Umbau entscheidet der
+    // Server anhand des angemeldeten Schiedsrichters, welche Woche gilt -
+    // die Sortierung nach Fragennummer kommt gleich mit.
+    sb.rpc("wochen_fragen", {
+      p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
+      p_pin: eingegebenePin,
+    }),
     sb.rpc("meine_antworten", {
       p_schiedsrichter_id: ausgewaehlteSchiedsrichterId,
       p_pin: eingegebenePin,
@@ -2238,8 +2311,27 @@ function baueFreitextFrageElement(frage) {
 // bisherige, komplett KI-generierte Formulierung wirkte zu variabel/informell -
 // die feste Musterantwort sorgt dafür, dass die eigentlich richtige Antwort
 // (z.B. "Gelbe Karte") immer exakt und gleich dargestellt wird.
+// Aus dem früheren Booleanpaar (korrekt + teilweise) ist ein Status
+// geworden. Diese Funktion liest ihn aus allem, was ankommen kann: der
+// Antwort des Endpunkts (status), der Zeile aus meine_antworten
+// (bewertungsstatus / nachbesserung_offen) und - als letzte Rückfallebene -
+// den alten Feldern. So macht eine noch nicht neu geladene Seite nichts
+// kaputt.
+function freitextStatus(ergebnis) {
+  if (!ergebnis) return "falsch";
+  if (typeof ergebnis.status === "string" && ergebnis.status) return ergebnis.status;
+  if (typeof ergebnis.bewertungsstatus === "string" && ergebnis.bewertungsstatus) {
+    return ergebnis.bewertungsstatus;
+  }
+  if (ergebnis.nachbesserung_offen) return "nachbessern";
+  if (ergebnis.korrekt) return "richtig";
+  if (ergebnis.teilweise) return "nachbessern";
+  return "falsch";
+}
+
 function baueFreitextErgebnisInhalt(ergebnis) {
   const wrap = document.createElement("div");
+  const status = freitextStatus(ergebnis);
 
   // Drei Stufen statt zwei (07.08.2026, Max' Wunsch): wer den Grundgedanken
   // richtig hatte und nur ein gefordertes Element vergessen hat, bekommt eine
@@ -2249,17 +2341,20 @@ function baueFreitextErgebnisInhalt(ergebnis) {
   // weiterhin als nicht bestanden - die Stufe ist reine Rückmeldung.
   const kopf = document.createElement("p");
   kopf.className = "freitext-ergebnis-kopf";
-  if (ergebnis.korrekt) {
+  if (status === "richtig") {
     kopf.textContent = "Antwort korrekt ✅";
-  } else if (ergebnis.teilweise) {
-    kopf.textContent = "Fast! Auf dem richtigen Weg 🟠";
+  } else if (status === "nachbessern") {
+    kopf.textContent = "Fast! Da fehlt noch ein Punkt 🟠";
     kopf.classList.add("teilweise");
   } else {
     kopf.textContent = "Antwort nicht korrekt";
   }
   wrap.appendChild(kopf);
 
-  if (ergebnis.musterantwort) {
+  // Solange eine Ergänzung offen ist, wird die Lösung NICHT gezeigt - sonst
+  // wäre die Nachfrage sinnlos. Der Server liefert sie in dem Fall ohnehin
+  // gar nicht erst mit; die Bedingung hier ist die zweite Sicherung.
+  if (status !== "nachbessern" && ergebnis.musterantwort) {
     const musterZeile = document.createElement("p");
     musterZeile.className = "freitext-ergebnis-muster";
     musterZeile.textContent = "Richtige Antwort: " + ergebnis.musterantwort;
@@ -2276,18 +2371,169 @@ function baueFreitextErgebnisInhalt(ergebnis) {
   return wrap;
 }
 
+// ============================================================
+// Zweiter Versuch bei orange (11.08.2026)
+//
+// Wer den Kern getroffen, aber einen zwingenden Punkt vergessen hat, bekommt
+// GENAU EINE Ergänzung. Die Lösung wird dabei bewusst nicht gezeigt - nur
+// eine gezielte Rückfrage, die zum fehlenden Punkt hinführt.
+//
+// Wichtig für die Erwartung: eine offene Ergänzung zählt in der Auswertung
+// bereits als beantwortet. Wer sie liegen lässt, hat die Frage falsch. Das
+// steht deshalb ausdrücklich auf der Karte und wird nicht weggelächelt.
+// ============================================================
+function baueErgaenzungsBereich(frageId, nachfrage) {
+  const wrap = document.createElement("div");
+  wrap.className = "freitext-ergaenzung";
+
+  const frageZeile = document.createElement("p");
+  frageZeile.className = "freitext-nachfrage";
+  frageZeile.textContent = nachfrage || "Begründe bitte noch kurz, warum du so entscheidest.";
+  wrap.appendChild(frageZeile);
+
+  const hinweis = document.createElement("p");
+  hinweis.className = "freitext-ergaenzung-hinweis";
+  hinweis.textContent =
+    "Du hast genau eine Ergänzung. Schickst du sie nicht ab, bleibt die Frage als falsch stehen.";
+  wrap.appendChild(hinweis);
+
+  const textarea = document.createElement("textarea");
+  textarea.className = "freitext-eingabe";
+  textarea.maxLength = FREITEXT_ZEICHENLIMIT;
+  textarea.rows = 3;
+  textarea.placeholder = "Deine Ergänzung ...";
+  wrap.appendChild(textarea);
+
+  const zaehler = document.createElement("div");
+  zaehler.className = "freitext-zaehler";
+  zaehler.textContent = "0 / " + FREITEXT_ZEICHENLIMIT;
+  textarea.addEventListener("input", () => {
+    zaehler.textContent = textarea.value.length + " / " + FREITEXT_ZEICHENLIMIT;
+  });
+  wrap.appendChild(zaehler);
+
+  const button = document.createElement("button");
+  button.className = "absenden-button";
+  button.textContent = "Antwort ergänzen";
+  button.addEventListener("click", () => freitextErgaenzungAbschicken(frageId, wrap, button, textarea));
+  wrap.appendChild(button);
+
+  const ladeHinweis = document.createElement("p");
+  ladeHinweis.className = "freitext-lade-hinweis";
+  ladeHinweis.hidden = true;
+  const spinner = document.createElement("span");
+  spinner.className = "spinner";
+  ladeHinweis.appendChild(spinner);
+  ladeHinweis.append(" Einen Moment, deine Ergänzung wird geprüft ...");
+  wrap.appendChild(ladeHinweis);
+
+  return wrap;
+}
+
+async function freitextErgaenzungAbschicken(frageId, wrap, button, textarea) {
+  const ergaenzung = textarea.value.trim();
+  if (ergaenzung.length === 0) {
+    zeigeFehler("Bitte erst eine Ergänzung eingeben.");
+    return;
+  }
+  versteckeFehler();
+
+  button.disabled = true;
+  textarea.disabled = true;
+  const ladeHinweis = wrap.querySelector(".freitext-lade-hinweis");
+  if (ladeHinweis) ladeHinweis.hidden = false;
+
+  let ergebnis;
+  try {
+    const antwort = await fetch("/api/freitext-bewerten", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        schiedsrichterId: ausgewaehlteSchiedsrichterId,
+        frageId,
+        pin: eingegebenePin,
+        freitext: ergaenzung,
+        modus: "nachbesserung",
+      }),
+    });
+    ergebnis = await antwort.json();
+    if (!antwort.ok) throw new Error(ergebnis.fehler || "Unbekannter Fehler");
+  } catch (e) {
+    if (ladeHinweis) ladeHinweis.hidden = true;
+    // Sonderfall: Die Ergänzung wurde gespeichert, aber die Antwort kam nicht
+    // mehr an (Verbindungsabbruch). Ein erneuter Klick liefert dann immer
+    // dieselbe Absage. Statt die Person in dieser Schleife zu lassen, hier
+    // klar sagen, was zu tun ist.
+    const schonGespeichert = /keine Ergänzung mehr offen/i.test(e.message || "");
+    zeigeFehler(
+      schonGespeichert
+        ? "Deine Ergänzung ist schon angekommen. Lade die Seite neu, dann siehst du das Ergebnis."
+        : "Ergänzung konnte nicht geprüft werden: " + e.message + " - bitte nochmal versuchen."
+    );
+    if (!schonGespeichert) {
+      button.disabled = false;
+      textarea.disabled = false;
+    }
+    return;
+  }
+
+  const status = freitextStatus(ergebnis);
+  const karte = wrap.closest(".frage-karte");
+
+  // Der Ergänzungsblock wird durch das Endergebnis ersetzt. Die eigene
+  // Ergänzung bleibt dabei sichtbar - die Person soll nachvollziehen können,
+  // worauf sich die Bewertung bezieht.
+  wrap.innerHTML = "";
+  wrap.classList.add("abgeschlossen");
+
+  const eigene = document.createElement("p");
+  eigene.className = "freitext-eigene-antwort";
+  eigene.textContent = "Deine Ergänzung: " + ergaenzung;
+  wrap.appendChild(eigene);
+
+  const ergebnisWrap = document.createElement("div");
+  ergebnisWrap.className = "beantwortet-ergebnis " + (status === "richtig" ? "richtig" : "falsch");
+  ergebnisWrap.appendChild(baueFreitextErgebnisInhalt(ergebnis));
+  wrap.appendChild(ergebnisWrap);
+  wrap.appendChild(baueWarumButton(frageId, false));
+
+  if (karte) {
+    karte.classList.remove("teilweise-karte");
+    karte.classList.add("beantwortet", status === "richtig" ? "richtig-karte" : "falsch-karte");
+
+    const tag = karte.querySelector(".beantwortet-tag");
+    if (tag) {
+      tag.classList.remove("teilweise");
+      tag.textContent = "🔒 Bereits beantwortet";
+    }
+
+    // Der orange Zwischenstand von vorhin muss weg - sonst stünde direkt
+    // über dem Endergebnis weiterhin "Fast! Da fehlt noch ein Punkt".
+    karte.querySelectorAll(".beantwortet-ergebnis.teilweise, .feedback.teilweise").forEach((alt) => {
+      if (alt === wrap || wrap.contains(alt)) return;
+      alt.classList.remove("teilweise");
+      const kopf = alt.querySelector(".freitext-ergebnis-kopf");
+      if (kopf) kopf.remove();
+    });
+  }
+}
+
 function baueBeantworteteFreitextElement(frage, antwort) {
+  const status = freitextStatus(antwort);
+  const wartetAufErgaenzung = status === "nachbessern";
+
   const container = document.createElement("div");
   container.className =
-    "frage-karte beantwortet frage-karte-freitext " + (antwort.korrekt ? "richtig-karte" : "falsch-karte");
+    "frage-karte beantwortet frage-karte-freitext " +
+    (wartetAufErgaenzung ? "teilweise-karte" : status === "richtig" ? "richtig-karte" : "falsch-karte");
   container.dataset.frageId = frage.id;
 
   const badges = baueBadges(frage);
   if (badges) container.appendChild(badges);
 
   const tag = document.createElement("div");
-  tag.className = "beantwortet-tag";
-  tag.textContent = "🔒 Bereits beantwortet";
+  tag.className = wartetAufErgaenzung ? "beantwortet-tag teilweise" : "beantwortet-tag";
+  tag.textContent = wartetAufErgaenzung ? "🟠 Wartet auf deine Ergänzung" : "🔒 Bereits beantwortet";
   container.appendChild(tag);
 
   const titel = document.createElement("div");
@@ -2309,10 +2555,29 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   deineAntwort.textContent = "Deine Antwort: " + (antwort.gegebener_freitext || "");
   container.appendChild(deineAntwort);
 
+  // Beim abgeschlossenen zweiten Versuch stehen beide Texte in der Reihenfolge
+  // da, in der sie entstanden sind - erst die Antwort, dann die Ergänzung,
+  // dann das Ergebnis, das sich auf beides zusammen bezieht.
+  if (!wartetAufErgaenzung && antwort.zweiter_freitext) {
+    const ergaenzung = document.createElement("p");
+    ergaenzung.className = "freitext-eigene-antwort";
+    ergaenzung.textContent = "Deine Ergänzung: " + antwort.zweiter_freitext;
+    container.appendChild(ergaenzung);
+  }
+
   const ergebnisWrap = document.createElement("div");
-  ergebnisWrap.className = "beantwortet-ergebnis " + (antwort.korrekt ? "richtig" : "falsch");
+  ergebnisWrap.className =
+    "beantwortet-ergebnis " + (status === "richtig" ? "richtig" : wartetAufErgaenzung ? "teilweise" : "falsch");
   ergebnisWrap.appendChild(baueFreitextErgebnisInhalt(antwort));
   container.appendChild(ergebnisWrap);
+
+  if (wartetAufErgaenzung) {
+    // Nach einem Neuladen steht der orange Zustand vollständig wieder da:
+    // erste Antwort, gespeicherte Rückfrage, leeres Ergänzungsfeld.
+    container.appendChild(baueErgaenzungsBereich(frage.id, antwort.ki_nachfrage));
+    return container;
+  }
+
   container.appendChild(baueWarumButton(frage.id, false));
 
   return container;
@@ -2362,10 +2627,13 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
 
   if (ladeHinweis) ladeHinweis.hidden = true;
 
+  const status = freitextStatus(ergebnis);
+  const wartetAufErgaenzung = status === "nachbessern";
+
   const feedback = container.querySelector(".feedback");
   feedback.hidden = false;
   feedback.innerHTML = "";
-  feedback.classList.add(ergebnis.korrekt ? "richtig" : (ergebnis.teilweise ? "teilweise" : "falsch"));
+  feedback.classList.add(status === "richtig" ? "richtig" : wartetAufErgaenzung ? "teilweise" : "falsch");
 
   if (ergebnis.bereits_beantwortet) {
     const hinweisZeile = document.createElement("p");
@@ -2374,8 +2642,19 @@ async function freitextAntwortAbschicken(frageId, container, button, textarea) {
     feedback.appendChild(hinweisZeile);
   }
   feedback.appendChild(baueFreitextErgebnisInhalt(ergebnis));
-  feedback.appendChild(baueWarumButton(frageId, false));
 
+  if (wartetAufErgaenzung) {
+    // Kein "Warum?"-Button, solange die Ergänzung offen ist - der würde die
+    // Auflösung liefern, nach der hier gerade gefragt wird.
+    container.classList.add("teilweise-karte");
+    feedback.appendChild(baueErgaenzungsBereich(frageId, ergebnis.ki_nachfrage));
+  } else {
+    feedback.appendChild(baueWarumButton(frageId, false));
+  }
+
+  // Auch eine offene Ergänzung zählt als beantwortet. Das ist bewusst so:
+  // In der Auswertung ist die Frage damit erledigt, und wer nicht ergänzt,
+  // hat sie falsch. Der Hinweistext auf der Karte sagt das auch so.
   beantworteFragenAnzahl += 1;
   aktualisiereFortschritt();
   aktualisiereSammelButtonSichtbarkeit();
@@ -3072,8 +3351,9 @@ async function historieFreitextAntwortAbschicken(frageId, container, button, tex
 }
 
 async function start() {
-  await ladeSchiedsrichter();
-
+  // Die Namensliste wird NICHT mehr blind beim Start geladen - erst wenn
+  // eine Vereinskennung bestätigt ist, steht überhaupt fest, wessen Namen
+  // gemeint wären (siehe pruefeVereinskennung).
   const gespeichert = leseGespeicherteSession();
   if (gespeichert && gespeichert.id && gespeichert.pin) {
     ausgewaehlteSchiedsrichterId = gespeichert.id;

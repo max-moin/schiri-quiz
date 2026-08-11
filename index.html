@@ -208,10 +208,31 @@
       </div>
 
       <div id="mitglied-bereich" hidden>
-        <label for="name-auswahl">Wer bist du?</label>
-        <select id="name-auswahl">
-          <option value="">– bitte auswählen –</option>
-        </select>
+        <!-- Zwei Wege zur Anmeldung (11.08.2026, Mehr-Vereine-Umbau):
+             Vereine mit "namensliste_anzeigen = true" (Löbtauer Kickers)
+             bekommen wie bisher die Auswahlliste. Vereine ohne Liste
+             (Familie & Freunde) tippen ihren Namen selbst - dort soll
+             niemand sehen können, wer sonst noch dabei ist. Welcher der
+             beiden Blöcke sichtbar ist, entscheidet die Serverantwort von
+             "verein_zugang", nicht der Browser. -->
+        <div id="namensliste-bereich">
+          <label for="name-auswahl">Wer bist du?</label>
+          <select id="name-auswahl">
+            <option value="">– bitte auswählen –</option>
+          </select>
+        </div>
+
+        <div id="namenseingabe-bereich" hidden>
+          <label for="name-eingabe">Dein Name</label>
+          <input
+            id="name-eingabe"
+            type="text"
+            autocomplete="off"
+            spellcheck="false"
+            data-gramm="false"
+            placeholder="so wie du eingetragen bist"
+          />
+        </div>
 
         <label for="pin-eingabe">Deine PIN</label>
         <!-- Bewusst KEIN type="password" - siehe Kommentar bei der

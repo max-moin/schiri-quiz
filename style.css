@@ -2391,3 +2391,77 @@ input.maskiert.sichtbar {
   font-size: 0.8rem;
   padding: 4px 11px;
 }
+
+/* ============================================================
+   Orange als eigener Zustand mit zweitem Versuch (11.08.2026)
+
+   Die Zwischenstufe von oben wird zum echten Zustand: Wer den Kern
+   getroffen, aber einen zwingenden Punkt vergessen hat, bekommt genau eine
+   Ergänzung. Die Karte bleibt so lange offen und deutlich orange.
+
+   Farbe kommuniziert hier bewusst nicht allein - Symbol ("🟠"), Überschrift
+   ("Wartet auf deine Ergänzung") und der Hinweistext sagen dasselbe noch
+   einmal in Worten, für alle, die Orange und Rot nicht unterscheiden.
+   ============================================================ */
+.frage-karte.teilweise-karte {
+  border-color: #fcd34d;
+  box-shadow: inset 4px 0 0 var(--karte-orange);
+  /* Bewusst NICHT ausgegraut wie die anderen beantworteten Karten - hier
+     ist ja noch etwas zu tun. */
+  opacity: 1;
+}
+
+.frage-karte.teilweise-karte::before {
+  background: var(--karte-orange);
+}
+
+.beantwortet-tag.teilweise {
+  background: var(--amber-light);
+  color: #92400e;
+}
+
+.beantwortet-ergebnis.teilweise {
+  background: var(--amber-light);
+  color: #92400e;
+}
+
+.freitext-ergaenzung {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid #fcd34d;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--amber-light) 45%, transparent);
+}
+
+.freitext-ergaenzung.abgeschlossen {
+  border-color: var(--border);
+  background: transparent;
+}
+
+.freitext-nachfrage {
+  margin: 0 0 6px;
+  font-weight: 600;
+  line-height: 1.45;
+  color: #92400e;
+}
+
+.freitext-ergaenzung-hinweis {
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .frage-karte.teilweise-karte {
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+}
+
+/* Falls beide Klassen gleichzeitig gesetzt sein sollten (z.B. weil ein alter
+   Zwischenstand nicht abgeräumt wurde), gewinnt das Endergebnis - orange ist
+   immer nur ein Zwischenzustand. */
+.feedback.teilweise.richtig,
+.beantwortet-ergebnis.teilweise.richtig {
+  color: var(--green-dark, #166534);
+  background: var(--green-light, #dcfce7);
+}
