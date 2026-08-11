@@ -1,6 +1,7 @@
 {
   "name": "schiri-quiz",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "check": "node --check app.js && node --check src/quiz-utils.js && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"

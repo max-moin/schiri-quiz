@@ -6,11 +6,12 @@
 //   - "Project URL"       -> SUPABASE_URL
 //   - "anon public" Key   -> SUPABASE_ANON_KEY
 //
-// Wichtig: Der "anon" Key ist bewusst öffentlich (er landet im
-// Browser-Code jedes Besuchers) - das ist bei Supabase so gedacht.
-// Der Schutz kommt nicht aus Geheimhaltung, sondern aus den
-// Row-Level-Security-Regeln in supabase-schema.sql. Verwende hier
-// NIEMALS den "service_role" Key, der ist geheim!
+// Wichtig: Der Publishable Key ist bewusst öffentlich (er landet im
+// Browser-Code jedes Besuchers). Der Schutz kommt aus den aktuellen
+// Datenbankrechten, RLS-Regeln und den PIN-prüfenden RPCs der Live-Datenbank.
+// supabase-schema.sql bildet nur den historischen Prototyp ab und ist dafür
+// NICHT die aktuelle Quelle. Verwende hier NIEMALS einen Secret- oder
+// service_role-Key!
 // ============================================================
 
 const SUPABASE_URL = "https://ivwmixaicpmtvcjtnbjv.supabase.co";

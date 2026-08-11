@@ -1,39 +1,124 @@
 # ⚽ Schiri-Quiz der Woche
 
-Eine kleine Website für die Schiedsrichter:innen unseres Vereins: einmal pro Woche ein paar Regelfragen beantworten, direkt im Browser, dauert unter 2 Minuten.
+Vereinsinternes Regelquiz für Fußball-Schiedsrichter:innen. Die Teilnehmer:innen beantworten jede Woche einige Multiple-Choice-, Freitext- und Videofragen. Eine separate SwiftUI-App unterstützt den Schiedsrichter-Obmann bei Fragenpflege, Wochenplanung und Auswertung.
 
-## Was das hier ist
+Das Projekt befindet sich im **aktiven Pilotbetrieb** in einem kleinen Verein. Es ist zugleich ein privates Lernprojekt und noch kein allgemein einsetzbares Vereinsprodukt.
 
-Das ist ein **Vibe-Coding-Projekt** – ich (Max, Schiedsrichter-Obmann des Vereins) habe das zusammen mit [Claude](https://claude.ai) gebaut, ohne selbst schon tief in Webentwicklung drinzustecken. Die Idee, die Architektur-Entscheidungen und alle Inhalte (Fragen, Regeln, Abläufe) kommen von mir; den eigentlichen Code hat Claude geschrieben, ich habe getestet, Feedback gegeben und angepasst. Nebenbei ist das für mich auch ein Einstieg, um Programmieren besser zu verstehen – deswegen ist der Code bewusst einfach gehalten (kein Build-Tool, kein Framework, nur HTML/CSS/JS).
+## Funktionen
 
-**Aktueller Stand: Testphase.** Die eigentlichen Schiedsrichter:innen des Vereins nutzen das noch nicht aktiv – erstmal wird alles selbst durchgetestet, bevor es "scharf" geschaltet wird.
+- Anmeldung über Vereinskennung, Name und persönliche PIN
+- getrennte Wochenplanung für mehrere Vereine bei gemeinsamer Fragenbasis
+- Multiple-Choice-, Freitext- und Video-Fragen
+- KI-gestützte Freitextbewertung mit drei Zuständen:
+  - **grün:** fachlich richtig
+  - **orange:** richtige Richtung, aber eine konkrete Ergänzung fehlt
+  - **rot:** fachlich falsch
+- bei Orange genau eine adaptive Rückfrage und ein zweiter Versuch
+- kurze „Warum?“-Erklärungen nach beantworteten Fragen
+- statische Ersatzerklärung, falls das KI-Kontingent nicht verfügbar ist
+- Übungsmodus für ältere Fragen und separater Gastzugang
+- Anfragen an den Obmann, etwa für Ausrüstung oder allgemeine Anliegen
+- responsive Oberfläche für Smartphone und Desktop
 
-## Was die Seite macht
+## Architektur
 
-- Schiedsrichter:in wählt sich per Name + PIN aus einer Liste aus
-- beantwortet die aktuellen Wochenfragen (Multiple Choice, direktes Richtig/Falsch-Feedback)
-- bereits beantwortete Fragen werden beim nächsten Besuch automatisch gesperrt angezeigt (kein doppeltes Beantworten)
-- ein Obmann-Dashboard (separate App, siehe unten) wertet aus, wer wie gut abgeschnitten hat
+```text
+Browser
+  ├─ statisches HTML, CSS und JavaScript
+  ├─ öffentliche, PIN-prüfende Supabase-RPCs
+  └─ /api/freitext-bewerten und /api/erklaerung
+         ├─ Google Gemini
+         └─ geschützte Supabase-RPCs mit serverseitigem Secret
 
-## Tech-Stack
+SwiftUI-App des Obmanns
+  └─ dasselbe Supabase-Projekt
+```
 
-- **Frontend:** einfaches HTML/CSS/JavaScript, kein Framework, kein Build-Schritt – die drei Dateien `index.html`, `style.css`, `app.js` sind der komplette Code
-- **Backend/Datenbank:** [Supabase](https://supabase.com) (Postgres + automatisch generierte API). Die Fragen-Logik, PIN-Prüfung usw. läuft über Postgres-Funktionen (RPCs), nicht im Frontend
-- **Hosting:** [Vercel](https://vercel.com), automatisches Deployment bei jedem Push auf `main`
+- **Frontend:** HTML, CSS und JavaScript ohne Framework oder Build-Schritt
+- **Serverfunktionen:** Vercel Functions unter `api/`
+- **Datenbank:** Supabase/Postgres mit RLS und Postgres-Funktionen
+- **KI:** Google Gemini, standardmäßig `gemini-3.5-flash-lite`
+- **Hosting:** Vercel; `main` ist Production, andere Branches erzeugen Previews
+- **Obmann-App:** separates lokales SwiftUI-Projekt für macOS, iPhone und iPad; derzeit noch nicht Bestandteil dieses Repositorys
 
-## Sicherheitsmodell (kurz)
+## Projektstruktur
 
-Der `SUPABASE_ANON_KEY` in `config.js` ist **absichtlich öffentlich** – das ist bei Supabase so vorgesehen, jeder Website-Besucher bekommt diesen Key ohnehin im Browser zu sehen. Der eigentliche Schutz kommt aus zwei Dingen:
+| Pfad | Zweck |
+|---|---|
+| `index.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
+| `src/quiz-utils.js` | erste ausgelagerte, unabhängig testbare Browser-Hilfsfunktionen |
+| `api/` | serverseitige KI-Bewertung und Erklärungen |
+| `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
+| `tests/` | Vertrags-, Sicherheits- und Logiktests |
+| `supabase/migrations/` | neuere versionierte Datenbankänderungen |
+| `config.js` | öffentliche Supabase-URL und Publishable Key für den Browser |
+| `datenschutz.html`, `impressum.html`, `nutzungsbedingungen.html` | rechtliche Seiten des aktuellen Pilotbetriebs |
 
-1. **Row-Level-Security** (siehe `supabase-schema.sql`) – regelt, wer welche Tabellen/Zeilen überhaupt sehen/ändern darf
-2. **PIN-Prüfung serverseitig** in den Postgres-Funktionen (nicht im Frontend) – eine falsche PIN wird immer vom Server abgelehnt, egal was das Frontend schickt
+## Sicherheit und bekannte Grenzen
 
-Der geheime `service_role`-Key taucht hier nirgends auf und darf auch nie im Frontend-Code landen.
+Der Wert `SUPABASE_ANON_KEY` in `config.js` ist ein **Publishable Key** und darf im Browser sichtbar sein. Geheim bleiben müssen dagegen insbesondere:
 
-## Verwandtes Projekt
+- `SUPABASE_SECRET_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GEMINI_API_KEY`
 
-Es gibt außerdem eine SwiftUI-App ("SR-Obmann") für Mac/iPad/iPhone, mit der ich als Obmann die Auswertungen sehe, neue Fragen anlege und die Wochenplanung mache – nutzt dieselbe Supabase-Datenbank, ist aber ein eigenes, separates Repository.
+Diese Werte werden ausschließlich als Vercel-Umgebungsvariablen verwendet. Die beiden KI-Endpunkte verweigern ihren Betrieb, wenn kein geheimer Supabase-Schlüssel vorhanden ist.
 
-## Weiteres
+Die Anwendung schützt Daten zusätzlich über RLS, eingeschränkte Datenbankrechte und PIN-prüfende RPCs. Die KI-nahen RPCs sind nur für den serverseitigen Supabase-Schlüssel vorgesehen. Automatische Tests prüfen unter anderem, dass kein geheimer Schlüssel an den Browser fällt und dass interne Serverfehler nicht offengelegt werden.
 
-Eine ausführlichere technische Anleitung (Supabase/Vercel von Grund auf einrichten) steht in [`ANLEITUNG.md`](./ANLEITUNG.md).
+Bekannte Grenzen:
+
+- Die kurzen PINs sind für den kleinen vereinsinternen Pilotbetrieb gedacht und ersetzen kein vollständiges Benutzerkonto.
+- Vor einer Nutzung durch weitere Vereine oder einen Verband braucht das Authentifizierungs- und Berechtigungsmodell eine weitere Härtung.
+- Einige ältere Datenbankfunktionen und Views werden noch einzeln auf minimal notwendige Rechte geprüft.
+- Die rechtlichen Seiten sind eine Arbeitsfassung und keine anwaltlich geprüfte Rechtsberatung.
+
+Sicherheitsprobleme bitte nicht zusammen mit echten personenbezogenen Daten in ein öffentliches Issue schreiben, sondern zunächst direkt an den Projektverantwortlichen melden.
+
+## Lokale Prüfungen
+
+Benötigt wird Node.js 22 oder neuer. Es gibt keine zu installierenden Laufzeitabhängigkeiten.
+
+```bash
+npm run check
+```
+
+Der Befehl prüft die JavaScript-Syntax und führt aktuell 22 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+
+## Konfiguration
+
+Für die Vercel Functions werden benötigt:
+
+```text
+GEMINI_API_KEY
+SUPABASE_SECRET_KEY
+```
+
+Optional überschreibbar sind:
+
+```text
+SUPABASE_URL
+GEMINI_MODELL
+GEMINI_BEWERTUNGS_MODELL
+GEMINI_ERKLAERUNGS_MODELL
+```
+
+`config.js` enthält ausschließlich die öffentliche Supabase-Verbindung des Browsers. Dort darf niemals ein Secret- oder Service-Role-Key eingetragen werden.
+
+## Datenbankstand
+
+`supabase-schema.sql` dokumentiert nur den **historischen ersten Prototyp**. Die Datei bildet die heutige Datenbank nicht vollständig ab und darf nicht als aktuelles Neuinstallationsskript oder als Migration für das laufende Projekt verwendet werden.
+
+Auch der Ordner `supabase/migrations/` enthält derzeit nur die neueren Änderungen und noch keine vollständige Baseline der gewachsenen Datenbank. Eine komplett reproduzierbare Neuinstallation ist deshalb eine offene technische Aufgabe. Für das bestehende Projekt gilt die Supabase-Produktionsdatenbank als aktueller Stand; neue Änderungen werden ab jetzt als Migration versioniert.
+
+Der sichere Release-Ablauf steht in [ANLEITUNG.md](./ANLEITUNG.md).
+
+## Entwicklung mit KI-Unterstützung
+
+Das Projekt wurde von Max Müller als Schiedsrichter-Obmann konzipiert und mit Claude und Codex umgesetzt. Anforderungen, fachliche Regeln, Produktentscheidungen und Live-Tests kommen von Max; ein erheblicher Teil des Codes wurde KI-gestützt erzeugt oder überarbeitet. KI-Code wird dabei wie fremder Code behandelt: prüfen, testen und erst über eine Preview nach Production übernehmen.
+
+Issues und konkrete Verbesserungsvorschläge sind willkommen.
+
+## Lizenz
+
+Der Quellcode steht unter der [MIT-Lizenz](./LICENSE).
