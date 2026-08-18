@@ -114,18 +114,24 @@ select:focus-visible {
 }
 .marken-knopf:hover { background: var(--marke-lighter); border-color: var(--border); }
 
+/* Seit 18.08.2026 steht hier das echte Vereinswappen statt eines
+   Kürzel-Kastens. Höhe fest, Breite automatisch - das Wappen ist
+   hochformatig und soll nicht verzerren. */
 .wappen {
-  width: 36px; height: 36px;
-  border-radius: 9px;
-  background: linear-gradient(140deg, var(--green), var(--green-dark));
-  display: grid; place-items: center;
-  font-weight: 800; font-size: .72rem; color: #fff;
+  height: 40px;
+  width: auto;
   flex: none;
+  display: block;
 }
 
-.marken-text { text-align: left; }
-.marken-titel { font-family: var(--font-titel); font-weight: 600; font-size: .9rem; line-height: 1.2; }
-.marken-unter { font-size: .7rem; color: var(--muted); }
+/* Max' Vorgabe: voller Vereinsname, kein Zusatz "Schiedsrichter-Abteilung"
+   darunter - das stand klein und unruhig in der Ecke. */
+.marken-titel {
+  font-family: var(--font-titel);
+  font-weight: 600;
+  font-size: .97rem;
+  line-height: 1.2;
+}
 
 .haupt-nav {
   margin-left: auto;
@@ -250,11 +256,15 @@ select:focus-visible {
 
 .aufmacher { position: relative; height: 300px; border-radius: var(--radius); overflow: hidden; margin-bottom: 34px; }
 .aufmacher .bildflaeche { position: absolute; inset: 0; }
+/* Der Verlauf war vorher fast bis oben dunkel und drückte das Bild weg.
+   Jetzt nur noch unten so viel Abdunklung, wie die Schrift zum Lesen
+   braucht - der obere Teil des Fotos bleibt hell (Max, 18.08.2026:
+   "ein bisschen ansprechender, freundlicher, heller"). */
 .aufmacher-text {
   position: absolute; inset: 0; z-index: 3;
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: 30px 32px;
-  background: linear-gradient(to top, rgba(17,24,39,.9) 12%, rgba(17,24,39,.25) 62%, transparent);
+  background: linear-gradient(to top, rgba(17,24,39,.82) 0%, rgba(17,24,39,.45) 38%, transparent 72%);
 }
 .aufmacher h1 {
   font-family: var(--font-titel);
@@ -308,17 +318,33 @@ select:focus-visible {
 
 /* ---------- Schnuppertest-Aufruf ---------- */
 
+/* War ein anthrazitfarbener Block und damit der dunkelste Fleck der
+   Startseite. Jetzt hell mit grünem Rand: fällt weiterhin auf, wirkt aber
+   einladend statt streng. Grün ist hier ausnahmsweise dekorativ - es ist
+   kein Quiz-Feedback, sondern die Vereinsfarbe. */
 .schnupper {
-  background: var(--marke);
+  background: var(--green-light);
+  border: 1px solid #a7f3c4;
   border-radius: var(--radius);
-  padding: 26px 28px;
-  color: #fff;
+  padding: 24px 26px;
   display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
 }
-.schnupper h2 { font-family: var(--font-titel); margin: 0 0 6px; font-size: 1.2rem; }
-.schnupper p { color: #9ca3af; font-size: .87rem; margin: 0; max-width: 52ch; line-height: 1.55; }
-.schnupper .knopf-haupt { margin-left: auto; }
-@media (max-width: 620px) { .schnupper .knopf-haupt { margin-left: 0; } }
+.schnupper h2 { font-family: var(--font-titel); margin: 0 0 5px; font-size: 1.15rem; color: #052e16; }
+.schnupper p { color: #166534; font-size: .87rem; margin: 0; max-width: 52ch; line-height: 1.55; }
+
+.knopf-schnupper {
+  margin-left: auto;
+  background: var(--green-dark);
+  color: #fff;
+  border: 0; border-radius: 999px;
+  padding: 12px 22px;
+  font: inherit; font-weight: 700; font-size: .87rem;
+  text-decoration: none; cursor: pointer;
+  min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.knopf-schnupper:hover { background: #14532d; }
+@media (max-width: 620px) { .knopf-schnupper { margin-left: 0; } }
 
 /* ---------- Termine ---------- */
 
@@ -425,9 +451,11 @@ select:focus-visible {
 
 /* ---------- Fußbereich ---------- */
 
-.seiten-fuss { background: var(--marke-dunkel); color: #9ca3af; margin-top: 40px; }
+/* Von Anthrazit auf ein helles Grau umgestellt - der schwarze Balken am
+   Seitenende zog optisch stark nach unten. */
+.seiten-fuss { background: var(--marke-lighter); color: var(--muted); margin-top: 44px; border-top: 1px solid var(--border); }
 .fuss-innen { max-width: 1140px; margin: 0 auto; padding: 24px 20px; font-size: .78rem; line-height: 1.7; }
-.fuss-innen a { color: #d1d5db; text-decoration: none; margin-right: 16px; }
+.fuss-innen a { color: var(--marke-hell); text-decoration: none; margin-right: 16px; font-weight: 500; }
 .fuss-innen a:hover { text-decoration: underline; }
 /* opacity entfernt: mischte den Text auf 4,05:1 herunter und lag damit
    unter der WCAG-AA-Schwelle von 4,5:1. */

@@ -2094,6 +2094,45 @@ select:focus-visible,
   z-index: 30;
 }
 
+/* Heim-Knopf (18.08.2026): ersetzt das frühere Klappmenü an derselben
+   Stelle. Max' Begründung: Auf der Startseite stehen ohnehin alle
+   Verlinkungen - ein zweites Menü hier wäre dieselbe Navigation ein
+   zweites Mal. Wichtig war ihm nur, dass man aus dem Quiz überhaupt
+   wieder herausfindet.
+
+   Übernimmt bewusst die Maße des alten Knopfes (44 px, Ecke oben rechts),
+   damit der Kopfbereich unverändert bleibt und "Schiri-Quiz der Woche"
+   weiterhin einzeilig passt. */
+.heim-knopf {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 30;
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, .28);
+  background: rgba(255, 255, 255, .12);
+  color: #fff;
+  font-size: 1.4rem;
+  line-height: 1;
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+
+.heim-knopf:hover {
+  background: rgba(255, 255, 255, .22);
+  border-color: rgba(255, 255, 255, .45);
+}
+
+.heim-knopf:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
 /* Bezugspunkt für die absolute Positionierung + Platz, damit der Text nicht
    unter den Knopf läuft. */
 .kopf-titelzeile {

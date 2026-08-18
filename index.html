@@ -25,11 +25,8 @@
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <span class="wappen" aria-hidden="true" data-verein="kuerzel">FVLK</span>
-        <span class="marken-text">
-          <span class="marken-titel" data-verein="kurz">Löbtauer Kickers</span>
-          <span class="marken-unter" data-verein="abteilung">Schiedsrichter-Abteilung</span>
-        </span>
+        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
 
       <button class="nav-knopf" id="nav-knopf" type="button"
@@ -50,17 +47,15 @@
     <!-- ---------- Aufmacher ---------- -->
     <section class="aufmacher">
       <div class="bildflaeche">
-        <!-- Sobald ein Foto vorliegt, diesen Platzhalter durch
-             <img src="bilder/aufmacher.jpg" alt="..."> ersetzen. -->
-        <p class="bild-platzhalter">
-          <strong>▣</strong>
-          Großes Foto: Schiedsrichter beim Anpfiff<br />oder unsere Mannschaft auf dem Platz
-        </p>
+        <!-- Bild vom Pexels-CDN geladen. Für den Livegang herunterladen und
+             lokal ablegen - dann ist die Seite unabhängig von fremden
+             Servern. Quelle steht in bilder/QUELLEN.md. -->
+        <img src="https://images.pexels.com/photos/47343/the-ball-stadion-horn-corner-47343.jpeg?auto=compress&cs=tinysrgb&w=1600"
+             alt="" loading="eager" />
       </div>
       <div class="aufmacher-text">
-        <h1>Schiedsrichter beim FV Löbtauer Kickers</h1>
-        <p>Ohne uns geht kein Spiel. Alles für unsere Unparteiischen – und alles,
-           was du wissen musst, wenn du selbst pfeifen willst.</p>
+        <h1>Ohne uns geht kein Spiel</h1>
+        <p>Alles für die Schiedsrichter des FV Löbtauer Kickers.</p>
         <div class="aufmacher-knoepfe">
           <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
           <a class="knopf-rand" href="informationen.html">Regeln nachschlagen</a>
@@ -79,7 +74,7 @@
           </div>
           <div class="bildkachel-text">
             <h3>Spesenrechner</h3>
-            <p>Entschädigung und Fahrtkosten für dein nächstes Spiel ausrechnen.</p>
+            <p>Was bekomme ich für mein nächstes Spiel?</p>
           </div>
         </a>
 
@@ -89,7 +84,7 @@
           </div>
           <div class="bildkachel-text">
             <h3>Informationen</h3>
-            <p>Regeln zum Nachschlagen, Vorlagen und alles vom Stadtverband.</p>
+            <p>Regeln, Vorlagen und Dokumente zum Nachschlagen.</p>
           </div>
         </a>
 
@@ -99,7 +94,7 @@
           </div>
           <div class="bildkachel-text">
             <h3>Regelquiz</h3>
-            <p>Jede Woche neue Fragen. Anmeldung mit Vereinskennung.</p>
+            <p>Jede Woche neue Fragen.</p>
           </div>
         </a>
 
@@ -109,7 +104,7 @@
           </div>
           <div class="bildkachel-text">
             <h3>Ausrüstung</h3>
-            <p>Trikots und Zubehör über den Verein anfragen.</p>
+            <p>Trikots und Zubehör anfragen.</p>
           </div>
         </a>
 
@@ -124,10 +119,12 @@
       <div class="schnupper">
         <div>
           <h2>Hast du das Zeug zum Schiri?</h2>
-          <p>Probier ein paar echte Regelfragen aus – ohne Anmeldung, ohne Konto.
-             Unsere Schiedsrichter bekommen jede Woche neue.</p>
+          <p>Echte Regelfragen ausprobieren – ohne Anmeldung.</p>
         </div>
-        <a class="knopf-haupt" href="quiz.html#gast">Fragen ausprobieren</a>
+        <!-- "#gast" springt direkt in den Gastzugang, ohne dass man erst an
+             der Vereinskennung vorbei muss (Max, 18.08.2026). Die Auswertung
+             steht in quiz.html. -->
+        <a class="knopf-schnupper" href="quiz.html#gast">Fragen ausprobieren</a>
       </div>
     </section>
 
@@ -158,9 +155,7 @@
           </div>
         </div>
       </div>
-      <p class="abschnitt-hinweis" style="margin-top:12px">
-        Beispieltermine – werden später aus der Datenbank geladen.
-      </p>
+      <p class="abschnitt-hinweis" style="margin-top:12px">Beispieltermine.</p>
     </section>
 
   </main>

@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 360" width="300" height="360"
+     role="img" aria-labelledby="logoTitel">
+  <title id="logoTitel">FV Löbtauer Kickers 93</title>
+
+  <!--
+    Neuzeichnung des Vereinswappens als Vektorgrafik (18.08.2026).
+
+    Warum neu gezeichnet statt das Foto aufbereitet: Die Vorlage ist ein
+    abfotografierter Pin mit Spiegelungen, weichen Kanten und grauem
+    Hintergrund. Da ist nichts zu "schärfen" - die Kanten existieren im
+    Original schlicht nicht. Eine Vektorgrafik hat dagegen gar keine
+    Auflösung: sie ist auf dem Handy-Favicon so scharf wie auf einem
+    Banner, der Hintergrund ist echt transparent, und die Datei ist ein
+    paar Kilobyte statt einem halben Megabyte.
+
+    Aufbau und Schriftzug folgen der Vorlage: Wappenform, diagonale
+    Teilung weiß/grün, "FV" oben links, "Löbtauer Kickers" diagonal
+    aufsteigend, "93" rechts, Ball unten links.
+
+    Bewusst NICHT übernommen: die Schlagschatten hinter den Buchstaben.
+    Die stammen von der Prägung des echten Pins und wirken auf einem
+    Bildschirm schmutzig statt plastisch.
+  -->
+
+  <defs>
+    <!-- Wappenkontur, einmal definiert und mehrfach verwendet. -->
+    <path id="wappen"
+          d="M 24 26
+             C 24 18, 30 12, 38 12
+             L 262 12
+             C 270 12, 276 18, 276 26
+             L 276 210
+             C 276 268, 232 316, 150 348
+             C 68 316, 24 268, 24 210
+             Z" />
+    <clipPath id="innen">
+      <use href="#wappen" />
+    </clipPath>
+  </defs>
+
+  <!-- Grundfläche weiß -->
+  <use href="#wappen" fill="#ffffff" />
+
+  <!-- Grüne Hälfte, an der Wappenform beschnitten.
+       Die Diagonale läuft von oben links nach unten rechts. -->
+  <g clip-path="url(#innen)">
+    <path d="M 96 0 L 300 0 L 300 360 L 4 360 Z" fill="#00A03B" />
+  </g>
+
+  <!-- Trennlinie zwischen weiß und grün -->
+  <g clip-path="url(#innen)">
+    <path d="M 96 0 L 4 360" stroke="#111111" stroke-width="7" fill="none" />
+  </g>
+
+  <!-- Äußere Kontur zuletzt, damit sie über allem liegt -->
+  <use href="#wappen" fill="none" stroke="#111111" stroke-width="11" stroke-linejoin="round" />
+
+  <!-- FV -->
+  <text x="52" y="112" font-family="Georgia, 'Times New Roman', serif"
+        font-size="96" font-weight="700" fill="#111111">FV</text>
+
+  <!-- Schriftzug diagonal aufsteigend, entlang der Teilung -->
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="42"
+        font-weight="700" fill="#111111"
+        transform="translate(64 300) rotate(-58)">Löbtauer</text>
+
+  <text font-family="Georgia, 'Times New Roman', serif" font-size="42"
+        font-weight="700" fill="#111111"
+        transform="translate(140 316) rotate(-58)">Kickers</text>
+
+  <!-- 93 -->
+  <text x="196" y="268" font-family="Georgia, 'Times New Roman', serif"
+        font-size="76" font-weight="700" fill="#111111">93</text>
+
+  <!-- Fußball unten links: Fünfecke angedeutet, nicht ausmodelliert -
+       bei kleiner Darstellung würde Detail nur zu Matsch verlaufen. -->
+  <g transform="translate(104 300)">
+    <circle r="30" fill="#ffffff" stroke="#111111" stroke-width="5" />
+    <path d="M 0 -16 L 15 -5 L 9 13 L -9 13 L -15 -5 Z" fill="#111111" />
+    <path d="M 0 -16 L 0 -30 M 15 -5 L 28 -10 M 9 13 L 17 25 M -9 13 L -17 25 M -15 -5 L -28 -10"
+          stroke="#111111" stroke-width="4" fill="none" />
+  </g>
+</svg>
