@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Regeln auf einen Blick – Schiedsrichter FV Löbtauer Kickers</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="seite.css" />
+</head>
+<body>
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <span class="wappen" aria-hidden="true" data-verein="kuerzel">FVLK</span>
+        <span class="marken-text">
+          <span class="marken-titel" data-verein="kurz">Löbtauer Kickers</span>
+          <span class="marken-unter" data-verein="abteilung">Schiedsrichter-Abteilung</span>
+        </span>
+      </a>
+      <button class="nav-knopf" id="nav-knopf" type="button"
+              aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+      <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
+        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="spesenrechner.html">Spesenrechner</a>
+        <a href="informationen.html" aria-current="page">Informationen</a>
+        <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
+      </nav>
+    </div>
+  </header>
+  <main class="inhalt">
+    <div class="abschnitt-kopf" style="margin-bottom:6px">
+      <h1 style="font-size:1.45rem">Regeln auf einen Blick</h1>
+    </div>
+    <p class="abschnitt-hinweis" style="margin-bottom:20px">
+      Spielzeiten, Spielfeld und Wechselregeln im Stadtverband Dresden.
+      <b>Stand 2024/2025</b> – die aktuelle Fassung wird noch eingepflegt.
+      Im Zweifel gilt das Original des Stadtverbands.
+    </p>
+
+    <div class="filterleiste" id="artFilter">
+      <button class="an" data-art="meister" type="button">Meisterschaft</button>
+      <button data-art="pokal" type="button">Pokal</button>
+    </div>
+    <div class="filterleiste" id="alterFilter"></div>
+    <label class="nur-vorlesen" for="regelSuche">Regeln durchsuchen</label>
+    <input class="suche" id="regelSuche" type="search" placeholder="Suchen, z. B. „D-Junioren&quot; oder „Kleinfeld&quot; …" />
+    <div class="regelkarten" id="regelKarten"></div>
+    <p class="keine" id="keineTreffer" hidden>Keine Einträge gefunden.</p>
+  </main>
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+    </div>
+  </footer>
+  <script type="module" src="seite.js"></script>
+  <script>
+    /* ============================================================
+       Daten aus "Kurzübersicht Regeln Stadtverband Fußball Dresden
+       2024/2025", von Max geliefert.
+
+       "hervor" markiert die Werte, die im Original gelb hinterlegt
+       waren - also Abweichungen vom sonst üblichen Muster. Genau die
+       übersieht man in der breiten PDF-Tabelle am leichtesten.
+
+       ACHTUNG: Der Stadtverband führt inzwischen die DFB-Regeln
+       2025/26. Vor dem Livegang die aktuelle Kurzübersicht einpflegen.
+       ============================================================ */
+    const MEISTER = [
+      {a:"Herren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Herren",k:"Freizeitliga/-klassen SVFD",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["wieder"]},
+      {a:"Frauen",k:"Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Frauen",k:"Landesklasse",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"A-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w","wieder"]},
+      {a:"A-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w"]},
+      {a:"B-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w","wieder"]},
+      {a:"B-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w"]},
+      {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",hervor:["w"],fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
+      {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",hervor:["w"],fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
+      {a:"B-Juniorinnen",k:"Landesklasse",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
+      {a:"C-Junioren",k:"Stadtklassen bis Landesliga",zeit:"2×35 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
+      {a:"C-Junioren",k:"Spielbetrieb 9 gegen 9",zeit:"2×35 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Kleinfeldtore, Strafstoß 9 m vom Tor entfernt."},
+      {a:"C-Juniorinnen",k:"Landesklasse",zeit:"2×35 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
+      {a:"D-Junioren",k:"Landesliga (Talenteliga)",zeit:"2×30 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
+      {a:"D-Junioren",k:"Landesklassen",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",hervor:["zeit","max","min"]},
+      {a:"D-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"3×25 min",feld:"halbes Großfeld, Mittellinie",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",hervor:["zeit","max","min"]},
+      {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
+      {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
+      {a:"Altherren",k:"Stadtklassen bis Stadtliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:7,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Ü40",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Ü50",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"Ü60",k:"Breitensport",zeit:"2×30 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+    ];
+
+    const POKAL = [
+      {a:"Herren",k:"Stadtpokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
+      {a:"Frauen",k:"Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
+      {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",verl:"keine",elfer:"9 m, 3 Schützen"},
+      {a:"A-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
+      {a:"B-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen"},
+      {a:"B-Juniorinnen",k:"Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen",bes:"siehe Landesliga Großfeld"},
+      {a:"C-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"11 m, 5 Schützen"},
+      {a:"C-Juniorinnen",k:"Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"9 m, 5 Schützen",bes:"verkürztes Großfeld, 9 Spielerinnen, mind. 7, 7 Wechsler"},
+      {a:"D-Junioren",k:"Landespokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen",hervor:["zeit","verl"]},
+      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen",hervor:["zeit","verl"]},
+      {a:"D-Juniorinnen",k:"Stadtpokal",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+      {a:"E-Junioren",k:"Stadtpokal",zeit:"2×25 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
+      {a:"Senioren",k:"Stadtpokal",zeit:"2×45 min",verl:"keine",elfer:"11 m, 5 Schützen"},
+      {a:"Ü40",k:"Breitensport",zeit:"2×40 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+      {a:"Ü50",k:"Breitensport",zeit:"2×40 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+      {a:"Ü60",k:"Breitensport",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+    ];
+
+    let art = "meister", alterFilter = "alle";
+    const daten = () => (art === "meister" ? MEISTER : POKAL);
+    const $ = (id) => document.getElementById(id);
+
+    function baueAlterFilter() {
+      const alle = ["alle", ...new Set(daten().map((r) => r.a))];
+      $("alterFilter").innerHTML = "";
+      alle.forEach((a) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = a === "alle" ? "Alle Altersklassen" : a;
+        if (a === alterFilter) b.className = "an";
+        b.addEventListener("click", () => { alterFilter = a; baueAlterFilter(); zeichne(); });
+        $("alterFilter").appendChild(b);
+      });
+    }
+
+    const wert = (label, w, hervor) =>
+      `<div class="wert${hervor ? " hervor" : ""}"><div class="l">${label}</div><div class="v">${w}</div></div>`;
+
+    function zeichne() {
+      const suche = $("regelSuche").value.trim().toLowerCase();
+      const treffer = daten().filter((r) => {
+        if (alterFilter !== "alle" && r.a !== alterFilter) return false;
+        if (!suche) return true;
+        return JSON.stringify(r).toLowerCase().includes(suche);
+      });
+
+      $("keineTreffer").hidden = treffer.length > 0;
+      $("regelKarten").innerHTML = treffer.map((r) => {
+        const h = r.hervor || [];
+        const felder = art === "meister"
+          ? wert("Spielzeit", r.zeit, h.includes("zeit"))
+            + wert("Spielfeld", r.feld, h.includes("feld"))
+            + wert("Spieler", `${r.max} · mind. ${r.min}`, h.includes("max") || h.includes("min"))
+            + wert("Wechsler", r.w, h.includes("w"))
+            + wert("Wiedereinwechslung", r.wieder, h.includes("wieder"))
+            + wert("Gelb/Rot", r.gr, false)
+            + wert("Abbruch ab", r.t, false)
+            + wert("", "", false)
+          : wert("Spielzeit", r.zeit, h.includes("zeit"))
+            + wert("Verlängerung", r.verl, h.includes("verl"))
+            + wert("Strafstoßschießen", r.elfer, false)
+            + wert("", "", false);
+
+        return `<article class="rk">
+            <div class="rk-kopf"><div class="alter">${r.a}</div><div class="klasse">${r.k}</div></div>
+            <div class="rk-werte">${felder}</div>
+            ${(r.fuss || r.bes) ? `<div class="rk-fuss">${r.fuss || r.bes}</div>` : ""}
+          </article>`;
+      }).join("");
+    }
+
+    $("artFilter").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", () => {
+        $("artFilter").querySelectorAll("button").forEach((x) => x.classList.remove("an"));
+        b.classList.add("an");
+        art = b.dataset.art; alterFilter = "alle";
+        baueAlterFilter(); zeichne();
+      })
+    );
+    $("regelSuche").addEventListener("input", zeichne);
+    baueAlterFilter();
+    zeichne();
+  </script>
+</body>
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vorlagen – Schiedsrichter FV Löbtauer Kickers</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="seite.css" />
+</head>
+<body>
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <span class="wappen" aria-hidden="true" data-verein="kuerzel">FVLK</span>
+        <span class="marken-text">
+          <span class="marken-titel" data-verein="kurz">Löbtauer Kickers</span>
+          <span class="marken-unter" data-verein="abteilung">Schiedsrichter-Abteilung</span>
+        </span>
+      </a>
+      <button class="nav-knopf" id="nav-knopf" type="button"
+              aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+      <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
+        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="spesenrechner.html">Spesenrechner</a>
+        <a href="informationen.html" aria-current="page">Informationen</a>
+        <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
+      </nav>
+    </div>
+  </header>
+  <main class="inhalt">
+    <div class="abschnitt-kopf" style="margin-bottom:6px">
+      <h1 style="font-size:1.45rem">Vorlagen</h1>
+    </div>
+    <p class="abschnitt-hinweis" style="margin-bottom:26px">
+      Die beiden E-Mails, die tatsächlich regelmäßig anfallen.
+    </p>
+
+    <!-- Der fertige Text der Spielabsage samt zugrunde liegender SVF-Regel
+         (Ergänzung SRO §8 Punkt 7, gültig ab 20.08.2026) liegt bereits im
+         Vault unter "Privates - Alltag & Soziales". Von dort übernehmen,
+         nicht neu formulieren. -->
+    <section class="gruppe" id="spiel">
+      <div class="gruppe-kopf">
+        <h2>Spielabsage</h2>
+        <p>Muss schriftlich per Mail erfolgen, mit Begründung und allen Angaben zum Spiel.</p>
+      </div>
+      <div class="termine" style="padding:16px">
+        <p class="abschnitt-hinweis" style="margin:0">
+          Wird gerade eingebaut. Der abgestimmte Vorlagentext liegt vor und kommt
+          als Kopierfeld hierher.
+        </p>
+      </div>
+    </section>
+
+    <section class="gruppe" id="lehrabend">
+      <div class="gruppe-kopf">
+        <h2>Regellehrabend absagen</h2>
+        <p>Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht kannst.</p>
+      </div>
+      <div class="termine" style="padding:16px">
+        <p class="abschnitt-hinweis" style="margin:0">
+          Wird gerade eingebaut.
+        </p>
+      </div>
+    </section>
+  </main>
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+    </div>
+  </footer>
+  <script type="module" src="seite.js"></script>
+</body>
+</html>

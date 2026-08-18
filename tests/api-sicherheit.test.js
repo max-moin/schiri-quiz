@@ -15,10 +15,23 @@ test("der alte öffentliche KI-Testendpunkt ist entfernt", () => {
   assert.equal(existsSync(new URL("../api/ki-test.js", import.meta.url)), false);
 });
 
+// Seit dem Umbau zur Vereinsseite (18.08.2026) liegt das Quiz in
+// "quiz.html"; unter "index.html" steht die neue Startseite, die keine
+// Supabase-Bibliothek einbindet. Der Test hat den Umzug korrekt bemerkt
+// und zeigt jetzt auf die richtige Datei.
 test("die Browserbibliothek ist auf die geprüfte Version festgelegt", () => {
-  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  const html = readFileSync(new URL("../quiz.html", import.meta.url), "utf8");
   assert.match(html, /@supabase\/supabase-js@2\.112\.2/);
   assert.match(html, /integrity="sha384-[^"]+"/);
+});
+
+// Gegenprobe zum Umzug: Die öffentliche Startseite darf gar keine
+// Datenbank-Anbindung haben. Sonst wäre versehentlich Quiz-Code in den
+// offenen Bereich gerutscht.
+test("die Startseite bindet keine Datenbank-Bibliothek ein", () => {
+  const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+  assert.doesNotMatch(html, /supabase/i);
+  assert.doesNotMatch(html, /config\.js/);
 });
 
 test("API-Fehler geben keine internen Details an den Browser", () => {

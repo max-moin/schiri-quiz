@@ -3,633 +3,179 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Schiri-Quiz der Woche</title>
+  <title>Schiedsrichter – FV Löbtauer Kickers</title>
+  <meta name="description" content="Alles für die Schiedsrichter des FV Löbtauer Kickers: Regelquiz, Spesenrechner, Regeln zum Nachschlagen und Vorlagen." />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="seite.css" />
 </head>
 <body>
-  <header class="kopf" id="kopf">
-    <div class="kopf-inhalt">
-      <div class="kopf-titelzeile">
-        <span class="ball" aria-hidden="true">⚽</span>
-        <div>
-          <h1>Schiri-Quiz der Woche</h1>
-          <p class="subtitle" id="kopf-untertitel">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
-        </div>
 
-        <!-- Menü rechts oben (07.08.2026, Max' Wunsch): die Seite soll sich
-             nach und nach zu einer richtigen Schiedsrichter-Startseite
-             entwickeln (Stadtverband, Verein, DFBnet), ohne dass davon beim
-             Anmelden schon alles im Weg steht. Deshalb bewusst hinter einem
-             Menüknopf statt als sichtbare Navigationsleiste. -->
-        <div class="kopf-menue">
-          <button
-            id="menue-button"
-            class="menue-button"
-            type="button"
-            aria-haspopup="true"
-            aria-expanded="false"
-            aria-controls="menue-panel"
-            aria-label="Menü öffnen"
-          >
-            <span aria-hidden="true">☰</span>
-          </button>
+  <!-- ============================================================
+       Kopfbereich.
 
-          <nav id="menue-panel" class="menue-panel" hidden aria-label="Hauptmenü">
-            <p class="menue-titel">Schiedsrichterwesen</p>
+       Das Logo links ist ein Link zur Startseite. Der Vereinswechsler,
+       den Max sich dort gewünscht hat, kommt erst im ANGEMELDETEN
+       Zustand dazu (also im Quiz-Bereich) - als Login-Weg für Fremde
+       würde er die Namensliste offenlegen, genau das Problem, das Max
+       selbst erkannt hat.
+       ============================================================ -->
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <span class="wappen" aria-hidden="true" data-verein="kuerzel">FVLK</span>
+        <span class="marken-text">
+          <span class="marken-titel" data-verein="kurz">Löbtauer Kickers</span>
+          <span class="marken-unter" data-verein="abteilung">Schiedsrichter-Abteilung</span>
+        </span>
+      </a>
 
-            <a href="index.html" class="menue-eintrag">
-              <span class="menue-symbol" aria-hidden="true">⚽</span>
-              <span>
-                <strong>Schiri-Quiz</strong>
-                <small>Die Fragen dieser Woche</small>
-              </span>
-            </a>
+      <button class="nav-knopf" id="nav-knopf" type="button"
+              aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
 
-            <!-- TODO (Max): echte Adresse eintragen, sobald herausgesucht.
-                 Bis dahin bewusst deaktiviert statt auf eine falsche Seite
-                 zu verlinken. -->
-            <span class="menue-eintrag deaktiviert" aria-disabled="true">
-              <span class="menue-symbol" aria-hidden="true">🏙️</span>
-              <span>
-                <strong>Stadtverband Dresden</strong>
-                <small>Kommt in Kürze</small>
-              </span>
-            </span>
-
-            <span class="menue-eintrag deaktiviert" aria-disabled="true">
-              <span class="menue-symbol" aria-hidden="true">🟢</span>
-              <span>
-                <strong>Unser Verein</strong>
-                <small>Kommt in Kürze</small>
-              </span>
-            </span>
-
-            <a href="https://www.dfbnet.org" class="menue-eintrag" target="_blank" rel="noopener noreferrer">
-              <span class="menue-symbol" aria-hidden="true">🔗</span>
-              <span>
-                <strong>DFBnet</strong>
-                <small>Ansetzungen und Spielberichte</small>
-              </span>
-            </a>
-
-          </nav>
-        </div>
-      </div>
-
-      <div id="fortschritt-wrap" class="fortschritt-wrap" hidden>
-        <div class="fortschritt-zeile">
-          <span id="fortschritt-text">0 von 0 beantwortet</span>
-          <span id="fortschritt-prozent">0%</span>
-        </div>
-        <div class="fortschritt-track" role="progressbar" aria-label="Fortschritt der Wochenfragen" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-          <div id="fortschritt-fill" class="fortschritt-fill"></div>
-        </div>
-      </div>
+      <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html" aria-current="page">Start</a>
+        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="spesenrechner.html">Spesenrechner</a>
+        <a href="informationen.html">Informationen</a>
+        <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
+      </nav>
     </div>
   </header>
 
-  <main class="wrap">
-    <!-- Schritt 1: Vereinskennung -> Wer bist du?/PIN (oder Gast) -->
-    <!-- Update (13.07.2026, Baustein A/B, Max' genaue Vorgabe): EINE
-         durchgehende Karte statt zweier Seiten. Die Vereinskennung bleibt
-         immer oben stehen, darunter poppen erst nach korrekter Kennung die
-         bestehenden "Wer bist du?"/PIN-Felder auf (oder bei "Als Gast
-         weiter" stattdessen das Gast-Feld) - "Los geht's" bleibt ganz unten,
-         ein einziger Button für beide Wege. -->
-    <section id="name-schritt" class="card login-card">
-      <!-- Startgrafik (07.08.2026, Max: "sieht noch leer und lasch aus").
-           Bewusst als Inline-SVG statt Bilddatei: skaliert auf jedem Display
-           scharf, lädt ohne zusätzlichen Netzwerkabruf, passt sich per
-           "currentColor"/CSS-Variablen dem Thema an - und es gibt keine
-           Urheberrechtsfrage wie bei einem Foto oder einem KI-Bild.
-           Motiv: Spielfeldausschnitt mit Mittelkreis, Pfeife und den beiden
-           Karten - das Schiedsrichter-Thema auf einen Blick. -->
-      <div class="start-grafik" aria-hidden="true">
-        <svg viewBox="0 0 320 150" role="img" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="rasen" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1f2937" />
-              <stop offset="100%" stop-color="#111827" />
-            </linearGradient>
-            <radialGradient id="ball-flaeche" cx="34%" cy="28%" r="72%">
-              <stop offset="0%" stop-color="#ffffff" />
-              <stop offset="72%" stop-color="#f8fafc" />
-              <stop offset="100%" stop-color="#dbe1e8" />
-            </radialGradient>
-            <filter id="ball-schatten" x="-35%" y="-35%" width="170%" height="180%">
-              <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.28" />
-            </filter>
-          </defs>
+  <main class="inhalt">
 
-          <!-- Spielfeld -->
-          <rect x="0" y="0" width="320" height="150" rx="14" fill="url(#rasen)" />
-
-          <!-- Rasenstreifen, sehr dezent -->
-          <g fill="#ffffff" opacity="0.03">
-            <rect x="0" y="0" width="53" height="150" />
-            <rect x="107" y="0" width="53" height="150" />
-            <rect x="213" y="0" width="53" height="150" />
-          </g>
-
-          <!-- Spielfeldlinien -->
-          <g stroke="#ffffff" stroke-opacity="0.28" stroke-width="1.6" fill="none">
-            <rect x="12" y="12" width="296" height="126" rx="4" />
-            <line x1="160" y1="12" x2="160" y2="138" />
-            <circle cx="160" cy="75" r="30" />
-            <path d="M12 48 h30 v54 h-30" />
-            <path d="M308 48 h-30 v54 h30" />
-          </g>
-          <circle cx="160" cy="75" r="3" fill="#ffffff" fill-opacity="0.5" />
-
-          <!-- Gelbe und rote Karte, leicht gekippt -->
-          <g transform="translate(196 34) rotate(-11)">
-            <rect width="30" height="42" rx="4" fill="#facc15" />
-          </g>
-          <g transform="translate(214 42) rotate(9)">
-            <rect width="30" height="42" rx="4" fill="#ef4444" />
-          </g>
-
-          <!-- Fußball auf dem Anstoßpunkt. Eine Pfeife war als Silhouette in
-               dieser Größe nicht eindeutig erkennbar (sah wie eine
-               Sprechblase aus) - der Ball funktioniert auf einen Blick. -->
-          <g transform="translate(72 53)" filter="url(#ball-schatten)">
-            <circle cx="22" cy="22" r="21" fill="url(#ball-flaeche)" stroke="#cbd5e1" stroke-width="1" />
-            <path d="M22 10 l8.3 6 -3.2 9.8 H16.9 L13.7 16 z" fill="#172033" />
-            <path d="M22 1.2 l5.7 4.2 -2.2 5.9 h-7 l-2.2-5.9 z M41.5 17.2 l-2.2 7 -6.3.1 -2.1-6.4 5.2-3.8 z M34.1 38.1 l-7.2.1 -1.9-6.1 5.6-4 5.2 3.8 z M9.9 38.1 l-1.7-6.2 5.2-3.8 5.6 4 -1.9 6.1 z M2.5 17.2 l5.4-3.1 5.2 3.8 -2.1 6.4 -6.3-.1 z" fill="#273244" />
-            <path d="M22 10 V5.4 M30.3 16 l5.8-1.9 M27.1 25.8 l3.5 6.3 M16.9 25.8 l-3.5 6.3 M13.7 16 l-5.8-1.9"
-                  stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" fill="none" />
-            <ellipse cx="15" cy="10" rx="5" ry="3" fill="#ffffff" opacity="0.6" transform="rotate(-28 15 10)" />
-          </g>
-        </svg>
-      </div>
-      <h2 class="card-titel">Anmelden</h2>
-
-      <!-- Kurze Einordnung für alle, die die Seite zum ersten Mal sehen
-           (07.08.2026): vorher stand hier ohne jede Erklärung ein
-           Passwortfeld, was gerade beim Vorführen im Team unnötig
-           abweisend wirkte. -->
-      <p class="login-einleitung">
-        Gib die Vereinskennung ein und starte direkt mit den Fragen dieser Woche.
-      </p>
-
-      <div id="kennung-bereich">
-        <label for="kennung-eingabe">Vereinskennung</label>
-        <div class="kennung-eingabe-wrapper">
-          <input
-            id="kennung-eingabe"
-            type="text"
-            class="maskiert"
-            autocomplete="one-time-code"
-            autocapitalize="none"
-            spellcheck="false"
-            data-gramm="false"
-            data-gramm_editor="false"
-            data-enable-grammarly="false"
-            placeholder="Vereinskennung"
-          />
-          <button id="kennung-auge-button" class="auge-button" type="button" aria-label="Vereinskennung anzeigen" aria-pressed="false">
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
-              <circle cx="12" cy="12" r="2.75" />
-            </svg>
-          </button>
-        </div>
-        <button id="kennung-weiter-button" class="sekundaer-button" type="button">
-          Weiter
-        </button>
-        <p id="kennung-hinweis" class="hinweis" hidden></p>
-        <button id="gast-wechsel-button" class="linktext-button" type="button">
-          Kennung nicht bekannt? Als Gast weiter
-        </button>
-      </div>
-
-      <div id="mitglied-bereich" hidden>
-        <!-- Zwei Wege zur Anmeldung (11.08.2026, Mehr-Vereine-Umbau):
-             Vereine mit "namensliste_anzeigen = true" (Löbtauer Kickers)
-             bekommen wie bisher die Auswahlliste. Vereine ohne Liste
-             (Familie & Freunde) tippen ihren Namen selbst - dort soll
-             niemand sehen können, wer sonst noch dabei ist. Welcher der
-             beiden Blöcke sichtbar ist, entscheidet die Serverantwort von
-             "verein_zugang", nicht der Browser. -->
-        <div id="namensliste-bereich">
-          <label for="name-auswahl">Wer bist du?</label>
-          <select id="name-auswahl">
-            <option value="">– bitte auswählen –</option>
-          </select>
-        </div>
-
-        <div id="namenseingabe-bereich" hidden>
-          <label for="name-eingabe">Dein Name</label>
-          <input
-            id="name-eingabe"
-            type="text"
-            autocomplete="off"
-            spellcheck="false"
-            data-gramm="false"
-            placeholder="so wie du eingetragen bist"
-          />
-        </div>
-
-        <label for="pin-eingabe">Deine PIN</label>
-        <!-- Bewusst KEIN type="password" - siehe Kommentar bei der
-             Vereinskennung oben bzw. bei "input.maskiert" in style.css. -->
-        <input
-          id="pin-eingabe"
-          type="text"
-          class="maskiert"
-          inputmode="numeric"
-          autocomplete="one-time-code"
-          spellcheck="false"
-          data-gramm="false"
-          data-gramm_editor="false"
-          data-enable-grammarly="false"
-          placeholder="z.B. 1234"
-        />
-        <p id="name-hinweis" class="hinweis">
-          Deine PIN kennst nur du – frag beim Obmann nach, falls du sie noch nicht hast.
+    <!-- ---------- Aufmacher ---------- -->
+    <section class="aufmacher">
+      <div class="bildflaeche">
+        <!-- Sobald ein Foto vorliegt, diesen Platzhalter durch
+             <img src="bilder/aufmacher.jpg" alt="..."> ersetzen. -->
+        <p class="bild-platzhalter">
+          <strong>▣</strong>
+          Großes Foto: Schiedsrichter beim Anpfiff<br />oder unsere Mannschaft auf dem Platz
         </p>
       </div>
-
-      <div id="gast-bereich" hidden>
-        <label for="gast-name-eingabe">Dein Wunsch-Username</label>
-        <input
-          id="gast-name-eingabe"
-          type="text"
-          autocomplete="off"
-          placeholder="z.B. Lisa"
-        />
-        <p class="hinweis">Kein Passwort nötig – probier gleich ein paar Fragen aus.</p>
-        <button id="gast-zurueck-button" class="linktext-button" type="button">
-          ← Zurück zur Vereinskennung
-        </button>
-      </div>
-
-      <button id="start-button" type="button" hidden disabled>
-        <span>Los geht's</span>
-        <span aria-hidden="true">→</span>
-      </button>
-    </section>
-
-    <!-- Angemeldet-Leiste (11.07.2026, drittes Feedback: wirkte als reiner
-         Text/Link "billig" - jetzt Badge + echter Button).
-         Update (12.07.2026, Baustein 5a, Anfragen-System - Nav-Konzept B
-         aus der Brainstorm-Skizze): der Badge ist jetzt selbst ein Button
-         und öffnet ein kleines Profil-Panel mit "Anfrage stellen"/"Meine
-         Anfragen" - bewusst KEIN separater neuer Button in der Leiste,
-         damit hier später weitere Menüpunkte (z.B. Sorgenkasten) einfach
-         ergänzt werden können, ohne dass die Leiste voller wird. -->
-    <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
-      <div class="angemeldet-badge-wrapper">
-        <button id="angemeldet-badge-button" class="angemeldet-badge" type="button" aria-haspopup="true" aria-expanded="false">
-          <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
-          <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
-          <span class="angemeldet-pfeil" aria-hidden="true">▾</span>
-          <span id="profil-status-punkt" class="profil-status-punkt" hidden title="Es gibt Neuigkeiten zu deinen Anfragen"></span>
-        </button>
-        <div id="profil-panel" class="profil-panel" hidden role="menu">
-          <button id="panel-anfrage-stellen-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">📋</span> Ausrüstung anfragen
-          </button>
-          <!-- Baustein 5c (12.07.2026, Baustein E - Max' eigene Wortwahl
-               "Anträge und Anliegen" statt "Sorgenkasten"): dritter
-               Panel-Eintrag für allgemeine Anliegen (nicht nur Ausrüstung). -->
-          <button id="panel-anliegen-melden-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">💬</span> Anliegen melden
-          </button>
-          <button id="panel-meine-anfragen-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">📦</span> Meine Anfragen
-            <span id="panel-anfragen-status-punkt" class="profil-status-punkt" hidden></span>
-          </button>
+      <div class="aufmacher-text">
+        <h1>Schiedsrichter beim FV Löbtauer Kickers</h1>
+        <p>Ohne uns geht kein Spiel. Alles für unsere Unparteiischen – und alles,
+           was du wissen musst, wenn du selbst pfeifen willst.</p>
+        <div class="aufmacher-knoepfe">
+          <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
+          <a class="knopf-rand" href="informationen.html">Regeln nachschlagen</a>
         </div>
       </div>
-      <button id="wechseln-button" class="sekundaer-button" type="button">Abmelden</button>
-    </div>
-
-    <!-- Schritt 2: Fragen -->
-    <section id="fragen-schritt" hidden>
-      <div id="fragen-liste" class="fragen-liste"></div>
-
-      <div id="sammel-absenden-wrap" class="sammel-absenden-wrap" hidden>
-        <button id="sammel-absenden-button" class="sammel-absenden-button" type="button">
-          Alle ausgewählten Antworten abschicken
-        </button>
-        <p class="sammel-absenden-hinweis">
-          Du kannst jede Frage einzeln abschicken – oder mehrere auswählen und hier gesammelt abschicken.
-        </p>
-      </div>
-
-      <p id="keine-fragen-hinweis" class="hinweis card" hidden>
-        Aktuell ist keine Runde aktiv. Schau später nochmal vorbei.
-      </p>
-      <div id="fertig-hinweis" class="card fertig-card" hidden>
-        <div class="fertig-emoji" aria-hidden="true">🎉</div>
-        <p class="fertig-text">Danke fürs Mitmachen!</p>
-        <button id="historie-start-button" class="historie-start-button" type="button" hidden>
-          Alte Fragen üben 🔁
-        </button>
-        <p id="naechste-runde-text" class="naechste-runde" hidden></p>
-      </div>
     </section>
 
-    <!-- Schritt 2b: Gast-Quiz (13.07.2026, Baustein B/C) - eigener, schlanker
-         Bereich statt Wiederverwendung von "fragen-schritt": Gast-Fragen
-         sind bewusst nur Multiple-Choice, ohne Video/Freitext/KI, ohne
-         Persistenz - eine eigene, einfachere Render-Logik hält das Risiko
-         für den bestehenden, gut getesteten Hauptablauf klein. -->
-    <section id="gast-quiz-schritt" hidden>
-      <div class="gast-kopfzeile">
-        <span>Als Gast: <strong id="gast-name-anzeige"></strong></span>
-        <span id="gast-fortschritt-anzeige">0 von 0 richtig</span>
-      </div>
-      <!-- Bewusster Ausstiegsweg (Max' Grundregel: nie ohne Weg zurück in
-           einem Modus gefangen sein) - führt zurück zur Login-Karte. -->
-      <button id="gast-verlassen-button" class="sekundaer-button" type="button">← Gast-Modus verlassen</button>
-      <div id="gast-frage-bereich" class="fragen-liste"></div>
-    </section>
+    <!-- ---------- Bereiche ---------- -->
+    <section class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
+      <div class="kachelraster">
 
-    <!-- Schritt 3: "Üben" (Wiederholung alter Fragen, 11.07.2026 - Update
-         nach Max' Live-Feedback: eigener Bereich heißt auf der Website
-         "Üben" statt "Wiederholung", das App-interne Wording bleibt
-         unverändert "Wiederholung"). -->
-    <section id="historie-schritt" hidden>
-      <div class="historie-kopf">
-        <button id="historie-zurueck-button" class="sekundaer-button" type="button">← Zurück</button>
-        <button
-          id="historie-neu-laden-button"
-          class="historie-neu-laden-button"
-          type="button"
-          title="Andere Frage anzeigen"
-          aria-label="Andere Frage anzeigen"
-        >
-          <svg class="historie-neu-laden-icon" viewBox="0 0 24 24" width="16" height="16" aria-hidden="true">
-            <path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 6h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z" fill="currentColor" />
-          </svg>
-          <span>Neue Frage</span>
-        </button>
-      </div>
-
-      <!-- Scoreboard (11.07.2026, drittes Feedback: der reine Fließtext
-           "Du hast schon X ... gemacht" wirkte "billig" - jetzt ein
-           eingerahmter, animierter Zähler im Stil einer Anzeigetafel). -->
-      <div id="historie-scoreboard" class="historie-scoreboard" hidden>
-        <div class="historie-scoreboard-kopf">
-          <span class="historie-scoreboard-label">Heute geübt</span>
-          <span id="historie-scoreboard-gesamt-hinweis" class="historie-scoreboard-gesamt-hinweis"></span>
-        </div>
-        <div class="historie-scoreboard-anzeige">
-          <div class="historie-scoreboard-feld">
-            <span id="historie-scoreboard-gesamt" class="historie-scoreboard-ziffer">0</span>
-            <span class="historie-scoreboard-ziffer-label">Fragen</span>
+        <a class="bildkachel" href="spesenrechner.html">
+          <div class="bildflaeche">
+            <p class="bild-platzhalter"><strong>▣</strong>Taschenrechner, Notizblock,<br />Schiri-Karten</p>
           </div>
-          <div class="historie-scoreboard-trenner" aria-hidden="true"></div>
-          <div class="historie-scoreboard-feld">
-            <span id="historie-scoreboard-richtig" class="historie-scoreboard-ziffer historie-scoreboard-ziffer-richtig">0</span>
-            <span class="historie-scoreboard-ziffer-label">Richtig</span>
+          <div class="bildkachel-text">
+            <h3>Spesenrechner</h3>
+            <p>Entschädigung und Fahrtkosten für dein nächstes Spiel ausrechnen.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="informationen.html">
+          <div class="bildflaeche">
+            <p class="bild-platzhalter"><strong>▣</strong>Regelheft, Pfeife,<br />gelbe und rote Karte</p>
+          </div>
+          <div class="bildkachel-text">
+            <h3>Informationen</h3>
+            <p>Regeln zum Nachschlagen, Vorlagen und alles vom Stadtverband.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="quiz.html">
+          <div class="bildflaeche">
+            <p class="bild-platzhalter"><strong>▣</strong>Schiri schaut auf<br />sein Handy am Spielfeldrand</p>
+          </div>
+          <div class="bildkachel-text">
+            <h3>Regelquiz</h3>
+            <p>Jede Woche neue Fragen. Anmeldung mit Vereinskennung.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="quiz.html">
+          <div class="bildflaeche">
+            <p class="bild-platzhalter"><strong>▣</strong>Schiri-Trikots,<br />Ausrüstung</p>
+          </div>
+          <div class="bildkachel-text">
+            <h3>Ausrüstung</h3>
+            <p>Trikots und Zubehör über den Verein anfragen.</p>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ---------- Schnuppertest ----------
+         Max' Entscheidung (18.08.2026): kein eigenes Quiz auf der
+         Startseite, sondern schlicht zur Regelecke verlinken. Spart eine
+         zweite Quiz-Implementierung und hält die Startseite ruhig. -->
+    <section class="abschnitt">
+      <div class="schnupper">
+        <div>
+          <h2>Hast du das Zeug zum Schiri?</h2>
+          <p>Probier ein paar echte Regelfragen aus – ohne Anmeldung, ohne Konto.
+             Unsere Schiedsrichter bekommen jede Woche neue.</p>
+        </div>
+        <a class="knopf-haupt" href="quiz.html#gast">Fragen ausprobieren</a>
+      </div>
+    </section>
+
+    <!-- ---------- Termine ----------
+         WICHTIG (Max, 18.08.2026): Hier dürfen ausschließlich öffentliche
+         Termine stehen. Keine vereinsinternen Sachen, keine Geburtstage.
+         Beim späteren Anbinden an die Datenbank muss die Trennung
+         öffentlich/intern schon dort passieren - nicht als nachträglicher
+         Filter in der Anzeige, denn dabei rutscht irgendwann etwas durch. -->
+    <section class="abschnitt">
+      <div class="abschnitt-kopf">
+        <h2>Nächste Termine</h2>
+        <a class="mehr" href="informationen.html">Alle Termine →</a>
+      </div>
+      <div class="termine">
+        <div class="termin">
+          <div class="termin-datum"><span class="tag">25</span><span class="monat">Aug</span></div>
+          <div>
+            <div class="termin-was">Regellehrabend</div>
+            <div class="termin-wo">Sportpark Ostra · 19:00 Uhr</div>
+          </div>
+        </div>
+        <div class="termin">
+          <div class="termin-datum"><span class="tag">14</span><span class="monat">Sep</span></div>
+          <div>
+            <div class="termin-was">Neulingslehrgang SVF Dresden</div>
+            <div class="termin-wo">Anmeldung bis 07.09.</div>
           </div>
         </div>
       </div>
-
-      <div id="historie-frage-bereich"></div>
-
-      <p id="historie-leer-hinweis" class="hinweis card" hidden>
-        Es gibt noch keine alten Fragen zum Wiederholen – schau nach der nächsten Runde nochmal vorbei.
+      <p class="abschnitt-hinweis" style="margin-top:12px">
+        Beispieltermine – werden später aus der Datenbank geladen.
       </p>
     </section>
 
-    <p id="fehler-hinweis" class="fehler" hidden></p>
   </main>
 
-  <div id="konfetti-schicht" class="konfetti-schicht" aria-hidden="true"></div>
-
-  <!-- Footer mit rechtlichen Links (12.07.2026) -->
-  <footer class="fuss">
-    <div class="fuss-inhalt">
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
-      <span class="fuss-trenner" aria-hidden="true">·</span>
       <a href="datenschutz.html">Datenschutz</a>
-      <span class="fuss-trenner" aria-hidden="true">·</span>
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
 
-  <!-- Erklärungs-Popup ("Warum?"-Feature, 12.07.2026) -->
-  <div id="erklaerung-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="erklaerung-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="erklaerung-titel">Warum ist das richtig? 💡</h3>
-        <button id="erklaerung-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-      <div id="erklaerung-inhalt" class="erklaerung-inhalt">
-        <p class="erklaerung-lade-hinweis"><span class="spinner"></span> Einen Moment, die Erklärung wird erstellt ...</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Interesse-Popup (13.07.2026, Baustein C) - erscheint im Gast-Quiz nach
-       INTERESSE_TRIGGER_ANZAHL beantworteten Fragen, wegklickbar, Quiz läuft
-       danach normal weiter. Wiederverwendet die Overlay/Popup-Klassen des
-       Erklärungs-Popups oben (gleiche Optik, kein neues CSS nötig). -->
-  <div id="interesse-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interesse-titel">
-      <h3 id="interesse-titel">🎉 Na, scheint dir Spaß zu machen?</h3>
-      <p>Interesse, Schiri zu werden?</p>
-      <div class="interesse-optionen">
-        <button id="interesse-ja-button" type="button">Ja, interessiert!</button>
-        <button id="interesse-nein-button" class="sekundaer-button" type="button">Nein danke</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- "Schade"-Popup bei "Nein danke" (13.07.2026, Max' Feedback) - der
-       SVFD-Link soll auch erreichbar sein, wenn jemand kein direktes
-       Interesse anklickt, sich aber trotzdem informieren will. -->
-  <div id="interesse-nein-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interesse-nein-titel">
-      <h3 id="interesse-nein-titel">Schade!</h3>
-      <p>Falls du dich doch mal informieren willst, hier der Link zum Stadtverband Fußball Dresden:</p>
-      <a
-        href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
-        target="_blank"
-        rel="noopener"
-        class="linktext-button"
-      >Mehr Infos beim SVFD →</a>
-      <button id="interesse-nein-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-    </div>
-  </div>
-
-  <!-- Interessenten-Formular (13.07.2026, Baustein D/E) - erscheint nach
-       "Ja, interessiert!" oben. Einziges Feld ist die (optionale) E-Mail,
-       Absenden legt einen Interessenten in der DB an (RPC
-       "gast_interesse_melden"). Update (13.07.2026, Max' Feedback): der
-       SVFD-Link stand vorher HIER mit im Formular - nach dem Absenden kommt
-       man aber gar nicht mehr zurück auf diesen Bildschirm, der Link war
-       praktisch unerreichbar. Jetzt stattdessen im Erfolgs-Screen unten. -->
-  <div id="interessenten-formular-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="interessenten-formular-titel">
-      <h3 id="interessenten-formular-titel">Schön, dass du dabeibleiben willst! 🎉</h3>
-
-      <div id="interessenten-formular-inhalt">
-        <label for="interessent-email-eingabe">E-Mail (optional)</label>
-        <input id="interessent-email-eingabe" type="email" autocomplete="off" placeholder="du@beispiel.de" />
-        <p class="hinweis">Du bekommst darüber weitere Infos zugeschickt, falls du magst - ganz freiwillig.</p>
-        <button id="interessent-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="interessenten-formular-erfolg" hidden>
-        <p>Danke, wir melden uns bei dir! Bis dahin kannst du dich hier schon informieren:</p>
-        <a
-          id="svfd-link"
-          href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
-          target="_blank"
-          rel="noopener"
-          class="linktext-button"
-        >Mehr Infos beim SVFD →</a>
-      </div>
-
-      <button id="interessenten-formular-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-    </div>
-  </div>
-
-  <!-- Anfrage-Formular (12.07.2026, Baustein 5a: Anfragen-System, Baustein A
-       der Backlog-Spec) - Ausrüstungs-Anfrage stellen, erreichbar über das
-       neue Profil-Panel. -->
-  <div id="anfrage-formular-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anfrage-formular-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="anfrage-formular-titel">Ausrüstung anfragen 📋</h3>
-        <button id="anfrage-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="anfrage-formular-inhalt">
-        <label for="anfrage-kategorie-auswahl">Was brauchst du?</label>
-        <select id="anfrage-kategorie-auswahl">
-          <option value="">– bitte auswählen –</option>
-          <option value="trikot">Trikot</option>
-          <option value="hose">Hose</option>
-          <option value="stutzen">Stutzen</option>
-          <option value="schuhe">Schuhe</option>
-        </select>
-
-        <label for="anfrage-farbe-eingabe">Farbe (optional)</label>
-        <input id="anfrage-farbe-eingabe" type="text" autocomplete="off" placeholder="z.B. Grün" />
-
-        <label for="anfrage-groesse-eingabe">Größe (optional)</label>
-        <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z.B. L" />
-
-        <div id="anfrage-aermellaenge-bereich" hidden>
-          <label for="anfrage-aermellaenge-auswahl">Ärmellänge</label>
-          <select id="anfrage-aermellaenge-auswahl">
-            <option value="">– bitte auswählen –</option>
-            <option value="kurz">Kurzarm</option>
-            <option value="lang">Langarm</option>
-          </select>
-        </div>
-
-        <label for="anfrage-anmerkung-eingabe">Anmerkung (optional)</label>
-        <textarea id="anfrage-anmerkung-eingabe" rows="3" placeholder="Sonstiges, was wir wissen sollten ..."></textarea>
-
-        <p id="anfrage-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anfrage-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="anfrage-formular-erfolg" hidden>
-        <p>Danke, deine Anfrage ist raus! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
-        <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Anliegen-Formular (12.07.2026, Baustein 5c: Baustein E der
-       Backlog-Spec, dort "Sorgenkasten" genannt - hier bewusst "Anliegen",
-       Max' eigene Wortwahl beim Anfordern dieses Bausteins) - freier Text
-       statt eines Formulars mit festen Feldern, damit die Hürde niedrig
-       bleibt (jedes Anliegen, nicht nur Ausrüstung). -->
-  <div id="anliegen-formular-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anliegen-formular-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="anliegen-formular-titel">Anliegen melden 💬</h3>
-        <button id="anliegen-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="anliegen-formular-inhalt">
-        <p class="hinweis">Egal ob große oder kleine Sache - schreib einfach, was los ist. Nur der Schiri-Obmann sieht das hier.</p>
-        <label for="anliegen-text-eingabe">Was möchtest du uns wissen lassen?</label>
-        <textarea id="anliegen-text-eingabe" rows="5" placeholder="Schreib hier, was dich beschäftigt ..."></textarea>
-
-        <p id="anliegen-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anliegen-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="anliegen-formular-erfolg" hidden>
-        <p>Danke, deine Nachricht ist angekommen! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
-        <button id="anliegen-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a; erweitert 5c um
-       Anliegen + Rechnungs-Upload) - eigene gestellte Anfragen/Anliegen mit
-       Status, erreichbar über das Profil-Panel. -->
-  <div id="meine-anfragen-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="meine-anfragen-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="meine-anfragen-titel">Meine Anfragen 📦</h3>
-        <button id="meine-anfragen-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="meine-anfragen-liste"></div>
-      <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
-    </div>
-  </div>
-
-  <!-- Rechnungs-Upload (12.07.2026, Baustein 5c: Baustein D, Weg 2) - nur
-       erreichbar über eine Zeile in "Meine Anfragen", die angenommen ist
-       UND wo der Obmann "Schiri besorgt es selbst" gewählt hat. Foto wird
-       vor dem Hochladen im Browser verkleinert (siehe app.js
-       "komprimiereBildAufBase64"), damit auch normale Handyfotos
-       problemlos als Base64 übertragen werden können. -->
-  <div id="rechnung-upload-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="rechnung-upload-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="rechnung-upload-titel">Rechnung hochladen 🧾</h3>
-        <button id="rechnung-upload-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="rechnung-upload-inhalt">
-        <p class="hinweis">Mach ein Foto von der Rechnung oder wähle eins aus deiner Galerie - der Schiri-Obmann sieht es dann in seinem Dashboard und überweist dir das Geld.</p>
-        <input id="rechnung-datei-eingabe" type="file" accept="image/*" />
-        <img id="rechnung-vorschau-bild" alt="Vorschau der Rechnung" hidden />
-        <p id="rechnung-upload-hinweis" class="hinweis" hidden></p>
-        <button id="rechnung-hochladen-button" type="button" disabled>Hochladen</button>
-      </div>
-
-      <div id="rechnung-upload-erfolg" hidden>
-        <p>Danke, die Rechnung ist beim Schiri-Obmann angekommen!</p>
-        <button id="rechnung-upload-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- "Groß ansehen"-Overlay für Video-Fragen (12.07.2026, Nachbesserung) -->
-  <div id="video-gross-overlay" class="video-gross-overlay" hidden>
-    <div class="video-gross-inhalt" role="dialog" aria-modal="true" aria-label="Video groß ansehen">
-      <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button">✕ Schließen</button>
-      <div id="video-gross-spieler-halter" class="video-gross-spieler-halter"></div>
-    </div>
-  </div>
-
-  <!-- Supabase Client (aus CDN, kein Build-Tool nötig) -->
-  <script
-    src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js"
-    integrity="sha384-B2duOBIryCXbX4eDE4BdJwtNkQMRQde3o6IsjfPW28E6aH1CYE96hHeZRG3zY56O"
-    crossorigin="anonymous"
-  ></script>
-  <script src="config.js"></script>
-  <script src="src/quiz-utils.js"></script>
-  <script src="app.js"></script>
+  <script type="module" src="seite.js"></script>
 </body>
 </html>

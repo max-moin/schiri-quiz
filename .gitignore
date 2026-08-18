@@ -4,3 +4,8 @@
 .env
 .env.*
 node_modules/
+
+# Ablage für Dateien, die aus der Ferne nicht gelöscht werden konnten
+# (18.08.2026). Der Ordner darf nie mitcommittet werden - er ist nur ein
+# Zwischenlager und kann jederzeit von Hand geleert werden.
+_to_delete/

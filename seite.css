@@ -1,0 +1,434 @@
+/* ============================================================
+   Styles für die neuen Vereinsseiten (Startseite, Informationen,
+   Spesenrechner).
+
+   BEWUSST GETRENNT von style.css: Das Quiz läuft seit Wochen und wird
+   von echten Schiedsrichtern benutzt. Eine gemeinsame Datei hieße, dass
+   jede Änderung an der neuen Seite das Quiz kaputtmachen könnte. Diese
+   Datei wird vom Quiz nirgends eingebunden.
+
+   Die Farbrollen sind aus style.css übernommen, damit beide Bereiche
+   zusammen aussehen: Anthrazit ist die Marke, Grün und Rot bleiben
+   ausschließlich Rückmeldung und werden hier nicht dekorativ verwendet.
+   ============================================================ */
+
+:root {
+  --marke: #1f2937;
+  --marke-dunkel: #111827;
+  --marke-hell: #374151;
+  --marke-lighter: #f3f4f6;
+  --green: #16a34a;
+  --green-dark: #15803d;
+  --green-light: #dcfce7;
+  --blau: #2563eb;
+  --blau-hell: #dbeafe;
+  --karte-gelb: #facc15;
+  --karte-gelb-hell: #fef9c3;
+  --red: #dc2626;
+  --red-hell: #fee2e2;
+  --bg-start: #f6f7f9;
+  --bg-end: #eef0f4;
+  --card: #ffffff;
+  --text: #111827;
+  /* von #6b7280 abgedunkelt: auf hellgrauem Grund (--marke-lighter) lag der
+     alte Wert bei 4,39:1 und damit knapp unter WCAG AA. */
+  --muted: #5b6371;
+  --border: #e5e7eb;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 2px 10px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow-hover: 0 12px 28px rgba(16, 24, 40, .12);
+  --font-titel: "Poppins", "Segoe UI", sans-serif;
+  --font-text: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  background: linear-gradient(160deg, var(--bg-start), var(--bg-end));
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] { display: none !important; }
+
+/* Sichtbarer Fokus überall - Tastaturbedienung muss nachvollziehbar sein. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+/* Nur für Screenreader. */
+.nur-vorlesen {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Kopfbereich ---------- */
+
+.seiten-kopf {
+  background: var(--card);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 40;
+}
+
+.kopf-innen {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+}
+
+.marken-knopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 5px 9px 5px 6px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-decoration: none;
+  transition: background .15s, border-color .15s;
+}
+.marken-knopf:hover { background: var(--marke-lighter); border-color: var(--border); }
+
+.wappen {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(140deg, var(--green), var(--green-dark));
+  display: grid; place-items: center;
+  font-weight: 800; font-size: .72rem; color: #fff;
+  flex: none;
+}
+
+.marken-text { text-align: left; }
+.marken-titel { font-family: var(--font-titel); font-weight: 600; font-size: .9rem; line-height: 1.2; }
+.marken-unter { font-size: .7rem; color: var(--muted); }
+
+.haupt-nav {
+  margin-left: auto;
+  display: flex;
+  gap: 2px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.haupt-nav a {
+  color: var(--marke-hell);
+  text-decoration: none;
+  font-size: .85rem;
+  font-weight: 500;
+  padding: 8px 13px;
+  border-radius: 8px;
+  /* 44px Mindesthöhe für Fingerbedienung. */
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+.haupt-nav a:hover { background: var(--marke-lighter); }
+.haupt-nav a[aria-current="page"] {
+  color: var(--marke-dunkel);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--green);
+}
+
+.nav-anmelden {
+  background: var(--marke);
+  color: #fff !important;
+  padding: 8px 16px !important;
+  border-radius: 999px !important;
+  font-weight: 600 !important;
+  margin-left: 8px;
+}
+.nav-anmelden:hover { background: var(--marke-dunkel) !important; }
+
+/* Menüknopf für schmale Bildschirme. */
+.nav-knopf {
+  display: none;
+  margin-left: auto;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  width: 44px; height: 44px;
+  font-size: 1.15rem;
+  cursor: pointer;
+  color: var(--marke-hell);
+}
+
+@media (max-width: 760px) {
+  .nav-knopf { display: block; }
+  .haupt-nav {
+    display: none;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    flex-direction: column;
+    align-items: stretch;
+    padding: 8px 14px 14px;
+    gap: 2px;
+  }
+  .haupt-nav.offen { display: flex; }
+  .nav-anmelden { margin: 6px 0 0; text-align: center; justify-content: center; }
+}
+
+/* ---------- Inhaltsbereich ---------- */
+
+.inhalt { max-width: 1140px; margin: 0 auto; padding: 30px 20px 50px; }
+
+.abschnitt { margin-bottom: 36px; }
+
+.abschnitt-kopf {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.abschnitt-kopf h2 { font-family: var(--font-titel); font-size: 1.2rem; margin: 0; }
+.abschnitt-kopf .mehr {
+  margin-left: auto;
+  font-size: .81rem;
+  color: var(--marke-hell);
+  text-decoration: none;
+  font-weight: 600;
+}
+.abschnitt-kopf .mehr:hover { text-decoration: underline; }
+
+.abschnitt-hinweis { color: var(--muted); font-size: .85rem; margin: -10px 0 16px; line-height: 1.55; }
+
+/* ---------- Bildflächen ----------
+   Solange keine echten Fotos vorliegen, zeigen diese Flächen einen
+   Platzhalter mit Beschreibung dessen, was dorthin gehört. Sobald ein
+   Bild da ist, wird der Inhalt einfach durch ein <img> ersetzt. */
+
+.bildflaeche {
+  position: relative;
+  background: linear-gradient(135deg, var(--marke-hell), var(--marke-dunkel));
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+.bildflaeche::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.028) 0 12px, transparent 12px 24px);
+}
+.bildflaeche img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bild-platzhalter {
+  position: relative; z-index: 2;
+  color: rgba(255,255,255,.62);
+  font-size: .72rem; text-align: center;
+  padding: 12px 16px; line-height: 1.5; font-weight: 500;
+}
+.bild-platzhalter strong { display: block; font-size: 1.5rem; margin-bottom: 5px; opacity: .5; }
+
+/* ---------- Aufmacher ---------- */
+
+.aufmacher { position: relative; height: 300px; border-radius: var(--radius); overflow: hidden; margin-bottom: 34px; }
+.aufmacher .bildflaeche { position: absolute; inset: 0; }
+.aufmacher-text {
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 30px 32px;
+  background: linear-gradient(to top, rgba(17,24,39,.9) 12%, rgba(17,24,39,.25) 62%, transparent);
+}
+.aufmacher h1 {
+  font-family: var(--font-titel);
+  color: #fff; font-size: 1.85rem;
+  margin: 0 0 8px; line-height: 1.2; max-width: 20ch;
+}
+.aufmacher p { color: #d1d5db; margin: 0 0 17px; font-size: .92rem; max-width: 48ch; line-height: 1.55; }
+.aufmacher-knoepfe { display: flex; gap: 9px; flex-wrap: wrap; }
+
+@media (max-width: 560px) {
+  .aufmacher { height: 340px; }
+  .aufmacher h1 { font-size: 1.5rem; }
+}
+
+.knopf-haupt, .knopf-rand {
+  border-radius: 999px;
+  padding: 12px 21px;
+  font: inherit; font-weight: 700; font-size: .87rem;
+  cursor: pointer; text-decoration: none;
+  min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.knopf-haupt { background: #fff; color: var(--marke-dunkel); border: 0; }
+.knopf-haupt:hover { background: #f3f4f6; }
+.knopf-rand { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.55); font-weight: 600; }
+.knopf-rand:hover { background: rgba(255,255,255,.13); }
+
+/* ---------- Bildkacheln ---------- */
+
+.kachelraster {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+}
+
+.bildkachel {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .18s, transform .18s, border-color .18s;
+  display: flex; flex-direction: column;
+}
+.bildkachel:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); border-color: #d1d5db; }
+.bildkachel .bildflaeche { height: 118px; }
+.bildkachel-text { padding: 14px 15px 16px; }
+.bildkachel h3 { margin: 0 0 4px; font-size: .95rem; font-family: var(--font-titel); }
+.bildkachel p { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+
+/* ---------- Schnuppertest-Aufruf ---------- */
+
+.schnupper {
+  background: var(--marke);
+  border-radius: var(--radius);
+  padding: 26px 28px;
+  color: #fff;
+  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.schnupper h2 { font-family: var(--font-titel); margin: 0 0 6px; font-size: 1.2rem; }
+.schnupper p { color: #9ca3af; font-size: .87rem; margin: 0; max-width: 52ch; line-height: 1.55; }
+.schnupper .knopf-haupt { margin-left: auto; }
+@media (max-width: 620px) { .schnupper .knopf-haupt { margin-left: 0; } }
+
+/* ---------- Termine ---------- */
+
+.termine { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
+.termin { display: flex; gap: 13px; padding: 13px 16px; border-bottom: 1px solid #f3f4f6; align-items: flex-start; }
+.termin:last-child { border-bottom: 0; }
+.termin-datum {
+  flex: none; width: 46px; text-align: center;
+  background: var(--marke-lighter); border-radius: 9px; padding: 6px 0;
+}
+.termin-datum .tag { display: block; font-weight: 800; font-size: 1.02rem; line-height: 1; }
+.termin-datum .monat {
+  display: block; font-size: .61rem; text-transform: uppercase;
+  color: var(--muted); letter-spacing: .05em; margin-top: 2px;
+}
+.termin-was { font-size: .86rem; font-weight: 600; }
+.termin-wo { font-size: .76rem; color: var(--muted); margin-top: 2px; }
+
+/* ---------- Informationen: gruppierte Kacheln ---------- */
+
+.gruppe { margin-bottom: 30px; }
+.gruppe-kopf { margin-bottom: 12px; }
+.gruppe-kopf h2 { font-family: var(--font-titel); font-size: 1.05rem; margin: 0 0 2px; }
+.gruppe-kopf p { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.5; }
+
+.dokraster { display: grid; gap: 13px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
+
+.dokkachel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  text-decoration: none; color: inherit;
+  transition: box-shadow .18s, transform .18s, border-color .18s;
+}
+.dokkachel:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: #d1d5db; }
+.dok-band { height: 4px; }
+.dok-koerper { padding: 15px 16px 16px; flex: 1; display: flex; flex-direction: column; }
+.dok-symbol {
+  width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 1.15rem; margin-bottom: 11px;
+}
+.dokkachel h3 { margin: 0 0 5px; font-size: .94rem; font-family: var(--font-titel); line-height: 1.3; }
+.dokkachel p { margin: 0 0 12px; font-size: .8rem; color: var(--muted); line-height: 1.5; flex: 1; }
+.dok-fuss { display: flex; align-items: center; gap: 7px; font-size: .75rem; font-weight: 600; }
+
+.abzeichen {
+  font-size: .68rem; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.abz-hier { background: var(--green-light); color: var(--green-dark); }
+.abz-extern { background: var(--blau-hell); color: #1d4ed8; }
+.dok-pfeil { margin-left: auto; color: var(--muted); }
+
+/* ---------- Regelübersicht ----------
+   Das Original des Stadtverbands ist eine Tabelle mit zehn Spalten. Auf
+   dem Handy ist die praktisch unlesbar, und man muss jedes Mal die
+   richtige Zeile suchen. Deshalb hier Karten statt Tabelle: eine Karte
+   je Spielklasse, Werte beschriftet, Filter und Suche darüber. */
+
+.filterleiste { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.filterleiste button {
+  font: inherit; font-size: .81rem; font-weight: 600;
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card);
+  cursor: pointer; color: var(--marke-hell);
+  min-height: 44px;
+}
+.filterleiste button:hover { border-color: var(--marke-hell); }
+.filterleiste button.an { background: var(--marke); color: #fff; border-color: var(--marke); }
+
+.suche {
+  width: 100%; max-width: 340px;
+  padding: 11px 13px;
+  border: 1px solid var(--border); border-radius: 10px;
+  font: inherit; font-size: .87rem;
+  margin: 8px 0 20px;
+  min-height: 44px;
+}
+
+.regelkarten { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
+
+.rk { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
+.rk-kopf { padding: 11px 14px; background: var(--marke-lighter); border-bottom: 1px solid var(--border); }
+.rk-kopf .alter {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .05em; color: var(--muted);
+}
+.rk-kopf .klasse { font-size: .9rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.3; margin-top: 2px; }
+.rk-werte { display: grid; grid-template-columns: 1fr 1fr; }
+.wert { padding: 9px 14px; border-bottom: 1px solid #f3f4f6; border-right: 1px solid #f3f4f6; }
+.wert:nth-child(2n) { border-right: 0; }
+.wert .l { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+.wert .v { font-size: .87rem; font-weight: 600; margin-top: 1px; }
+/* Gelb hinterlegt = im Original des Stadtverbands markierte Abweichung.
+   Farbe ist hier NICHT der alleinige Träger: die Werte stehen ohnehin
+   beschriftet da, die Markierung ist nur eine zusätzliche Hilfe. */
+.wert.hervor { background: var(--karte-gelb-hell); }
+
+.rk-fuss { padding: 9px 14px; font-size: .76rem; color: var(--muted); line-height: 1.5; }
+.keine { padding: 26px; text-align: center; color: var(--muted); font-size: .88rem; }
+
+/* ---------- Fußbereich ---------- */
+
+.seiten-fuss { background: var(--marke-dunkel); color: #9ca3af; margin-top: 40px; }
+.fuss-innen { max-width: 1140px; margin: 0 auto; padding: 24px 20px; font-size: .78rem; line-height: 1.7; }
+.fuss-innen a { color: #d1d5db; text-decoration: none; margin-right: 16px; }
+.fuss-innen a:hover { text-decoration: underline; }
+/* opacity entfernt: mischte den Text auf 4,05:1 herunter und lag damit
+   unter der WCAG-AA-Schwelle von 4,5:1. */
+.fuss-zeile { margin-top: 11px; }
