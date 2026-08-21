@@ -29,8 +29,16 @@
              Wichtig war ihm vor allem, dass man das Quiz überhaupt wieder
              verlassen kann: Bis hierhin fühlte es sich an "als hättest du
              eine komplett andere Seite besucht". -->
+        <!-- Massives Haus mit ausgespartem Eingang. Max, 21.08.2026: "das
+             Haus sieht immer noch hässlich aus. Es muss so ein Icon-Haus
+             werden und nicht irgendwie so eine Grafik, die einfach nur ein
+             Viereck mit einer Spitze oben drauf ist." Vor dem Einbau in vier
+             Fassungen gerendert und bei 22px verglichen - diese liest sich
+             auch klein sofort als Haus. -->
         <a href="index.html" class="heim-knopf" aria-label="Zurück zur Startseite">
-          <span aria-hidden="true">⌂</span>
+          <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true">
+            <path fill="currentColor" d="M11.47 2.84a1.5 1.5 0 0 1 1.06 0l8 6.2A1.5 1.5 0 0 1 21 10.23V19.5A2.5 2.5 0 0 1 18.5 22H15v-5.5a3 3 0 0 0-6 0V22H5.5A2.5 2.5 0 0 1 3 19.5v-9.27a1.5 1.5 0 0 1 .47-1.19z"/>
+          </svg>
         </a>
       </div>
 
@@ -74,6 +82,7 @@
               <stop offset="72%" stop-color="#f8fafc" />
               <stop offset="100%" stop-color="#dbe1e8" />
             </radialGradient>
+            <clipPath id="ball-rund"><circle cx="50" cy="50" r="46" /></clipPath>
             <filter id="ball-schatten" x="-35%" y="-35%" width="170%" height="180%">
               <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#000000" flood-opacity="0.28" />
             </filter>
@@ -107,16 +116,33 @@
             <rect width="30" height="42" rx="4" fill="#ef4444" />
           </g>
 
-          <!-- Fußball auf dem Anstoßpunkt. Eine Pfeife war als Silhouette in
-               dieser Größe nicht eindeutig erkennbar (sah wie eine
-               Sprechblase aus) - der Ball funktioniert auf einen Blick. -->
-          <g transform="translate(72 53)" filter="url(#ball-schatten)">
-            <circle cx="22" cy="22" r="21" fill="url(#ball-flaeche)" stroke="#cbd5e1" stroke-width="1" />
-            <path d="M22 10 l8.3 6 -3.2 9.8 H16.9 L13.7 16 z" fill="#172033" />
-            <path d="M22 1.2 l5.7 4.2 -2.2 5.9 h-7 l-2.2-5.9 z M41.5 17.2 l-2.2 7 -6.3.1 -2.1-6.4 5.2-3.8 z M34.1 38.1 l-7.2.1 -1.9-6.1 5.6-4 5.2 3.8 z M9.9 38.1 l-1.7-6.2 5.2-3.8 5.6 4 -1.9 6.1 z M2.5 17.2 l5.4-3.1 5.2 3.8 -2.1 6.4 -6.3-.1 z" fill="#273244" />
-            <path d="M22 10 V5.4 M30.3 16 l5.8-1.9 M27.1 25.8 l3.5 6.3 M16.9 25.8 l-3.5 6.3 M13.7 16 l-5.8-1.9"
-                  stroke="#4b5563" stroke-width="1.4" stroke-linecap="round" fill="none" />
-            <ellipse cx="15" cy="10" rx="5" ry="3" fill="#ffffff" opacity="0.6" transform="rotate(-28 15 10)" />
+          <!-- Fußball auf dem Anstoßpunkt.
+               Neu gezeichnet am 21.08.2026. Max zweimal: "der Fußball sieht
+               halt noch miserabel aus", "da irgendwie so ein paar Linien mit
+               dazwischen sind zwischen den fünf Ecken. Fußball ist ja immer
+               fünf und sechs Ecken gemixt."
+
+               Jetzt geometrisch konstruiert statt von Hand geschätzt: ein
+               regelmäßiges Fünfeck in der Mitte, fünf weitere auf den
+               Eckenrichtungen am Rand (vom Kreis beschnitten), und die Nähte
+               laufen genau von den Ecken der Mitte nach außen. Die weißen
+               Flächen dazwischen sind damit die Sechsecke - so ist ein
+               Fußball aufgebaut. Vor dem Einbau in mehreren Fassungen
+               gerendert und verglichen. -->
+          <g transform="translate(51 30) scale(0.44)" filter="url(#ball-schatten)"
+             stroke="#151d2b" stroke-width="2.4" stroke-linecap="round" fill="none">
+            <circle cx="50" cy="50" r="46" fill="url(#ball-flaeche)" stroke="#c8d0da" stroke-width="1.6"/>
+            <polygon points="50.00,36.00 63.31,45.67 58.23,61.33 41.77,61.33 36.69,45.67" fill="#151d2b"/>
+            <polygon points="62.00,10.00 53.71,21.41 40.29,17.05 40.29,2.95 53.71,-1.41" fill="#151d2b" clip-path="url(#ball-rund)"/>
+            <line x1="50.00" y1="36.00" x2="50.00" y2="22.00"/>
+            <polygon points="91.75,49.05 78.33,44.69 78.33,30.59 91.75,26.23 100.04,37.64" fill="#151d2b" clip-path="url(#ball-rund)"/>
+            <line x1="63.31" y1="45.67" x2="76.63" y2="41.35"/>
+            <polygon points="63.80,89.41 63.80,75.31 77.22,70.95 85.51,82.36 77.22,93.77" fill="#151d2b" clip-path="url(#ball-rund)"/>
+            <line x1="58.23" y1="61.33" x2="66.46" y2="72.65"/>
+            <polygon points="16.78,75.31 30.20,70.95 38.49,82.36 30.20,93.77 16.78,89.41" fill="#151d2b" clip-path="url(#ball-rund)"/>
+            <line x1="41.77" y1="61.33" x2="33.54" y2="72.65"/>
+            <polygon points="15.67,26.23 23.96,37.64 15.67,49.05 2.25,44.69 2.25,30.59" fill="#151d2b" clip-path="url(#ball-rund)"/>
+            <line x1="36.69" y1="45.67" x2="23.37" y2="41.35"/>
           </g>
         </svg>
       </div>

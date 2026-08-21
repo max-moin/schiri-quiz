@@ -15,15 +15,6 @@
 
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
 
-  <!-- ============================================================
-       Kopfbereich.
-
-       Das Logo links ist ein Link zur Startseite. Der Vereinswechsler,
-       den Max sich dort gewünscht hat, kommt erst im ANGEMELDETEN
-       Zustand dazu (also im Quiz-Bereich) - als Login-Weg für Fremde
-       würde er die Namensliste offenlegen, genau das Problem, das Max
-       selbst erkannt hat.
-       ============================================================ -->
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
@@ -46,18 +37,19 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
 
-    <!-- ---------- Aufmacher ---------- -->
+    <!-- ---------- Aufmacher ----------
+         Deutlich höher als vorher und mit einem Kicker über der Zeile.
+         Max, 21.08.2026: "mit großen Überschriften, mit großen
+         Schlagwörtern arbeiten". -->
     <section class="aufmacher">
       <div class="bildflaeche">
-        <!-- Bild vom Pexels-CDN geladen. Für den Livegang herunterladen und
-             lokal ablegen - dann ist die Seite unabhängig von fremden
-             Servern. Quelle steht in bilder/QUELLEN.md. -->
-        <img src="https://images.pexels.com/photos/47343/the-ball-stadion-horn-corner-47343.jpeg?auto=compress&cs=tinysrgb&w=1600"
+        <img src="https://images.pexels.com/photos/47343/the-ball-stadion-horn-corner-47343.jpeg?auto=compress&cs=tinysrgb&w=1800"
              alt="" loading="eager" />
       </div>
       <div class="aufmacher-text">
-        <h1>Ohne uns geht kein Spiel</h1>
-        <p>Alles für die Schiedsrichter des FV Löbtauer Kickers.</p>
+        <span class="kicker">Schiedsrichter · FV Löbtauer Kickers</span>
+        <h1>Ohne uns geht<br />kein Spiel</h1>
+        <p>Neunzig Minuten, zweiundzwanzig Meinungen, eine Entscheidung.</p>
         <div class="aufmacher-knoepfe">
           <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
           <a class="knopf-rand" href="informationen.html">Regeln nachschlagen</a>
@@ -65,45 +57,64 @@
       </div>
     </section>
 
-    <!-- ---------- Bereiche ----------
-         Max, 18.08.2026: "mehr mit Bildern arbeiten". Die drei ersten
-         Kacheln haben jetzt echte Fotos, die vierte bleibt Platzhalter,
-         weil es dafür ein eigenes Vereinsfoto braucht - ein
-         Stockbild von fremden Trikots wäre hier gelogen.
+    <!-- ---------- Bildgeführte Zeilen ----------
+         Ersetzen die Kachelreihe als Einstieg. Ein großes Foto neben
+         einer großen Überschrift trägt weiter als vier kleine Kästchen
+         nebeneinander - und sieht nicht nach Baukasten aus.
 
-         Alle Fotos zeigen bewusst KEINE erkennbaren Personen. Die
-         Lizenzen von Pexels und Unsplash decken nur das Urheberrecht ab,
-         nicht das Recht am eigenen Bild - und bei Jugendfußball wäre das
-         besonders heikel. -->
+         Alle Fotos zeigen bewusst KEINE erkennbaren Personen: die
+         Lizenzen von Pexels decken nur das Urheberrecht ab, nicht das
+         Recht am eigenen Bild. Register in bilder/QUELLEN.md. -->
+
+    <section class="wechsel">
+      <div class="wechsel-bild">
+        <div class="bildflaeche">
+          <img src="https://images.pexels.com/photos/6204479/pexels-photo-6204479.jpeg?auto=compress&cs=tinysrgb&w=1200"
+               alt="" loading="lazy" />
+        </div>
+      </div>
+      <div class="wechsel-text">
+        <span class="kicker">Nach dem Spiel</span>
+        <h2>Was steht mir eigentlich zu?</h2>
+        <p>
+          Entschädigung und Fahrtkosten unterscheiden sich je nach Spielklasse –
+          und auf Landesebene gilt ein anderes Regelwerk als in der Stadt. Der
+          Rechner nimmt dir das ab und gibt es in der Form aus, die auf der
+          Quittung verlangt wird.
+        </p>
+        <a class="knopf-dunkel" href="spesenrechner.html">Zum Spesenrechner</a>
+      </div>
+    </section>
+
+    <section class="wechsel gedreht">
+      <div class="wechsel-bild">
+        <div class="bildflaeche">
+          <img src="https://images.pexels.com/photos/46798/pexels-photo-46798.jpeg?auto=compress&cs=tinysrgb&w=1200"
+               alt="" loading="lazy" />
+        </div>
+      </div>
+      <div class="wechsel-text">
+        <span class="kicker">Vor dem Spiel</span>
+        <h2>Spielzeit, Feldmaß, Abseits – für jede Altersklasse</h2>
+        <p>
+          Bei den C-Junioren wird in Vierteln gespielt, bei den D-Junioren gibt es
+          keine Gelb-Rote Karte, und die Mittellinienregel liegt in Dresden anders
+          als in der Landesklasse. Alles filterbar, nach Ebene getrennt.
+        </p>
+        <a class="knopf-dunkel" href="regeluebersicht.html">Regeln auf einen Blick</a>
+      </div>
+    </section>
+
+    <!-- ---------- Kacheln ----------
+         Bleiben als kurzer Überblick, aber mit festem Seitenverhältnis
+         und größerer Schrift. Vorher war das Bild ein 118px-Streifen. -->
     <section class="abschnitt">
       <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
       <div class="kachelraster">
 
-        <a class="bildkachel" href="spesenrechner.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/6204479/pexels-photo-6204479.jpeg?auto=compress&cs=tinysrgb&w=700"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Spesenrechner</h3>
-            <p>Was bekomme ich für mein nächstes Spiel?</p>
-          </div>
-        </a>
-
-        <a class="bildkachel" href="informationen.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/46798/pexels-photo-46798.jpeg?auto=compress&cs=tinysrgb&w=700"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Informationen</h3>
-            <p>Regeln, Vorlagen und Dokumente zum Nachschlagen.</p>
-          </div>
-        </a>
-
         <a class="bildkachel" href="quiz.html">
           <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/17203165/pexels-photo-17203165.jpeg?auto=compress&cs=tinysrgb&w=700"
+            <img src="https://images.pexels.com/photos/17203165/pexels-photo-17203165.jpeg?auto=compress&cs=tinysrgb&w=800"
                  alt="" loading="lazy" />
           </div>
           <div class="bildkachel-text">
@@ -112,9 +123,37 @@
           </div>
         </a>
 
+        <a class="bildkachel" href="vorlagen.html">
+          <div class="bildflaeche">
+            <img src="https://images.pexels.com/photos/47730/pexels-photo-47730.jpeg?auto=compress&cs=tinysrgb&w=800"
+                 alt="" loading="lazy" />
+          </div>
+          <div class="bildkachel-text">
+            <h3>Absagen</h3>
+            <p>Fertige E-Mail, alle Pflichtangaben drin.</p>
+          </div>
+        </a>
+
         <a class="bildkachel" href="informationen.html">
           <div class="bildflaeche">
-            <p class="bild-platzhalter"><strong>▣</strong>Eigenes Foto:<br />Schiri-Trikots, Ausrüstung</p>
+            <img src="https://images.pexels.com/photos/30956958/pexels-photo-30956958.jpeg?auto=compress&cs=tinysrgb&w=800"
+                 alt="" loading="lazy" />
+          </div>
+          <div class="bildkachel-text">
+            <h3>Dokumente</h3>
+            <p>Stadtverband und Landesverband an einer Stelle.</p>
+          </div>
+        </a>
+
+        <!-- Bekommt vorerst ebenfalls ein Foto. Der Platzhalter stand als
+             einziger dunkler Kasten neben drei Bildern und sah nach
+             Fehler aus statt nach Absicht (Max, 21.08.2026). Sobald ein
+             eigenes Foto der Trikots da ist, wird es hier getauscht -
+             steht als offener Punkt in bilder/QUELLEN.md. -->
+        <a class="bildkachel" href="informationen.html">
+          <div class="bildflaeche">
+            <img src="https://images.pexels.com/photos/9735384/pexels-photo-9735384.jpeg?auto=compress&cs=tinysrgb&w=800"
+                 alt="" loading="lazy" />
           </div>
           <div class="bildkachel-text">
             <h3>Ausrüstung</h3>
@@ -126,47 +165,36 @@
     </section>
 
     <!-- ---------- Probefrage ----------
-         Ersetzt den Kasten "Hast du das Zeug zum Schiri?" mit dem Knopf
-         "Fragen ausprobieren", den Max nicht mochte (18.08.2026).
+         Ersetzt den Knopf "Fragen ausprobieren" (Max mochte ihn nicht:
+         er verspricht etwas, statt es zu zeigen).
 
-         Der Grund, warum der Knopf nicht funktionierte: Er versprach
-         etwas, statt es zu zeigen. Wer noch nie gepfiffen hat, weiß
-         nicht, was ihn hinter dem Knopf erwartet, und klickt deshalb
-         nicht. Eine echte Frage, die sofort dasteht und beim Antippen
-         auflöst, beantwortet die Frage "ist das was für mich?" in fünf
-         Sekunden - und wer sie richtig hat, klickt umso lieber weiter.
-
-         Die Frage stammt aus der eigenen Datenbank (Regel 4). Sie ist
-         bewusst eine, bei der die meisten daneben liegen. -->
+         Nachgebessert am 21.08.2026: Die Fragen kommen jetzt WÖRTLICH
+         aus dem eigenen Katalog, nicht mehr aus einer selbst gebauten.
+         Bei jedem Aufruf wird eine andere gezogen - wer wiederkommt,
+         sieht nicht dieselbe. -->
     <section class="band band-dunkel">
       <div class="band-zwei">
-        <div>
-          <h2>Hast du das Zeug zum Schiri?</h2>
-          <p style="max-width:44ch">
-            Eine echte Frage aus unserem Regelquiz. Ohne Anmeldung, ohne Punkte –
-            einfach mal tippen.
+        <div class="band-text">
+          <span class="kicker">Ohne Anmeldung</span>
+          <h2>Hättest du richtig entschieden?</h2>
+          <p>
+            Eine echte Frage aus unserem Regelquiz – dieselben, mit denen sich
+            unsere Schiedsrichter jede Woche vorbereiten.
           </p>
         </div>
 
         <div class="probe">
-          <div class="marke">Regel 4 · Ausrüstung der Spieler</div>
-          <p class="frage" id="probe-frage">
-            Ein Spieler schießt den Ball ins Tor und verliert dabei einen Schuh.
-            Wie entscheidest du?
-          </p>
-          <div class="probe-optionen" id="probe-optionen" role="group" aria-labelledby="probe-frage">
-            <button type="button" data-o="a"><span class="buchstabe">A</span><span>Das Tor zählt nicht, indirekter Freistoß.</span></button>
-            <button type="button" data-o="b"><span class="buchstabe">B</span><span>Das Tor zählt nicht, indirekter Freistoß und Verwarnung.</span></button>
-            <button type="button" data-o="c"><span class="buchstabe">C</span><span>Das Tor zählt, Anstoß.</span></button>
-          </div>
-          <div class="probe-aufloesung" id="probe-aufloesung" role="status" aria-live="polite" tabindex="-1" hidden>
-            <p style="margin:0">
-              <strong>C ist richtig.</strong> Verliert ein Spieler unbeabsichtigt einen Schuh
-              und spielt sofort weiter, bleibt das erlaubt – auch wenn er dabei ein Tor
-              erzielt. Erst bei der nächsten Spielunterbrechung muss er den Schuh
-              wieder anziehen.
-            </p>
-            <a href="quiz.html#gast">Weiter zum Quiz – 9 Fragen, ohne Anmeldung →</a>
+          <div class="marke" id="probe-regel">Regel</div>
+          <p class="frage" id="probe-frage"></p>
+          <div class="probe-optionen" id="probe-optionen" role="group" aria-labelledby="probe-frage"></div>
+          <!-- Kein "hidden": eine Live-Region, die beim Setzen des Textes nicht
+               im Barrierefreiheitsbaum steht, sagt bei manchen Vorleseprogrammen
+               gar nichts an. Deshalb bleibt sie dauerhaft im Dokument, wird nur
+               ausgeblendet - und der Text kommt erst NACH dem Einblenden rein.
+               Review 21.08.2026. -->
+          <div class="probe-aufloesung leer" id="probe-aufloesung" role="status" aria-live="polite">
+            <p id="probe-text" style="margin:0"></p>
+            <a href="quiz.html#gast" id="probe-weiter">Weiter zum Gastzugang – über 40 Fragen →</a>
           </div>
         </div>
       </div>
@@ -217,39 +245,122 @@
 
   <script type="module" src="seite.js"></script>
   <script>
-    /* Probefrage: einmal antworten, dann auflösen und sperren.
-       Bewusst ohne Wiederholen-Knopf - wer weitermachen will, soll ins
-       richtige Quiz, nicht hier hängen bleiben. */
+    /* ============================================================
+       Probefrage.
+
+       Die vier Fragen stehen WÖRTLICH so im Fragenkatalog der eigenen
+       Datenbank (Stand 21.08.2026). Max, 21.08.2026: "das sind nicht die
+       richtigen Fragen von meiner Webseite. Ich hätte schon gerne, dass
+       auch die Fragen sind und nicht so generische Fragen."
+
+       Bewusst fest eingetragen und nicht live geladen: Die Startseite
+       hat KEINE Datenbankanbindung, und das soll so bleiben - sonst
+       hängt ausgerechnet die Seite, die jeder zuerst sieht, an einem
+       fremden Dienst. Es sind alles Fragen, bei denen die naheliegende
+       Antwort falsch ist; genau das ist hier der Zweck.
+       ============================================================ */
+    const PROBEFRAGEN = [
+      {
+        regel: "Regel 4 · Die Ausrüstung der Spieler",
+        frage: "Ein Spieler schießt den Ball ins Tor und verliert dabei einen Schuh.",
+        optionen: [
+          "Das Tor zählt nicht, indirekter Freistoß.",
+          "Das Tor zählt nicht, indirekter Freistoß und Verwarnung.",
+          "Das Tor zählt, Anstoß.",
+        ],
+        richtig: 2,
+        text: "Verliert ein Spieler unbeabsichtigt einen Schuh und spielt sofort weiter, "
+            + "bleibt das erlaubt – auch wenn er dabei trifft. Erst bei der nächsten "
+            + "Unterbrechung muss er den Schuh wieder anziehen.",
+      },
+      {
+        regel: "Regel 11 · Abseits",
+        frage: "Ein Stürmer verlässt das Spielfeld über die Torlinie, um sich einer Abseitsstellung zu entziehen. Sein Mitspieler tritt den Ball ins Tor.",
+        optionen: [
+          "Tor, Anstoß, der Spieler durfte das Spielfeld verlassen.",
+          "Indirekter Freistoß wegen Abseits.",
+          "Indirekter Freistoß wegen unerlaubtem Verlassen des Spielfelds, Verwarnung.",
+        ],
+        richtig: 0,
+        text: "Wer das Feld über die Torlinie verlässt, um sich einer Abseitsstellung zu "
+            + "entziehen, tut genau das Richtige. Weder Strafe noch Abseits.",
+      },
+      {
+        regel: "Regel 14 · Strafstoß",
+        frage: "Der Torwart bewegt sich beim Strafstoß zu früh von der Torlinie. Der Schütze ist so irritiert, dass er den Ball gegen den Pfosten schießt.",
+        optionen: [
+          "Weiterspielen.",
+          "Wiederholung, Ermahnung.",
+          "Wiederholung, Verwarnung.",
+        ],
+        richtig: 1,
+        text: "Der Strafstoß wird wiederholt. Für das erste Vergehen dieser Art bekommt der "
+            + "Torwart eine Ermahnung, noch keine Verwarnung.",
+      },
+      {
+        regel: "Regel 15 · Einwurf",
+        frage: "Ein an der falschen Stelle und zusätzlich falsch ausgeführter Einwurf gelangt zum Gegner, der dadurch eine Torchance erhält.",
+        optionen: [
+          "Weiterspielen.",
+          "Wiederholung des Einwurfs durch dieselbe Mannschaft.",
+          "Einwurf für den Gegner.",
+        ],
+        richtig: 0,
+        text: "Vorteil. Die Mannschaft, die falsch eingeworfen hat, soll daraus keinen "
+            + "Nutzen ziehen – und der Gegner nicht um seine Torchance gebracht werden.",
+      },
+    ];
+
     (function () {
-      const RICHTIG = "c";
       const feld = document.getElementById("probe-optionen");
       if (!feld) return;
-      const knoepfe = Array.from(feld.querySelectorAll("button"));
+
+      const f = PROBEFRAGEN[Math.floor(Math.random() * PROBEFRAGEN.length)];
+      document.getElementById("probe-regel").textContent = f.regel;
+      document.getElementById("probe-frage").textContent = f.frage;
+
+      const knoepfe = f.optionen.map((text, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        const buchstabe = document.createElement("span");
+        buchstabe.className = "buchstabe";
+        buchstabe.textContent = "ABC"[i];
+        const inhalt = document.createElement("span");
+        inhalt.textContent = text;
+        b.append(buchstabe, inhalt);
+        feld.appendChild(b);
+        return b;
+      });
 
       /* Wort statt nur Farbe - eine Rückmeldung, die ausschließlich über
          Grün und Rot läuft, kommt bei Farbfehlsichtigkeit nicht an. */
-      const marker = (knopf, text) => {
+      const marker = (knopf, wort) => {
         const s = document.createElement("span");
         s.className = "probe-marker";
-        s.textContent = text;
+        s.textContent = wort;
         knopf.appendChild(s);
       };
 
-      knoepfe.forEach((b) => b.addEventListener("click", () => {
+      knoepfe.forEach((b, i) => b.addEventListener("click", () => {
         if (feld.dataset.beantwortet === "ja") return;
         feld.dataset.beantwortet = "ja";
 
-        knoepfe.forEach((x) => {
+        knoepfe.forEach((x, j) => {
           /* aria-disabled statt disabled: ein deaktivierter Knopf verliert
              sofort den Fokus, und der nächste Tabulator fängt wieder ganz
              oben an. Der zweite Klick wird oben abgefangen. */
           x.setAttribute("aria-disabled", "true");
-          if (x.dataset.o === RICHTIG) { x.classList.add("richtig"); marker(x, "Richtig"); }
+          if (j === f.richtig) { x.classList.add("richtig"); marker(x, "Richtig"); }
         });
-        if (b.dataset.o !== RICHTIG) { b.classList.add("falsch"); marker(b, "Daneben"); }
+        if (i !== f.richtig) { b.classList.add("falsch"); marker(b, "Daneben"); }
 
         const loesung = document.getElementById("probe-aufloesung");
-        loesung.hidden = false;
+        const ziel = document.getElementById("probe-text");
+        ziel.textContent = "";
+        const fett = document.createElement("strong");
+        fett.textContent = "ABC"[f.richtig] + " ist richtig.";
+        ziel.append(fett, " " + f.text);
+        loesung.classList.remove("leer");
         /* Auf dem Handy steht die Auflösung sonst unterhalb des sichtbaren
            Bereichs und es sieht aus, als sei nichts passiert. */
         loesung.scrollIntoView({ block: "nearest", behavior: "smooth" });

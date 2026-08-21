@@ -87,7 +87,7 @@
       <div class="liste">
         <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf"
            target="_blank" rel="noopener noreferrer">
-          <span class="lz-symbol land" aria-hidden="true">📄</span>
+          <span class="lz-marke land" aria-hidden="true"></span>
           <span class="lz-text">
             <span class="lz-titel">Regelungsübersicht Junioren-Spielbetrieb im SFV 2026/27</span>
             <span class="lz-sub">Das Original zur Landesebene. Stand 01.07.2026.</span>
@@ -96,7 +96,7 @@
         </a>
         <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Frauen_Juniorinnen/Saison_2026_2027/08042026_Uebersicht_Spielbetrieb_FMA.pdf"
            target="_blank" rel="noopener noreferrer">
-          <span class="lz-symbol land" aria-hidden="true">📄</span>
+          <span class="lz-marke land" aria-hidden="true"></span>
           <span class="lz-text">
             <span class="lz-titel">Übersicht Spieldurchführung Frauen und Juniorinnen 2026/27</span>
             <span class="lz-sub">Dasselbe für Frauen, B-, C- und D-Juniorinnen. Hier noch nicht eingepflegt.</span>
@@ -105,7 +105,7 @@
         </a>
         <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Regelwerk/kleinfeldbestimmungen.pdf"
            target="_blank" rel="noopener noreferrer">
-          <span class="lz-symbol land" aria-hidden="true">📐</span>
+          <span class="lz-marke land" aria-hidden="true"></span>
           <span class="lz-text">
             <span class="lz-titel">SFV-Kleinfeldbestimmungen</span>
             <span class="lz-sub">Maße, Tore und Sonderregeln für G- bis C-Junioren. Gültig ab 01.07.2025 und
@@ -115,7 +115,7 @@
         </a>
         <a class="lz" href="https://www.svf-dresden.de/docs/schiedsrichter/regelwerk/kurzuebersicht-regeln/"
            target="_blank" rel="noopener noreferrer">
-          <span class="lz-symbol extern" aria-hidden="true">📁</span>
+          <span class="lz-marke extern" aria-hidden="true"></span>
           <span class="lz-text">
             <span class="lz-titel">Kurzübersicht Regeln des Stadtverbands</span>
             <span class="lz-sub">Die Grundlage für die Stadtebene. Weiterhin die Fassung von 2024.</span>
@@ -124,7 +124,7 @@
         </a>
         <a class="lz" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
            target="_blank" rel="noopener noreferrer">
-          <span class="lz-symbol extern" aria-hidden="true">📝</span>
+          <span class="lz-marke extern" aria-hidden="true"></span>
           <span class="lz-text">
             <span class="lz-titel">Handreichung für die Schiedsrichter 2025/2026</span>
             <span class="lz-sub">Vom Jugendausschuss des SVFD. Ersetzt die Kurzübersicht für C- und
@@ -392,7 +392,7 @@
       const q = QUELLEN[ebene];
       $("standHinweis").innerHTML = `
         <div class="hinweisbalken${q.warnung ? "" : " ruhig"}">
-          <span class="sym" aria-hidden="true">${q.warnung ? "⚠️" : "ℹ️"}</span>
+          <span class="sym-wort">${q.warnung ? "Achtung" : "Hinweis"}</span>
           <span>
             <strong>${sicher(q.stand)}.</strong> ${sicher(q.hinweis)}
             <a href="${sicher(q.link)}" target="_blank" rel="noopener noreferrer">${sicher(q.linkText)} ↗</a>
