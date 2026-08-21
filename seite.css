@@ -910,3 +910,9 @@ body { overflow-x: hidden; }
 
 .abz-land { background: #ede9fe; color: #5b21b6; }
 .lz-symbol.land { background: #ede9fe; }
+
+/* Gesamtsumme, in der etwas fehlt oder ungeprüft ist. Grün signalisiert
+   "fertig" - genau das darf hier nicht stehen, wenn z.B. die Fahrtkosten
+   der Assistenten noch fehlen. Kontrast 8,07:1. */
+.q-gesamt.unvollstaendig { background: var(--karte-gelb-hell); }
+.q-gesamt.unvollstaendig b:last-child { color: #713f12; }

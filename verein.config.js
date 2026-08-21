@@ -97,6 +97,7 @@ export const ALTERSKLASSEN = [
       { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse A-Junioren",   verband: "svfd", sr: 25, sra: 20 },
       { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga A-Junioren",     verband: "svfd", sr: 25, sra: 20 },
       { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga A-Junioren", verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 6, kurz: "Landesklasse",  voll: "Landesklasse A-Junioren",  verband: "sfv",  sr: 25, sra: 20 },
       { stufe: 7, kurz: "Landesliga",    voll: "Landesliga A-Junioren",    verband: "sfv",  sr: 30, sra: 25 },
     ],
   },
@@ -106,6 +107,8 @@ export const ALTERSKLASSEN = [
       { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse B-Junioren",   verband: "svfd", sr: 22, sra: 20 },
       { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga B-Junioren",     verband: "svfd", sr: 22, sra: 20 },
       { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga B-Junioren", verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 6, kurz: "Landesklasse",  voll: "Landesklasse B-Junioren",  verband: "sfv",  sr: 25, sra: 20 },
+      { stufe: 7, kurz: "Landesliga",    voll: "Landesliga B-Junioren",    verband: "sfv",  sr: 30, sra: 25 },
     ],
   },
   {
@@ -115,12 +118,34 @@ export const ALTERSKLASSEN = [
       { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga C-Junioren",       verband: "svfd", sr: 22, sra: 20 },
       { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga C-Junioren",   verband: "svfd", sr: 22, sra: 20 },
       { stufe: 6, kurz: "Landesklasse",  voll: "Landesklasse C-Junioren",    verband: "sfv",  sr: 20, sra: 15 },
+      { stufe: 7, kurz: "Landesliga",    voll: "Landesliga C-Junioren",      verband: "sfv",  sr: 25, sra: 20 },
     ],
   },
   {
     name: "D- bis G-Jugend",
     ligen: [
       { stufe: 1, kurz: "Alle Spielklassen", voll: "Sonstige Junioren im Stadtspielbetrieb", verband: "svfd", sr: 17, sra: null },
+      // Auf Landesebene gibt es für D-Junioren keine Assistenten-Entschädigung
+      // (Anlage 1 der SFV-Finanzordnung führt dort nur einen Satz).
+      { stufe: 6, kurz: "Landesklasse D-Jun.", voll: "Landesklasse D-Junioren", verband: "sfv", sr: 15, sra: null },
+    ],
+  },
+  // Juniorinnen fehlten bisher ganz. Aufgenommen sind nur die Klassen, die
+  // in Anlage 1 der SFV-Finanzordnung stehen - also die Landesebene. Für den
+  // Stadtspielbetrieb liegen mir keine Sätze vor; sobald Max sie hat, hier
+  // mit verband: "svfd" ergaenzen.
+  {
+    name: "B-Juniorinnen",
+    ligen: [
+      { stufe: 6, kurz: "Landesklasse", voll: "Landesklasse B-Juniorinnen", verband: "sfv", sr: 18, sra: null },
+      { stufe: 7, kurz: "Landesliga",   voll: "Landesliga B-Juniorinnen",   verband: "sfv", sr: 25, sra: 20 },
+    ],
+  },
+  {
+    name: "C-Juniorinnen",
+    ligen: [
+      { stufe: 6, kurz: "Landesklasse", voll: "Landesklasse C-Juniorinnen", verband: "sfv", sr: 16, sra: null },
+      { stufe: 7, kurz: "Landesliga",   voll: "Landesliga C-Juniorinnen",   verband: "sfv", sr: 20, sra: 15 },
     ],
   },
   {
@@ -172,10 +197,43 @@ export const TURNIER = { grundpauschale: 32, grundstunden: 4, jeWeitereStunde: 8
 //  Preis: VVO-Einzelfahrt Tarifzone Dresden, Stand 1. April 2026.
 // ============================================================
 
+// ============================================================
+//  Fahrtkosten - ZWEI Regelwerke, je nach Ebene des Spiels
+// ============================================================
+//  Max' Festlegung vom 21.08.2026: "Alle Spiele auf Landesebene werden
+//  nach den Sachen, was der Sächsische Fußballverband veröffentlicht hat,
+//  und alle auf Stadtebene von dem, was der Stadtverband Fußball Dresden
+//  veröffentlicht hat, berechnet."
+//
+//  Welche Ebene gilt, steht an der Liga selbst (Feld "verband").
+// ============================================================
+
 export const FAHRTKOSTEN = {
-  preisJeKarte: 3.60,
-  kartenJeZone: 2,
+  // --- Stadtebene: die Dresdner Regel, von Max zweimal bestätigt.
+  //     Zwei Einzelkarten je durchfahrener Zone, hin und zurück.
+  svfd: {
+    preisJeKarte: 3.60,
+    kartenJeZone: 2,
+  },
+
+  // --- Landesebene: § 8 der SFV-Finanzordnung, Fassung vom 31.07.2025.
+  //
+  //     Wörtlich zur Pauschale: "Bei Nutzung einer Jahres- oder Monatskarte
+  //     für öffentliche Verkehrsmittel kann jeweils eine Pauschalgebühr
+  //     i.H.v. 3,50 € pro Veranstaltung/Einsatz abgerechnet werden."
+  //     "Pro Einsatz" heißt: einmal für das ganze Spiel, nicht je Richtung.
+  sfv: {
+    monatskartePauschale: 3.50,
+    kmAuto: 0.35,
+    kmZuschlagMitnahme: 0.04,
+    kmFahrrad: 0.10,
+  },
 };
+
+// Anlage 1 der SFV-Finanzordnung: "Schiedsrichter und Schiedsrichter-
+// assistenten erhalten bei Spielausfall gleich aus welchem Grund 50 % der
+// Entschädigungspauschale."
+export const AUSFALL_ANTEIL = 0.5;
 
 // ============================================================
 //  Vereine des Stadtverbands

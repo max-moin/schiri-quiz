@@ -135,6 +135,7 @@
               <label class="haken" id="lblPokal"><input type="checkbox" id="cbPokal" /> Pokalspiel</label>
               <label class="haken" id="lblFreund"><input type="checkbox" id="cbFreund" /> Freundschaftsspiel</label>
               <label class="haken" id="lblTurnier"><input type="checkbox" id="cbTurnier" /> Turnier</label>
+              <label class="haken" id="lblAusfall"><input type="checkbox" id="cbAusfall" /> Spiel ist ausgefallen</label>
               <label class="haken" id="lblAss"><input type="checkbox" id="cbAss" /> Mit Assistenten</label>
             </div>
             <p class="hinweis-klein" id="artHinweis"></p>
@@ -161,6 +162,36 @@
                 <option value="sr">Schiedsrichter</option>
                 <option value="sra">Assistent</option>
               </select>
+            </div>
+
+            <!-- Nur auf Landesebene sichtbar. Auf Stadtebene gilt weiter die
+                 Zonenregel des Stadtverbands, dort gibt es nichts zu wählen. -->
+            <div id="anreiseBlock" hidden style="margin-top:14px">
+              <label for="anreise">Wie bist du angereist?</label>
+              <select class="feld" id="anreise">
+                <option value="karte">Öffis mit Monats- oder Jahreskarte</option>
+                <option value="ticket">Öffis mit Einzelfahrschein</option>
+                <option value="auto">Auto</option>
+                <option value="rad">Fahrrad</option>
+              </select>
+
+              <div id="ticketFeld" hidden style="margin-top:12px">
+                <label for="ticketBetrag">Betrag laut Fahrausweis (Hin- und Rückfahrt)</label>
+                <input class="feld" id="ticketBetrag" inputmode="decimal" placeholder="z. B. 12,40" />
+                <p class="hinweis-klein">Wird gegen Vorlage der Fahrausweise erstattet, bei der Bahn
+                   die 2. Klasse.</p>
+              </div>
+
+              <div id="kmFeld" hidden style="margin-top:12px">
+                <label for="km">Gefahrene Kilometer insgesamt (hin und zurück)</label>
+                <input class="feld" id="km" inputmode="decimal" placeholder="z. B. 48" />
+                <label class="haken" id="lblMitnahme" style="margin-top:10px">
+                  <input type="checkbox" id="cbMitnahme" /> Ich habe weitere Personen mitgenommen
+                </label>
+                <p class="hinweis-klein">Die wirtschaftlichste Strecke ist zu nehmen, Fahrgemeinschaften
+                   sind zu nutzen. Bei der Abrechnung sind Strecke, Kilometer und die Namen der
+                   mitgenommenen Personen anzugeben.</p>
+              </div>
             </div>
 
             <div style="margin-top:14px">
@@ -216,7 +247,7 @@
   <script type="module" src="seite.js"></script>
 
   <script type="module">
-    import { ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE } from "./verein.config.js";
+    import { ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE, AUSFALL_ANTEIL } from "./verein.config.js";
 
     const $ = (id) => document.getElementById(id);
     const euro = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
@@ -236,9 +267,11 @@
     });
 
     /**
-     * Baut die Liga-Leiter neu auf. Sortiert nach "stufe" aufsteigend;
-     * das CSS dreht die Reihenfolge per "column-reverse" um, sodass die
-     * stärkste Liga oben steht - wie man eine Ligapyramide liest.
+     * Baut die Liga-Leiter neu auf. Sortiert nach "stufe" ABSTEIGEND, sodass
+     * die stärkste Liga oben steht - wie man eine Ligapyramide liest. Die
+     * DOM-Reihenfolge entspricht dabei der Bildschirmreihenfolge; das frühere
+     * "column-reverse" ist bewusst entfallen, weil es beide auseinanderriss
+     * und die Tastaturbedienung gegen den Augenschein laufen ließ.
      */
     function baueLigen() {
       const gruppe = ALTERSKLASSEN[Number($("alter").value)];
@@ -301,20 +334,122 @@
      * Frühere Fassung rechnete bei zwei Zonen "3,60 + 3,30" und lag damit
      * falsch - Max: "es sind einfach viermal 3,60".
      */
-    function fahrtkosten(plz) {
+    function fahrtkostenStadt(plz) {
       const verein = gewaehlterVerein();
       const wohntInDD = istDresden(plz);
       const zielInDD = verein ? verein.lage === "dd" : true;
       const zoneUnklar = verein ? verein.lage === "frag" : false;
 
       const zonen = (zielInDD && wohntInDD) ? 1 : 2;
-      const karten = zonen * FAHRTKOSTEN.kartenJeZone;
-      const betrag = karten * FAHRTKOSTEN.preisJeKarte;
+      const karten = zonen * FAHRTKOSTEN.svfd.kartenJeZone;
+      const betrag = karten * FAHRTKOSTEN.svfd.preisJeKarte;
 
-      let text = `${zonen} ${zonen === 1 ? "Tarifzone" : "Tarifzonen"} · ${karten} Einzelkarten à ${euro(FAHRTKOSTEN.preisJeKarte)}`;
+      let text = `${zonen} ${zonen === 1 ? "Tarifzone" : "Tarifzonen"} · ${karten} Einzelkarten à ${euro(FAHRTKOSTEN.svfd.preisJeKarte)}`;
       if (zoneUnklar) text += " – Zone ungeprüft";
 
       return { betrag, text, unsicher: zoneUnklar };
+    }
+
+    /**
+     * Landesebene: § 8 der SFV-Finanzordnung.
+     *
+     * Die Pauschale gilt laut Wortlaut "pro Veranstaltung/Einsatz" - also
+     * einmal für das ganze Spiel und nicht je Richtung. Genau das war Max'
+     * offene Frage am 21.08.2026.
+     *
+     * Die Kilometerangabe ist ausdrücklich die GESAMTE gefahrene Strecke,
+     * deshalb wird sie nicht verdoppelt.
+     */
+    /**
+     * Liest eine Zahl so, wie Leute sie tatsächlich eintippen: mit Komma,
+     * mit Tausenderpunkt, mit angehängtem Euro-Zeichen. "12,40 €" und
+     * "1.234,56" ergaben vorher stillschweigend 0.
+     *
+     * Rückgabe: null, wenn nichts Lesbares dasteht - dann kann der Aufrufer
+     * "noch eintragen" von "nicht lesbar" unterscheiden.
+     */
+    function zahl(rohtext) {
+      const roh = String(rohtext || "").trim();
+      if (!roh) return null;
+      const bereinigt = roh
+        .replace(/[€\s]/g, "")
+        .replace(/\.(?=\d{3}(\D|$))/g, "")   // Tausenderpunkt
+        .replace(/,/g, ".");
+      const wert = Number(bereinigt);
+      if (!Number.isFinite(wert) || wert < 0) return null;
+      return wert;
+    }
+
+    /** Zahl deutsch schreiben - "48.5 km" sah neben "0,39 €" falsch aus. */
+    const zahlText = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
+
+    function fahrtkostenLand() {
+      const art = $("anreise").value;
+      const s = FAHRTKOSTEN.sfv;
+
+      if (art === "karte") {
+        return { betrag: s.monatskartePauschale,
+                 text: `Pauschale bei Monats- oder Jahreskarte, einmal je Einsatz`,
+                 unsicher: false };
+      }
+      if (art === "ticket") {
+        const roh = $("ticketBetrag").value;
+        const betrag = zahl(roh);
+        if (betrag == null) {
+          return { betrag: 0,
+                   text: roh.trim() ? "Betrag nicht lesbar" : "Betrag laut Fahrausweis noch eintragen",
+                   unsicher: true };
+        }
+        return { betrag, text: "Einzelfahrscheine, Belege beilegen", unsicher: false };
+      }
+
+      const rohKm = $("km").value;
+      const km = zahl(rohKm);
+      if (km == null || km === 0) {
+        return { betrag: 0,
+                 text: rohKm.trim() ? "Kilometer nicht lesbar" : "Kilometer noch eintragen",
+                 unsicher: true };
+      }
+      if (art === "rad") {
+        return { betrag: km * s.kmFahrrad,
+                 text: `${zahlText(km)} km à ${euro(s.kmFahrrad)}`,
+                 unsicher: false };
+      }
+      const satzProKm = s.kmAuto + ($("cbMitnahme").checked ? s.kmZuschlagMitnahme : 0);
+      return {
+        betrag: km * satzProKm,
+        text: `${zahlText(km)} km à ${euro(satzProKm)}`
+              + ($("cbMitnahme").checked ? " (mit Mitnahmezuschlag)" : ""),
+        unsicher: false,
+      };
+    }
+
+    /**
+     * Welche Regel gilt, entscheidet allein die Ebene des Spiels.
+     *
+     * Auf Landesebene hängt der Betrag an der konkreten Anreise, und die
+     * kennt jeder nur für sich selbst. Für die Assistenten wird deshalb
+     * bewusst NICHTS gerechnet - eine erfundene Zahl auf einer Quittung
+     * wäre schlimmer als eine sichtbare Lücke.
+     */
+    function fahrtkosten(plz, istIchSelbst) {
+      /* Dieselbe Bedingung wie für die Sichtbarkeit der Anreise-Auswahl.
+         Vorher stand hier nur der Verbandstest - bei "Landesliga + Turnier"
+         verschwand deshalb das Kilometerfeld, sein Wert floss aber weiter in
+         die Quittung. Gefunden im Review am 21.08.2026. */
+      if (istLandesebene()) {
+        return istIchSelbst
+          ? fahrtkostenLand()
+          : { betrag: 0, text: "trägt jeder selbst ein", unsicher: true };
+      }
+      return fahrtkostenStadt(plz);
+    }
+
+    /* Die eine Stelle, an der entschieden wird, welches Regelwerk gilt.
+       Turniere sind ausgenommen, solange für sie keine Landesebenen-Sätze
+       belegt sind. */
+    function istLandesebene() {
+      return !!gewaehlteLiga && gewaehlteLiga.verband === "sfv" && !$("cbTurnier").checked;
     }
 
     function rechne() {
@@ -324,20 +459,43 @@
 
       $("turnierBlock").hidden = !turnier;
 
+      /* Spielausfall und Turnier schließen sich aus. Die 50-%-Regel der
+         Finanzordnung spricht vom Ausfall eines SPIELS; für ein Turnier ist
+         sie nicht belegt. Vorher zeigte die Quittung "ausgefallen" an und
+         rechnete trotzdem die volle Turnierpauschale - der Turnier-Zweig
+         kehrte zurück, bevor die Halbierung überhaupt erreicht wurde.
+         Review 21.08.2026. */
+      $("cbAusfall").disabled = turnier;
+      $("lblAusfall").classList.toggle("gesperrt", turnier);
+      if (turnier) $("cbAusfall").checked = false;
+
       // Assistenten nur anbieten, wo es sie gibt.
       const assMoeglich = !turnier && liga.sra !== null;
       $("cbAss").disabled = !assMoeglich;
       $("lblAss").classList.toggle("gesperrt", !assMoeglich);
       if (!assMoeglich) $("cbAss").checked = false;
-      $("assFelder").hidden = !$("cbAss").checked;
+      /* Auf Landesebene hängt der Fahrtkostensatz an der eigenen Anreise,
+         nicht an einer Tarifzone. Die Postleitzahlen der Assistenten würden
+         dort nichts bewirken - also gar nicht erst danach fragen. */
+      $("assFelder").hidden = !$("cbAss").checked || istLandesebene();
 
       const funktion = $("funktion");
       funktion.options[1].disabled = !assMoeglich;
       if (!assMoeglich && funktion.value === "sra") funktion.value = "sr";
 
       [["cbPokal", "lblPokal"], ["cbFreund", "lblFreund"],
-       ["cbTurnier", "lblTurnier"], ["cbAss", "lblAss"]]
+       ["cbTurnier", "lblTurnier"], ["cbAusfall", "lblAusfall"], ["cbAss", "lblAss"]]
         .forEach(([c, l]) => $(l).classList.toggle("an", $(c).checked));
+
+      // Anreise-Auswahl gibt es nur auf Landesebene - auf Stadtebene ist die
+      // Berechnung durch die Zonenregel vorgegeben.
+      const aufLandesebene = istLandesebene();
+      $("anreiseBlock").hidden = !aufLandesebene;
+      const anreiseArt = $("anreise").value;
+      $("ticketFeld").hidden = !aufLandesebene || anreiseArt !== "ticket";
+      $("kmFeld").hidden = !aufLandesebene || (anreiseArt !== "auto" && anreiseArt !== "rad");
+      $("lblMitnahme").hidden = !aufLandesebene || anreiseArt !== "auto";
+      $("lblMitnahme").classList.toggle("an", $("cbMitnahme").checked);
 
       // Pokal und Freundschaftsspiel schließen sich aus - es wird die
       // jeweils ANDERE Box geleert, nicht immer dieselbe.
@@ -347,17 +505,24 @@
         $(andere === "cbFreund" ? "lblFreund" : "lblPokal").classList.remove("an");
       }
 
-      $("artHinweis").textContent = !assMoeglich && !turnier
-        ? `In der Klasse „${liga.voll}" sind keine Assistenten vorgesehen.`
-        : $("cbPokal").checked
-          ? "Bei Pokalspielen zählt die höchstklassige beteiligte Mannschaft."
-          : turnier
-            ? "Turniere werden pauschal nach Dauer abgerechnet."
-            : "Ohne Häkchen wird ein normales Meisterschaftsspiel gerechnet.";
+      $("artHinweis").textContent = $("cbAusfall").checked
+        ? "Bei Spielausfall gibt es 50 % der Entschädigung – das steht so in der "
+          + "Finanzordnung des Landesverbands. Für reine Stadtspiele ist noch nicht "
+          + "belegt, ob der Stadtverband es genauso hält."
+        : !assMoeglich && !turnier
+          ? `In der Klasse „${liga.voll}" sind keine Assistenten vorgesehen.`
+          : $("cbPokal").checked
+            ? "Bei Pokalspielen zählt die höchstklassige am Spiel beteiligte Mannschaft."
+            : turnier
+              ? "Turniere werden pauschal nach Dauer abgerechnet."
+              : "Ohne Häkchen wird ein normales Meisterschaftsspiel gerechnet.";
 
-      $("plzHinweis").textContent = istDresden($("plz").value)
-        ? "Tarifzone Dresden."
-        : "Außerhalb Dresdens – es wird mehrzonig gerechnet.";
+      $("plzHinweis").textContent = aufLandesebene
+        ? "Auf Landesebene spielt die Tarifzone keine Rolle – dort gilt § 8 der "
+          + "Finanzordnung des Landesverbands."
+        : istDresden($("plz").value)
+          ? "Tarifzone Dresden."
+          : "Außerhalb Dresdens – es wird mehrzonig gerechnet.";
 
       const verein = gewaehlterVerein();
       if (!verein) {
@@ -376,16 +541,37 @@
         if (turnier) {
           const h = Math.max(1, Number($("stunden").value) || TURNIER.grundstunden);
           const extra = Math.max(0, Math.ceil(h) - TURNIER.grundstunden);
+          /* Die Turniersätze stammen aus dem Blatt des Stadtverbands. Für
+             eine Landesklasse sind sie nicht belegt - der Landesverband
+             führt eigene Turniersätze. Deshalb dort als unsicher markiert
+             statt stillschweigend übernommen. */
           return {
             betrag: TURNIER.grundpauschale + extra * TURNIER.jeWeitereStunde,
-            text: extra > 0
-              ? `${TURNIER.grundpauschale} € + ${extra} × ${TURNIER.jeWeitereStunde} €`
-              : `${TURNIER.grundpauschale} € für die ersten ${TURNIER.grundstunden} Stunden`,
+            text: (extra > 0
+              ? `${euro(TURNIER.grundpauschale)} + ${extra} × ${euro(TURNIER.jeWeitereStunde)}`
+              : `${euro(TURNIER.grundpauschale)} für die ersten ${TURNIER.grundstunden} Stunden`)
+              + (liga.verband === "sfv" ? " · Satz des Stadtverbands, für Landesturniere ungeprüft" : ""),
+            unsicher: liga.verband === "sfv",
           };
         }
-        return alsAssistent
-          ? { betrag: liga.sra, text: liga.voll }
-          : { betrag: liga.sr, text: liga.voll };
+        const voll = alsAssistent ? liga.sra : liga.sr;
+        /* Absicherung: Ligen ohne Assistenten haben sra === null. Erreichbar
+           ist das hier nicht, weil die Checkbox vorher gesperrt wird - aber
+           euro(null) würde die ganze Quittung mitten im Aufbau abbrechen. */
+        if (voll == null) {
+          return { betrag: 0, text: "Für diese Klasse ist kein Satz hinterlegt", unsicher: true };
+        }
+        if ($("cbAusfall").checked) {
+          /* Anlage 1 der SFV-Finanzordnung: bei Spielausfall 50 % der
+             Entschädigungspauschale, gleich aus welchem Grund. Für reine
+             Stadtspiele ist dieselbe Regel nicht belegt - dort deshalb als
+             unsicher gekennzeichnet statt als feste Zahl. */
+          return { betrag: voll * AUSFALL_ANTEIL,
+                   text: `${liga.voll} · Spielausfall, 50 % von ${euro(voll)}`
+                         + (liga.verband === "svfd" ? " · Regel des Landesverbands, für Stadtspiele ungeprüft" : ""),
+                   unsicher: liga.verband === "svfd" };
+        }
+        return { betrag: voll, text: liga.voll, unsicher: false };
       }
 
       const ichBinAssistent = funktion.value === "sra";
@@ -395,15 +581,15 @@
       const personen = [];
       personen.push({
         rolle: ichBinAssistent ? "Assistent 1 (du)" : "Schiedsrichter (du)",
-        satz: satz(ichBinAssistent), fahrt: fahrtkosten($("plz").value),
+        satz: satz(ichBinAssistent), fahrt: fahrtkosten($("plz").value, true),
       });
       if ($("cbAss").checked) {
         if (ichBinAssistent) {
-          personen.unshift({ rolle: "Schiedsrichter", satz: satz(false), fahrt: fahrtkosten($("plzA1").value) });
-          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
+          personen.unshift({ rolle: "Schiedsrichter", satz: satz(false), fahrt: fahrtkosten($("plzA1").value, false) });
+          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
         } else {
-          personen.push({ rolle: "Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value) });
-          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
+          personen.push({ rolle: "Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value, false) });
+          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
         }
       }
 
@@ -418,16 +604,24 @@
         block.innerHTML = `
           <div class="person-kopf">${p.rolle}</div>
           <div class="q-zeile${p.fahrt.unsicher ? " unsicher" : ""}"><span>Fahrtkosten<span class="klein">${p.fahrt.text}</span></span><b>${euro(p.fahrt.betrag)}</b></div>
-          <div class="q-zeile"><span>Spesen<span class="klein">${p.satz.text}</span></span><b>${euro(p.satz.betrag)}</b></div>
+          <div class="q-zeile${p.satz.unsicher ? " unsicher" : ""}"><span>Spesen<span class="klein">${p.satz.text}</span></span><b>${euro(p.satz.betrag)}</b></div>
           <div class="q-zeile person-summe"><span>Summe</span><b>${euro(summe)}</b></div>`;
         koerper.appendChild(block);
       });
 
       $("qGesamt").textContent = euro(gesamt);
+      /* Wenn irgendeine Zeile unsicher ist, darf die Gesamtsumme nicht wie
+         ein Endergebnis aussehen. Auf Landesebene fehlen z.B. die
+         Fahrtkosten der Assistenten - die kennt nur jeder für sich. */
+      const luecken = personen.some((p) => p.fahrt.unsicher || p.satz.unsicher);
+      $("qGesamtLabel").textContent = luecken ? "Gesamt, unvollständig" : "Gesamt";
+      $("qGesamt").closest(".q-gesamt")?.classList.toggle("unvollstaendig", luecken);
       const ort = $("verein").value ? ` · ${$("verein").value}` : "";
       $("qSub").textContent = (turnier ? "Turnier" : liga.kurz)
         + ($("cbPokal").checked ? " · Pokal" : "")
-        + ($("cbFreund").checked ? " · Freundschaftsspiel" : "") + ort;
+        + ($("cbFreund").checked ? " · Freundschaftsspiel" : "")
+        + ($("cbAusfall").checked ? " · ausgefallen" : "")
+        + (aufLandesebene ? " · Landesebene" : "") + ort;
     }
 
     let zuletztGeklickt = null;
@@ -437,7 +631,8 @@
 
     $("alter").addEventListener("change", baueLigen);
     ["funktion", "plz", "plzA1", "plzA2", "stunden", "verein",
-     "cbAss", "cbPokal", "cbFreund", "cbTurnier"]
+     "cbAss", "cbPokal", "cbFreund", "cbTurnier", "cbAusfall",
+     "anreise", "ticketBetrag", "km", "cbMitnahme"]
       .forEach((id) => $(id).addEventListener("input", rechne));
 
     baueLigen();

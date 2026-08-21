@@ -48,12 +48,13 @@
          die Stadtebene vorliegt.
 
          Die beiden Ebenen sind bewusst getrennt und nicht in eine
-         gemeinsame Tabelle gemischt. Grund: sie widersprechen sich an
-         mehreren Stellen (am deutlichsten bei der Spielzeit der
-         C-Junioren, siehe unten). Eine gemischte Tabelle müsste sich
-         für eine Variante entscheiden und würde die andere verschlucken -
-         und ein Schiri, der nach der falschen pfeift, steht sehr allein
-         da. Getrennt anzeigen heißt: man sieht, welche Quelle gilt.
+         gemeinsame Tabelle gemischt. Max hat die Regel am 21.08.2026
+         eindeutig gezogen: Spiele auf Kreisebene richten sich nach dem
+         Stadtverband, Spiele auf Landesebene nach dem Sächsischen
+         Fußball-Verband. Es gibt also gar keine gemeinsame Fassung, für
+         die man sich entscheiden könnte - und wo beide voneinander
+         abweichen (D-Junioren: Mittellinienregel, Gelb-Rote Karte),
+         entscheidet allein die Ebene des Spiels.
          ============================================================ -->
 
     <div class="segment" id="ebeneFilter" role="group" aria-label="Ebene wählen">
@@ -112,12 +113,22 @@
           </span>
           <span class="lz-rechts"><span class="abzeichen abz-land">Landesverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
         </a>
-        <a class="lz" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+        <a class="lz" href="https://www.svf-dresden.de/docs/schiedsrichter/regelwerk/kurzuebersicht-regeln/"
            target="_blank" rel="noopener noreferrer">
           <span class="lz-symbol extern" aria-hidden="true">📁</span>
           <span class="lz-text">
-            <span class="lz-titel">Kurzübersicht des Stadtverbands Dresden</span>
-            <span class="lz-sub">Die Quelle für die Stadtebene. Hier eingepflegt ist noch der Stand 2024/25.</span>
+            <span class="lz-titel">Kurzübersicht Regeln des Stadtverbands</span>
+            <span class="lz-sub">Die Grundlage für die Stadtebene. Weiterhin die Fassung von 2024.</span>
+          </span>
+          <span class="lz-rechts"><span class="abzeichen abz-extern">Stadtverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
+        </a>
+        <a class="lz" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+           target="_blank" rel="noopener noreferrer">
+          <span class="lz-symbol extern" aria-hidden="true">📝</span>
+          <span class="lz-text">
+            <span class="lz-titel">Handreichung für die Schiedsrichter 2025/2026</span>
+            <span class="lz-sub">Vom Jugendausschuss des SVFD. Ersetzt die Kurzübersicht für C- und
+              D-Junioren – 9 gegen 9, Viertel statt Halbzeiten, keine Gelb-Rote Karte.</span>
           </span>
           <span class="lz-rechts"><span class="abzeichen abz-extern">Stadtverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
         </a>
@@ -158,15 +169,16 @@
     const QUELLEN = {
       svfd: {
         titel: "Stadtverband Fußball Dresden",
-        stand: "Kurzübersicht 2024/2025",
+        stand: "Kurzübersicht 2024, ergänzt um die Handreichung 2025/2026",
         warnung: true,
         hinweis:
-          "Das ist nicht die laufende Saison. Der Stadtverband führt inzwischen die " +
-          "DFB-Regeln 2025/26. Und: Diese Übersicht nennt nur die Untergrenze der " +
-          "Temperatur, keine Obergrenze. Der Landesverband setzt +35 °C an, bei " +
-          "D-Junioren +32 °C – und am Spieltag entscheidet der Schiedsrichter. Bis die " +
-          "neue Kurzübersicht eingepflegt ist, gilt im Zweifel das Original.",
-        link: "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+          "Die Kurzübersicht ist weiterhin die veröffentlichte Fassung des " +
+          "Stadtverbands. Für C- und D-Junioren gilt sie aber nicht mehr unverändert: " +
+          "Die Handreichung des Jugendausschusses für 2025/2026 hat sie dort ersetzt, " +
+          "und die Angaben hier sind bereits danach aktualisiert. Was diese Übersicht " +
+          "gar nicht nennt, ist eine Temperatur-Obergrenze – auf Landesebene sind das " +
+          "+35 °C, bei D-Junioren +32 °C, und am Spieltag entscheidet der Schiedsrichter.",
+        link: "https://www.svf-dresden.de/docs/schiedsrichter/regelwerk/kurzuebersicht-regeln/",
         linkText: "Kurzübersicht beim Stadtverband",
       },
       sfv: {
@@ -196,12 +208,23 @@
       {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
       {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
       {a:"B-Juniorinnen",k:"Landesklasse",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
-      {a:"C-Junioren",k:"Stadtklassen bis Landesliga",zeit:"2×35 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",warnung:"Für Sachsenliga, Sachsenklasse und Landespokal nennt der SFV für 2026/27 4×20 min. Vor einem Spiel auf Landesebene dort nachsehen."},
-      {a:"C-Junioren",k:"Spielbetrieb 9 gegen 9",zeit:"2×35 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Kleinfeldtore, Strafstoß 9 m vom Tor entfernt.",warnung:"Für Sachsenliga, Sachsenklasse und Landespokal nennt der SFV für 2026/27 4×20 min."},
+      /* Ersetzt die beiden alten C-Junioren-Zeilen aus der Kurzübersicht 2024
+         (dort noch 2×35 min und wahlweise 11 gegen 11). Quelle: Handreichung
+         für die Schiedsrichter, Saison 2025/2026, Jugendausschuss SVFD -
+         "Es wird ab der Saison 2025/2026 ausschließlich 9gg9 in den
+         C-Junioren auf Ebene des SVFD gespielt!!!" */
+      {a:"C-Junioren",k:"alle Spielklassen (9 gegen 9)",zeit:"2×40 min in vier Vierteln à 20 min",feld:"65×45 bis 75×55 m",max:9,min:null,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",
+       extra:[["Tore","Kleinfeldtore"],["Strafraum","12 × 29 m"],["Ball","Größe 5 (430 g)"],["Abseits","ja, wie beim 11 gegen 11"],["Rückpass","Rückpassregel gilt"],["Strafstoß","9 m"],["Kader","höchstens 16 (9 Spieler und 7 Wechselspieler)"]],
+       fuss:"Pause 1 und 3 sind Trinkpausen von höchstens 2 Minuten – ohne Seitenwechsel und ohne Nachspielzeit am Ende dieser Viertel. Fortgesetzt wird am Ort der Unterbrechung. Pause 2 ist die klassische Halbzeitpause von 10 Minuten."},
       {a:"C-Juniorinnen",k:"Landesklasse",zeit:"2×35 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
-      {a:"D-Junioren",k:"Landesliga (Talenteliga)",zeit:"2×30 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",warnung:"Für Sachsenliga und Sachsenklasse nennt der SFV für 2026/27 3×25 min auf Kleinfeld mit 7 Spielern."},
-      {a:"D-Junioren",k:"Landesklassen",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
-      {a:"D-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"3×25 min",feld:"halbes Großfeld, Mittellinie",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
+      /* Handreichung SVFD 2025/2026, wörtlich hervorgehoben:
+         "Da es immer wieder falsch gemacht wird, es gibt in den D-Junioren
+         KEINE Gelb-Rote Karte!" - deshalb steht das hier so deutlich. */
+      {a:"D-Junioren",k:"Spielbetrieb des SVFD (7 gegen 7)",zeit:"3×25 min",feld:"50×30 bis 60×40 m",max:7,min:5,w:7,wieder:"möglich",gr:"KEINE Gelb-Rote Karte",t:"< −6 °C",
+       extra:[["Spielform","1 Torhüter und 6 Feldspieler"],["Pausen","je höchstens 10 Minuten"],["Mittellinienregel","in der Mitte des Spielfeldes"]],
+       fuss:"Das DFBnet kann die Drittel nicht abbilden: alle Angaben – Tore, persönliche Strafen, Wechsel – mit der Spielminute eintragen, keinen Halbzeitstand, und die Nachspielzeit aller Drittel summiert am Ende eingeben."},
+      {a:"D-Junioren",k:"Landesklasse (Landesebene)",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",
+       warnung:"Landesebene, also gilt der SFV. Dort weicht zweierlei ab: die Mittellinienregel liegt am gegenüberliegenden Strafraum statt in der Feldmitte, und es gibt sehr wohl eine Gelb-Rote Karte – nur ohne Sperre für das nächste Spiel. Siehe den Reiter „Landesebene Sachsen“."},
       {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen (gültig ab 01.07.2025) sehen für E-Junioren ein Rundensystem vor – bis zu 6 Runden à 10–12 min, ohne Verwarnungen. Vor dem Spiel klären, was in dieser Staffel gilt."},
       {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen sehen für F-Junioren 3 gegen 3 oder 5 gegen 5 im Rundensystem vor, mit Minitoren und ohne Strafstoß."},
       {a:"Altherren",k:"Stadtklassen bis Stadtliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:7,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
@@ -218,10 +241,9 @@
       {a:"A-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
       {a:"B-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen"},
       {a:"B-Juniorinnen",k:"Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen",bes:"siehe Landesliga Großfeld"},
-      {a:"C-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"11 m, 5 Schützen",warnung:"Für den Landespokal nennt der SFV für 2026/27 4×20 min plus 2×5 min Verlängerung."},
+      {a:"C-Junioren",k:"Stadtpokal",zeit:"2×40 min in vier Vierteln à 20 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
       {a:"C-Juniorinnen",k:"Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"9 m, 5 Schützen",bes:"verkürztes Großfeld, 9 Spielerinnen, mind. 7, 7 Wechsler"},
-      {a:"D-Junioren",k:"Landespokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
-      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine Verlängerung, direkt 9-Meter-Entscheidungsschießen",elfer:"9 m, 5 Schützen"},
       {a:"D-Juniorinnen",k:"Stadtpokal",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
       {a:"E-Junioren",k:"Stadtpokal",zeit:"2×25 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
       {a:"Senioren",k:"Stadtpokal",zeit:"2×45 min",verl:"keine",elfer:"11 m, 5 Schützen"},
@@ -309,11 +331,18 @@
         return [
           ["Spielzeit", r.zeit],
           ["Spielfeld", r.feld],
-          ["Spieler", `${r.max} · mind. ${r.min}`],
+          /* Die Handreichung nennt für die C-Junioren keine Mindestzahl.
+             "mind. null" wäre eine Behauptung, die dort nicht steht. */
+          ["Spieler", r.min == null ? String(r.max) : `${r.max} · mind. ${r.min}`],
           ["Wechsler", r.w],
           ["Wiedereinwechslung", r.wieder],
           ["Gelb/Rot", r.gr],
           ["Abbruch ab", r.t],
+          /* Zusatzangaben aus der Handreichung 2025/2026. Die Kurzübersicht
+             führt diese Spalten nicht, für C- und D-Junioren gibt es sie
+             inzwischen aber - und gerade Strafstoßentfernung und
+             Rückpassregel schlägt man auf dem Platz nach. */
+          ...(r.extra || []),
         ];
       }
       return [
