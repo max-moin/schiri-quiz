@@ -38,6 +38,7 @@
     <h1 class="seiten-titel">Informationen</h1>
     <p class="seiten-unter">
       Sortiert danach, wann du es brauchst – nicht danach, wie das Dokument heißt.
+      Grün ist von uns, blau vom Stadtverband, violett vom Landesverband.
     </p>
 
     <!-- ============================================================
@@ -119,54 +120,122 @@
        eingetragen - sonst nirgends.
        ============================================================ */
     const SVFD_DOKS = "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/";
+    const SFV = "https://www.sfv-online.de/fileadmin/content/PDFs/";
+
+    /* Herkunft dreistufig statt zweistufig (21.08.2026). Vorher gab es nur
+       "Bei uns" und "Stadtverband". Seit die Landesebene dazugekommen ist,
+       muss man sehen können, WER für eine Angabe geradesteht - der
+       Stadtverband und der Landesverband widersprechen sich an mehreren
+       Stellen, und dann hängt alles daran, welches Dokument gilt. */
+    const HERKUNFT = {
+      hier:  { text: "Bei uns",       klasse: "abz-hier",   symbol: "hier",   extern: false },
+      svfd:  { text: "Stadtverband",  klasse: "abz-extern", symbol: "extern", extern: true },
+      sfv:   { text: "Landesverband", klasse: "abz-land",   symbol: "land",   extern: true },
+    };
 
     const GRUPPEN = [
       { id: "vor",    titel: "Vor dem Spiel",        kurz: "Vor dem Spiel" },
       { id: "nach",   titel: "Nach dem Spiel",       kurz: "Nach dem Spiel" },
       { id: "absage", titel: "Wenn du absagen musst", kurz: "Absagen" },
       { id: "lernen", titel: "Zum Lernen",           kurz: "Lernen" },
+      /* Eigene Gruppe, weil man in genau dieser Lage nicht suchen will
+         (21.08.2026). Grundlage sind die Handlungsempfehlungen des SFV. */
+      { id: "vorfall", titel: "Wenn etwas passiert",  kurz: "Vorfälle" },
     ];
 
     const DOKUMENTE = [
       { g: "vor", sym: "📋", titel: "Regeln auf einen Blick",
         sub: "Spielzeit, Spielfeld, Spieleranzahl, Wechsler und Abbruchtemperatur – für jede Altersklasse.",
-        href: "regeluebersicht.html", hier: true },
+        href: "regeluebersicht.html", q: "hier" },
       { g: "vor", sym: "🎽", titel: "Kapitänsregelung",
         sub: "Wer mit dem Schiedsrichter sprechen darf und wer nicht.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
       { g: "vor", sym: "🧾", titel: "Spielberechtigungen prüfen",
         sub: "Was vor dem Anpfiff kontrolliert wird und was bei Unstimmigkeiten gilt.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
 
       { g: "nach", sym: "💶", titel: "Spesenrechner",
         sub: "Entschädigung und Fahrtkosten ausrechnen, aufgeteilt wie auf der offiziellen Quittung.",
-        href: "spesenrechner.html", hier: true },
+        href: "spesenrechner.html", q: "hier" },
       { g: "nach", sym: "🖥️", titel: "Wiedereinwechslungen eintragen",
         sub: "Klickanleitung für den Spielbericht – wo genau man was einträgt.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
       { g: "nach", sym: "📄", titel: "Spesenquittung (Formular)",
         sub: "Das Originalformular des Stadtverbands zum Ausdrucken.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
 
       { g: "absage", sym: "✉️", titel: "Spielabsage",
         sub: "Fertige E-Mail mit allen Angaben, die der Stadtverband verlangt – Spielkennung, Datum, Begegnung, Funktion, Begründung.",
-        href: "vorlagen.html#spiel", hier: true },
+        href: "vorlagen.html#spiel", q: "hier" },
       { g: "absage", sym: "📅", titel: "Regellehrabend absagen",
         sub: "Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht kannst.",
-        href: "vorlagen.html#lehrabend", hier: true },
+        href: "vorlagen.html#lehrabend", q: "hier" },
 
       { g: "lernen", sym: "⚽", titel: "Regelquiz",
         sub: "Jede Woche neue Fragen, dazu ein Übungsbereich mit allen bisherigen.",
-        href: "quiz.html", hier: true },
+        href: "quiz.html", q: "hier" },
       { g: "lernen", sym: "📝", titel: "Hausregeltest",
         sub: "Die Pflichttests der laufenden Saison.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
       { g: "lernen", sym: "📖", titel: "DFB-Fußballregeln",
         sub: "Das vollständige Regelwerk der laufenden Saison.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
       { g: "lernen", sym: "🆕", titel: "Regeländerungen",
         sub: "Was sich zu dieser Saison geändert hat.",
-        href: SVFD_DOKS, hier: false },
+        href: SVFD_DOKS, q: "svfd" },
+
+      /* ---------- Landesebene, ergänzt am 21.08.2026 ----------
+         Der Sächsische Fußball-Verband vergibt im Gegensatz zum
+         Stadtverband stabile Direktlinks auf die einzelnen PDFs. Deshalb
+         zeigt hier jeder Eintrag wirklich auf sein Dokument und nicht auf
+         eine Sammelseite, in der man erst suchen muss. */
+      { g: "vor", sym: "📏", titel: "Regelungsübersicht Junioren 2026/27",
+        sub: "Spielzeit, Feldmaße, Ball, Abseits und Temperaturgrenzen für Sachsenliga, "
+           + "Sachsenklasse und Landespokal. Stand 01.07.2026 – aktueller als unsere Tabelle.",
+        href: SFV + "Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf", q: "sfv" },
+      { g: "vor", sym: "📐", titel: "Kleinfeldbestimmungen",
+        sub: "Maße, Torgrößen und Sonderregeln von G- bis C-Junioren. Achtung: "
+           + "Freistoßabstand 3 bzw. 5 Meter statt 9,15.",
+        href: SFV + "Spielbetrieb/Regelwerk/kleinfeldbestimmungen.pdf", q: "sfv" },
+      { g: "vor", sym: "🎂", titel: "Altersklassen 2026/27",
+        sub: "Welcher Jahrgang spielt in welcher Altersklasse.",
+        href: SFV + "Spielbetrieb/03062026_altersklassen_neu.pdf", q: "sfv" },
+      { g: "vor", sym: "👧", titel: "Spieldurchführung Frauen und Juniorinnen 2026/27",
+        sub: "Das Gegenstück zur Junioren-Übersicht.",
+        href: SFV + "Spielbetrieb/Frauen_Juniorinnen/Saison_2026_2027/08042026_Uebersicht_Spielbetrieb_FMA.pdf", q: "sfv" },
+
+      { g: "nach", sym: "📱", titel: "Spielbericht Online – Anleitung für Schiedsrichter",
+        sub: "Arbeiten nach dem Spiel und Freigabe. Nicht die Vereinsanleitung, sondern unsere.",
+        href: SFV + "DFBnet/Spielbericht_Online/Spielbericht_Online_Anleitung_Schiedsrichter.pdf", q: "sfv" },
+      { g: "nach", sym: "🧾", titel: "Reisekostenabrechnung SFV",
+        sub: "Das Formular für Einsätze auf Landesebene.",
+        href: SFV + "Schiedsrichter/SR-Abrechnung_SFV_formularneu.pdf", q: "sfv" },
+      { g: "nach", sym: "⚖️", titel: "Finanzordnung des SFV",
+        sub: "Entschädigungssätze aller Landesklassen und die Reisekostenregeln (§ 8, § 13). "
+           + "Auch: bei Spielausfall gibt es 50 Prozent.",
+        href: SFV + "Satzung_Ordnungen/07312025_Finanzordnung.pdf", q: "sfv" },
+
+      { g: "vorfall", sym: "🛑", titel: "Handlungsempfehlungen bei Diskriminierung",
+        sub: "Was zu tun ist, wenn es von Spielern oder von den Zuschauern kommt – und was "
+           + "in den Sonderbericht gehört. Meldeadresse: fairness@sfv-online.de",
+        href: SFV + "Sicherheit/08312021_Handlungsempfehlungen.pdf", q: "sfv" },
+      { g: "vorfall", sym: "📝", titel: "Vorlage Sonderbericht",
+        sub: "Wer hat was gegen wen gesagt oder getan, wo stand die Person, was hast du "
+           + "veranlasst. Word-Datei – wird heruntergeladen, nicht angezeigt.",
+        href: SFV + "Schiedsrichter/02202024_vorlage_sonderbericht.docx", q: "sfv" },
+      { g: "vorfall", sym: "🚨", titel: "Meldeformular Gewalt und Rassismus",
+        sub: "Sofortmeldung an den Verband.",
+        href: SFV + "Sicherheit/sofortinfo_gewalt_rassismus.pdf", q: "sfv" },
+      { g: "vorfall", sym: "🤝", titel: "Umgang mit Diskriminierung und Gewalt",
+        sub: "Die Handreichung des Stadtverbands dazu.",
+        href: SVFD_DOKS, q: "svfd" },
+
+      { g: "lernen", sym: "🎓", titel: "Qualifikationsrichtlinie Schiedsrichter 2026/27",
+        sub: "Was für welche Spielklasse verlangt wird.",
+        href: SFV + "Schiedsrichter/Saison_2025_2026/Quali-RL_26_27.pdf", q: "sfv" },
+      { g: "lernen", sym: "📅", titel: "Rahmenterminplan Junioren 2026/27",
+        sub: "Spielfreie Wochenenden, Pokalrunden und Staffeltermine.",
+        href: SFV + "Spielbetrieb/Junioren/Saison_2026_2027/04202026_rtp_junioren.pdf", q: "sfv" },
     ];
 
     const $ = (id) => document.getElementById(id);
@@ -226,18 +295,18 @@
         if (!drin.length) return;
         html += `<h2 class="liste-kopf">${sicher(g.titel)}</h2>`;
         html += drin.map((d) => {
-          const extern = !d.hier;
+          const h = HERKUNFT[d.q] || HERKUNFT.svfd;
           return `<a class="lz" href="${sicher(d.href)}"${
-            extern ? ' target="_blank" rel="noopener noreferrer"' : ""
+            h.extern ? ' target="_blank" rel="noopener noreferrer"' : ""
           }>
-            <span class="lz-symbol ${d.hier ? "hier" : "extern"}" aria-hidden="true">${sicher(d.sym)}</span>
+            <span class="lz-symbol ${h.symbol}" aria-hidden="true">${sicher(d.sym)}</span>
             <span class="lz-text">
               <span class="lz-titel">${sicher(d.titel)}</span>
               <span class="lz-sub">${sicher(d.sub)}</span>
             </span>
             <span class="lz-rechts">
-              <span class="abzeichen ${d.hier ? "abz-hier" : "abz-extern"}">${d.hier ? "Bei uns" : "Stadtverband"}</span>
-              <span class="lz-pfeil" aria-hidden="true">${extern ? "↗" : "→"}</span>
+              <span class="abzeichen ${h.klasse}">${sicher(h.text)}</span>
+              <span class="lz-pfeil" aria-hidden="true">${h.extern ? "↗" : "→"}</span>
             </span>
           </a>`;
         }).join("");

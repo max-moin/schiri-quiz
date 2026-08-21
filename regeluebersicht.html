@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Regeln auf einen Blick – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Spielzeiten, Spielfeldgrößen, Spieleranzahl und Wechselregeln im Stadtverband Fußball Dresden – filterbar statt als breite Tabelle." />
+  <meta name="description" content="Spielzeiten, Spielfeldgrößen, Spieleranzahl und Wechselregeln – für den Stadtverband Dresden und die Landesebene des Sächsischen Fußball-Verbands." />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -35,37 +35,33 @@
   <main class="inhalt" id="inhalt" tabindex="-1">
     <h1 class="seiten-titel">Regeln auf einen Blick</h1>
     <p class="seiten-unter">
-      Spielzeiten, Spielfeld und Wechselregeln im Stadtverband Dresden.
+      Spielzeit, Spielfeld, Spielerzahl und Wechselregeln – für beide Ebenen,
+      auf denen unsere Schiedsrichter angesetzt werden.
     </p>
 
-    <div class="hinweisbalken">
-      <span class="sym" aria-hidden="true">⚠️</span>
-      <span>
-        <strong>Stand 2024/2025.</strong> Die Kurzübersicht der laufenden Saison ist noch
-        nicht eingepflegt. Im Zweifel gilt das Original des Stadtverbands –
-        <a href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">hier nachschlagen</a>.
-      </span>
+    <!-- ============================================================
+         Zwei Ebenen, zwei Quellen (21.08.2026).
+
+         Max hat die "Regelungsübersicht Junioren-Spielbetrieb im SFV,
+         Spieljahr 2026/27" geliefert. Damit steht hier zum ersten Mal
+         auch die Landesebene - und sie ist AKTUELLER als das, was für
+         die Stadtebene vorliegt.
+
+         Die beiden Ebenen sind bewusst getrennt und nicht in eine
+         gemeinsame Tabelle gemischt. Grund: sie widersprechen sich an
+         mehreren Stellen (am deutlichsten bei der Spielzeit der
+         C-Junioren, siehe unten). Eine gemischte Tabelle müsste sich
+         für eine Variante entscheiden und würde die andere verschlucken -
+         und ein Schiri, der nach der falschen pfeift, steht sehr allein
+         da. Getrennt anzeigen heißt: man sieht, welche Quelle gilt.
+         ============================================================ -->
+
+    <div class="segment" id="ebeneFilter" role="group" aria-label="Ebene wählen">
+      <button type="button" data-ebene="svfd" aria-pressed="true">Stadtverband Dresden</button>
+      <button type="button" data-ebene="sfv" aria-pressed="false">Landesebene Sachsen</button>
     </div>
 
-    <!-- ============================================================
-         Filter, Runde 5 (18.08.2026).
-
-         Max: "Gerade dieses Filtersystem muss nochmal überarbeitet
-         werden." Vorher standen zwei Reihen gleich aussehender Pillen
-         untereinander - erst zwei, dann sechzehn. Man sah weder, dass
-         die oberen zwei sich gegenseitig ausschließen, noch fand man in
-         den unteren sechzehn schnell die richtige.
-
-         Jetzt drei getrennte Bedienelemente mit drei unterschiedlichen
-         Formen, damit man sie nicht verwechselt:
-         - Schieber (Meisterschaft/Pokal): zwei Zustände, einer davon
-           immer aktiv - dafür ist ein Segmentschalter da.
-         - Vier Gruppenknöpfe statt sechzehn Altersklassen. Niemand sucht
-           "irgendeine der sechzehn", man sucht "Junioren".
-         - Suchfeld für den Rest. Wer "Kleinfeld" eintippt, will keine
-           Altersklasse, sondern ein Merkmal.
-         ============================================================ -->
+    <div id="standHinweis" aria-live="polite"></div>
 
     <div class="segment" id="artFilter" role="group" aria-label="Wettbewerb wählen">
       <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
@@ -76,7 +72,7 @@
       <div class="filterleiste" id="gruppeFilter" role="group" aria-label="Altersbereich filtern"></div>
       <div class="suchzeile">
         <label class="nur-vorlesen" for="regelSuche">Regeln durchsuchen</label>
-        <input id="regelSuche" type="search" placeholder="Suchen, z. B. „Kleinfeld&quot; oder „3×25&quot; …" />
+        <input id="regelSuche" type="search" placeholder="Suchen, z. B. „Kleinfeld&quot; oder „4×20&quot; …" />
       </div>
     </div>
 
@@ -84,6 +80,49 @@
 
     <div id="regelBereich"></div>
     <p class="keine" id="keineTreffer" hidden>Keine Einträge gefunden.</p>
+
+    <section class="abschnitt" style="margin-top:40px">
+      <div class="abschnitt-kopf"><h2>Wo das herkommt</h2></div>
+      <div class="liste">
+        <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf"
+           target="_blank" rel="noopener noreferrer">
+          <span class="lz-symbol land" aria-hidden="true">📄</span>
+          <span class="lz-text">
+            <span class="lz-titel">Regelungsübersicht Junioren-Spielbetrieb im SFV 2026/27</span>
+            <span class="lz-sub">Das Original zur Landesebene. Stand 01.07.2026.</span>
+          </span>
+          <span class="lz-rechts"><span class="abzeichen abz-land">Landesverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
+        </a>
+        <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Frauen_Juniorinnen/Saison_2026_2027/08042026_Uebersicht_Spielbetrieb_FMA.pdf"
+           target="_blank" rel="noopener noreferrer">
+          <span class="lz-symbol land" aria-hidden="true">📄</span>
+          <span class="lz-text">
+            <span class="lz-titel">Übersicht Spieldurchführung Frauen und Juniorinnen 2026/27</span>
+            <span class="lz-sub">Dasselbe für Frauen, B-, C- und D-Juniorinnen. Hier noch nicht eingepflegt.</span>
+          </span>
+          <span class="lz-rechts"><span class="abzeichen abz-land">Landesverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
+        </a>
+        <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Regelwerk/kleinfeldbestimmungen.pdf"
+           target="_blank" rel="noopener noreferrer">
+          <span class="lz-symbol land" aria-hidden="true">📐</span>
+          <span class="lz-text">
+            <span class="lz-titel">SFV-Kleinfeldbestimmungen</span>
+            <span class="lz-sub">Maße, Tore und Sonderregeln für G- bis C-Junioren. Gültig ab 01.07.2025 und
+              damit auch auf Stadtebene bindend.</span>
+          </span>
+          <span class="lz-rechts"><span class="abzeichen abz-land">Landesverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
+        </a>
+        <a class="lz" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+           target="_blank" rel="noopener noreferrer">
+          <span class="lz-symbol extern" aria-hidden="true">📁</span>
+          <span class="lz-text">
+            <span class="lz-titel">Kurzübersicht des Stadtverbands Dresden</span>
+            <span class="lz-sub">Die Quelle für die Stadtebene. Hier eingepflegt ist noch der Stand 2024/25.</span>
+          </span>
+          <span class="lz-rechts"><span class="abzeichen abz-extern">Stadtverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
+        </a>
+      </div>
+    </section>
   </main>
 
   <footer class="seiten-fuss">
@@ -100,20 +139,51 @@
   <script type="module" src="seite.js"></script>
   <script>
     /* ============================================================
-       Daten aus "Kurzübersicht Regeln Stadtverband Fußball Dresden
-       2024/2025", von Max geliefert.
+       ZWEI DATENSÄTZE, ZWEI QUELLEN, ZWEI STÄNDE.
 
-       Die früheren "hervor"-Markierungen sind entfernt. Sie stammten aus
-       dem Original und markierten dort die Neuerungen zur Saison
-       2024/25. Max, 18.08.2026: "dadurch, dass das ja auch Stand 24/25
-       ist, sind die Erneuerungen ja auch schon wieder veraltet." Eine
-       Markierung, die etwas Falsches behauptet, ist schlechter als gar
-       keine.
+       svfd  = "Kurzübersicht Regeln Stadtverband Fußball Dresden
+               2024/2025", von Max geliefert. VERALTET, siehe Hinweis.
+       sfv   = "Regelungsübersicht Junioren-Spielbetrieb im SFV -
+               Spieljahr 2026/27", Stand 01.07.2026, von der Seite des
+               Sächsischen Fußball-Verbands.
 
-       ACHTUNG: Der Stadtverband führt inzwischen die DFB-Regeln
-       2025/26. Vor dem Livegang die aktuelle Kurzübersicht einpflegen.
+       Beide Quellen führen unterschiedliche Spalten. Statt ein
+       gemeinsames Schema zu erzwingen und dabei die Hälfte mit "—" zu
+       füllen, bringt jede Zeile ihre eigene Werteliste mit. Der Nutzen:
+       man sieht sofort, was die jeweilige Quelle überhaupt festlegt -
+       dass die Dresdner Kurzübersicht z.B. gar keine Höchsttemperatur
+       nennt, ist selbst eine Information.
        ============================================================ */
-    const MEISTER = [
+
+    const QUELLEN = {
+      svfd: {
+        titel: "Stadtverband Fußball Dresden",
+        stand: "Kurzübersicht 2024/2025",
+        warnung: true,
+        hinweis:
+          "Das ist nicht die laufende Saison. Der Stadtverband führt inzwischen die " +
+          "DFB-Regeln 2025/26. Und: Diese Übersicht nennt nur die Untergrenze der " +
+          "Temperatur, keine Obergrenze. Der Landesverband setzt +35 °C an, bei " +
+          "D-Junioren +32 °C – und am Spieltag entscheidet der Schiedsrichter. Bis die " +
+          "neue Kurzübersicht eingepflegt ist, gilt im Zweifel das Original.",
+        link: "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+        linkText: "Kurzübersicht beim Stadtverband",
+      },
+      sfv: {
+        titel: "Sächsischer Fußball-Verband",
+        stand: "Regelungsübersicht Junioren 2026/27, Stand 01.07.2026",
+        warnung: false,
+        hinweis:
+          "Gilt für Sachsenliga, Sachsenklasse und Landespokal der A- bis D-Junioren. " +
+          "Frauen und Juniorinnen stehen in einer eigenen Übersicht, die hier noch " +
+          "nicht eingepflegt ist – Link unten.",
+        link: "https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf",
+        linkText: "Original-PDF des SFV",
+      },
+    };
+
+    /* ---------- Stadtebene: Meisterschaft ---------- */
+    const SVFD_MEISTER = [
       {a:"Herren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
       {a:"Herren",k:"Freizeitliga/-klassen SVFD",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
       {a:"Frauen",k:"Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
@@ -126,28 +196,29 @@
       {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
       {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
       {a:"B-Juniorinnen",k:"Landesklasse",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
-      {a:"C-Junioren",k:"Stadtklassen bis Landesliga",zeit:"2×35 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
-      {a:"C-Junioren",k:"Spielbetrieb 9 gegen 9",zeit:"2×35 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Kleinfeldtore, Strafstoß 9 m vom Tor entfernt."},
+      {a:"C-Junioren",k:"Stadtklassen bis Landesliga",zeit:"2×35 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",warnung:"Für Sachsenliga, Sachsenklasse und Landespokal nennt der SFV für 2026/27 4×20 min. Vor einem Spiel auf Landesebene dort nachsehen."},
+      {a:"C-Junioren",k:"Spielbetrieb 9 gegen 9",zeit:"2×35 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Kleinfeldtore, Strafstoß 9 m vom Tor entfernt.",warnung:"Für Sachsenliga, Sachsenklasse und Landespokal nennt der SFV für 2026/27 4×20 min."},
       {a:"C-Juniorinnen",k:"Landesklasse",zeit:"2×35 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
-      {a:"D-Junioren",k:"Landesliga (Talenteliga)",zeit:"2×30 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
+      {a:"D-Junioren",k:"Landesliga (Talenteliga)",zeit:"2×30 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",warnung:"Für Sachsenliga und Sachsenklasse nennt der SFV für 2026/27 3×25 min auf Kleinfeld mit 7 Spielern."},
       {a:"D-Junioren",k:"Landesklassen",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
       {a:"D-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"3×25 min",feld:"halbes Großfeld, Mittellinie",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
-      {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
-      {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
+      {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen (gültig ab 01.07.2025) sehen für E-Junioren ein Rundensystem vor – bis zu 6 Runden à 10–12 min, ohne Verwarnungen. Vor dem Spiel klären, was in dieser Staffel gilt."},
+      {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen sehen für F-Junioren 3 gegen 3 oder 5 gegen 5 im Rundensystem vor, mit Minitoren und ohne Strafstoß."},
       {a:"Altherren",k:"Stadtklassen bis Stadtliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:7,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
       {a:"Ü40",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
       {a:"Ü50",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
       {a:"Ü60",k:"Breitensport",zeit:"2×30 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
     ];
 
-    const POKAL = [
+    /* ---------- Stadtebene: Pokal ---------- */
+    const SVFD_POKAL = [
       {a:"Herren",k:"Stadtpokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
       {a:"Frauen",k:"Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
       {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",verl:"keine",elfer:"9 m, 3 Schützen"},
       {a:"A-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
       {a:"B-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen"},
       {a:"B-Juniorinnen",k:"Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen",bes:"siehe Landesliga Großfeld"},
-      {a:"C-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"11 m, 5 Schützen"},
+      {a:"C-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"11 m, 5 Schützen",warnung:"Für den Landespokal nennt der SFV für 2026/27 4×20 min plus 2×5 min Verlängerung."},
       {a:"C-Juniorinnen",k:"Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"9 m, 5 Schützen",bes:"verkürztes Großfeld, 9 Spielerinnen, mind. 7, 7 Wechsler"},
       {a:"D-Junioren",k:"Landespokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
       {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
@@ -159,10 +230,44 @@
       {a:"Ü60",k:"Breitensport",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
     ];
 
-    /* Vier Bereiche statt sechzehn Einzelknöpfen. Die Zuordnung steht
-       hier ausdrücklich und wird nicht aus dem Namen geraten - sonst
-       landet "Senioren" irgendwann bei den Junioren, weil beides auf
-       -en endet. */
+    /* ---------- Landesebene, Junioren, Spieljahr 2026/27 ----------
+       Übernommen aus der Regelungsübersicht des SFV-Jugendausschusses,
+       Stand 01.07.2026. Spalten dort: Spielfeldmaß min/max, Strafraum,
+       Tore, Spielball, Spielerzahl in Startformation, Wechselspieler auf
+       Spielbericht, Rückwechsel, Wechselvorgänge, Spielzeit,
+       Verlängerung, Abseits, Strafstoß, Matchstrafe, Temperatur min/max.
+
+       Alle vier Altersklassen haben dieselben Wechselregeln (7 Spieler
+       auf dem Bericht, Rückwechsel erlaubt, unbegrenzte Wechselvorgänge);
+       das steht deshalb einmal je Zeile und nicht als eigene Spalte. */
+    /* Gilt laut der SFV-Regelungsübersicht für ALLE vier Altersklassen und
+       für Meisterschaft wie Landespokal gleichermaßen - deshalb hier einmal
+       statt zwölfmal in den Datenzeilen. Sobald eine Zeile davon abweicht,
+       muss daraus ein Feld je Zeile werden. */
+    const SFV_WECHSELSPIELER = "7 auf dem Spielbericht";
+    const SFV_RUECKWECHSEL = "möglich, unbegrenzt viele Wechselvorgänge";
+
+    const SFV_MEISTER = [
+      {a:"A-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"A-Junioren",k:"Sachsenklasse",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"B-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"B-Junioren",k:"Sachsenklasse",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"C-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"4×20 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
+      {a:"C-Junioren",k:"Sachsenklasse",feld:"65×45 bis 75×55 m",sr:"12 × 29 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Normalspielball Größe 5 (430 g)",spieler:"9 in der Startformation",zeit:"4×20 min",abseits:"ja",elfer:"9 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
+      {a:"D-Junioren",k:"Sachsenliga",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
+      {a:"D-Junioren",k:"Sachsenklasse",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
+    ];
+
+    const SFV_POKAL = [
+      {a:"A-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",verl:"2×15 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"B-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",verl:"2×10 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
+      {a:"C-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"4×20 min",verl:"2×5 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
+      {a:"D-Junioren",k:"Landespokal",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",verl:"keine Verlängerung, sofort Entscheidungsschießen",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
+    ];
+
+    /* Vier Bereiche statt vieler Einzelknöpfe. Die Zuordnung steht hier
+       ausdrücklich und wird nicht aus dem Namen geraten - sonst landet
+       "Senioren" irgendwann bei den Junioren, weil beides auf -en endet. */
     const BEREICHE = [
       { id: "aktive",      titel: "Herren & Frauen", klassen: ["Herren", "Frauen", "Senioren"] },
       { id: "junioren",    titel: "Junioren",        klassen: ["A-Junioren", "B-Junioren", "C-Junioren", "D-Junioren", "E-Junioren", "F-Junioren"] },
@@ -170,11 +275,53 @@
       { id: "alt",         titel: "Altherren & Ü",   klassen: ["Altherren", "Ü40", "Ü50", "Ü60"] },
     ];
 
-    let art = "meister", bereich = "alle";
-    const daten = () => (art === "meister" ? MEISTER : POKAL);
+    let ebene = "svfd", art = "meister", bereich = "alle";
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    function daten() {
+      if (ebene === "svfd") return art === "meister" ? SVFD_MEISTER : SVFD_POKAL;
+      return art === "meister" ? SFV_MEISTER : SFV_POKAL;
+    }
+
+    /* Jede Zeile bringt ihre eigene Werteliste mit - siehe Kommentar oben. */
+    function werteFuer(r) {
+      if (ebene === "sfv") {
+        const liste = [
+          ["Spielzeit", r.zeit],
+          r.verl ? ["Verlängerung", r.verl] : null,
+          ["Spielfeld", r.feld],
+          ["Strafraum", r.sr],
+          ["Tore", r.tore],
+          ["Spielball", r.ball],
+          ["Spieler", r.spieler],
+          ["Wechselspieler", SFV_WECHSELSPIELER],
+          ["Rückwechsel", SFV_RUECKWECHSEL],
+          ["Abseits", r.abseits],
+          ["Strafstoß", r.elfer],
+          ["Matchstrafe (Gelb-Rot)", r.match],
+          ["Temperatur", r.temp],
+        ];
+        return liste.filter(Boolean);
+      }
+      if (art === "meister") {
+        return [
+          ["Spielzeit", r.zeit],
+          ["Spielfeld", r.feld],
+          ["Spieler", `${r.max} · mind. ${r.min}`],
+          ["Wechsler", r.w],
+          ["Wiedereinwechslung", r.wieder],
+          ["Gelb/Rot", r.gr],
+          ["Abbruch ab", r.t],
+        ];
+      }
+      return [
+        ["Spielzeit", r.zeit],
+        ["Verlängerung", r.verl],
+        ["Strafstoßschießen", r.elfer],
+      ];
+    }
 
     function baueBereichFilter() {
       const leiste = $("gruppeFilter");
@@ -182,15 +329,12 @@
       const vorhanden = new Set(daten().map((r) => r.a));
       const auswahl = [
         { id: "alle", titel: "Alle" },
-        /* Ein Bereich taucht nur auf, wenn im aktuellen Wettbewerb
-           überhaupt etwas darin steht - im Pokal gibt es z. B. keine
-           F-Junioren. Leere Filter, die auf "keine Treffer" führen,
-           sind schlimmer als gar keine. */
+        /* Ein Bereich taucht nur auf, wenn im aktuellen Datensatz etwas
+           darin steht - auf Landesebene gibt es z.B. gar keine
+           Juniorinnen-Zeilen. Leere Filter, die auf "keine Treffer"
+           führen, sind schlimmer als gar keine. */
         ...BEREICHE.filter((b) => b.klassen.some((k) => vorhanden.has(k))),
       ];
-      /* Falls die aktuelle Auswahl im neuen Wettbewerb nicht existiert,
-         zurück auf "Alle" - sonst zeigt die Seite eine leere Liste, ohne
-         dass ein Knopf gedrückt aussieht. */
       if (!auswahl.some((b) => b.id === bereich)) bereich = "alle";
 
       auswahl.forEach((b) => {
@@ -215,47 +359,63 @@
       });
     }
 
-    const wert = (label, w) =>
-      `<div class="wert"><div class="l">${sicher(label)}</div><div class="v">${sicher(w)}</div></div>`;
+    function zeichneStand() {
+      const q = QUELLEN[ebene];
+      $("standHinweis").innerHTML = `
+        <div class="hinweisbalken${q.warnung ? "" : " ruhig"}">
+          <span class="sym" aria-hidden="true">${q.warnung ? "⚠️" : "ℹ️"}</span>
+          <span>
+            <strong>${sicher(q.stand)}.</strong> ${sicher(q.hinweis)}
+            <a href="${sicher(q.link)}" target="_blank" rel="noopener noreferrer">${sicher(q.linkText)} ↗</a>
+          </span>
+        </div>`;
+    }
 
     function zeichne() {
       const suche = $("regelSuche").value.trim().toLowerCase();
       const gewaehlt = BEREICHE.find((b) => b.id === bereich);
+      const alle = daten();
 
-      const treffer = daten().filter((r) => {
+      const treffer = alle.filter((r) => {
         if (gewaehlt && !gewaehlt.klassen.includes(r.a)) return false;
         if (!suche) return true;
-        return Object.values(r).join(" ").toLowerCase().includes(suche);
+        /* Auch das durchsuchen, was erst beim Zeichnen entsteht. Sonst
+           findet "Rückwechsel" nichts, obwohl das Wort auf jeder Karte der
+           Landesebene steht - es kommt aus werteFuer(), nicht aus der
+           Datenzeile. Gefunden im Review am 21.08.2026. */
+        const text = (Object.values(r).join(" ") + " " +
+                      werteFuer(r).map(([l, w]) => l + " " + w).join(" ")).toLowerCase();
+        return text.includes(suche);
       });
 
       $("keineTreffer").hidden = treffer.length > 0;
-      $("trefferzahl").textContent = treffer.length === daten().length
-        ? `${daten().length} Spielklassen`
-        : `${treffer.length} von ${daten().length} Spielklassen`;
+      $("trefferzahl").textContent = treffer.length === alle.length
+        ? `${alle.length} Spielklassen`
+        : `${treffer.length} von ${alle.length} Spielklassen`;
 
-      /* Nach Altersklasse gruppiert ausgeben. Vorher standen 24 Karten
-         gleichrangig nebeneinander, und man musste die Kopfzeile jeder
-         einzelnen lesen, um sich zurechtzufinden. */
+      /* Nach Altersklasse gruppiert ausgeben. Ohne Gruppierung müsste man
+         die Kopfzeile jeder einzelnen Karte lesen, um sich zurechtzufinden. */
       const reihenfolge = [];
       treffer.forEach((r) => { if (!reihenfolge.includes(r.a)) reihenfolge.push(r.a); });
 
       $("regelBereich").innerHTML = reihenfolge.map((alter) => {
         const karten = treffer.filter((r) => r.a === alter).map((r) => {
-          const felder = art === "meister"
-            ? wert("Spielzeit", r.zeit)
-              + wert("Spielfeld", r.feld)
-              + wert("Spieler", `${r.max} · mind. ${r.min}`)
-              + wert("Wechsler", r.w)
-              + wert("Wiedereinwechslung", r.wieder)
-              + wert("Gelb/Rot", r.gr)
-              + wert("Abbruch ab", r.t)
-            : wert("Spielzeit", r.zeit)
-              + wert("Verlängerung", r.verl)
-              + wert("Strafstoßschießen", r.elfer);
+          const felder = werteFuer(r).map(([label, wert]) =>
+            `<div class="wert"><div class="l">${sicher(label)}</div><div class="v">${sicher(wert)}</div></div>`
+          ).join("");
+
+          /* "warnung" steht an genau den Zeilen, bei denen sich die beiden
+             Quellen widersprechen. Das gehört an die Zeile selbst und nicht
+             in eine Fußnote am Seitenende - dort liest es niemand, der
+             gerade nur schnell die Spielzeit nachschlägt. */
+          const konflikt = r.warnung
+            ? `<div class="rk-konflikt"><strong>Achtung, zwei Fassungen:</strong> ${sicher(r.warnung)}</div>`
+            : "";
 
           return `<article class="rk">
               <div class="rk-kopf"><div class="klasse">${sicher(r.k)}</div></div>
               <div class="rk-werte">${felder}</div>
+              ${konflikt}
               ${(r.fuss || r.bes) ? `<div class="rk-fuss">${sicher(r.fuss || r.bes)}</div>` : ""}
             </article>`;
         }).join("");
@@ -267,16 +427,39 @@
       }).join("");
     }
 
-    $("artFilter").querySelectorAll("button").forEach((b) =>
-      b.addEventListener("click", () => {
-        $("artFilter").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
-        b.setAttribute("aria-pressed", "true");
-        art = b.dataset.art;
-        baueBereichFilter();
-        zeichne();
-      })
-    );
+    function segmentBinden(id, feld, beiWechsel) {
+      $(id).querySelectorAll("button").forEach((b) =>
+        b.addEventListener("click", () => {
+          /* Ohne diese Prüfung setzt ein später ergänzter Knopf ohne
+             data-Attribut den Zustand auf undefined - und zeichneStand()
+             wirft dann einen Fehler, der die ganze Seite leer stehen lässt. */
+          const wert = b.dataset[feld];
+          if (!wert) return;
+          $(id).querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+          b.setAttribute("aria-pressed", "true");
+          beiWechsel(wert);
+        })
+      );
+    }
+
+    segmentBinden("ebeneFilter", "ebene", (wert) => {
+      ebene = wert;
+      /* Suchbegriff zurücksetzen. Sonst steht nach dem Umschalten
+         "0 von 8 Spielklassen" da und der Grund - das noch gefüllte
+         Suchfeld - liegt weiter oben außerhalb des Blicks. */
+      $("regelSuche").value = "";
+      zeichneStand();
+      baueBereichFilter();
+      zeichne();
+    });
+    segmentBinden("artFilter", "art", (wert) => {
+      art = wert;
+      baueBereichFilter();
+      zeichne();
+    });
+
     $("regelSuche").addEventListener("input", zeichne);
+    zeichneStand();
     baueBereichFilter();
     zeichne();
   </script>
