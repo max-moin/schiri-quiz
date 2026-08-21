@@ -5,67 +5,91 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spesenrechner – Schiedsrichter FV Löbtauer Kickers</title>
   <meta name="description" content="Entschädigung und Fahrtkosten für Spiele im Stadtverband Dresden und auf Landesebene ausrechnen." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="seite.css" />
   <style>
-    /* Nur für diese Seite - der Rechner ist die einzige Stelle mit Formular. */
-    .rechner-raster { display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; align-items: start; }
-    @media (max-width: 860px) { .rechner-raster { grid-template-columns: 1fr; } }
+    .rechner { display: grid; grid-template-columns: 1.15fr .85fr; gap: 26px; align-items: start; }
+    @media (max-width: 880px) { .rechner { grid-template-columns: 1fr; } }
 
-    fieldset { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 15px 16px 17px; margin: 0 0 15px; background: var(--card); }
-    legend { font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); padding: 0 7px; }
-    label { display: block; font-size: .79rem; font-weight: 600; margin-bottom: 5px; color: var(--marke-hell); }
-    .feld { width: 100%; padding: 11px 12px; border: 1px solid var(--border); border-radius: 10px; font: inherit; font-size: .88rem; background: #fff; margin-bottom: 12px; min-height: 44px; }
-    .feld:disabled { background: #f9fafb; color: #9ca3af; cursor: not-allowed; }
-    .feldpaar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    @media (max-width: 520px) { .feldpaar { grid-template-columns: 1fr; } }
-    .hinweis-klein { font-size: .74rem; color: var(--muted); line-height: 1.5; margin: -6px 0 12px; }
+    /* ---------- Schrittweise statt Formularwüste ----------
+       Max' Kritik: "Die Bedienoberfläche sieht noch nicht wirklich geil
+       aus." Vorher waren es drei graue Kästen mit zwölf Feldern
+       untereinander. Jetzt nummerierte Schritte - man sieht, wo man
+       steht, und jeder Schritt stellt genau eine Frage. */
+    .schritt { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; }
+    .schritt-kopf { display: flex; align-items: center; gap: 11px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+    .schritt-nr { width: 26px; height: 26px; border-radius: 50%; background: var(--marke); color: #fff; display: grid; place-items: center; font-size: .78rem; font-weight: 700; flex: none; }
+    .schritt-kopf h2 { font-family: var(--font-titel); font-size: .97rem; margin: 0; }
+    .schritt-koerper { padding: 16px 18px 18px; }
+
+    label { display: block; font-size: .79rem; font-weight: 600; margin-bottom: 6px; color: var(--marke-hell); }
+    .feld { width: 100%; padding: 12px 13px; border: 1px solid var(--border); border-radius: 11px; font: inherit; font-size: .9rem; background: #fff; min-height: 46px; }
+    .feld:disabled { background: #f9fafb; color: #9ca3af; }
+    .hinweis-klein { font-size: .75rem; color: var(--muted); line-height: 1.5; margin: 7px 0 0; }
+
+    /* ---------- Ligen als Leiter statt Auswahlliste ----------
+       Max' Vorgabe: Reihenfolge nach Spielstärke von unten nach oben,
+       ohne Sponsorennamen. Als Knopfreihe sieht man die Rangfolge auf
+       einen Blick - in einer Auswahlliste sieht man immer nur eine. */
+    /* Absteigend im DOM (stärkste Liga zuerst) statt per "column-reverse"
+       gedreht. Vorher liefen Tastaturfokus und Screenreader genau
+       entgegengesetzt zur Anzeige. */
+    .liga-leiter { display: flex; flex-direction: column; gap: 6px; }
+    .liga {
+      display: flex; align-items: center; gap: 11px;
+      padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 11px;
+      background: #fff; cursor: pointer; font: inherit; text-align: left; width: 100%;
+      min-height: 48px; transition: border-color .14s, background .14s;
+    }
+    .liga:hover { border-color: #cbd5e1; }
+    .liga.an { border-color: var(--marke); background: var(--marke-lighter); }
+    .liga .nam { font-weight: 600; font-size: .89rem; }
+    .liga .betrag { margin-left: auto; font-weight: 700; font-size: .89rem; white-space: nowrap; }
+    .liga .vb { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 999px; }
+    .vb-svfd { background: var(--green-light); color: var(--green-dark); }
+    .vb-sfv { background: var(--blau-hell); color: #1d4ed8; }
 
     .haken-reihe { display: flex; flex-wrap: wrap; gap: 8px; }
-    .haken { display: flex; align-items: center; gap: 8px; border: 1.5px solid var(--border); border-radius: 999px; padding: 9px 15px 9px 12px; cursor: pointer; font-size: .83rem; font-weight: 500; background: #fff; user-select: none; min-height: 44px; }
+    .haken { display: flex; align-items: center; gap: 9px; border: 1.5px solid var(--border); border-radius: 999px; padding: 10px 16px 10px 13px; cursor: pointer; font-size: .85rem; font-weight: 500; background: #fff; user-select: none; min-height: 46px; }
     .haken input { margin: 0; width: 16px; height: 16px; accent-color: var(--marke); }
     .haken.an { border-color: var(--marke); background: var(--marke-lighter); font-weight: 600; }
-    .haken.gesperrt { opacity: .45; cursor: not-allowed; }
+    .haken.gesperrt { opacity: .55; cursor: not-allowed; }
 
-    .quittung { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; position: sticky; top: 78px; background: var(--card); }
-    .q-kopf { background: var(--marke); color: #fff; padding: 13px 16px; }
-    .q-kopf h3 { margin: 0; font-size: .9rem; font-family: var(--font-titel); font-weight: 600; }
-    .q-kopf .sub { font-size: .73rem; opacity: .68; margin-top: 2px; }
+    /* ---------- Quittung ---------- */
+    .quittung { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 80px; background: var(--card); box-shadow: var(--shadow); }
+    .q-kopf { background: var(--marke); color: #fff; padding: 15px 18px; }
+    .q-kopf h2 { margin: 0; font-size: .95rem; font-family: var(--font-titel); font-weight: 600; }
+    .q-kopf .sub { font-size: .74rem; opacity: .7; margin-top: 3px; }
     .person { border-bottom: 1px solid var(--border); }
-    .person-kopf { background: #fafafa; padding: 8px 16px; font-size: .75rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--marke-hell); }
-    .q-zeile { display: flex; justify-content: space-between; font-size: .85rem; padding: 9px 16px; gap: 14px; border-bottom: 1px solid #f7f7f8; }
+    .person-kopf { background: #fafafa; padding: 9px 18px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--marke-hell); }
+    .q-zeile { display: flex; justify-content: space-between; font-size: .86rem; padding: 10px 18px; gap: 14px; border-bottom: 1px solid #f7f7f8; }
     .q-zeile:last-child { border-bottom: 0; }
     .q-zeile b { white-space: nowrap; }
-    .q-zeile .klein { display: block; font-size: .71rem; color: var(--muted); margin-top: 2px; font-weight: 400; }
+    .q-zeile .klein { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; font-weight: 400; }
     .q-zeile.person-summe { background: #fcfcfd; font-weight: 600; }
-    .q-gesamt { display: flex; justify-content: space-between; padding: 15px 16px; background: var(--green-light); font-size: 1.05rem; align-items: center; }
+    .q-zeile.unsicher { background: #fffbeb; }
+    .q-zeile.unsicher b { color: #854d0e; }
+    .q-gesamt { display: flex; justify-content: space-between; padding: 17px 18px; background: var(--green-light); font-size: 1.15rem; align-items: center; font-family: var(--font-titel); }
     .q-gesamt b:last-child { color: var(--green-dark); }
-    .q-haftung { font-size: .73rem; color: #713f12; padding: 12px 16px; background: #fffbeb; border-top: 1px solid #fde68a; line-height: 1.55; margin: 0; }
-    .lage-marker { display: inline-block; font-size: .71rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 6px; }
+    .q-haftung { font-size: .74rem; color: #713f12; padding: 13px 18px; background: #fffbeb; border-top: 1px solid #fde68a; line-height: 1.55; margin: 0; }
+
+    .lage-marker { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 6px; }
     .lm-dd { background: var(--green-light); color: var(--green-dark); }
     .lm-aus { background: var(--karte-gelb-hell); color: #854d0e; }
     .lm-frag { background: var(--red-hell); color: #991b1b; }
-
-    /* Gruppenüberschrift über den Häkchen. Bewusst kein <label>: das hat
-       kein zugehöriges Feld und würde vom Screenreader falsch angekündigt. */
-    .gruppen-titel { font-size: .79rem; font-weight: 600; margin: 0 0 5px; color: var(--marke-hell); }
-
-    /* Fahrtkosten, deren Tarifzone noch nicht geprüft ist. Die Markierung
-       ist nicht der alleinige Träger der Information - im Text daneben
-       steht ausdrücklich "Zone ungeprüft". */
-    .q-zeile.unsicher { background: #fffbeb; }
-    .q-zeile.unsicher b { color: #854d0e; }
   </style>
 </head>
 <body>
 
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
       <button class="nav-knopf" id="nav-knopf" type="button"
@@ -80,92 +104,95 @@
     </div>
   </header>
 
-  <main class="inhalt">
-    <div class="abschnitt-kopf" style="margin-bottom:6px">
-      <h1 style="font-size:1.45rem">Spesenrechner</h1>
-    </div>
-    <p class="abschnitt-hinweis" style="margin-bottom:26px">
-      Für Spiele im Stadtverband Dresden und auf Landesebene.
-    </p>
+  <main class="inhalt" id="inhalt" tabindex="-1">
+    <h1 class="seiten-titel">Spesenrechner</h1>
+    <p class="seiten-unter">Vier Schritte bis zur fertigen Quittung.</p>
 
-    <div class="rechner-raster">
+    <div class="rechner">
       <div>
-        <fieldset>
-          <legend>Das Spiel</legend>
-          <label for="verband">Ebene</label>
-          <select class="feld" id="verband"></select>
 
-          <div class="feldpaar">
-            <div>
-              <label for="alter">Altersklasse</label>
-              <select class="feld" id="alter"></select>
+        <section class="schritt">
+          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Wer spielt?</h2></div>
+          <div class="schritt-koerper">
+            <label for="alter">Altersklasse</label>
+            <select class="feld" id="alter"></select>
+          </div>
+        </section>
+
+        <section class="schritt">
+          <div class="schritt-kopf"><span class="schritt-nr">2</span><h2>In welcher Liga?</h2></div>
+          <div class="schritt-koerper">
+            <div class="liga-leiter" id="ligaLeiter" aria-label="Spielklasse"></div>
+            <p class="hinweis-klein">Von oben nach unten absteigend nach Spielstärke. Der Betrag rechts
+               ist die Entschädigung als Schiedsrichter.</p>
+          </div>
+        </section>
+
+        <section class="schritt">
+          <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Was für ein Spiel?</h2></div>
+          <div class="schritt-koerper">
+            <div class="haken-reihe" role="group" aria-label="Art des Spiels">
+              <label class="haken" id="lblPokal"><input type="checkbox" id="cbPokal" /> Pokalspiel</label>
+              <label class="haken" id="lblFreund"><input type="checkbox" id="cbFreund" /> Freundschaftsspiel</label>
+              <label class="haken" id="lblTurnier"><input type="checkbox" id="cbTurnier" /> Turnier</label>
+              <label class="haken" id="lblAss"><input type="checkbox" id="cbAss" /> Mit Assistenten</label>
             </div>
-            <div>
-              <label for="klasse">Spielklasse</label>
-              <select class="feld" id="klasse"></select>
+            <p class="hinweis-klein" id="artHinweis"></p>
+
+            <div id="turnierBlock" hidden style="margin-top:14px">
+              <label for="stunden">Dauer in Stunden</label>
+              <input class="feld" id="stunden" type="number" min="1" step="1" value="4" />
+              <p class="hinweis-klein">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
             </div>
           </div>
+        </section>
 
-          <p class="gruppen-titel" id="artTitel">Art des Spiels</p>
-          <div class="haken-reihe" style="margin-bottom:6px" role="group" aria-labelledby="artTitel">
-            <label class="haken" id="lblPokal"><input type="checkbox" id="cbPokal" /> Pokalspiel</label>
-            <label class="haken" id="lblFreund"><input type="checkbox" id="cbFreund" /> Freundschaftsspiel</label>
-            <label class="haken" id="lblTurnier"><input type="checkbox" id="cbTurnier" /> Turnier</label>
+        <section class="schritt">
+          <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Wo und wer fährt?</h2></div>
+          <div class="schritt-koerper">
+            <label for="verein">Heimverein</label>
+            <input class="feld" id="verein" list="vereinsliste" placeholder="Vereinsnamen eintippen …" />
+            <datalist id="vereinsliste"></datalist>
+            <p class="hinweis-klein" id="ortHinweis"></p>
+
+            <div style="margin-top:14px">
+              <label for="funktion">Deine Funktion</label>
+              <select class="feld" id="funktion">
+                <option value="sr">Schiedsrichter</option>
+                <option value="sra">Assistent</option>
+              </select>
+            </div>
+
+            <div style="margin-top:14px">
+              <label for="plz">Deine Postleitzahl</label>
+              <input class="feld" id="plz" inputmode="numeric" maxlength="5" placeholder="01159" value="01159" />
+              <p class="hinweis-klein" id="plzHinweis"></p>
+            </div>
+
+            <div id="assFelder" hidden>
+              <div style="margin-top:14px">
+                <label for="plzA1" id="lblPlzA1">Postleitzahl Assistent 1</label>
+                <input class="feld" id="plzA1" inputmode="numeric" maxlength="5" value="01159" />
+              </div>
+              <div style="margin-top:14px">
+                <label for="plzA2" id="lblPlzA2">Postleitzahl Assistent 2</label>
+                <input class="feld" id="plzA2" inputmode="numeric" maxlength="5" value="01159" />
+              </div>
+            </div>
           </div>
-          <p class="hinweis-klein" id="artHinweis"></p>
-
-          <div id="turnierBlock" hidden>
-            <label for="stunden">Dauer in Stunden</label>
-            <input class="feld" id="stunden" type="number" min="1" step="1" value="4" />
-            <p class="hinweis-klein">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
-          </div>
-        </fieldset>
-
-        <fieldset>
-          <legend>Spielort</legend>
-          <label for="verein">Heimverein</label>
-          <input class="feld" id="verein" list="vereinsliste" placeholder="Vereinsnamen eintippen …" />
-          <datalist id="vereinsliste"></datalist>
-          <p class="hinweis-klein" id="ortHinweis"></p>
-        </fieldset>
-
-        <fieldset>
-          <legend>Schiedsrichterteam</legend>
-          <label class="haken" id="lblAss" style="margin-bottom:10px">
-            <input type="checkbox" id="cbAss" /> Spiel wird mit Assistenten geleitet
-          </label>
-          <p class="hinweis-klein" id="assHinweis" style="margin-top:-4px"></p>
-
-          <label for="funktion">Deine Funktion</label>
-          <select class="feld" id="funktion">
-            <option value="sr">Schiedsrichter</option>
-            <option value="sra">Assistent</option>
-          </select>
-
-          <label for="plz">Deine Postleitzahl</label>
-          <input class="feld" id="plz" inputmode="numeric" maxlength="5" placeholder="01159" value="01159" />
-          <p class="hinweis-klein" id="plzHinweis"></p>
-
-          <div id="assFelder" hidden>
-            <label for="plzA1" id="lblPlzA1">Postleitzahl Assistent 1</label>
-            <input class="feld" id="plzA1" inputmode="numeric" maxlength="5" value="01159" />
-            <label for="plzA2" id="lblPlzA2">Postleitzahl Assistent 2</label>
-            <input class="feld" id="plzA2" inputmode="numeric" maxlength="5" value="01159" />
-          </div>
-        </fieldset>
+        </section>
       </div>
 
       <div class="quittung">
         <div class="q-kopf">
-          <h3>Spesenquittung</h3>
+          <h2>Spesenquittung</h2>
           <div class="sub" id="qSub">–</div>
         </div>
         <div id="qKoerper"></div>
-        <div class="q-gesamt"><b>Gesamtkosten des Teams</b><b id="qGesamt" aria-live="polite">–</b></div>
+        <div class="q-gesamt"><b id="qGesamtLabel">Gesamt</b><b id="qGesamt" aria-live="polite">–</b></div>
         <p class="q-haftung">
-          <b>Alle Angaben ohne Gewähr.</b> Maßgeblich sind allein die gültigen Sätze des
-          Stadtverbands Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.
-          Bitte vor dem Einreichen selbst prüfen.
+          <b>Ohne Gewähr.</b> Maßgeblich sind allein die gültigen Sätze des Stadtverbands
+          Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.
         </p>
       </div>
     </div>
@@ -176,156 +203,162 @@
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
 
+  <!-- Menü und Vereinsnamen kommen aus seite.js, wie auf allen anderen
+       Seiten auch. Fehlte hier zuerst - dadurch blieben die
+       "data-verein"-Platzhalter leer und das Menü ließ sich auf dem Handy
+       nicht per Escape schließen. -->
+  <script type="module" src="seite.js"></script>
+
   <script type="module">
-    import { ENTSCHAEDIGUNG, TURNIER, FAHRTKOSTEN, VEREINE } from "./verein.config.js";
+    import { ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE } from "./verein.config.js";
 
     const $ = (id) => document.getElementById(id);
     const euro = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
     // Dresdner Postleitzahlen laufen von 01067 bis 01329.
     const istDresden = (plz) => /^01(0[6-9]|1\d|2\d|3[0-2])\d$/.test((plz || "").trim());
 
-    // Menü für schmale Bildschirme
-    (function () {
-      const knopf = $("nav-knopf"), nav = $("haupt-nav");
-      knopf.addEventListener("click", () => {
-        const offen = nav.classList.toggle("offen");
-        knopf.setAttribute("aria-expanded", String(offen));
-      });
-    })();
+    let gewaehlteLiga = null;
 
-    // Auswahllisten aufbauen
-    Object.entries(ENTSCHAEDIGUNG).forEach(([schluessel, daten]) => {
+    ALTERSKLASSEN.forEach((a, i) => {
       const o = document.createElement("option");
-      o.value = schluessel; o.textContent = daten.label;
-      $("verband").appendChild(o);
+      o.value = i; o.textContent = a.name;
+      $("alter").appendChild(o);
     });
     VEREINE.forEach((v) => {
       const o = document.createElement("option");
       o.value = v.name; $("vereinsliste").appendChild(o);
     });
 
-    function fuelleAlter() {
-      const d = ENTSCHAEDIGUNG[$("verband").value];
-      $("alter").innerHTML = "";
-      d.gruppen.forEach((g, i) => {
-        const o = document.createElement("option");
-        o.value = i; o.textContent = g.alter;
-        $("alter").appendChild(o);
-      });
-      fuelleKlassen();
-    }
+    /**
+     * Baut die Liga-Leiter neu auf. Sortiert nach "stufe" aufsteigend;
+     * das CSS dreht die Reihenfolge per "column-reverse" um, sodass die
+     * stärkste Liga oben steht - wie man eine Ligapyramide liest.
+     */
+    function baueLigen() {
+      const gruppe = ALTERSKLASSEN[Number($("alter").value)];
+      const leiter = $("ligaLeiter");
+      leiter.innerHTML = "";
 
-    function fuelleKlassen() {
-      const g = ENTSCHAEDIGUNG[$("verband").value].gruppen[Number($("alter").value)];
-      $("klasse").innerHTML = "";
-      g.klassen.forEach((k, i) => {
-        const o = document.createElement("option");
-        o.value = i; o.textContent = k.n;
-        $("klasse").appendChild(o);
+      // Absteigend: stärkste Liga oben, wie man eine Ligapyramide liest.
+      // Vorbelegt wird die SCHWÄCHSTE - das ist der häufigste Fall.
+      const sortiert = [...gruppe.ligen].sort((a, b) => b.stufe - a.stufe);
+      const vorbelegt = sortiert.length - 1;
+      gewaehlteLiga = sortiert[vorbelegt];
+
+      sortiert.forEach((liga, i) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "liga" + (i === vorbelegt ? " an" : "");
+        // Bewusst KEINE role="radio": Das verspricht Pfeiltasten-Bedienung
+        // und einen Roving-Tabindex, beides gäbe es hier nicht. Als
+        // gewöhnliche Schaltflächen mit "aria-pressed" stimmt die Ansage.
+        b.setAttribute("aria-pressed", String(i === vorbelegt));
+        b.title = liga.voll;
+        const vb = VERBAENDE[liga.verband];
+        b.innerHTML = `<span class="nam">${liga.kurz}</span>
+          <span class="vb vb-${liga.verband}">${vb.kurz}</span>
+          <span class="betrag">${euro(liga.sr)}</span>`;
+        b.addEventListener("click", () => {
+          leiter.querySelectorAll(".liga").forEach((x) => {
+            x.classList.remove("an"); x.setAttribute("aria-pressed", "false");
+          });
+          b.classList.add("an"); b.setAttribute("aria-pressed", "true");
+          gewaehlteLiga = liga;
+          rechne();
+        });
+        leiter.appendChild(b);
       });
       rechne();
     }
 
+    /**
+     * Vergleicht tolerant: Leerzeichen am Rand und Groß-/Kleinschreibung
+     * werden ignoriert. Vorher führte ein kopiertes Leerzeichen dazu, dass
+     * der Verein als "nicht gefunden" galt - und damit stillschweigend mit
+     * einem Spielort in Dresden gerechnet wurde. Bei einem Auswärtsverein
+     * war das die Hälfte des richtigen Betrags.
+     */
     function gewaehlterVerein() {
-      return VEREINE.find((v) => v.name === $("verein").value) || null;
+      const eingabe = ($("verein").value || "").trim().toLowerCase();
+      if (!eingabe) return null;
+      return VEREINE.find((v) => v.name.toLowerCase() === eingabe) || null;
     }
 
     /**
-     * Fahrtkosten nach der Regel des Stadtverbands, von Max ausdrücklich
-     * bestätigt (18.08.2026): eine Einzelkarte JE DURCHFAHRENER ZONE,
-     * hin und zurück. Bei zwei Zonen also vier Einzelkarten.
+     * Fahrtkosten nach der Regel des Stadtverbands, von Max zweimal
+     * ausdrücklich bestätigt: zwei Einzelkarten je durchfahrener Zone
+     * (hin und zurück), jede zum selben Preis.
      *
-     * Das ist bewusst NICHT der günstigere VVO-Zwei-Zonen-Tarif - der
-     * Verband erstattet nach Zonen, nicht nach gekauftem Ticket.
+     *   1 Zone  -> 2 Karten ->  7,20 €
+     *   2 Zonen -> 4 Karten -> 14,40 €
+     *
+     * Frühere Fassung rechnete bei zwei Zonen "3,60 + 3,30" und lag damit
+     * falsch - Max: "es sind einfach viermal 3,60".
      */
     function fahrtkosten(plz) {
       const verein = gewaehlterVerein();
       const wohntInDD = istDresden(plz);
-      const dd = FAHRTKOSTEN.preisTarifzoneDresden;
-      const zone = FAHRTKOSTEN.preisEinzelzone;
-
-      // Vereine mit lage "frag" sind zwar nachweislich außerhalb Dresdens,
-      // ihre genaue Tarifzone ist aber noch nicht geklärt. Früher wurden sie
-      // stillschweigend wie "außerhalb" gerechnet - die Quittung zeigte dann
-      // einen festen Betrag, während daneben "Zone noch offen" stand. Zwei
-      // widersprüchliche Aussagen auf einem Bildschirm. Jetzt wird der Wert
-      // ausdrücklich als ungeprüfte Schätzung ausgewiesen.
-      const zoneUnklar = verein ? verein.lage === "frag" : false;
       const zielInDD = verein ? verein.lage === "dd" : true;
+      const zoneUnklar = verein ? verein.lage === "frag" : false;
 
-      if (zielInDD && wohntInDD) {
-        return { betrag: dd * 2, text: `1 Tarifzone (Dresden) · 2 Einzelkarten à ${euro(dd)}`, unsicher: false };
-      }
+      const zonen = (zielInDD && wohntInDD) ? 1 : 2;
+      const karten = zonen * FAHRTKOSTEN.kartenJeZone;
+      const betrag = karten * FAHRTKOSTEN.preisJeKarte;
 
-      const betrag = !wohntInDD && !zielInDD ? zone * 4 : (dd + zone) * 2;
-      const text = !wohntInDD && !zielInDD
-        ? `2 Tarifzonen · 4 Einzelkarten à ${euro(zone)}`
-        : `2 Tarifzonen · 4 Einzelkarten (${euro(dd)} + ${euro(zone)}, hin und zurück)`;
+      let text = `${zonen} ${zonen === 1 ? "Tarifzone" : "Tarifzonen"} · ${karten} Einzelkarten à ${euro(FAHRTKOSTEN.preisJeKarte)}`;
+      if (zoneUnklar) text += " – Zone ungeprüft";
 
-      return {
-        betrag,
-        text: zoneUnklar ? `${text} – Zone ungeprüft, bitte nachrechnen` : text,
-        unsicher: zoneUnklar,
-      };
+      return { betrag, text, unsicher: zoneUnklar };
     }
 
     function rechne() {
-      const daten = ENTSCHAEDIGUNG[$("verband").value];
-      const gruppe = daten.gruppen[Number($("alter").value)] || daten.gruppen[0];
-      const klasse = gruppe.klassen[Number($("klasse").value)] || gruppe.klassen[0];
+      if (!gewaehlteLiga) return;
+      const liga = gewaehlteLiga;
       const turnier = $("cbTurnier").checked;
 
       $("turnierBlock").hidden = !turnier;
-      $("alter").disabled = turnier;
-      $("klasse").disabled = turnier;
 
-      // Assistenten nur anbieten, wo es sie überhaupt gibt.
-      // Max' ausdrücklicher Wunsch: die Möglichkeit gar nicht erst offenlassen.
-      const assMoeglich = !turnier && klasse.sra !== null;
+      // Assistenten nur anbieten, wo es sie gibt.
+      const assMoeglich = !turnier && liga.sra !== null;
       $("cbAss").disabled = !assMoeglich;
       $("lblAss").classList.toggle("gesperrt", !assMoeglich);
       if (!assMoeglich) $("cbAss").checked = false;
-      $("lblAss").classList.toggle("an", $("cbAss").checked);
-      $("assHinweis").textContent = turnier
-        ? "Bei Turnieren wird pauschal je Person abgerechnet."
-        : assMoeglich ? "" : `In der Klasse „${klasse.n}" sind keine Assistenten vorgesehen.`;
+      $("assFelder").hidden = !$("cbAss").checked;
 
       const funktion = $("funktion");
       funktion.options[1].disabled = !assMoeglich;
       if (!assMoeglich && funktion.value === "sra") funktion.value = "sr";
-      $("assFelder").hidden = !$("cbAss").checked;
 
-      [["cbPokal", "lblPokal"], ["cbFreund", "lblFreund"], ["cbTurnier", "lblTurnier"]]
+      [["cbPokal", "lblPokal"], ["cbFreund", "lblFreund"],
+       ["cbTurnier", "lblTurnier"], ["cbAss", "lblAss"]]
         .forEach(([c, l]) => $(l).classList.toggle("an", $(c).checked));
 
-      // Pokal und Freundschaftsspiel schließen sich gegenseitig aus.
-      //
-      // Wichtig: Es wird die jeweils ANDERE Box geleert, nicht immer
-      // "Freundschaftsspiel". Vorher konnte man bei angehaktem Pokal das
-      // Freundschaftsspiel gar nicht mehr auswählen - der Haken sprang
-      // kommentarlos wieder heraus. Welche Box zuletzt geklickt wurde,
-      // steht in "zuletztGeklickt".
+      // Pokal und Freundschaftsspiel schließen sich aus - es wird die
+      // jeweils ANDERE Box geleert, nicht immer dieselbe.
       if ($("cbPokal").checked && $("cbFreund").checked) {
         const andere = zuletztGeklickt === "cbPokal" ? "cbFreund" : "cbPokal";
         $(andere).checked = false;
         $(andere === "cbFreund" ? "lblFreund" : "lblPokal").classList.remove("an");
       }
 
-      $("artHinweis").textContent = $("cbPokal").checked
-        ? "Bei Pokalspielen zählt die höchstklassige beteiligte Mannschaft – wähle deren Spielklasse."
-        : turnier
-          ? "Turniere werden pauschal nach Dauer abgerechnet, unabhängig von der Spielklasse."
-          : "Ohne Häkchen wird ein normales Meisterschaftsspiel gerechnet.";
+      $("artHinweis").textContent = !assMoeglich && !turnier
+        ? `In der Klasse „${liga.voll}" sind keine Assistenten vorgesehen.`
+        : $("cbPokal").checked
+          ? "Bei Pokalspielen zählt die höchstklassige beteiligte Mannschaft."
+          : turnier
+            ? "Turniere werden pauschal nach Dauer abgerechnet."
+            : "Ohne Häkchen wird ein normales Meisterschaftsspiel gerechnet.";
 
       $("plzHinweis").textContent = istDresden($("plz").value)
-        ? "Liegt in der Tarifzone Dresden."
+        ? "Tarifzone Dresden."
         : "Außerhalb Dresdens – es wird mehrzonig gerechnet.";
 
-      // Lage des Spielorts anzeigen
       const verein = gewaehlterVerein();
       if (!verein) {
         $("ortHinweis").textContent = $("verein").value
@@ -336,7 +369,7 @@
       } else if (verein.lage === "aus") {
         $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-aus">außerhalb · ${verein.ort}</span>`;
       } else {
-        $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-frag">Zone noch offen · ${verein.ort}</span>`;
+        $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-frag">Zone noch offen</span>`;
       }
 
       function satz(alsAssistent) {
@@ -346,43 +379,31 @@
           return {
             betrag: TURNIER.grundpauschale + extra * TURNIER.jeWeitereStunde,
             text: extra > 0
-              ? `${TURNIER.grundpauschale} € Grundpauschale + ${extra} × ${TURNIER.jeWeitereStunde} €`
+              ? `${TURNIER.grundpauschale} € + ${extra} × ${TURNIER.jeWeitereStunde} €`
               : `${TURNIER.grundpauschale} € für die ersten ${TURNIER.grundstunden} Stunden`,
           };
         }
         return alsAssistent
-          ? { betrag: klasse.sra, text: klasse.n }
-          : { betrag: klasse.sr, text: klasse.n };
+          ? { betrag: liga.sra, text: liga.voll }
+          : { betrag: liga.sr, text: liga.voll };
       }
 
-      // Personen in der Reihenfolge der offiziellen Quittung.
-      //
-      // Die beiden Zusatzfelder bekommen je nach eigener Funktion eine
-      // andere Bedeutung: Bist du selbst Assistent, gehört das erste Feld
-      // dem Schiedsrichter. Die Beschriftung wird deshalb mitgeführt -
-      // vorher stand dort weiterhin "Assistent 1", während der Wert in die
-      // Zeile "Schiedsrichter" floss. Das fiel nur nicht auf, weil alle
-      // Felder denselben Vorgabewert hatten.
       const ichBinAssistent = funktion.value === "sra";
       $("lblPlzA1").textContent = ichBinAssistent
-        ? "Postleitzahl des Schiedsrichters"
-        : "Postleitzahl Assistent 1";
-      $("lblPlzA2").textContent = "Postleitzahl Assistent 2";
+        ? "Postleitzahl des Schiedsrichters" : "Postleitzahl Assistent 1";
 
       const personen = [];
       personen.push({
-        rolle: ichBinAssistent ? "Schiedsrichter-Assistent 1 (du)" : "Schiedsrichter (du)",
-        satz: satz(ichBinAssistent),
-        fahrt: fahrtkosten($("plz").value),
+        rolle: ichBinAssistent ? "Assistent 1 (du)" : "Schiedsrichter (du)",
+        satz: satz(ichBinAssistent), fahrt: fahrtkosten($("plz").value),
       });
-
       if ($("cbAss").checked) {
         if (ichBinAssistent) {
           personen.unshift({ rolle: "Schiedsrichter", satz: satz(false), fahrt: fahrtkosten($("plzA1").value) });
-          personen.push({ rolle: "Schiedsrichter-Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
+          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
         } else {
-          personen.push({ rolle: "Schiedsrichter-Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value) });
-          personen.push({ rolle: "Schiedsrichter-Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
+          personen.push({ rolle: "Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value) });
+          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value) });
         }
       }
 
@@ -398,32 +419,28 @@
           <div class="person-kopf">${p.rolle}</div>
           <div class="q-zeile${p.fahrt.unsicher ? " unsicher" : ""}"><span>Fahrtkosten<span class="klein">${p.fahrt.text}</span></span><b>${euro(p.fahrt.betrag)}</b></div>
           <div class="q-zeile"><span>Spesen<span class="klein">${p.satz.text}</span></span><b>${euro(p.satz.betrag)}</b></div>
-          <div class="q-zeile person-summe"><span>Gesamt</span><b>${euro(summe)}</b></div>`;
+          <div class="q-zeile person-summe"><span>Summe</span><b>${euro(summe)}</b></div>`;
         koerper.appendChild(block);
       });
 
       $("qGesamt").textContent = euro(gesamt);
       const ort = $("verein").value ? ` · ${$("verein").value}` : "";
-      $("qSub").textContent = (turnier ? "Turnier" : klasse.n)
+      $("qSub").textContent = (turnier ? "Turnier" : liga.kurz)
         + ($("cbPokal").checked ? " · Pokal" : "")
         + ($("cbFreund").checked ? " · Freundschaftsspiel" : "") + ort;
     }
 
-    // Merkt sich, welche der beiden sich ausschließenden Boxen zuletzt
-    // angeklickt wurde - nur so lässt sich die jeweils andere leeren
-    // statt immer derselben.
     let zuletztGeklickt = null;
     ["cbPokal", "cbFreund"].forEach((id) =>
       $(id).addEventListener("click", () => { zuletztGeklickt = id; })
     );
 
-    $("verband").addEventListener("change", fuelleAlter);
-    $("alter").addEventListener("change", fuelleKlassen);
-    ["klasse", "funktion", "plz", "plzA1", "plzA2", "stunden", "verein",
+    $("alter").addEventListener("change", baueLigen);
+    ["funktion", "plz", "plzA1", "plzA2", "stunden", "verein",
      "cbAss", "cbPokal", "cbFreund", "cbTurnier"]
       .forEach((id) => $(id).addEventListener("input", rechne));
 
-    fuelleAlter();
+    baueLigen();
   </script>
 </body>
 </html>

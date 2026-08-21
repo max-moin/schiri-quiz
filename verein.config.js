@@ -1,14 +1,12 @@
 // ============================================================
 //  Vereins-Konfiguration
 // ============================================================
-//  Diese Datei ist die EINZIGE Stelle, an der etwas Vereinsspezifisches
-//  steht. Ein anderer Verein aus dem Stadtverband kopiert das Projekt,
-//  ändert nur diese Datei und hat seine eigene Seite.
+//  Die EINZIGE Stelle mit Vereinsspezifischem. Ein anderer Verein aus
+//  dem Stadtverband kopiert das Projekt, ändert nur diese Datei und hat
+//  seine eigene Seite.
 //
-//  Die Regel dahinter (18.08.2026 mit Max festgelegt):
-//  Ab jetzt kein Vereinsname, keine Farbe und kein Link mehr direkt im
-//  übrigen Code. Sonst hat man am Ende doch wieder zwanzig Stellen zu
-//  suchen - genau der Umbau, der vermieden werden soll.
+//  Regel dahinter: kein Vereinsname, keine Farbe und kein Link direkt im
+//  übrigen Code.
 // ============================================================
 
 export const VEREIN = {
@@ -17,155 +15,178 @@ export const VEREIN = {
   abteilung: "Schiedsrichter-Abteilung",
   kuerzel: "FVLK",
 
-  // Sobald Max ein Logo liefert, hier den Dateinamen eintragen.
-  // Solange leer, zeigt die Seite das Kürzel als Textmarke.
-  logo: null,
+  // Von Max geliefert (18.08.2026): saubere Version mit flachen Farben und
+  // transparentem Hintergrund, deutlich besser als das Pin-Foto.
+  // "logoGross" ist die vierfach hochgerechnete Fassung für große
+  // Darstellungen - im Original nur 99 px.
+  logo: "bilder/logo.png",
+  logoGross: "bilder/logo@4x.png",
 
-  farben: {
-    // Anthrazit ist die Marke (Thema "Schiri-Schwarz", 07.08.2026).
-    // Grün und Rot bleiben ausschließlich Rückmeldung im Quiz und werden
-    // hier bewusst NICHT als Dekoration verwendet.
-    marke: "#1f2937",
-    akzent: "#16a34a",
-  },
+  farben: { marke: "#1f2937", akzent: "#00A03B" },
 
-  kontakt: {
-    obmann: "Max M.",
-    // E-Mail bewusst noch leer - erst eintragen, wenn geklärt ist, ob eine
-    // private oder eine Vereinsadresse auf die öffentliche Seite soll.
-    email: null,
-  },
+  // email bewusst null: Sobald hier eine Adresse steht, erscheint sie im
+  // Klartext auf der öffentlichen Vorlagenseite und ist für Spam-Sammler
+  // lesbar. Das ist eine Entscheidung, die Max treffen muss, nicht ich.
+  // Solange null, steht dort "[E-Mail eures Obmanns]".
+  kontakt: { obmann: "Max M.", email: null },
 
   links: {
-    verein: null,                                    // Vereins-Homepage, folgt
+    verein: null,
     stadtverband: "https://www.svf-dresden.de",
+    // Max' Vorgabe: lieber direkt in den Schiedsrichter-Bereich statt auf
+    // die allgemeine Startseite - von dort muss man erst suchen.
+    stadtverbandSchiri: "https://www.svf-dresden.de/schiedsrichter/",
     stadtverbandDokumente: "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
     dfbnet: "https://www.dfbnet.org",
   },
 };
 
 // ============================================================
-//  Entschädigungssätze
+//  Spielklassen mit Entschädigungssätzen
 // ============================================================
-//  Quelle: "Entschädigungssätze im SFV", Stadtverband Fußball Dresden e.V.
-//  Stand: von Max geliefert am 18.08.2026.
+//  Grundlegend umgebaut (18.08.2026) nach Max' Kritik:
 //
-//  sra: null bedeutet ausdrücklich "in dieser Klasse gibt es keine
-//  Assistenten". Die Oberfläche MUSS das abfangen und darf nicht
-//  stillschweigend 0 Euro oder den Schiedsrichter-Satz anzeigen.
+//  1. "Wenn Herren bei der Altersklasse ausgewählt ist, ist es halt nur
+//     noch Stadtliga A, B, C" - die Sponsorennamen ("brandible",
+//     "Sparkassen-", "Mobilplus im O.D.C.") und die Wiederholung der
+//     Altersklasse sind raus. Sie stehen als "voll" weiterhin drin, damit
+//     man den offiziellen Namen nachschlagen kann.
+//
+//  2. Die Reihenfolge folgt jetzt der SPIELSTÄRKE von unten nach oben,
+//     wie Max sie vorgegeben hat: Stadtklasse, Stadtliga C, B, A,
+//     Stadtoberliga, Landesklasse, Landesliga, Oberliga, Regionalliga.
+//     Vorher standen sie in der Reihenfolge des PDFs - fachlich willkürlich.
+//
+//  3. Stadtverband und Landesebene sind in EINER Liste zusammengeführt.
+//     Vorher musste man vorher die "Ebene" wählen, obwohl die sich aus der
+//     Liga ohnehin ergibt. Ein Bedienschritt weniger.
+//
+//  "stufe" bestimmt die Sortierung, "verband" nur die Anzeige und die
+//  Fahrtkostenregel. sra: null heißt ausdrücklich "hier gibt es keine
+//  Assistenten" - die Oberfläche MUSS das abfangen.
+//
+//  Quellen: Entschädigungssätze SVFD (Max, 18.08.2026) und Finanzordnung
+//  Sächsischer Fußball-Verband, Stand 01.07.2025.
 // ============================================================
 
-export const ENTSCHAEDIGUNG = {
-  svfd: {
-    label: "Stadtverband Fußball Dresden",
-    gruppen: [
-      { alter: "Herren", klassen: [
-        { n: "Sparkassenoberliga Herren", sr: 40, sra: 30 },
-        { n: "brandible Stadtliga A Herren", sr: 30, sra: 25 },
-        { n: "brandible Stadtliga B Herren", sr: 25, sra: 20 },
-        { n: "brandible Stadtliga C Herren", sr: 25, sra: 20 },
-        { n: "Stadtklassen Herren", sr: 25, sra: 20 },
-      ]},
-      { alter: "Frauen", klassen: [
-        { n: "Mobilplus im O.D.C. Stadtliga Frauen", sr: 25, sra: 20 },
-        { n: "Stadtklassen Frauen", sr: 25, sra: 20 },
-      ]},
-      { alter: "Senioren", klassen: [
-        { n: "Stadtoberliga Senioren", sr: 25, sra: 20 },
-        { n: "Stadtliga Senioren", sr: 25, sra: 20 },
-        { n: "Stadtklasse Senioren", sr: 25, sra: 20 },
-      ]},
-      { alter: "A-Junioren", klassen: [
-        { n: "Stadtoberliga A-Junioren", sr: 25, sra: 20 },
-        { n: "Stadtliga A-Junioren", sr: 25, sra: 20 },
-        { n: "Stadtklasse A-Junioren", sr: 25, sra: 20 },
-      ]},
-      { alter: "B-Junioren", klassen: [
-        { n: "Stadtoberliga B-Junioren", sr: 22, sra: 20 },
-        { n: "Stadtliga B-Junioren", sr: 22, sra: 20 },
-        { n: "Stadtklasse B-Junioren", sr: 22, sra: 20 },
-      ]},
-      { alter: "C-Junioren", klassen: [
-        { n: "Stadtoberliga C-Junioren", sr: 22, sra: 20 },
-        { n: "Stadtliga C-Junioren", sr: 22, sra: 20 },
-        { n: "Stadtklasse C-Junioren", sr: 22, sra: 20 },
-      ]},
-      { alter: "D- bis G-Jugend", klassen: [
-        { n: "Sonstige Junioren im Stadtspielbetrieb", sr: 17, sra: null },
-      ]},
-      { alter: "Freizeitsport", klassen: [
-        { n: "Freizeitsport (alle Ligen)", sr: 25, sra: 20 },
-      ]},
-      { alter: "Sonderfunktionen", klassen: [
-        { n: "Schiedsrichter- und Spielbeobachter", sr: 30, sra: null },
-        { n: "Schiedsrichter-Pate", sr: 20, sra: null },
-      ]},
+export const ALTERSKLASSEN = [
+  {
+    name: "Herren",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",    voll: "Stadtklassen Herren",            verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 2, kurz: "Stadtliga C",    voll: "brandible Stadtliga C Herren",   verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 3, kurz: "Stadtliga B",    voll: "brandible Stadtliga B Herren",   verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 4, kurz: "Stadtliga A",    voll: "brandible Stadtliga A Herren",   verband: "svfd", sr: 30, sra: 25 },
+      { stufe: 5, kurz: "Stadtoberliga",  voll: "Sparkassenoberliga Herren",      verband: "svfd", sr: 40, sra: 30 },
+      { stufe: 6, kurz: "Landesklasse",   voll: "Landesklasse Herren",            verband: "sfv",  sr: 45, sra: 35 },
+      { stufe: 7, kurz: "Landesliga",     voll: "Landesliga Herren",              verband: "sfv",  sr: 55, sra: 45 },
     ],
   },
+  {
+    name: "Frauen",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",  voll: "Stadtklassen Frauen",                    verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 2, kurz: "Stadtliga",    voll: "Mobilplus im O.D.C. Stadtliga Frauen",   verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 6, kurz: "Landesklasse", voll: "Landesklasse Frauen",                    verband: "sfv",  sr: 30, sra: 25 },
+      { stufe: 7, kurz: "Landesliga",   voll: "Landesliga Frauen",                      verband: "sfv",  sr: 35, sra: 30 },
+    ],
+  },
+  {
+    name: "A-Junioren",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse A-Junioren",   verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga A-Junioren",     verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga A-Junioren", verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 7, kurz: "Landesliga",    voll: "Landesliga A-Junioren",    verband: "sfv",  sr: 30, sra: 25 },
+    ],
+  },
+  {
+    name: "B-Junioren",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse B-Junioren",   verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga B-Junioren",     verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga B-Junioren", verband: "svfd", sr: 22, sra: 20 },
+    ],
+  },
+  {
+    name: "C-Junioren",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse C-Junioren",     verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga C-Junioren",       verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga C-Junioren",   verband: "svfd", sr: 22, sra: 20 },
+      { stufe: 6, kurz: "Landesklasse",  voll: "Landesklasse C-Junioren",    verband: "sfv",  sr: 20, sra: 15 },
+    ],
+  },
+  {
+    name: "D- bis G-Jugend",
+    ligen: [
+      { stufe: 1, kurz: "Alle Spielklassen", voll: "Sonstige Junioren im Stadtspielbetrieb", verband: "svfd", sr: 17, sra: null },
+    ],
+  },
+  {
+    name: "Senioren / Altherren",
+    ligen: [
+      { stufe: 1, kurz: "Stadtklasse",   voll: "Stadtklasse Senioren",   verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 3, kurz: "Stadtliga",     voll: "Stadtliga Senioren",     verband: "svfd", sr: 25, sra: 20 },
+      { stufe: 5, kurz: "Stadtoberliga", voll: "Stadtoberliga Senioren", verband: "svfd", sr: 25, sra: 20 },
+    ],
+  },
+  {
+    name: "Freizeitsport",
+    ligen: [
+      { stufe: 1, kurz: "Alle Ligen", voll: "Freizeitsport (alle Ligen)", verband: "svfd", sr: 25, sra: 20 },
+    ],
+  },
+  {
+    name: "Sonderfunktionen",
+    ligen: [
+      { stufe: 1, kurz: "Schiedsrichter-Pate",  voll: "Schiedsrichter-Pate",                   verband: "svfd", sr: 20, sra: null },
+      { stufe: 2, kurz: "Beobachter (Stadt)",   voll: "Schiedsrichter- und Spielbeobachter",   verband: "svfd", sr: 30, sra: null },
+      { stufe: 3, kurz: "Beobachter (Land)",    voll: "Beobachter, alle Klassen",              verband: "sfv",  sr: 35, sra: null },
+    ],
+  },
+];
 
-  // Quelle: Finanzordnung Sächsischer Fußball-Verband, Stand 01.07.2025.
-  // ACHTUNG: unvollständig - die Finanzordnung nennt weitere Nachwuchsklassen,
-  // die hier noch fehlen. Vor dem Livegang ergänzen.
-  sfv: {
-    label: "Sächsischer Fußball-Verband",
-    gruppen: [
-      { alter: "Herren", klassen: [
-        { n: "Landesliga Herren", sr: 55, sra: 45 },
-        { n: "Landesklasse Herren", sr: 45, sra: 35 },
-      ]},
-      { alter: "Frauen", klassen: [
-        { n: "Landesliga Frauen", sr: 35, sra: 30 },
-        { n: "Landesklasse Frauen", sr: 30, sra: 25 },
-      ]},
-      { alter: "A-Junioren", klassen: [
-        { n: "Landesliga A-Junioren", sr: 30, sra: 25 },
-      ]},
-      { alter: "C-Junioren", klassen: [
-        { n: "Landesklasse C-Junioren", sr: 20, sra: 15 },
-      ]},
-      { alter: "Sonderfunktionen", klassen: [
-        { n: "Beobachter (alle Klassen)", sr: 35, sra: null },
-      ]},
-    ],
-  },
+export const VERBAENDE = {
+  svfd: { kurz: "Stadtverband", voll: "Stadtverband Fußball Dresden" },
+  sfv:  { kurz: "Landesebene",  voll: "Sächsischer Fußball-Verband" },
 };
 
-// Turnier-Sonderregel, gilt unabhängig von der Spielklasse.
+// Turnier-Sonderregel, unabhängig von der Spielklasse.
 export const TURNIER = { grundpauschale: 32, grundstunden: 4, jeWeitereStunde: 8 };
 
 // ============================================================
 //  Fahrtkosten
 // ============================================================
-//  Erstattungsregel laut Max (18.08.2026, ausdrücklich bestätigt):
-//  Eine Einzelkarte JE DURCHFAHRENER TARIFZONE, hin und zurück.
-//  Bei zwei Zonen also vier Einzelkarten.
+//  KORRIGIERT nach Max' Rückmeldung (18.08.2026). Vorher rechnete der
+//  Rechner bei zwei Zonen "3,60 € + 3,30 €" - also den Dresden-Preis für
+//  die eine und den günstigeren Nachbarzonen-Preis für die andere Zone.
 //
-//  Das weicht bewusst vom günstigeren VVO-Zwei-Zonen-Ticket ab - der
-//  Verband erstattet nach Zonen, nicht nach dem gekauften Ticket.
-//  Nicht "korrigieren".
+//  Max wörtlich: "es sind einfach viermal 3,60". Also: Der Preis pro
+//  Einzelkarte ist IMMER derselbe, und man braucht zwei Karten je
+//  durchfahrener Zone (hin und zurück).
 //
-//  Preise: VVO-Einzelfahrt, Stand 1. April 2026.
+//    1 Zone  ->  2 Karten  ->  7,20 €
+//    2 Zonen ->  4 Karten  -> 14,40 €
+//
+//  Preis: VVO-Einzelfahrt Tarifzone Dresden, Stand 1. April 2026.
 // ============================================================
 
 export const FAHRTKOSTEN = {
-  preisTarifzoneDresden: 3.60,
-  preisEinzelzone: 3.30,
-  hinweis: "Alle Angaben ohne Gewähr. Maßgeblich sind die Sätze des Stadtverbands.",
+  preisJeKarte: 3.60,
+  kartenJeZone: 2,
 };
 
 // ============================================================
 //  Vereine des Stadtverbands
 // ============================================================
-//  Liste von Max geliefert (18.08.2026).
+//  Liste von Max (18.08.2026).
+//  lage: "dd" = Tarifzone Dresden · "aus" = außerhalb, zwei Zonen
+//        "frag" = außerhalb, genaue Zone noch nicht geprüft
 //
-//  lage: "dd"   = liegt in der Tarifzone Dresden
-//        "aus"  = außerhalb, zwei Tarifzonen
-//        "frag" = Zone noch nicht geklärt, muss nachgesehen werden
-//
-//  ACHTUNG, noch offen: Ob die auswärtigen Orte im VVO wirklich direkt an
-//  Dresden grenzen (also genau zwei Zonen ergeben), ist bislang eine
-//  Annahme. Vor dem Livegang am VVO-Zonenplan abgleichen - sonst rechnet
-//  der Rechner ausgerechnet die Fälle falsch, für die man ihn braucht.
+//  🔴 Offen: Ob die auswärtigen Orte im VVO wirklich direkt an Dresden
+//  grenzen, ist bislang eine Annahme. Vor dem Livegang am Zonenplan
+//  abgleichen.
 // ============================================================
 
 export const VEREINE = [
@@ -199,7 +220,6 @@ export const VEREINE = [
   { name: "SG Gittersee", lage: "dd" },
   { name: "SG Motor Dresden-Mitte", lage: "dd" },
   { name: "SG Motor Dresden-Trachenberge", lage: "dd" },
-  // Max, 18.08.2026: liegt nicht in Dresden, genaue Tarifzone aber noch offen.
   { name: "SG Ullersdorf", lage: "frag", ort: "außerhalb Dresdens, Zone offen" },
   { name: "SG Weißig", lage: "dd" },
   { name: "SG Weixdorf", lage: "dd" },
@@ -214,7 +234,6 @@ export const VEREINE = [
   { name: "SV Eintracht Strehlen", lage: "dd" },
   { name: "SV Fortuna Dresden-Rähnitz", lage: "dd" },
   { name: "SV Freital 06", lage: "aus", ort: "Freital" },
-  // Max, 18.08.2026: liegt nicht in Dresden, genaue Tarifzone aber noch offen.
   { name: "SV FS Rossendorf", lage: "frag", ort: "außerhalb Dresdens, Zone offen" },
   { name: "SV Helios 24 Dresden", lage: "dd" },
   { name: "SV Johannstadt 90", lage: "dd" },

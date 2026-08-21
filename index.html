@@ -5,13 +5,15 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schiedsrichter – FV Löbtauer Kickers</title>
   <meta name="description" content="Alles für die Schiedsrichter des FV Löbtauer Kickers: Regelquiz, Spesenrechner, Regeln zum Nachschlagen und Vorlagen." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="seite.css" />
 </head>
 <body>
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
 
   <!-- ============================================================
        Kopfbereich.
@@ -25,7 +27,7 @@
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
 
@@ -42,7 +44,7 @@
     </div>
   </header>
 
-  <main class="inhalt">
+  <main class="inhalt" id="inhalt" tabindex="-1">
 
     <!-- ---------- Aufmacher ---------- -->
     <section class="aufmacher">
@@ -63,14 +65,24 @@
       </div>
     </section>
 
-    <!-- ---------- Bereiche ---------- -->
+    <!-- ---------- Bereiche ----------
+         Max, 18.08.2026: "mehr mit Bildern arbeiten". Die drei ersten
+         Kacheln haben jetzt echte Fotos, die vierte bleibt Platzhalter,
+         weil es dafür ein eigenes Vereinsfoto braucht - ein
+         Stockbild von fremden Trikots wäre hier gelogen.
+
+         Alle Fotos zeigen bewusst KEINE erkennbaren Personen. Die
+         Lizenzen von Pexels und Unsplash decken nur das Urheberrecht ab,
+         nicht das Recht am eigenen Bild - und bei Jugendfußball wäre das
+         besonders heikel. -->
     <section class="abschnitt">
       <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
       <div class="kachelraster">
 
         <a class="bildkachel" href="spesenrechner.html">
           <div class="bildflaeche">
-            <p class="bild-platzhalter"><strong>▣</strong>Taschenrechner, Notizblock,<br />Schiri-Karten</p>
+            <img src="https://images.pexels.com/photos/6204479/pexels-photo-6204479.jpeg?auto=compress&cs=tinysrgb&w=700"
+                 alt="" loading="lazy" />
           </div>
           <div class="bildkachel-text">
             <h3>Spesenrechner</h3>
@@ -80,7 +92,8 @@
 
         <a class="bildkachel" href="informationen.html">
           <div class="bildflaeche">
-            <p class="bild-platzhalter"><strong>▣</strong>Regelheft, Pfeife,<br />gelbe und rote Karte</p>
+            <img src="https://images.pexels.com/photos/46798/pexels-photo-46798.jpeg?auto=compress&cs=tinysrgb&w=700"
+                 alt="" loading="lazy" />
           </div>
           <div class="bildkachel-text">
             <h3>Informationen</h3>
@@ -90,7 +103,8 @@
 
         <a class="bildkachel" href="quiz.html">
           <div class="bildflaeche">
-            <p class="bild-platzhalter"><strong>▣</strong>Schiri schaut auf<br />sein Handy am Spielfeldrand</p>
+            <img src="https://images.pexels.com/photos/17203165/pexels-photo-17203165.jpeg?auto=compress&cs=tinysrgb&w=700"
+                 alt="" loading="lazy" />
           </div>
           <div class="bildkachel-text">
             <h3>Regelquiz</h3>
@@ -98,9 +112,9 @@
           </div>
         </a>
 
-        <a class="bildkachel" href="quiz.html">
+        <a class="bildkachel" href="informationen.html">
           <div class="bildflaeche">
-            <p class="bild-platzhalter"><strong>▣</strong>Schiri-Trikots,<br />Ausrüstung</p>
+            <p class="bild-platzhalter"><strong>▣</strong>Eigenes Foto:<br />Schiri-Trikots, Ausrüstung</p>
           </div>
           <div class="bildkachel-text">
             <h3>Ausrüstung</h3>
@@ -111,20 +125,50 @@
       </div>
     </section>
 
-    <!-- ---------- Schnuppertest ----------
-         Max' Entscheidung (18.08.2026): kein eigenes Quiz auf der
-         Startseite, sondern schlicht zur Regelecke verlinken. Spart eine
-         zweite Quiz-Implementierung und hält die Startseite ruhig. -->
-    <section class="abschnitt">
-      <div class="schnupper">
+    <!-- ---------- Probefrage ----------
+         Ersetzt den Kasten "Hast du das Zeug zum Schiri?" mit dem Knopf
+         "Fragen ausprobieren", den Max nicht mochte (18.08.2026).
+
+         Der Grund, warum der Knopf nicht funktionierte: Er versprach
+         etwas, statt es zu zeigen. Wer noch nie gepfiffen hat, weiß
+         nicht, was ihn hinter dem Knopf erwartet, und klickt deshalb
+         nicht. Eine echte Frage, die sofort dasteht und beim Antippen
+         auflöst, beantwortet die Frage "ist das was für mich?" in fünf
+         Sekunden - und wer sie richtig hat, klickt umso lieber weiter.
+
+         Die Frage stammt aus der eigenen Datenbank (Regel 4). Sie ist
+         bewusst eine, bei der die meisten daneben liegen. -->
+    <section class="band band-dunkel">
+      <div class="band-zwei">
         <div>
           <h2>Hast du das Zeug zum Schiri?</h2>
-          <p>Echte Regelfragen ausprobieren – ohne Anmeldung.</p>
+          <p style="max-width:44ch">
+            Eine echte Frage aus unserem Regelquiz. Ohne Anmeldung, ohne Punkte –
+            einfach mal tippen.
+          </p>
         </div>
-        <!-- "#gast" springt direkt in den Gastzugang, ohne dass man erst an
-             der Vereinskennung vorbei muss (Max, 18.08.2026). Die Auswertung
-             steht in quiz.html. -->
-        <a class="knopf-schnupper" href="quiz.html#gast">Fragen ausprobieren</a>
+
+        <div class="probe">
+          <div class="marke">Regel 4 · Ausrüstung der Spieler</div>
+          <p class="frage" id="probe-frage">
+            Ein Spieler schießt den Ball ins Tor und verliert dabei einen Schuh.
+            Wie entscheidest du?
+          </p>
+          <div class="probe-optionen" id="probe-optionen" role="group" aria-labelledby="probe-frage">
+            <button type="button" data-o="a"><span class="buchstabe">A</span><span>Das Tor zählt nicht, indirekter Freistoß.</span></button>
+            <button type="button" data-o="b"><span class="buchstabe">B</span><span>Das Tor zählt nicht, indirekter Freistoß und Verwarnung.</span></button>
+            <button type="button" data-o="c"><span class="buchstabe">C</span><span>Das Tor zählt, Anstoß.</span></button>
+          </div>
+          <div class="probe-aufloesung" id="probe-aufloesung" role="status" aria-live="polite" tabindex="-1" hidden>
+            <p style="margin:0">
+              <strong>C ist richtig.</strong> Verliert ein Spieler unbeabsichtigt einen Schuh
+              und spielt sofort weiter, bleibt das erlaubt – auch wenn er dabei ein Tor
+              erzielt. Erst bei der nächsten Spielunterbrechung muss er den Schuh
+              wieder anziehen.
+            </p>
+            <a href="quiz.html#gast">Weiter zum Quiz – 9 Fragen, ohne Anmeldung →</a>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -167,10 +211,50 @@
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
 
   <script type="module" src="seite.js"></script>
+  <script>
+    /* Probefrage: einmal antworten, dann auflösen und sperren.
+       Bewusst ohne Wiederholen-Knopf - wer weitermachen will, soll ins
+       richtige Quiz, nicht hier hängen bleiben. */
+    (function () {
+      const RICHTIG = "c";
+      const feld = document.getElementById("probe-optionen");
+      if (!feld) return;
+      const knoepfe = Array.from(feld.querySelectorAll("button"));
+
+      /* Wort statt nur Farbe - eine Rückmeldung, die ausschließlich über
+         Grün und Rot läuft, kommt bei Farbfehlsichtigkeit nicht an. */
+      const marker = (knopf, text) => {
+        const s = document.createElement("span");
+        s.className = "probe-marker";
+        s.textContent = text;
+        knopf.appendChild(s);
+      };
+
+      knoepfe.forEach((b) => b.addEventListener("click", () => {
+        if (feld.dataset.beantwortet === "ja") return;
+        feld.dataset.beantwortet = "ja";
+
+        knoepfe.forEach((x) => {
+          /* aria-disabled statt disabled: ein deaktivierter Knopf verliert
+             sofort den Fokus, und der nächste Tabulator fängt wieder ganz
+             oben an. Der zweite Klick wird oben abgefangen. */
+          x.setAttribute("aria-disabled", "true");
+          if (x.dataset.o === RICHTIG) { x.classList.add("richtig"); marker(x, "Richtig"); }
+        });
+        if (b.dataset.o !== RICHTIG) { b.classList.add("falsch"); marker(b, "Daneben"); }
+
+        const loesung = document.getElementById("probe-aufloesung");
+        loesung.hidden = false;
+        /* Auf dem Handy steht die Auflösung sonst unterhalb des sichtbaren
+           Bereichs und es sieht aus, als sei nichts passiert. */
+        loesung.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }));
+    })();
+  </script>
 </body>
 </html>

@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Informationen – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Regeln zum Nachschlagen, Vorlagen und Dokumente des Stadtverbands Fußball Dresden." />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <meta name="description" content="Regeln zum Nachschlagen, Vorlagen und Dokumente des Stadtverbands Fußball Dresden – sortiert danach, wann man sie braucht." />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -13,16 +13,16 @@
 </head>
 <body>
 
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
-
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
-
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html">Start</a>
         <a href="schiri-werden.html">Schiri werden</a>
@@ -33,251 +33,60 @@
     </div>
   </header>
 
-  <main class="inhalt">
+  <main class="inhalt" id="inhalt" tabindex="-1">
 
-    <div class="abschnitt-kopf" style="margin-bottom:6px">
-      <h1 style="font-size:1.45rem">Informationen</h1>
-    </div>
-    <p class="abschnitt-hinweis" style="margin-bottom:30px">
+    <h1 class="seiten-titel">Informationen</h1>
+    <p class="seiten-unter">
       Sortiert danach, wann du es brauchst – nicht danach, wie das Dokument heißt.
     </p>
 
     <!-- ============================================================
-         Gruppierung nach ANLASS statt nach Dokumenttyp.
+         Runde 5 (18.08.2026): Diese Seite bestand aus fünf identischen
+         Kachelrastern untereinander. Max: "auch bei den Informationen,
+         den Reiter, finde ich noch nicht gut."
 
-         Max' Problem (18.08.2026): "Wenn wir so eine lange Liste von
-         einfach nur vielen Sachen haben, wird es schnell unübersichtlich."
-         Eine Sortierung nach Dokumentart löst das nicht - man weiß ja
-         vorher nicht, wie das Gesuchte heißt. Nach Anlass sortiert
-         beantwortet die Frage, die man tatsächlich im Kopf hat:
-         "Ich stehe gleich auf dem Platz" oder "ich muss absagen".
+         Das Problem war nicht die Gruppierung nach Anlass - die bleibt -,
+         sondern die Darstellung. Wer hier landet, SUCHT etwas Bestimmtes.
+         Kacheln sind zum Stöbern gebaut: Titel stehen je nach Textlänge
+         auf unterschiedlicher Höhe, das Auge muss jedes Mal neu ansetzen.
+         Listenzeilen mit fester Titelposition überfliegt man dagegen in
+         einem Rutsch.
 
-         Ebenfalls Max' Vorgabe: Nur aufnehmen, was man WIEDERHOLT
-         braucht. Sachen, die man einmal in drei Jahren liest
-         (Drei-Stufen-Plan, Handreichungen), stehen bewusst nicht
-         einzeln hier, sondern nur über "Alles Weitere".
+         Dazu ein Suchfeld: der schnellste Weg zu einem Dokument ist,
+         seinen Namen zu tippen. Und Schnellfilter für die drei Fragen,
+         die man tatsächlich hat ("bevor ich losfahre", "danach",
+         "brauche ich nur selten").
          ============================================================ -->
 
-    <!-- ---------- Vor dem Spiel ---------- -->
-    <section class="gruppe">
-      <div class="gruppe-kopf">
-        <h2>Vor dem Spiel</h2>
-        <p>Was du wissen musst, bevor du auf den Platz gehst.</p>
+    <div class="werkzeugleiste">
+      <div class="suchzeile">
+        <label class="nur-vorlesen" for="dokSuche">Dokumente durchsuchen</label>
+        <input id="dokSuche" type="search" placeholder="Suchen, z. B. „Absage&quot; oder „Spielbericht&quot; …" />
       </div>
-      <div class="dokraster">
+      <div class="filterleiste" id="anlassFilter" role="group" aria-label="Nach Anlass filtern"></div>
+    </div>
 
-        <a class="dokkachel" href="regeluebersicht.html">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">📋</span>
-            <h3>Regeln auf einen Blick</h3>
-            <p>Spielzeit, Spielfeld, Spieleranzahl, Wechsler und Abbruchtemperatur –
-               für jede Altersklasse. Filterbar statt als breite Tabelle.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
+    <p class="trefferzahl" id="trefferzahl" aria-live="polite"></p>
 
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">🎽</span>
-            <h3>Kapitänsregelung</h3>
-            <p>Wer mit dem Schiedsrichter sprechen darf und wer nicht.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
+    <div class="liste" id="dokListe"></div>
+    <p class="keine" id="keineTreffer" hidden>Nichts gefunden. Probier es mit einem kürzeren Suchwort.</p>
 
-      </div>
-    </section>
-
-    <!-- ---------- Nach dem Spiel ---------- -->
-    <section class="gruppe">
-      <div class="gruppe-kopf">
-        <h2>Nach dem Spiel</h2>
-        <p>Abrechnen und den Spielbericht abschließen.</p>
-      </div>
-      <div class="dokraster">
-
-        <a class="dokkachel" href="spesenrechner.html">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">💶</span>
-            <h3>Spesenrechner</h3>
-            <p>Entschädigung und Fahrtkosten ausrechnen, aufgeteilt wie auf der
-               offiziellen Quittung.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
-
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">🖥️</span>
-            <h3>Wiedereinwechslungen eintragen</h3>
-            <p>Klickanleitung für den Spielbericht – wo genau man was einträgt.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- ---------- Wenn du absagen musst ----------
-         Max, 18.08.2026: Zwei Vorlagen, weil das die beiden Fälle sind,
-         in denen man tatsächlich eine E-Mail schreiben muss. Der fertige
-         Text der Spielabsage samt zugrunde liegender SVF-Regel liegt
-         bereits im Vault und wird von dort übernommen, nicht neu
-         formuliert. -->
-    <section class="gruppe">
-      <div class="gruppe-kopf">
-        <h2>Wenn du absagen musst</h2>
-        <p>Die beiden E-Mails, die tatsächlich regelmäßig anfallen.</p>
-      </div>
-      <div class="dokraster">
-
-        <a class="dokkachel" href="vorlagen.html#spiel">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">✉️</span>
-            <h3>Spielabsage</h3>
-            <p>Fertige E-Mail mit allen Angaben, die der Stadtverband verlangt –
-               Spielkennung, Datum, Begegnung, Funktion, Begründung.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
-
-        <a class="dokkachel" href="vorlagen.html#lehrabend">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">📅</span>
-            <h3>Regellehrabend absagen</h3>
-            <p>Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht
-               kannst.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- ---------- Zum Lernen ---------- -->
-    <section class="gruppe">
-      <div class="gruppe-kopf">
-        <h2>Zum Lernen</h2>
-        <p>Regelwerk, Änderungen und die Tests der Saison.</p>
-      </div>
-      <div class="dokraster">
-
-        <a class="dokkachel" href="quiz.html">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">⚽</span>
-            <h3>Regelquiz</h3>
-            <p>Jede Woche neue Fragen, dazu ein Übungsbereich mit allen
-               bisherigen.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
-
-        <!-- TODO: Sobald Max den Link zur Hausregeltest-Seite liefert,
-             hier eintragen. Bis dahin zeigt die Kachel auf die
-             Dokumentenübersicht des Stadtverbands. -->
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">📝</span>
-            <h3>Hausregeltest</h3>
-            <p>Die Pflichttests der laufenden Saison.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">📖</span>
-            <h3>DFB-Fußballregeln</h3>
-            <p>Das vollständige Regelwerk der laufenden Saison.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">🆕</span>
-            <h3>Regeländerungen</h3>
-            <p>Was sich zu dieser Saison geändert hat.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- ---------- Alles Weitere ----------
-         Sammelkachel statt einzelner Einträge für alles, was man selten
-         braucht. Genau Max' Vorschlag: "Vielleicht macht man einen
-         sonstigen Reiter, verlinkt dann zur Downloadseite vom
-         Stadtverband und macht nur das, was bei uns auch ist." -->
-    <section class="gruppe">
-      <div class="gruppe-kopf">
-        <h2>Alles Weitere</h2>
-        <p>Anweisungen, Handreichungen und Formulare, die man selten braucht.</p>
-      </div>
-      <div class="dokraster">
-
-        <a class="dokkachel" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#6b7280"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#f3f4f6">📁</span>
-            <h3>Alle Dokumente des Stadtverbands</h3>
-            <p>Anweisungen für Schiedsrichter und Beobachter, Qualifikations­richtlinie,
-               Handreichungen für C- und D-Junioren, Umgang mit Diskriminierung und
-               Gewalt, Mitteilungsblätter und Quittungen.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-
+    <!-- Alles, was man selten braucht, steht nicht einzeln in der Liste,
+         sondern gesammelt hinter einem Link auf die Downloadseite des
+         Stadtverbands. Genau Max' Vorschlag vom 18.08.2026. -->
+    <section class="band band-dunkel" style="margin-top:40px">
+      <div class="aufruf">
+        <div class="aufruf-text">
+          <h2>Was hier nicht steht</h2>
+          <p style="max-width:56ch">
+            Anweisungen für Schiedsrichter und Beobachter, Qualifikations­richtlinie,
+            Handreichungen für C- und D-Junioren, Umgang mit Diskriminierung und
+            Gewalt, Mitteilungsblätter, Quittungsformulare – alles, was man einmal
+            im Jahr braucht, liegt beim Stadtverband.
+          </p>
+        </div>
+        <a class="knopf-weiss" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+           target="_blank" rel="noopener noreferrer">Alle Dokumente des SVFD ↗</a>
       </div>
     </section>
 
@@ -290,10 +99,155 @@
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
 
   <script type="module" src="seite.js"></script>
+  <script>
+    /* ============================================================
+       Die Dokumentenliste als Daten statt als Markup.
+
+       Grund: Jeder Eintrag steht in genau einer Anlass-Gruppe, wird von
+       zwei Filtern und einer Suche erfasst und trägt eine Herkunft.
+       Als HTML geschrieben hieße das, dieselbe Information viermal
+       nebeneinander zu pflegen. Ein neues Dokument ist hier eine Zeile.
+
+       SVFD_DOKS zeigt bewusst überall auf dieselbe Sammelseite: der
+       Stadtverband vergibt für die einzelnen PDFs keine stabilen
+       Adressen. Sobald ein Direktlink bekannt ist, wird er hier
+       eingetragen - sonst nirgends.
+       ============================================================ */
+    const SVFD_DOKS = "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/";
+
+    const GRUPPEN = [
+      { id: "vor",    titel: "Vor dem Spiel",        kurz: "Vor dem Spiel" },
+      { id: "nach",   titel: "Nach dem Spiel",       kurz: "Nach dem Spiel" },
+      { id: "absage", titel: "Wenn du absagen musst", kurz: "Absagen" },
+      { id: "lernen", titel: "Zum Lernen",           kurz: "Lernen" },
+    ];
+
+    const DOKUMENTE = [
+      { g: "vor", sym: "📋", titel: "Regeln auf einen Blick",
+        sub: "Spielzeit, Spielfeld, Spieleranzahl, Wechsler und Abbruchtemperatur – für jede Altersklasse.",
+        href: "regeluebersicht.html", hier: true },
+      { g: "vor", sym: "🎽", titel: "Kapitänsregelung",
+        sub: "Wer mit dem Schiedsrichter sprechen darf und wer nicht.",
+        href: SVFD_DOKS, hier: false },
+      { g: "vor", sym: "🧾", titel: "Spielberechtigungen prüfen",
+        sub: "Was vor dem Anpfiff kontrolliert wird und was bei Unstimmigkeiten gilt.",
+        href: SVFD_DOKS, hier: false },
+
+      { g: "nach", sym: "💶", titel: "Spesenrechner",
+        sub: "Entschädigung und Fahrtkosten ausrechnen, aufgeteilt wie auf der offiziellen Quittung.",
+        href: "spesenrechner.html", hier: true },
+      { g: "nach", sym: "🖥️", titel: "Wiedereinwechslungen eintragen",
+        sub: "Klickanleitung für den Spielbericht – wo genau man was einträgt.",
+        href: SVFD_DOKS, hier: false },
+      { g: "nach", sym: "📄", titel: "Spesenquittung (Formular)",
+        sub: "Das Originalformular des Stadtverbands zum Ausdrucken.",
+        href: SVFD_DOKS, hier: false },
+
+      { g: "absage", sym: "✉️", titel: "Spielabsage",
+        sub: "Fertige E-Mail mit allen Angaben, die der Stadtverband verlangt – Spielkennung, Datum, Begegnung, Funktion, Begründung.",
+        href: "vorlagen.html#spiel", hier: true },
+      { g: "absage", sym: "📅", titel: "Regellehrabend absagen",
+        sub: "Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht kannst.",
+        href: "vorlagen.html#lehrabend", hier: true },
+
+      { g: "lernen", sym: "⚽", titel: "Regelquiz",
+        sub: "Jede Woche neue Fragen, dazu ein Übungsbereich mit allen bisherigen.",
+        href: "quiz.html", hier: true },
+      { g: "lernen", sym: "📝", titel: "Hausregeltest",
+        sub: "Die Pflichttests der laufenden Saison.",
+        href: SVFD_DOKS, hier: false },
+      { g: "lernen", sym: "📖", titel: "DFB-Fußballregeln",
+        sub: "Das vollständige Regelwerk der laufenden Saison.",
+        href: SVFD_DOKS, hier: false },
+      { g: "lernen", sym: "🆕", titel: "Regeländerungen",
+        sub: "Was sich zu dieser Saison geändert hat.",
+        href: SVFD_DOKS, hier: false },
+    ];
+
+    const $ = (id) => document.getElementById(id);
+    let anlass = "alle";
+
+    /* Kleiner Helfer: verhindert, dass Titel oder Beschreibung als HTML
+       gedeutet werden. Die Daten stehen zwar direkt darüber, aber sobald
+       sie irgendwann aus der Datenbank kommen, wäre das eine Lücke. */
+    const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    /* Die Knöpfe werden EINMAL gebaut und danach nur noch umgeschaltet.
+       Vorher wurde die Leiste bei jedem Klick neu erzeugt - dabei fliegt
+       der gerade angeklickte Knopf aus dem Dokument, der Fokus fällt auf
+       den Seitenanfang zurück und man tabbt sich von vorn durch.
+       Gefunden im Review am 18.08.2026. */
+    function baueFilter() {
+      const leiste = $("anlassFilter");
+      leiste.innerHTML = "";
+      [{ id: "alle", kurz: "Alles" }, ...GRUPPEN].forEach((g) => {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.textContent = g.kurz;
+        b.dataset.gruppe = g.id;
+        b.addEventListener("click", () => { anlass = g.id; markiereFilter(); zeichne(); });
+        leiste.appendChild(b);
+      });
+      markiereFilter();
+    }
+
+    function markiereFilter() {
+      $("anlassFilter").querySelectorAll("button").forEach((b) => {
+        const an = b.dataset.gruppe === anlass;
+        b.setAttribute("aria-pressed", String(an));
+        b.classList.toggle("an", an);
+      });
+    }
+
+    function zeichne() {
+      const suche = $("dokSuche").value.trim().toLowerCase();
+      const treffer = DOKUMENTE.filter((d) => {
+        if (anlass !== "alle" && d.g !== anlass) return false;
+        if (!suche) return true;
+        return (d.titel + " " + d.sub).toLowerCase().includes(suche);
+      });
+
+      $("keineTreffer").hidden = treffer.length > 0;
+      $("dokListe").hidden = treffer.length === 0;
+      $("trefferzahl").textContent =
+        treffer.length === DOKUMENTE.length
+          ? `${DOKUMENTE.length} Einträge`
+          : `${treffer.length} von ${DOKUMENTE.length} Einträgen`;
+
+      let html = "";
+      GRUPPEN.forEach((g) => {
+        const drin = treffer.filter((d) => d.g === g.id);
+        if (!drin.length) return;
+        html += `<h2 class="liste-kopf">${sicher(g.titel)}</h2>`;
+        html += drin.map((d) => {
+          const extern = !d.hier;
+          return `<a class="lz" href="${sicher(d.href)}"${
+            extern ? ' target="_blank" rel="noopener noreferrer"' : ""
+          }>
+            <span class="lz-symbol ${d.hier ? "hier" : "extern"}" aria-hidden="true">${sicher(d.sym)}</span>
+            <span class="lz-text">
+              <span class="lz-titel">${sicher(d.titel)}</span>
+              <span class="lz-sub">${sicher(d.sub)}</span>
+            </span>
+            <span class="lz-rechts">
+              <span class="abzeichen ${d.hier ? "abz-hier" : "abz-extern"}">${d.hier ? "Bei uns" : "Stadtverband"}</span>
+              <span class="lz-pfeil" aria-hidden="true">${extern ? "↗" : "→"}</span>
+            </span>
+          </a>`;
+        }).join("");
+      });
+      $("dokListe").innerHTML = html;
+    }
+
+    $("dokSuche").addEventListener("input", zeichne);
+    baueFilter();
+    zeichne();
+  </script>
 </body>
 </html>

@@ -114,12 +114,14 @@ select:focus-visible {
 }
 .marken-knopf:hover { background: var(--marke-lighter); border-color: var(--border); }
 
-/* Seit 18.08.2026 steht hier das echte Vereinswappen statt eines
-   Kürzel-Kastens. Höhe fest, Breite automatisch - das Wappen ist
-   hochformatig und soll nicht verzerren. */
+/* Vereinswappen. Max hat am 18.08. eine saubere Fassung geliefert
+   (flache Farben, transparent, 99 px) - die ersetzt sowohl das
+   Pin-Foto als auch meinen SVG-Nachbau. Quadratisch, deshalb feste
+   Höhe UND Breite. */
 .wappen {
   height: 40px;
-  width: auto;
+  width: 40px;
+  object-fit: contain;
   flex: none;
   display: block;
 }
@@ -225,6 +227,10 @@ select:focus-visible {
 
 .abschnitt-hinweis { color: var(--muted); font-size: .85rem; margin: -10px 0 16px; line-height: 1.55; }
 
+/* Seitenüberschriften - standen vorher als Inline-Style in jeder Datei. */
+.seiten-titel { font-family: var(--font-titel); font-size: 1.5rem; margin: 0 0 4px; }
+.seiten-unter { color: var(--muted); font-size: .88rem; margin: 0 0 26px; }
+
 /* ---------- Bildflächen ----------
    Solange keine echten Fotos vorliegen, zeigen diese Flächen einen
    Platzhalter mit Beschreibung dessen, was dorthin gehört. Sobald ein
@@ -316,36 +322,6 @@ select:focus-visible {
 .bildkachel h3 { margin: 0 0 4px; font-size: .95rem; font-family: var(--font-titel); }
 .bildkachel p { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.5; }
 
-/* ---------- Schnuppertest-Aufruf ---------- */
-
-/* War ein anthrazitfarbener Block und damit der dunkelste Fleck der
-   Startseite. Jetzt hell mit grünem Rand: fällt weiterhin auf, wirkt aber
-   einladend statt streng. Grün ist hier ausnahmsweise dekorativ - es ist
-   kein Quiz-Feedback, sondern die Vereinsfarbe. */
-.schnupper {
-  background: var(--green-light);
-  border: 1px solid #a7f3c4;
-  border-radius: var(--radius);
-  padding: 24px 26px;
-  display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
-}
-.schnupper h2 { font-family: var(--font-titel); margin: 0 0 5px; font-size: 1.15rem; color: #052e16; }
-.schnupper p { color: #166534; font-size: .87rem; margin: 0; max-width: 52ch; line-height: 1.55; }
-
-.knopf-schnupper {
-  margin-left: auto;
-  background: var(--green-dark);
-  color: #fff;
-  border: 0; border-radius: 999px;
-  padding: 12px 22px;
-  font: inherit; font-weight: 700; font-size: .87rem;
-  text-decoration: none; cursor: pointer;
-  min-height: 44px;
-  display: inline-flex; align-items: center; justify-content: center;
-}
-.knopf-schnupper:hover { background: #14532d; }
-@media (max-width: 620px) { .knopf-schnupper { margin-left: 0; } }
-
 /* ---------- Termine ---------- */
 
 .termine { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
@@ -363,34 +339,9 @@ select:focus-visible {
 .termin-was { font-size: .86rem; font-weight: 600; }
 .termin-wo { font-size: .76rem; color: var(--muted); margin-top: 2px; }
 
-/* ---------- Informationen: gruppierte Kacheln ---------- */
-
-.gruppe { margin-bottom: 30px; }
-.gruppe-kopf { margin-bottom: 12px; }
-.gruppe-kopf h2 { font-family: var(--font-titel); font-size: 1.05rem; margin: 0 0 2px; }
-.gruppe-kopf p { margin: 0; font-size: .8rem; color: var(--muted); line-height: 1.5; }
-
-.dokraster { display: grid; gap: 13px; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); }
-
-.dokkachel {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--card);
-  overflow: hidden;
-  display: flex; flex-direction: column;
-  text-decoration: none; color: inherit;
-  transition: box-shadow .18s, transform .18s, border-color .18s;
-}
-.dokkachel:hover { box-shadow: var(--shadow-hover); transform: translateY(-2px); border-color: #d1d5db; }
-.dok-band { height: 4px; }
-.dok-koerper { padding: 15px 16px 16px; flex: 1; display: flex; flex-direction: column; }
-.dok-symbol {
-  width: 38px; height: 38px; border-radius: 10px;
-  display: grid; place-items: center; font-size: 1.15rem; margin-bottom: 11px;
-}
-.dokkachel h3 { margin: 0 0 5px; font-size: .94rem; font-family: var(--font-titel); line-height: 1.3; }
-.dokkachel p { margin: 0 0 12px; font-size: .8rem; color: var(--muted); line-height: 1.5; flex: 1; }
-.dok-fuss { display: flex; align-items: center; gap: 7px; font-size: .75rem; font-weight: 600; }
+/* ---------- Herkunfts-Abzeichen ----------
+   Wird von den Listenzeilen der Informationsseite benutzt. Die frueheren
+   Dokumentkacheln daneben sind entfallen. */
 
 .abzeichen {
   font-size: .68rem; font-weight: 700;
@@ -399,7 +350,6 @@ select:focus-visible {
 }
 .abz-hier { background: var(--green-light); color: var(--green-dark); }
 .abz-extern { background: var(--blau-hell); color: #1d4ed8; }
-.dok-pfeil { margin-left: auto; color: var(--muted); }
 
 /* ---------- Regelübersicht ----------
    Das Original des Stadtverbands ist eine Tabelle mit zehn Spalten. Auf
@@ -418,33 +368,22 @@ select:focus-visible {
 .filterleiste button:hover { border-color: var(--marke-hell); }
 .filterleiste button.an { background: var(--marke); color: #fff; border-color: var(--marke); }
 
-.suche {
-  width: 100%; max-width: 340px;
-  padding: 11px 13px;
-  border: 1px solid var(--border); border-radius: 10px;
-  font: inherit; font-size: .87rem;
-  margin: 8px 0 20px;
-  min-height: 44px;
-}
 
 .regelkarten { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
 
 .rk { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
 .rk-kopf { padding: 11px 14px; background: var(--marke-lighter); border-bottom: 1px solid var(--border); }
-.rk-kopf .alter {
-  font-size: .72rem; font-weight: 700; text-transform: uppercase;
-  letter-spacing: .05em; color: var(--muted);
-}
 .rk-kopf .klasse { font-size: .9rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.3; margin-top: 2px; }
 .rk-werte { display: grid; grid-template-columns: 1fr 1fr; }
 .wert { padding: 9px 14px; border-bottom: 1px solid #f3f4f6; border-right: 1px solid #f3f4f6; }
 .wert:nth-child(2n) { border-right: 0; }
 .wert .l { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
 .wert .v { font-size: .87rem; font-weight: 600; margin-top: 1px; }
-/* Gelb hinterlegt = im Original des Stadtverbands markierte Abweichung.
-   Farbe ist hier NICHT der alleinige Träger: die Werte stehen ohnehin
-   beschriftet da, die Markierung ist nur eine zusätzliche Hilfe. */
-.wert.hervor { background: var(--karte-gelb-hell); }
+/* Die gelbe Hervorhebung ist entfallen. Sie stammte aus dem Original des
+   Stadtverbands und markierte dort die Änderungen zur Saison 2024/25 -
+   Max, 18.08.2026: "dadurch, dass das ja auch Stand 24/25 ist, sind die
+   Erneuerungen ja auch schon wieder veraltet". Eine Markierung, die etwas
+   Falsches behauptet, ist schlechter als gar keine. */
 
 .rk-fuss { padding: 9px 14px; font-size: .76rem; color: var(--muted); line-height: 1.5; }
 .keine { padding: 26px; text-align: center; color: var(--muted); font-size: .88rem; }
@@ -460,3 +399,460 @@ select:focus-visible {
 /* opacity entfernt: mischte den Text auf 4,05:1 herunter und lag damit
    unter der WCAG-AA-Schwelle von 4,5:1. */
 .fuss-zeile { margin-top: 11px; }
+
+/* ============================================================
+   NEUE BAUSTEINE (Runde 5, 18.08.2026)
+
+   Max' Befund: "Alles ist ein bisschen so Einheitsbrei." Er hatte
+   recht - jede Sektion war Überschrift plus Raster aus weißen Karten
+   mit 1px-Rand. Bei fünf Sektionen hintereinander verschwimmt das.
+
+   Die Gegenmittel hier sind bewusst KEINE zusätzlichen Verzierungen,
+   sondern Rhythmus: dunkle Vollbreit-Bänder zwischen hellen
+   Abschnitten, große Zahlen als typografischer Ruhepunkt, eine
+   senkrechte Wegstrecke statt einer weiteren Kachelreihe, und
+   Listenzeilen dort, wo man sucht statt stöbert.
+   ============================================================ */
+
+/* ---------- Vollbreites Band ----------
+   Bricht aus der 1140px-Spalte aus, ohne dass das Markup umgebaut
+   werden muss: negative Margin in Höhe des halben Viewport-Überstands.
+   100vw statt 100% wegen der Scrollleiste - deshalb overflow-x am
+   body gesperrt, sonst entsteht ein waagerechter Schieber. */
+body { overflow-x: hidden; }
+
+.band {
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding: 46px calc(50vw - 550px);
+  margin-bottom: 36px;
+}
+@media (max-width: 1180px) { .band { padding-left: 20px; padding-right: 20px; } }
+
+.band-dunkel {
+  background: var(--marke-dunkel);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+/* Schiedsrichter-Motiv: die Diagonalen der Fahne, sehr zurückgenommen.
+   Rein dekorativ, deshalb kein eigenes Element im Markup. */
+.band-dunkel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    repeating-linear-gradient(135deg, rgba(255,255,255,.035) 0 14px, transparent 14px 28px);
+  pointer-events: none;
+}
+.band-dunkel > * { position: relative; z-index: 1; }
+.band-dunkel h2 { font-family: var(--font-titel); font-size: 1.5rem; margin: 0 0 10px; line-height: 1.2; }
+/* NUR die Absaetze, die wirklich auf dem dunklen Grund liegen. Vorher
+   stand hier ".band-dunkel p" ohne Einschraenkung - das faerbte auch die
+   Probefrage ein, die zwar im Band steckt, aber auf einer WEISSEN Karte
+   sitzt. Ergebnis waren 1,48:1 Kontrast auf dem wichtigsten Element der
+   Startseite. Gefunden im Review am 18.08.2026. */
+.band-dunkel > p,
+.band-dunkel > .aufruf p,
+.band-dunkel > .band-zwei > div > p { color: #cbd5e1; line-height: 1.6; margin: 0; }
+
+
+/* ---------- Zahlenstreifen ----------
+   Drei bis vier Werte groß gesetzt. Bewusst ohne Kartenrahmen: das ist
+   der eine Ort auf der Seite, an dem Typografie allein trägt. */
+
+.zahlen { display: grid; gap: 26px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+.zahl .z {
+  font-family: var(--font-titel);
+  font-size: 2.3rem; font-weight: 800; line-height: 1;
+  letter-spacing: -.02em;
+}
+.zahl .b { font-size: .84rem; margin-top: 7px; line-height: 1.45; }
+.band-dunkel .zahl .z { color: #fff; }
+.band-dunkel .zahl .b { color: #cbd5e1; }
+
+/* ---------- Wegstrecke (Schiri werden) ----------
+   Senkrechte Linie mit nummerierten Punkten. Anderer Bautyp als alles
+   sonst auf der Seite - genau das ist der Zweck. */
+
+.weg { position: relative; margin: 0; padding: 0 0 0 46px; list-style: none; }
+.weg::before {
+  content: "";
+  position: absolute; left: 17px; top: 10px; bottom: 26px;
+  width: 2px; background: var(--border);
+}
+.weg-schritt { position: relative; padding: 0 0 26px; }
+.weg-schritt:last-child { padding-bottom: 0; }
+.weg-schritt::before {
+  content: attr(data-nr);
+  position: absolute; left: -46px; top: 0;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--marke); color: #fff;
+  display: grid; place-items: center;
+  font-family: var(--font-titel); font-weight: 700; font-size: .92rem;
+  box-shadow: 0 0 0 5px var(--bg-start);
+}
+.weg-schritt h3 { margin: 6px 0 5px; font-family: var(--font-titel); font-size: 1rem; }
+.weg-schritt p { margin: 0; font-size: .87rem; color: var(--muted); line-height: 1.6; }
+.weg-schritt .dauer {
+  display: inline-block; margin-top: 8px;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  background: var(--marke-lighter); color: var(--marke-hell);
+  padding: 4px 9px; border-radius: 999px;
+}
+
+/* ---------- Listenzeilen (Informationen) ----------
+   Ersetzt fünf identische Kachelraster. Wer auf dieser Seite landet,
+   sucht ein bestimmtes Dokument - dafür sind schmale Zeilen mit
+   gleichbleibender Titelposition schneller zu überfliegen als Karten,
+   deren Titel je nach Textlänge woanders steht. */
+
+.liste { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+.lz {
+  display: flex; align-items: flex-start; gap: 14px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  text-decoration: none; color: inherit;
+  transition: background .14s;
+}
+.lz:last-child { border-bottom: 0; }
+.lz:hover { background: #f9fafb; }
+/* Gleicher Grund wie bei .faltung: .liste hat overflow:hidden. */
+.lz:focus-visible { outline-offset: -3px; }
+.lz-symbol {
+  flex: none; width: 38px; height: 38px; border-radius: 10px;
+  display: grid; place-items: center; font-size: 1.1rem;
+  background: var(--marke-lighter);
+}
+.lz-symbol.hier { background: var(--green-light); }
+.lz-symbol.extern { background: var(--blau-hell); }
+.lz-text { flex: 1; min-width: 0; display: block; }
+.lz-titel { display: block; font-size: .92rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.35; }
+.lz-sub { display: block; font-size: .8rem; color: var(--muted); line-height: 1.5; margin-top: 3px; }
+.lz-rechts { flex: none; display: flex; align-items: center; gap: 9px; padding-top: 8px; }
+.lz-pfeil { color: var(--muted); font-size: .9rem; }
+
+/* Abschnittsüberschrift innerhalb einer Liste. */
+.liste-kopf {
+  padding: 11px 16px;
+  background: var(--marke-lighter);
+  border-bottom: 1px solid var(--border);
+  font-family: var(--font-titel); font-weight: 700; font-size: .8rem;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--marke-hell);
+}
+.liste-kopf:not(:first-child) { border-top: 1px solid var(--border); }
+
+/* ---------- Segmentierter Umschalter ----------
+   Zwei sich ausschließende Zustände. Als zwei einzelne Pillen sah man
+   nicht, dass sie zusammengehören; als ein Bauteil mit Schieber schon. */
+
+.segment {
+  display: inline-flex;
+  background: var(--marke-lighter);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px;
+  gap: 4px;
+}
+.segment button {
+  font: inherit; font-size: .85rem; font-weight: 600;
+  padding: 9px 20px; border-radius: 999px;
+  border: 0; background: transparent; color: var(--marke-hell);
+  cursor: pointer; min-height: 40px;
+  transition: background .15s, color .15s, box-shadow .15s;
+}
+.segment button[aria-pressed="true"] {
+  background: var(--card); color: var(--marke-dunkel);
+  box-shadow: var(--shadow);
+}
+
+/* ---------- Suchfeld mit Symbol ---------- */
+
+.suchzeile { position: relative; max-width: 420px; flex: 1 1 260px; }
+.suchzeile::before {
+  content: "🔎";
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  font-size: .9rem; opacity: .55; pointer-events: none;
+}
+.suchzeile input {
+  width: 100%;
+  padding: 12px 14px 12px 38px;
+  border: 1px solid var(--border); border-radius: 999px;
+  font: inherit; font-size: .87rem;
+  background: var(--card);
+  min-height: 44px;
+}
+
+.werkzeugleiste {
+  display: flex; flex-wrap: wrap; gap: 12px; align-items: center;
+  margin-bottom: 14px;
+}
+.trefferzahl { font-size: .8rem; color: var(--muted); margin: 0 0 16px; }
+
+/* ---------- Ausklappbare Frage/Antwort ---------- */
+
+.faltung {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--card); margin-bottom: 9px; overflow: hidden;
+}
+.faltung > summary {
+  padding: 15px 17px;
+  font-weight: 600; font-size: .92rem; font-family: var(--font-titel);
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 11px;
+  min-height: 44px;
+}
+.faltung > summary::-webkit-details-marker { display: none; }
+.faltung > summary::after {
+  content: "+"; margin-left: auto;
+  font-size: 1.25rem; color: var(--muted); line-height: 1;
+  transition: transform .18s;
+}
+.faltung[open] > summary::after { content: "−"; }
+.faltung > summary:hover { background: #f9fafb; }
+/* .faltung hat overflow:hidden (fuer die runden Ecken). Der Fokusrahmen
+   liegt mit outline-offset:2px ausserhalb und wurde dadurch komplett
+   weggeschnitten - Tastaturbedienung ohne jede Rueckmeldung. Rahmen nach
+   innen zeichnen loest das, ohne die Ecken aufzugeben. */
+.faltung > summary:focus-visible { outline-offset: -3px; }
+.faltung .antwort { padding: 0 17px 16px; font-size: .87rem; color: var(--muted); line-height: 1.65; }
+.faltung .antwort p { margin: 0 0 9px; }
+.faltung .antwort p:last-child { margin-bottom: 0; }
+
+/* ---------- Probefrage auf der Startseite ----------
+   Ersetzt den Knopf "Fragen ausprobieren", den Max nicht mochte. Ein
+   Knopf verspricht etwas; eine echte Frage, die man sofort anklicken
+   kann, zeigt es. Die Antwort wird erst nach dem Klick aufgedeckt -
+   danach führt der Weg ins richtige Quiz. */
+
+.probe {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  max-width: 560px;
+}
+.probe .marke {
+  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--green-dark); margin-bottom: 9px;
+}
+.probe .frage { font-family: var(--font-titel); font-size: 1.02rem; line-height: 1.45; margin: 0 0 15px; }
+.probe-optionen { display: grid; gap: 8px; }
+.probe-optionen button {
+  text-align: left; font: inherit; font-size: .88rem;
+  padding: 13px 15px; border-radius: 11px;
+  border: 1px solid var(--border); background: var(--card);
+  cursor: pointer; color: var(--text);
+  min-height: 44px;
+  transition: border-color .15s, background .15s;
+  display: flex; align-items: center; gap: 11px;
+}
+.probe-optionen button:hover:not([disabled]) { border-color: var(--marke-hell); background: #f9fafb; }
+.probe-optionen button .buchstabe {
+  flex: none; width: 24px; height: 24px; border-radius: 7px;
+  background: var(--marke-lighter); color: var(--marke-hell);
+  display: grid; place-items: center;
+  font-size: .74rem; font-weight: 800;
+}
+.probe-optionen button.richtig {
+  border-color: var(--green); background: var(--green-light); color: #052e16; font-weight: 600;
+}
+.probe-optionen button.richtig .buchstabe { background: var(--green); color: #fff; }
+.probe-optionen button.falsch {
+  border-color: var(--red); background: var(--red-hell); color: #7f1d1d;
+}
+.probe-optionen button.falsch .buchstabe { background: var(--red); color: #fff; }
+.probe-optionen button[aria-disabled="true"] { cursor: default; }
+/* aria-disabled statt disabled: ein deaktivierter Knopf verliert den
+   Fokus und faellt aus der Tabreihenfolge - man landet nach dem Klick
+   unvermittelt am Seitenanfang. Der Klick wird stattdessen im Skript
+   abgefangen. */
+.probe-optionen button[aria-disabled="true"]:not(.richtig):not(.falsch) { opacity: .6; }
+
+/* Ergebnis nicht nur ueber Farbe (WCAG 1.4.1): jede bewertete Antwort
+   bekommt zusaetzlich ein Wort. */
+.probe-marker {
+  margin-left: auto; flex: none;
+  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+}
+.richtig .probe-marker { color: var(--green-dark); }
+.falsch .probe-marker { color: #991b1b; }
+
+.probe-aufloesung {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: .85rem; color: var(--muted); line-height: 1.6;
+}
+.probe-aufloesung a {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 11px; font-weight: 700; font-size: .86rem;
+  color: var(--marke-dunkel); text-decoration: none;
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 2px;
+}
+.probe-aufloesung a:hover { border-bottom-color: var(--marke-dunkel); }
+
+/* Zweispaltiges Band: Text links, Probefrage rechts. */
+.band-zwei {
+  display: grid; gap: 34px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+}
+@media (max-width: 860px) { .band-zwei { grid-template-columns: 1fr; gap: 24px; } }
+
+/* ---------- Aufmacher der Unterseiten ----------
+   Flacher als der Startseiten-Aufmacher: Bildstreifen mit Titel darauf,
+   damit die Unterseiten nicht mit einer nackten h1 anfangen, aber auch
+   nicht so viel Platz fressen wie die Startseite. */
+
+.kopfbild {
+  position: relative;
+  height: 190px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 30px;
+  display: flex; align-items: flex-end;
+}
+.kopfbild .bildflaeche { position: absolute; inset: 0; }
+.kopfbild-text {
+  position: relative; z-index: 3; padding: 24px 26px; width: 100%;
+  background: linear-gradient(to top, rgba(17,24,39,.85) 0%, rgba(17,24,39,.35) 55%, transparent 100%);
+}
+.kopfbild-text h1 { font-family: var(--font-titel); color: #fff; font-size: 1.6rem; margin: 0 0 5px; line-height: 1.2; }
+.kopfbild-text p { color: #d1d5db; font-size: .87rem; margin: 0; max-width: 56ch; line-height: 1.55; }
+@media (max-width: 560px) { .kopfbild { height: 220px; } .kopfbild-text h1 { font-size: 1.32rem; } }
+
+/* ---------- Hinweisbalken ---------- */
+
+.hinweisbalken {
+  display: flex; gap: 11px; align-items: flex-start;
+  background: var(--karte-gelb-hell);
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  font-size: .84rem; line-height: 1.6; color: #713f12;
+  margin-bottom: 20px;
+}
+.hinweisbalken strong { color: #452c0a; }
+.hinweisbalken .sym { flex: none; font-size: 1rem; line-height: 1.4; }
+
+/* ---------- Aufruf am Seitenende ---------- */
+
+.aufruf {
+  display: flex; gap: 20px; align-items: center; flex-wrap: wrap;
+  justify-content: space-between;
+}
+.aufruf-text h2 { margin: 0 0 6px; }
+.knopf-weiss {
+  background: #fff; color: var(--marke-dunkel);
+  border: 0; border-radius: 999px;
+  padding: 14px 26px;
+  font: inherit; font-weight: 700; font-size: .9rem;
+  text-decoration: none; cursor: pointer;
+  min-height: 48px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+}
+.knopf-weiss:hover { background: #e5e7eb; }
+
+/* ---------- Kleinteile ---------- */
+
+.fliesstext { max-width: 64ch; line-height: 1.75; font-size: .95rem; margin: 0; }
+.knopfreihe { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Regelübersicht: Gruppierung nach Altersklasse ---------- */
+
+.regelgruppe { margin-bottom: 30px; }
+.regelgruppe-titel {
+  font-family: var(--font-titel); font-size: 1.02rem; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 13px;
+}
+/* Linie hinter der Überschrift statt eines weiteren Kastens - trennt die
+   Gruppen, ohne dass noch ein Rahmen dazukommt. */
+.regelgruppe-titel::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+/* Ungerade Anzahl Werte: der letzte nimmt beide Spalten ein, statt dass
+   eine leere Zelle danebensteht. Vorher wurde dafür ein leerer
+   Platzhalter mitgerendert. */
+.wert:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: 0; }
+.rk-werte .wert:last-child { border-bottom: 0; }
+
+/* ---------- Vorlagen zum Kopieren ---------- */
+
+.vorlage { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+.vorlage-kopf {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 11px 15px;
+  background: var(--marke-lighter);
+  border-bottom: 1px solid var(--border);
+}
+.vorlage-titel { font-family: var(--font-titel); font-weight: 700; font-size: .85rem; display: flex; align-items: center; gap: 9px; }
+.entwurf {
+  font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  background: var(--karte-gelb-hell); color: #713f12;
+  border: 1px solid #fde68a; border-radius: 999px; padding: 3px 8px;
+}
+.kopieren {
+  margin-left: auto;
+  font: inherit; font-size: .8rem; font-weight: 600;
+  padding: 9px 16px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card); color: var(--marke-hell);
+  cursor: pointer; min-height: 40px;
+}
+.kopieren:hover { border-color: var(--marke-hell); }
+.kopieren.fertig { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+
+/* Der Vorlagentext selbst. Monospace, damit man beim Ausfüllen sieht, wo
+   die eckigen Klammern anfangen und aufhören. Umbruch erlaubt, sonst
+   entsteht auf dem Handy ein waagerechter Schieber. */
+.vorlage-text {
+  margin: 0;
+  padding: 16px 17px;
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: .82rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+}
+
+.quelle { font-size: .78rem; font-style: italic; }
+
+/* Verweise innerhalb des Hinweisbalkens: gleiche Farbfamilie, damit der
+   Balken nicht durch ein blaues Link-Blau auseinanderfällt. */
+.hinweisbalken a { color: #713f12; font-weight: 700; }
+
+/* ---------- Sprungmarke ----------
+   Bei einem klebenden Kopf mit fünf Navigationslinks muss sich sonst
+   jeder Tastaturnutzer auf JEDER Seite erneut durch die Navigation
+   tabben, bevor er im Inhalt ankommt. Sichtbar nur bei Tastaturfokus. */
+
+.sprungmarke {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--marke-dunkel);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-size: .88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.sprungmarke:focus { left: 0; }
+
+/* Der Sprung setzt den Fokus auf <main>, das dafür tabindex="-1" trägt.
+   Ohne diese Regel malt der Browser dort einen Rahmen um die halbe
+   Seite. */
+.inhalt:focus { outline: none; }
+
+/* Ergänzt aria-current="page": Unterseiten eines Bereichs (Regelübersicht,
+   Vorlagen) markieren den Bereichseintrag mit aria-current="true" -
+   derselbe Balken, aber semantisch korrekt, weil der Link woanders
+   hinführt. */
+.haupt-nav a[aria-current="true"] {
+  color: var(--marke-dunkel);
+  font-weight: 700;
+  box-shadow: inset 0 -2px 0 var(--border);
+}

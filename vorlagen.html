@@ -4,17 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Vorlagen – Schiedsrichter FV Löbtauer Kickers</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <meta name="description" content="Fertige E-Mail-Vorlagen für die Spielabsage und die Absage des Regellehrabends." />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="seite.css" />
 </head>
 <body>
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
       <button class="nav-knopf" id="nav-knopf" type="button"
@@ -23,56 +26,180 @@
         <a href="index.html">Start</a>
         <a href="schiri-werden.html">Schiri werden</a>
         <a href="spesenrechner.html">Spesenrechner</a>
-        <a href="informationen.html" aria-current="page">Informationen</a>
+        <a href="informationen.html" aria-current="true">Informationen</a>
         <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
   </header>
-  <main class="inhalt">
-    <div class="abschnitt-kopf" style="margin-bottom:6px">
-      <h1 style="font-size:1.45rem">Vorlagen</h1>
-    </div>
-    <p class="abschnitt-hinweis" style="margin-bottom:26px">
-      Die beiden E-Mails, die tatsächlich regelmäßig anfallen.
+
+  <main class="inhalt" id="inhalt" tabindex="-1">
+    <h1 class="seiten-titel">Vorlagen</h1>
+    <p class="seiten-unter">
+      Die beiden E-Mails, die tatsächlich regelmäßig anfallen. Kopieren, eckige
+      Klammern ausfüllen, abschicken.
     </p>
 
-    <!-- Der fertige Text der Spielabsage samt zugrunde liegender SVF-Regel
-         (Ergänzung SRO §8 Punkt 7, gültig ab 20.08.2026) liegt bereits im
-         Vault unter "Privates - Alltag & Soziales". Von dort übernehmen,
-         nicht neu formulieren. -->
-    <section class="gruppe" id="spiel">
-      <div class="gruppe-kopf">
-        <h2>Spielabsage</h2>
-        <p>Muss schriftlich per Mail erfolgen, mit Begründung und allen Angaben zum Spiel.</p>
+    <!-- ============================================================
+         Der Text der Spielabsage ist NICHT neu formuliert. Er stammt aus
+         Max' Notiz "Privates - Alltag & Soziales" und wurde dort am
+         11.08.2026 in zwei Runden mit ihm abgestimmt: neutraler
+         Einstiegssatz ("ich bitte um die Absetzung"), kein Dank-Absatz,
+         keine Signatur, Angaben einzeln statt zusammengefasst.
+
+         Grundlage ist die Anweisung des Stadtverbands Fußball Dresden an
+         Schiedsrichter/Beobachter/Paten, gültig ab 20.08.2026,
+         Ergänzung SRO §8 Punkt 7.
+         ============================================================ -->
+    <section id="spiel" class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Spielabsage</h2></div>
+
+      <div class="hinweisbalken">
+        <span class="sym" aria-hidden="true">⚠️</span>
+        <span>
+          Zwei Punkte, die am ehesten übersehen werden:
+          <strong>Bist du nach 24 Stunden nicht abgesetzt, ruf beim Ansetzer an.</strong>
+          Und: Du bleibst für das Spiel zuständig, bis du tatsächlich abgesetzt wurdest –
+          die Mail allein reicht nicht.
+        </span>
       </div>
-      <div class="termine" style="padding:16px">
-        <p class="abschnitt-hinweis" style="margin:0">
-          Wird gerade eingebaut. Der abgestimmte Vorlagentext liegt vor und kommt
-          als Kopierfeld hierher.
-        </p>
+
+      <div class="vorlage">
+        <div class="vorlage-kopf">
+          <span class="vorlage-titel">E-Mail an den Ansetzer</span>
+          <button class="kopieren" type="button" data-ziel="text-spiel">Text kopieren</button>
+        </div>
+        <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
+Cc: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
+Betreff: Absage Ansetzung – Spielkennung [XXXXXXX], [TT.MM.JJJJ]
+
+Hallo liebes Ansetzer-Team,
+
+ich bitte um die Absetzung von folgendem Spiel:
+
+- Begegnung: [Heimverein] – [Gastverein]
+- Spielkennung: [aus DFBnet]
+- Datum: [TT.MM.JJJJ]
+- Uhrzeit: [HH:MM Uhr]
+- Wettbewerb: [z. B. Meisterschaft, Pokal ...]
+- Liga: [z. B. Landesklasse ...]
+- Meine Funktion: [Schiedsrichter / 1. Assistent / 2. Assistent]
+
+Grund: [kurz und konkret]
+
+Viele Grüße</pre>
       </div>
+
+      <details class="faltung" style="margin-top:14px">
+        <summary>Was der Stadtverband dazu vorschreibt</summary>
+        <div class="antwort">
+          <p>Absagen zu angesetzten Spielen müssen <strong>schriftlich per Mail</strong>
+             erfolgen, mit Begründung und allen Angaben zum abgesagten Spiel.</p>
+          <p>Die Mail geht <strong>immer an beide</strong>: an den Ansetzer des
+             Stadtverbands und an den Schiedsrichter-Obmann beziehungsweise die
+             Mailadresse deines Vereins.</p>
+          <p>Wirst du nicht innerhalb von 24 Stunden abgesetzt, musst du telefonisch
+             beim Ansetzer nachhaken. Bis zur tatsächlichen Absetzung bleibst du für
+             das Spiel zuständig.</p>
+          <p>Längere Zeiträume sagst du nicht einzeln ab, sondern trägst sie als
+             <strong>Sperrtermine im DFBnet</strong> ein – bis zum 20. des Vormonats.
+             Eigene Freundschaftsspiele, Turniere und Feiertage musst du dort selbst
+             zusätzlich sperren.</p>
+          <p class="quelle">Anweisung des Stadtverbands Fußball Dresden e. V. an
+             Schiedsrichter/-innen, Beobachter und Paten, gültig ab 20.08.2026,
+             Ergänzung SRO §8 Punkt 7.</p>
+        </div>
+      </details>
     </section>
 
-    <section class="gruppe" id="lehrabend">
-      <div class="gruppe-kopf">
-        <h2>Regellehrabend absagen</h2>
-        <p>Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht kannst.</p>
+    <!-- Für den Regellehrabend liegt noch kein abgestimmter Text vor.
+         Dieser Entwurf ist bewusst als solcher gekennzeichnet, damit er
+         nicht versehentlich als verbindlich gelesen wird. -->
+    <section id="lehrabend" class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Regellehrabend absagen</h2></div>
+
+      <div class="vorlage">
+        <div class="vorlage-kopf">
+          <span class="vorlage-titel">E-Mail an den Obmann <span class="entwurf">Entwurf</span></span>
+          <button class="kopieren" type="button" data-ziel="text-lehrabend">Text kopieren</button>
+        </div>
+        <pre class="vorlage-text" id="text-lehrabend">An: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
+Betreff: Absage Regellehrabend am [TT.MM.JJJJ]
+
+Hallo,
+
+ich kann am Regellehrabend am [TT.MM.JJJJ] leider nicht teilnehmen.
+
+Grund: [kurz und konkret]
+
+Viele Grüße
+[Vorname Nachname]</pre>
       </div>
-      <div class="termine" style="padding:16px">
-        <p class="abschnitt-hinweis" style="margin:0">
-          Wird gerade eingebaut.
-        </p>
-      </div>
+
+      <p class="abschnitt-hinweis" style="margin-top:12px">
+        Entwurf – Wortlaut noch nicht abgestimmt. Ob und bis wann eine Absage
+        eingereicht werden muss, steht in der Einladung zum jeweiligen Abend.
+      </p>
     </section>
+
   </main>
+
   <footer class="seiten-fuss">
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
+
   <script type="module" src="seite.js"></script>
+  <script>
+    /* Kopierknopf. navigator.clipboard gibt es nur in sicheren Kontexten
+       (https oder localhost) - deshalb ein Rückfallweg über ein
+       unsichtbares Textfeld, sonst passiert auf manchen Geräten
+       kommentarlos nichts. */
+    document.querySelectorAll(".kopieren").forEach((knopf) => {
+      knopf.addEventListener("click", async () => {
+        const quelle = document.getElementById(knopf.dataset.ziel);
+        if (!quelle) return;
+        const text = quelle.innerText;
+        let geklappt = false;
+
+        try {
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(text);
+            geklappt = true;
+          }
+        } catch (e) { /* unten weiter */ }
+
+        if (!geklappt) {
+          const feld = document.createElement("textarea");
+          feld.value = text;
+          feld.setAttribute("readonly", "");
+          feld.style.position = "fixed";
+          feld.style.top = "-1000px";
+          document.body.appendChild(feld);
+          feld.select();
+          try { geklappt = document.execCommand("copy"); } catch (e) { geklappt = false; }
+          document.body.removeChild(feld);
+        }
+
+        /* Beschriftung einmalig merken und laufenden Timer abbrechen.
+           Sonst liest der zweite Klick "Kopiert ✓" als Ausgangstext ein
+           und der Knopf heißt danach für immer so. */
+        if (!knopf.dataset.vorher) knopf.dataset.vorher = knopf.textContent;
+        clearTimeout(Number(knopf.dataset.timer) || 0);
+
+        knopf.textContent = geklappt ? "Kopiert ✓" : "Bitte von Hand markieren";
+        knopf.classList.toggle("fertig", geklappt);
+        knopf.dataset.timer = String(setTimeout(() => {
+          knopf.textContent = knopf.dataset.vorher;
+          knopf.classList.remove("fertig");
+        }, 2200));
+      });
+    });
+  </script>
 </body>
 </html>

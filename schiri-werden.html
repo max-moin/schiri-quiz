@@ -3,18 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Schiri werden – Schiedsrichter FV Löbtauer Kickers</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <title>Schiedsrichter werden – FV Löbtauer Kickers</title>
+  <meta name="description" content="Wie man beim FV Löbtauer Kickers Schiedsrichter wird: Voraussetzungen, Ausbildung im Stadtverband Fußball Dresden, Prüfung und erstes Spiel." />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="seite.css" />
 </head>
 <body>
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
       <button class="nav-knopf" id="nav-knopf" type="button"
@@ -28,60 +32,215 @@
       </nav>
     </div>
   </header>
-  <main class="inhalt">
-    <section class="aufmacher" style="height:250px">
+
+  <main class="inhalt" id="inhalt" tabindex="-1">
+
+    <!-- ---------- Kopfbild ---------- -->
+    <div class="kopfbild">
       <div class="bildflaeche">
-        <p class="bild-platzhalter"><strong>▣</strong>Junger Schiedsrichter mit Pfeife,<br />Nahaufnahme</p>
+        <img src="https://images.pexels.com/photos/399187/pexels-photo-399187.jpeg?auto=compress&cs=tinysrgb&w=1600"
+             alt="" loading="eager" />
       </div>
-      <div class="aufmacher-text">
+      <div class="kopfbild-text">
         <h1>Schiedsrichter werden</h1>
-        <p>Du willst pfeifen? Wir zeigen dir, wie der Einstieg läuft.</p>
+        <p>Ab 12 Jahren, sieben Abende Lehrgang – und danach stehst du mit der Pfeife auf dem Platz.</p>
+      </div>
+    </div>
+
+    <!-- ---------- Warum ----------
+         Bewusst Fließtext und keine weitere Kachelreihe. Die Seite soll
+         jemanden überzeugen, der noch unentschlossen ist - dafür braucht
+         es zwei, drei ehrliche Sätze, keine Aufzählung. -->
+    <section class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Warum überhaupt?</h2></div>
+      <p class="fliesstext">
+        Als Schiedsrichter bist du mitten im Spiel statt daneben. Du lernst die Regeln
+        richtig – nicht so, wie sie am Spielfeldrand gerufen werden –, und du übst
+        etwas, das man sonst kaum übt: vor dreißig Leuten eine Entscheidung treffen
+        und dazu stehen. Nebenbei bekommst du für jedes Spiel eine Entschädigung und
+        deine Fahrtkosten erstattet.
+      </p>
+    </section>
+
+    <!-- ---------- Zahlenband ----------
+         Erster Bruch im Seitenrhythmus: dunkles Vollbreit-Band mit
+         großen Zahlen statt einer weiteren weißen Karte. -->
+    <section class="band band-dunkel">
+      <div class="zahlen">
+        <div class="zahl">
+          <div class="z">ab&nbsp;12</div>
+          <div class="b">Jahren. Unter 18 mit schriftlicher Zustimmung der Eltern.</div>
+        </div>
+        <div class="zahl">
+          <div class="z">7–8</div>
+          <div class="b">Abende Lehrgang, jeweils 17–20 Uhr.</div>
+        </div>
+        <div class="zahl">
+          <div class="z">25–55&nbsp;€</div>
+          <div class="b">Entschädigung je Spiel, je nach Spielklasse – plus Fahrtkosten.</div>
+        </div>
+        <div class="zahl">
+          <div class="z">0&nbsp;€</div>
+          <div class="b">für die Sportkleidung: die übernimmt in der Regel dein Verein.</div>
+        </div>
       </div>
     </section>
 
+    <!-- ---------- Der Weg ----------
+         Senkrechte Wegstrecke statt Kacheln. Die Reihenfolge ist hier
+         die eigentliche Information - ein Raster würde sie verwischen. -->
     <section class="abschnitt">
-      <div class="abschnitt-kopf"><h2>Diese Seite wird gerade gebaut</h2></div>
-      <p class="abschnitt-hinweis">
-        Hier kommen der Ablauf des Neulingslehrgangs, die Voraussetzungen und ein
-        Kontaktformular hin. Bis dahin: Melde dich einfach direkt bei unserem
-        Schiedsrichter-Obmann oder schau beim Stadtverband vorbei.
+      <div class="abschnitt-kopf"><h2>Der Weg zur Pfeife</h2></div>
+      <ol class="weg">
+
+        <li class="weg-schritt" data-nr="1">
+          <h3>Bei uns melden</h3>
+          <p>
+            Kurze Nachricht an den Schiedsrichter-Obmann des
+            <span data-verein="name">FV Löbtauer Kickers</span> – Name, Alter, und ob du
+            selbst Fußball spielst. Alles Weitere klären wir dann. Für die Ausbildung
+            musst du Mitglied in einem Dresdner Fußballverein sein; wenn du das noch
+            nicht bist, bekommen wir das hin.
+          </p>
+          <span class="dauer">10 Minuten</span>
+        </li>
+
+        <li class="weg-schritt" data-nr="2">
+          <h3>Zum Lehrgang anmelden</h3>
+          <p>
+            Die Ausbildung macht der Stadtverband Fußball Dresden, nicht der Verein.
+            Angemeldet wird über das Formular auf der Seite des Stadtverbands. Wann
+            der nächste Lehrgang startet, sagen wir dir.
+          </p>
+          <span class="dauer">Termine mehrmals im Jahr</span>
+        </li>
+
+        <li class="weg-schritt" data-nr="3">
+          <h3>Sieben Abende lernen</h3>
+          <p>
+            Regelkunde, typische Spielsituationen, Auftreten auf dem Platz. Die Abende
+            liegen an Werktagen von 17 bis 20 Uhr. Parallel kannst du hier im Regelquiz
+            schon Fragen üben – die kommen aus demselben Regelwerk.
+          </p>
+          <span class="dauer">7–8 Abende</span>
+        </li>
+
+        <li class="weg-schritt" data-nr="4">
+          <h3>Prüfung ablegen</h3>
+          <p>
+            Zwei Teile: eine schriftliche Regelprüfung und der Cooper-Test – zwölf
+            Minuten laufen. Für den schriftlichen Teil ist das Quiz die beste
+            Vorbereitung, für den Rest reicht es, vorher ein paar Mal joggen zu gehen.
+          </p>
+          <span class="dauer">1 Termin</span>
+        </li>
+
+        <li class="weg-schritt" data-nr="5">
+          <h3>Erstes Spiel pfeifen</h3>
+          <p>
+            Du fängst bei den jüngeren Altersklassen an, in der Regel mit einem
+            erfahrenen Schiedsrichter als Paten an der Seite. Ansetzungen kommen über
+            den Stadtverband, Absagen laufen über die Vorlage hier auf der Seite.
+          </p>
+          <span class="dauer">danach jedes Wochenende möglich</span>
+        </li>
+
+      </ol>
+    </section>
+
+    <!-- ---------- Häufige Fragen ----------
+         Ausklappbar, damit die Seite kurz bleibt. Wer nur wissen will,
+         wie er anfängt, soll nicht an zehn Absätzen vorbeiscrollen. -->
+    <section class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Was uns am häufigsten gefragt wird</h2></div>
+
+      <details class="faltung">
+        <summary>Muss ich selbst Fußball spielen?</summary>
+        <div class="antwort">
+          <p>Nein. Du musst Mitglied in einem Dresdner Fußballverein sein, aber nicht
+             selbst in einer Mannschaft spielen. Viele Schiedsrichter haben früher
+             gespielt, manche nie.</p>
+        </div>
+      </details>
+
+      <details class="faltung">
+        <summary>Wie fit muss ich sein?</summary>
+        <div class="antwort">
+          <p>Für die Prüfung läufst du den Cooper-Test: zwölf Minuten am Stück. Wer
+             sich sonst normal bewegt, schafft das. Bei den jüngeren Altersklassen sind
+             die Felder klein und die Spielzeiten kurz – da läufst du deutlich weniger
+             als bei den Herren.</p>
+        </div>
+      </details>
+
+      <details class="faltung">
+        <summary>Wie viele Spiele muss ich pfeifen?</summary>
+        <div class="antwort">
+          <p>Erwartet wird, dass du regelmäßig am Wochenende zur Verfügung stehst. Wann
+             du kannst und wann nicht, gibst du selbst an – und wenn doch etwas
+             dazwischenkommt, gibt es dafür eine feste Absagevorlage.</p>
+        </div>
+      </details>
+
+      <details class="faltung">
+        <summary>Was kostet mich das?</summary>
+        <div class="antwort">
+          <p>Die Sportkleidung übernimmt in der Regel dein Verein. Fahrtkosten zu den
+             Spielen werden entsprechend den Aufwendungen im öffentlichen Nahverkehr
+             erstattet, dazu kommt die Aufwandsentschädigung je nach Spielklasse.</p>
+          <p>Was für ein konkretes Spiel zusammenkommt, kannst du hier ausrechnen:
+             <a href="spesenrechner.html">zum Spesenrechner</a>.</p>
+        </div>
+      </details>
+
+      <details class="faltung">
+        <summary>Ich bin unter 18 – geht das?</summary>
+        <div class="antwort">
+          <p>Ja, ab 12 Jahren. Unter 18 brauchst du eine schriftliche Zustimmung deiner
+             Erziehungsberechtigten. Angesetzt wirst du am Anfang bei Altersklassen,
+             die zu dir passen.</p>
+        </div>
+      </details>
+
+      <p class="abschnitt-hinweis" style="margin-top:16px">
+        Angaben nach der Ausbildungsseite des Stadtverbands Fußball Dresden.
+        Verbindlich ist immer die dortige Ausschreibung.
       </p>
-      <div class="dokraster">
-        <a class="dokkachel" href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">
-          <span class="dok-band" style="background:#2563eb"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dbeafe">🏙️</span>
-            <h3>Stadtverband Fußball Dresden</h3>
-            <p>Termine der Neulingslehrgänge und alle Infos zur Ausbildung.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-extern">Stadtverband</span>
-              <span class="dok-pfeil" aria-hidden="true">↗</span>
-            </span>
-          </div>
-        </a>
-        <a class="dokkachel" href="quiz.html">
-          <span class="dok-band" style="background:#16a34a"></span>
-          <div class="dok-koerper">
-            <span class="dok-symbol" style="background:#dcfce7">⚽</span>
-            <h3>Erstmal ausprobieren</h3>
-            <p>Ein paar echte Regelfragen, ohne Anmeldung – schau, ob dir das liegt.</p>
-            <span class="dok-fuss">
-              <span class="abzeichen abz-hier">Bei uns</span>
-              <span class="dok-pfeil" aria-hidden="true">→</span>
-            </span>
-          </div>
-        </a>
+    </section>
+
+    <!-- ---------- Aufruf ----------
+         Max, 18.08.2026: lieber direkt auf die Schiri-Seite des
+         Stadtverbands verlinken statt über Zwischenseiten. -->
+    <section class="band band-dunkel">
+      <div class="aufruf">
+        <div class="aufruf-text">
+          <h2>Bereit? Dann melde dich.</h2>
+          <p style="max-width:52ch">
+            Schreib uns – oder sieh dir zuerst die Ausschreibung des Stadtverbands an.
+          </p>
+        </div>
+        <div class="knopfreihe">
+          <a class="knopf-weiss"
+             href="https://www.svf-dresden.de/schiedsrichter/ausbildung-zum-schiedsrichter/"
+             target="_blank" rel="noopener noreferrer">Ausbildung beim SVF Dresden ↗</a>
+          <a class="knopf-rand" href="quiz.html#gast">Erst mal Fragen testen</a>
+        </div>
       </div>
     </section>
+
   </main>
+
   <footer class="seiten-fuss">
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
+
   <script type="module" src="seite.js"></script>
 </body>
 </html>

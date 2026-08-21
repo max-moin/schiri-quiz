@@ -4,17 +4,20 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Regeln auf einen Blick – Schiedsrichter FV Löbtauer Kickers</title>
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
+  <meta name="description" content="Spielzeiten, Spielfeldgrößen, Spieleranzahl und Wechselregeln im Stadtverband Fußball Dresden – filterbar statt als breite Tabelle." />
+  <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="seite.css" />
 </head>
 <body>
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   <header class="seiten-kopf">
     <div class="kopf-innen">
       <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
-        <img class="wappen" src="logo.svg" alt="" width="40" height="48" />
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
         <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
       </a>
       <button class="nav-knopf" id="nav-knopf" type="button"
@@ -23,71 +26,112 @@
         <a href="index.html">Start</a>
         <a href="schiri-werden.html">Schiri werden</a>
         <a href="spesenrechner.html">Spesenrechner</a>
-        <a href="informationen.html" aria-current="page">Informationen</a>
+        <a href="informationen.html" aria-current="true">Informationen</a>
         <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
   </header>
-  <main class="inhalt">
-    <div class="abschnitt-kopf" style="margin-bottom:6px">
-      <h1 style="font-size:1.45rem">Regeln auf einen Blick</h1>
-    </div>
-    <p class="abschnitt-hinweis" style="margin-bottom:20px">
+
+  <main class="inhalt" id="inhalt" tabindex="-1">
+    <h1 class="seiten-titel">Regeln auf einen Blick</h1>
+    <p class="seiten-unter">
       Spielzeiten, Spielfeld und Wechselregeln im Stadtverband Dresden.
-      <b>Stand 2024/2025</b> – die aktuelle Fassung wird noch eingepflegt.
-      Im Zweifel gilt das Original des Stadtverbands.
     </p>
 
-    <div class="filterleiste" id="artFilter">
-      <button class="an" data-art="meister" type="button">Meisterschaft</button>
-      <button data-art="pokal" type="button">Pokal</button>
+    <div class="hinweisbalken">
+      <span class="sym" aria-hidden="true">⚠️</span>
+      <span>
+        <strong>Stand 2024/2025.</strong> Die Kurzübersicht der laufenden Saison ist noch
+        nicht eingepflegt. Im Zweifel gilt das Original des Stadtverbands –
+        <a href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+           target="_blank" rel="noopener noreferrer">hier nachschlagen</a>.
+      </span>
     </div>
-    <div class="filterleiste" id="alterFilter"></div>
-    <label class="nur-vorlesen" for="regelSuche">Regeln durchsuchen</label>
-    <input class="suche" id="regelSuche" type="search" placeholder="Suchen, z. B. „D-Junioren&quot; oder „Kleinfeld&quot; …" />
-    <div class="regelkarten" id="regelKarten"></div>
+
+    <!-- ============================================================
+         Filter, Runde 5 (18.08.2026).
+
+         Max: "Gerade dieses Filtersystem muss nochmal überarbeitet
+         werden." Vorher standen zwei Reihen gleich aussehender Pillen
+         untereinander - erst zwei, dann sechzehn. Man sah weder, dass
+         die oberen zwei sich gegenseitig ausschließen, noch fand man in
+         den unteren sechzehn schnell die richtige.
+
+         Jetzt drei getrennte Bedienelemente mit drei unterschiedlichen
+         Formen, damit man sie nicht verwechselt:
+         - Schieber (Meisterschaft/Pokal): zwei Zustände, einer davon
+           immer aktiv - dafür ist ein Segmentschalter da.
+         - Vier Gruppenknöpfe statt sechzehn Altersklassen. Niemand sucht
+           "irgendeine der sechzehn", man sucht "Junioren".
+         - Suchfeld für den Rest. Wer "Kleinfeld" eintippt, will keine
+           Altersklasse, sondern ein Merkmal.
+         ============================================================ -->
+
+    <div class="segment" id="artFilter" role="group" aria-label="Wettbewerb wählen">
+      <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
+      <button type="button" data-art="pokal" aria-pressed="false">Pokal</button>
+    </div>
+
+    <div class="werkzeugleiste" style="margin-top:14px">
+      <div class="filterleiste" id="gruppeFilter" role="group" aria-label="Altersbereich filtern"></div>
+      <div class="suchzeile">
+        <label class="nur-vorlesen" for="regelSuche">Regeln durchsuchen</label>
+        <input id="regelSuche" type="search" placeholder="Suchen, z. B. „Kleinfeld&quot; oder „3×25&quot; …" />
+      </div>
+    </div>
+
+    <p class="trefferzahl" id="trefferzahl" aria-live="polite"></p>
+
+    <div id="regelBereich"></div>
     <p class="keine" id="keineTreffer" hidden>Keine Einträge gefunden.</p>
   </main>
+
   <footer class="seiten-fuss">
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
-      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
+
   <script type="module" src="seite.js"></script>
   <script>
     /* ============================================================
        Daten aus "Kurzübersicht Regeln Stadtverband Fußball Dresden
        2024/2025", von Max geliefert.
 
-       "hervor" markiert die Werte, die im Original gelb hinterlegt
-       waren - also Abweichungen vom sonst üblichen Muster. Genau die
-       übersieht man in der breiten PDF-Tabelle am leichtesten.
+       Die früheren "hervor"-Markierungen sind entfernt. Sie stammten aus
+       dem Original und markierten dort die Neuerungen zur Saison
+       2024/25. Max, 18.08.2026: "dadurch, dass das ja auch Stand 24/25
+       ist, sind die Erneuerungen ja auch schon wieder veraltet." Eine
+       Markierung, die etwas Falsches behauptet, ist schlechter als gar
+       keine.
 
        ACHTUNG: Der Stadtverband führt inzwischen die DFB-Regeln
        2025/26. Vor dem Livegang die aktuelle Kurzübersicht einpflegen.
        ============================================================ */
     const MEISTER = [
       {a:"Herren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Herren",k:"Freizeitliga/-klassen SVFD",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["wieder"]},
+      {a:"Herren",k:"Freizeitliga/-klassen SVFD",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
       {a:"Frauen",k:"Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
       {a:"Frauen",k:"Landesklasse",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
       {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"A-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w","wieder"]},
-      {a:"A-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w"]},
-      {a:"B-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w","wieder"]},
-      {a:"B-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C",hervor:["w"]},
-      {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",hervor:["w"],fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
-      {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",hervor:["w"],fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
+      {a:"A-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"A-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"B-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"B-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
+      {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
+      {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
       {a:"B-Juniorinnen",k:"Landesklasse",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
       {a:"C-Junioren",k:"Stadtklassen bis Landesliga",zeit:"2×35 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
       {a:"C-Junioren",k:"Spielbetrieb 9 gegen 9",zeit:"2×35 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Kleinfeldtore, Strafstoß 9 m vom Tor entfernt."},
       {a:"C-Juniorinnen",k:"Landesklasse",zeit:"2×35 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
       {a:"D-Junioren",k:"Landesliga (Talenteliga)",zeit:"2×30 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C"},
-      {a:"D-Junioren",k:"Landesklassen",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",hervor:["zeit","max","min"]},
-      {a:"D-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"3×25 min",feld:"halbes Großfeld, Mittellinie",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",hervor:["zeit","max","min"]},
+      {a:"D-Junioren",k:"Landesklassen",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
+      {a:"D-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"3×25 min",feld:"halbes Großfeld, Mittellinie",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
       {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
       {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
       {a:"Altherren",k:"Stadtklassen bis Stadtliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:7,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
@@ -105,8 +149,8 @@
       {a:"B-Juniorinnen",k:"Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen",bes:"siehe Landesliga Großfeld"},
       {a:"C-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"11 m, 5 Schützen"},
       {a:"C-Juniorinnen",k:"Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"9 m, 5 Schützen",bes:"verkürztes Großfeld, 9 Spielerinnen, mind. 7, 7 Wechsler"},
-      {a:"D-Junioren",k:"Landespokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen",hervor:["zeit","verl"]},
-      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen",hervor:["zeit","verl"]},
+      {a:"D-Junioren",k:"Landespokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
+      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine",elfer:"9 m, 5 Schützen"},
       {a:"D-Juniorinnen",k:"Stadtpokal",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
       {a:"E-Junioren",k:"Stadtpokal",zeit:"2×25 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
       {a:"Senioren",k:"Stadtpokal",zeit:"2×45 min",verl:"keine",elfer:"11 m, 5 Schützen"},
@@ -115,69 +159,125 @@
       {a:"Ü60",k:"Breitensport",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
     ];
 
-    let art = "meister", alterFilter = "alle";
+    /* Vier Bereiche statt sechzehn Einzelknöpfen. Die Zuordnung steht
+       hier ausdrücklich und wird nicht aus dem Namen geraten - sonst
+       landet "Senioren" irgendwann bei den Junioren, weil beides auf
+       -en endet. */
+    const BEREICHE = [
+      { id: "aktive",      titel: "Herren & Frauen", klassen: ["Herren", "Frauen", "Senioren"] },
+      { id: "junioren",    titel: "Junioren",        klassen: ["A-Junioren", "B-Junioren", "C-Junioren", "D-Junioren", "E-Junioren", "F-Junioren"] },
+      { id: "juniorinnen", titel: "Juniorinnen",     klassen: ["B-Juniorinnen", "C-Juniorinnen", "D-Juniorinnen"] },
+      { id: "alt",         titel: "Altherren & Ü",   klassen: ["Altherren", "Ü40", "Ü50", "Ü60"] },
+    ];
+
+    let art = "meister", bereich = "alle";
     const daten = () => (art === "meister" ? MEISTER : POKAL);
     const $ = (id) => document.getElementById(id);
+    const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-    function baueAlterFilter() {
-      const alle = ["alle", ...new Set(daten().map((r) => r.a))];
-      $("alterFilter").innerHTML = "";
-      alle.forEach((a) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.textContent = a === "alle" ? "Alle Altersklassen" : a;
-        if (a === alterFilter) b.className = "an";
-        b.addEventListener("click", () => { alterFilter = a; baueAlterFilter(); zeichne(); });
-        $("alterFilter").appendChild(b);
+    function baueBereichFilter() {
+      const leiste = $("gruppeFilter");
+      leiste.innerHTML = "";
+      const vorhanden = new Set(daten().map((r) => r.a));
+      const auswahl = [
+        { id: "alle", titel: "Alle" },
+        /* Ein Bereich taucht nur auf, wenn im aktuellen Wettbewerb
+           überhaupt etwas darin steht - im Pokal gibt es z. B. keine
+           F-Junioren. Leere Filter, die auf "keine Treffer" führen,
+           sind schlimmer als gar keine. */
+        ...BEREICHE.filter((b) => b.klassen.some((k) => vorhanden.has(k))),
+      ];
+      /* Falls die aktuelle Auswahl im neuen Wettbewerb nicht existiert,
+         zurück auf "Alle" - sonst zeigt die Seite eine leere Liste, ohne
+         dass ein Knopf gedrückt aussieht. */
+      if (!auswahl.some((b) => b.id === bereich)) bereich = "alle";
+
+      auswahl.forEach((b) => {
+        const knopf = document.createElement("button");
+        knopf.type = "button";
+        knopf.textContent = b.titel;
+        knopf.dataset.bereich = b.id;
+        /* Nur markieren, nicht neu bauen: ein neu erzeugter Knopf nimmt den
+           Fokus mit ins Nichts - man landet nach jedem Klick per Tastatur
+           wieder ganz oben. Gefunden im Review am 18.08.2026. */
+        knopf.addEventListener("click", () => { bereich = b.id; markiereBereich(); zeichne(); });
+        leiste.appendChild(knopf);
+      });
+      markiereBereich();
+    }
+
+    function markiereBereich() {
+      $("gruppeFilter").querySelectorAll("button").forEach((b) => {
+        const an = b.dataset.bereich === bereich;
+        b.setAttribute("aria-pressed", String(an));
+        b.classList.toggle("an", an);
       });
     }
 
-    const wert = (label, w, hervor) =>
-      `<div class="wert${hervor ? " hervor" : ""}"><div class="l">${label}</div><div class="v">${w}</div></div>`;
+    const wert = (label, w) =>
+      `<div class="wert"><div class="l">${sicher(label)}</div><div class="v">${sicher(w)}</div></div>`;
 
     function zeichne() {
       const suche = $("regelSuche").value.trim().toLowerCase();
+      const gewaehlt = BEREICHE.find((b) => b.id === bereich);
+
       const treffer = daten().filter((r) => {
-        if (alterFilter !== "alle" && r.a !== alterFilter) return false;
+        if (gewaehlt && !gewaehlt.klassen.includes(r.a)) return false;
         if (!suche) return true;
-        return JSON.stringify(r).toLowerCase().includes(suche);
+        return Object.values(r).join(" ").toLowerCase().includes(suche);
       });
 
       $("keineTreffer").hidden = treffer.length > 0;
-      $("regelKarten").innerHTML = treffer.map((r) => {
-        const h = r.hervor || [];
-        const felder = art === "meister"
-          ? wert("Spielzeit", r.zeit, h.includes("zeit"))
-            + wert("Spielfeld", r.feld, h.includes("feld"))
-            + wert("Spieler", `${r.max} · mind. ${r.min}`, h.includes("max") || h.includes("min"))
-            + wert("Wechsler", r.w, h.includes("w"))
-            + wert("Wiedereinwechslung", r.wieder, h.includes("wieder"))
-            + wert("Gelb/Rot", r.gr, false)
-            + wert("Abbruch ab", r.t, false)
-            + wert("", "", false)
-          : wert("Spielzeit", r.zeit, h.includes("zeit"))
-            + wert("Verlängerung", r.verl, h.includes("verl"))
-            + wert("Strafstoßschießen", r.elfer, false)
-            + wert("", "", false);
+      $("trefferzahl").textContent = treffer.length === daten().length
+        ? `${daten().length} Spielklassen`
+        : `${treffer.length} von ${daten().length} Spielklassen`;
 
-        return `<article class="rk">
-            <div class="rk-kopf"><div class="alter">${r.a}</div><div class="klasse">${r.k}</div></div>
-            <div class="rk-werte">${felder}</div>
-            ${(r.fuss || r.bes) ? `<div class="rk-fuss">${r.fuss || r.bes}</div>` : ""}
-          </article>`;
+      /* Nach Altersklasse gruppiert ausgeben. Vorher standen 24 Karten
+         gleichrangig nebeneinander, und man musste die Kopfzeile jeder
+         einzelnen lesen, um sich zurechtzufinden. */
+      const reihenfolge = [];
+      treffer.forEach((r) => { if (!reihenfolge.includes(r.a)) reihenfolge.push(r.a); });
+
+      $("regelBereich").innerHTML = reihenfolge.map((alter) => {
+        const karten = treffer.filter((r) => r.a === alter).map((r) => {
+          const felder = art === "meister"
+            ? wert("Spielzeit", r.zeit)
+              + wert("Spielfeld", r.feld)
+              + wert("Spieler", `${r.max} · mind. ${r.min}`)
+              + wert("Wechsler", r.w)
+              + wert("Wiedereinwechslung", r.wieder)
+              + wert("Gelb/Rot", r.gr)
+              + wert("Abbruch ab", r.t)
+            : wert("Spielzeit", r.zeit)
+              + wert("Verlängerung", r.verl)
+              + wert("Strafstoßschießen", r.elfer);
+
+          return `<article class="rk">
+              <div class="rk-kopf"><div class="klasse">${sicher(r.k)}</div></div>
+              <div class="rk-werte">${felder}</div>
+              ${(r.fuss || r.bes) ? `<div class="rk-fuss">${sicher(r.fuss || r.bes)}</div>` : ""}
+            </article>`;
+        }).join("");
+
+        return `<section class="regelgruppe">
+            <h2 class="regelgruppe-titel">${sicher(alter)}</h2>
+            <div class="regelkarten">${karten}</div>
+          </section>`;
       }).join("");
     }
 
     $("artFilter").querySelectorAll("button").forEach((b) =>
       b.addEventListener("click", () => {
-        $("artFilter").querySelectorAll("button").forEach((x) => x.classList.remove("an"));
-        b.classList.add("an");
-        art = b.dataset.art; alterFilter = "alle";
-        baueAlterFilter(); zeichne();
+        $("artFilter").querySelectorAll("button").forEach((x) => x.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        art = b.dataset.art;
+        baueBereichFilter();
+        zeichne();
       })
     );
     $("regelSuche").addEventListener("input", zeichne);
-    baueAlterFilter();
+    baueBereichFilter();
     zeichne();
   </script>
 </body>

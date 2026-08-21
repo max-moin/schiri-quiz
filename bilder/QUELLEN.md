@@ -1,46 +1,51 @@
 # Bildquellen
 
-Nachweis, woher jedes Bild auf dieser Website stammt. Falls je jemand fragt,
-lässt sich hier in Sekunden belegen, unter welcher Lizenz es genutzt wird.
+Register aller Bilder auf der Vereinsseite. **Jedes neue Bild bekommt hier
+einen Eintrag, bevor es eingebaut wird.** Ohne Eintrag lässt sich später
+nicht mehr belegen, woher es kam – und genau das braucht man im Zweifel.
 
-**Wichtig zur Einordnung:** Die Lizenzen von Pexels und Unsplash decken das
-Urheberrecht ab, **nicht** die Persönlichkeitsrechte abgebildeter Personen und
-**nicht** Markenrechte an sichtbaren Logos. Deshalb werden hier ausschließlich
-Motive ohne erkennbare Personen verwendet.
+## Regeln für neue Bilder
 
----
+1. **Nur Motive ohne erkennbare Personen.** Die Lizenzen von Pexels,
+   Unsplash und Pixabay decken ausschließlich das **Urheberrecht** ab. Das
+   **Recht am eigenen Bild** und Markenrechte prüfen diese Plattformen
+   nicht. Bei einer Schiedsrichterseite mit Jugendbezug ist das kein
+   theoretisches Risiko.
+2. **Keine sichtbaren Vereinslogos, Trikotsponsoren oder Wappen** fremder
+   Vereine – das sind Marken.
+3. **Eigene Fotos vom Verein sind immer besser** als Stockbilder. Nötig ist
+   dafür eine Einwilligung der abgebildeten Personen, bei Minderjährigen
+   von den Erziehungsberechtigten.
+4. **Vor dem Livegang herunterladen und lokal in `bilder/` ablegen.**
+   Solange die Bilder vom Pexels-CDN kommen, geht bei jedem Seitenaufruf
+   die IP-Adresse der Besucher an einen Dritten – das gehört in die
+   Datenschutzerklärung oder besser abgestellt.
 
-## Verwendete Bilder
+## Vereinseigenes
 
-| Wo | Motiv | Quelle | Bildnummer | Fotograf | Lizenz |
-|---|---|---|---|---|---|
-| Startseite, Aufmacher | Ball, Eckfahne, Stadion | Pexels | 47343 | pixabay | Pexels-Lizenz |
+| Datei | Herkunft | Verwendung |
+|---|---|---|
+| `logo.png` | Vom Verein, geliefert von Max am 18.08.2026 (99×99 px, transparent) | Kopfbereich aller Seiten, Tab-Symbol |
+| `logo@4x.png` | Hochgerechnete Fassung derselben Datei (396×396 px, Lanczos) | Für große Darstellungen und KI-Werkzeuge |
 
----
+## Stockfotos (Pexels)
+
+Alle unter der [Pexels-Lizenz](https://www.pexels.com/de-de/lizenz/):
+kostenlos nutzbar, auch gewerblich, keine Namensnennung nötig.
+**Keines dieser Bilder zeigt erkennbare Personen.**
+
+| Pexels-ID | Motiv | Verwendung |
+|---|---|---|
+| 47343 | Ball am Rand eines Rasenplatzes, Eckfahne | Aufmacher `index.html` |
+| 399187 | Tor auf einem Platz am Abend | Kopfbild `schiri-werden.html` |
+| 6204479 | Trillerpfeife, Nahaufnahme | Kachel „Spesenrechner" |
+| 46798 | Ball auf Rasen bei Tageslicht | Kachel „Informationen" |
+| 17203165 | Ball auf dem Platz | Kachel „Regelquiz" |
+
+Seiten der Bilder: `https://www.pexels.com/photo/<ID>/`
 
 ## Noch offen
 
-Diese Bildflächen zeigen weiterhin Platzhalter, weil sich für sie keine
-unbedenklichen Motive gefunden haben:
-
-- Startseite, Kachel „Spesenrechner" – gesucht: Taschenrechner, Notizblock
-- Startseite, Kachel „Informationen" – gesucht: Regelheft, Pfeife, Karten
-- Startseite, Kachel „Regelquiz" – gesucht: Handy in der Hand, ohne Gesicht
-- Startseite, Kachel „Ausrüstung" – gesucht: Trikots oder Schuhe, ohne Marke
-- „Schiri werden", Aufmacher – gesucht: Pfeife in Nahaufnahme
-
----
-
-## Beim Ergänzen bitte beachten
-
-1. **Keine erkennbaren Personen.** Weder Erwachsene noch – erst recht nicht –
-   Kinder und Jugendliche.
-2. **Keine sichtbaren Marken** auf Trikots, Bällen oder Banden.
-3. **Zeile in dieser Tabelle ergänzen**, sobald ein Bild eingebaut wird.
-4. **Bild herunterladen und lokal ablegen** statt vom fremden Server zu laden.
-   Aktuell zeigt der Aufmacher noch direkt auf das Pexels-CDN – das ist für die
-   Testfassung in Ordnung, sollte vor dem Livegang aber geändert werden. Sonst
-   hängt die Seite davon ab, dass ein fremder Server erreichbar bleibt.
-
-Eine Namensnennung ist bei Pexels und Unsplash **nicht vorgeschrieben**, wird von
-den Fotografen aber gern gesehen.
+- **Kachel „Ausrüstung"** auf der Startseite ist bewusst ein Platzhalter.
+  Dort gehört ein eigenes Foto der Schiri-Trikots hin – ein Stockbild
+  fremder Trikots wäre an dieser Stelle schlicht gelogen.
