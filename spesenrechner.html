@@ -26,6 +26,9 @@
     .schritt-koerper { padding: 16px 18px 18px; }
 
     label { display: block; font-size: .79rem; font-weight: 600; margin-bottom: 6px; color: var(--marke-hell); }
+    /* Erklaerender Nachsatz am Etikett: leiser als das Etikett selbst,
+       damit er das Feld nicht ueberschreit (22.08.2026). */
+    .etikett-zusatz { font-weight: 500; color: var(--muted); }
     .feld { width: 100%; padding: 12px 13px; border: 1px solid var(--border); border-radius: 11px; font: inherit; font-size: .9rem; background: #fff; min-height: 46px; }
     .feld:disabled { background: #f9fafb; color: #9ca3af; }
     .hinweis-klein { font-size: .75rem; color: var(--muted); line-height: 1.5; margin: 7px 0 0; }
@@ -37,18 +40,6 @@
     /* Absteigend im DOM (stärkste Liga zuerst) statt per "column-reverse"
        gedreht. Vorher liefen Tastaturfokus und Screenreader genau
        entgegengesetzt zur Anzeige. */
-    .liga-leiter { display: flex; flex-direction: column; gap: 6px; }
-    .liga {
-      display: flex; align-items: center; gap: 11px;
-      padding: 11px 14px; border: 1.5px solid var(--border); border-radius: 11px;
-      background: #fff; cursor: pointer; font: inherit; text-align: left; width: 100%;
-      min-height: 48px; transition: border-color .14s, background .14s;
-    }
-    .liga:hover { border-color: #cbd5e1; }
-    .liga.an { border-color: var(--marke); background: var(--marke-lighter); }
-    .liga .nam { font-weight: 600; font-size: .89rem; }
-    .liga .betrag { margin-left: auto; font-weight: 700; font-size: .89rem; white-space: nowrap; }
-    .liga .vb { font-size: .68rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; padding: 3px 8px; border-radius: 999px; }
     .vb-svfd { background: var(--green-light); color: var(--green-dark); }
     .vb-sfv { background: var(--blau-hell); color: #1d4ed8; }
 
@@ -96,9 +87,10 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html">Start</a>
-        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="regeluebersicht.html">Regeln</a>
         <a href="spesenrechner.html" aria-current="page">Spesenrechner</a>
-        <a href="informationen.html">Informationen</a>
+        <a href="vorlagen.html">Vorlagen</a>
+        <a href="informationen.html">Unterlagen</a>
         <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
@@ -106,45 +98,61 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
     <h1 class="seiten-titel">Spesenrechner</h1>
-    <p class="seiten-unter">Vier Schritte bis zur fertigen Quittung.</p>
+    <p class="seiten-unter">Vier Schritte bis zur fertigen Quittung. Jeden Betrag rechts kannst du von Hand überschreiben.</p>
 
     <div class="rechner">
       <div>
 
+        <!-- Reihenfolge nach Max' Vorgabe vom 21.08.2026: erst wer spielt und
+             was für ein Spiel es ist, dann erst die Liga. Vorher stand die
+             Liga vor der Spielart - man wählte also eine Klasse, ohne zu
+             wissen, ob die Pokalsätze überhaupt anders sind. -->
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Wer spielt?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Wer spielt, und was für ein Spiel?</h2></div>
           <div class="schritt-koerper">
             <label for="alter">Altersklasse</label>
             <select class="feld" id="alter"></select>
-          </div>
-        </section>
 
-        <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">2</span><h2>In welcher Liga?</h2></div>
-          <div class="schritt-koerper">
-            <div class="liga-leiter" id="ligaLeiter" aria-label="Spielklasse"></div>
-            <p class="hinweis-klein">Von oben nach unten absteigend nach Spielstärke. Der Betrag rechts
-               ist die Entschädigung als Schiedsrichter.</p>
-          </div>
-        </section>
-
-        <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Was für ein Spiel?</h2></div>
-          <div class="schritt-koerper">
-            <div class="haken-reihe" role="group" aria-label="Art des Spiels">
-              <label class="haken" id="lblPokal"><input type="checkbox" id="cbPokal" /> Pokalspiel</label>
-              <label class="haken" id="lblFreund"><input type="checkbox" id="cbFreund" /> Freundschaftsspiel</label>
-              <label class="haken" id="lblTurnier"><input type="checkbox" id="cbTurnier" /> Turnier</label>
-              <label class="haken" id="lblAusfall"><input type="checkbox" id="cbAusfall" /> Spiel ist ausgefallen</label>
-              <label class="haken" id="lblAss"><input type="checkbox" id="cbAss" /> Mit Assistenten</label>
+            <div style="margin-top:16px">
+              <span class="feldname" id="artLabel">Art des Spiels</span>
+              <div class="segment segment-breit" id="artFilter" role="group" aria-labelledby="artLabel">
+                <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
+                <button type="button" data-art="pokal" aria-pressed="false">Pokal</button>
+                <button type="button" data-art="freund" aria-pressed="false">Freundschaft</button>
+                <button type="button" data-art="turnier" aria-pressed="false">Turnier</button>
+              </div>
+              <p class="hinweis-klein" id="artHinweis"></p>
             </div>
-            <p class="hinweis-klein" id="artHinweis"></p>
 
             <div id="turnierBlock" hidden style="margin-top:14px">
               <label for="stunden">Dauer in Stunden</label>
               <input class="feld" id="stunden" type="number" min="1" step="1" value="4" />
               <p class="hinweis-klein">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
             </div>
+          </div>
+        </section>
+
+        <section class="schritt" id="ligaSchritt">
+          <div class="schritt-kopf"><span class="schritt-nr">2</span><h2>In welcher Liga?</h2></div>
+          <div class="schritt-koerper">
+            <label for="liga">Spielklasse</label>
+            <select class="feld" id="liga"></select>
+            <p class="hinweis-klein" id="ligaHinweis"></p>
+          </div>
+        </section>
+
+        <section class="schritt">
+          <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Wer pfeift?</h2></div>
+          <div class="schritt-koerper">
+            <label for="funktion">Deine Funktion</label>
+            <select class="feld" id="funktion">
+              <option value="sr">Schiedsrichter</option>
+              <option value="sra">Assistent</option>
+            </select>
+            <div class="haken-reihe" style="margin-top:14px" role="group" aria-label="Besetzung">
+              <label class="haken" id="lblAss"><input type="checkbox" id="cbAss" /> Mit Assistenten</label>
+            </div>
+            <p class="hinweis-klein" id="assHinweis"></p>
           </div>
         </section>
 
@@ -155,14 +163,6 @@
             <input class="feld" id="verein" list="vereinsliste" placeholder="Vereinsnamen eintippen …" />
             <datalist id="vereinsliste"></datalist>
             <p class="hinweis-klein" id="ortHinweis"></p>
-
-            <div style="margin-top:14px">
-              <label for="funktion">Deine Funktion</label>
-              <select class="feld" id="funktion">
-                <option value="sr">Schiedsrichter</option>
-                <option value="sra">Assistent</option>
-              </select>
-            </div>
 
             <!-- Nur auf Landesebene sichtbar. Auf Stadtebene gilt weiter die
                  Zonenregel des Stadtverbands, dort gibt es nichts zu wählen. -->
@@ -194,22 +194,39 @@
               </div>
             </div>
 
+            <!-- Max, 21.08.2026: "Ich weiß auch nicht, warum standardmäßig die
+                 01159 hinterlegt ist." Sie steht als standortPlz in
+                 verein.config.js und ist die Postleitzahl des Vereins - eine
+                 Startannahme, kein Messwert. Der Zusatz im Etikett sagt das
+                 jetzt, statt dass die Zahl unerklaert im Feld steht. -->
             <div style="margin-top:14px">
-              <label for="plz">Deine Postleitzahl</label>
-              <input class="feld" id="plz" inputmode="numeric" maxlength="5" placeholder="01159" value="01159" />
+              <label for="plz">Deine Postleitzahl <span class="etikett-zusatz">Vorbelegung: unser Vereinssitz – überschreib sie</span></label>
+              <input class="feld" id="plz" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
               <p class="hinweis-klein" id="plzHinweis"></p>
             </div>
 
             <div id="assFelder" hidden>
               <div style="margin-top:14px">
                 <label for="plzA1" id="lblPlzA1">Postleitzahl Assistent 1</label>
-                <input class="feld" id="plzA1" inputmode="numeric" maxlength="5" value="01159" />
+                <input class="feld" id="plzA1" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
               </div>
               <div style="margin-top:14px">
                 <label for="plzA2" id="lblPlzA2">Postleitzahl Assistent 2</label>
-                <input class="feld" id="plzA2" inputmode="numeric" maxlength="5" value="01159" />
+                <input class="feld" id="plzA2" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
               </div>
             </div>
+          </div>
+        </section>
+        <!-- Max, 21.08.2026: "Das mit dem Spiel ist ausgefallen, würde ich
+             ganz unten hinpacken." Er hat recht - das ist der Sonderfall,
+             nicht der Regelfall, und oben zwischen den anderen Häkchen zog
+             er Aufmerksamkeit auf sich, die ihm nicht zusteht. -->
+        <section class="schritt schritt-still">
+          <div class="schritt-koerper">
+            <div class="haken-reihe" role="group" aria-label="Sonderfall">
+              <label class="haken" id="lblAusfall"><input type="checkbox" id="cbAusfall" /> Das Spiel ist ausgefallen</label>
+            </div>
+            <p class="hinweis-klein" id="ausfallHinweis"></p>
           </div>
         </section>
       </div>
@@ -220,7 +237,26 @@
           <div class="sub" id="qSub">–</div>
         </div>
         <div id="qKoerper"></div>
+
+        <!-- Max, 21.08.2026: "wenn die Summe der Spesen aufgelistet wird, die
+             Summe der Fahrtkosten, und dann erst alles insgesamt" - weil er
+             auf der Papierquittung genau diese drei Zahlen einträgt. -->
+        <div class="q-summen">
+          <!-- Die Ueberschrift kam am 22.08.2026 dazu. Ohne sie standen beim
+               Schiedsrichter allein dieselben zwei Zahlen zweimal untereinander
+               und sahen nach einem Fehler aus. Mit ihr ist klar, wozu der
+               Block da ist: Das sind die Zahlen, die auf das Papierformular
+               gehören - hier die beiden Teilsummen, direkt darunter der
+               Gesamtbetrag. -->
+          <div class="q-summen-kopf">Das trägst du in die Quittung ein</div>
+          <div class="q-zeile"><span>Spesen zusammen</span><b id="qSpesen">–</b></div>
+          <div class="q-zeile"><span>Fahrtkosten zusammen</span><b id="qFahrt">–</b></div>
+        </div>
         <div class="q-gesamt"><b id="qGesamtLabel">Gesamt</b><b id="qGesamt" aria-live="polite">–</b></div>
+        <p class="q-haftung" id="qBearbeitetHinweis" hidden>
+          Einzelne Beträge wurden von Hand geändert.
+          <button type="button" class="linkknopf" id="qZuruecksetzen">Alle zurücksetzen</button>
+        </p>
         <p class="q-haftung">
           <b>Ohne Gewähr.</b> Maßgeblich sind allein die gültigen Sätze des Stadtverbands
           Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.
@@ -247,66 +283,95 @@
   <script type="module" src="seite.js"></script>
 
   <script type="module">
-    import { ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE, AUSFALL_ANTEIL } from "./verein.config.js";
+    import { VEREIN, ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE, AUSFALL_ANTEIL } from "./verein.config.js";
 
     const $ = (id) => document.getElementById(id);
     const euro = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
-    // Dresdner Postleitzahlen laufen von 01067 bis 01329.
-    const istDresden = (plz) => /^01(0[6-9]|1\d|2\d|3[0-2])\d$/.test((plz || "").trim());
+    /* Dresdner Zustell-Postleitzahlen laufen von 01067 bis 01329.
+       Der frühere Ausdruck begann schon bei 01060 und wich damit vom
+       eigenen Kommentar ab (Review 22.08.2026). Folgenlos war das nicht
+       gedacht: Wer hier fälschlich als "Dresden" gilt, bekommt eine
+       Tarifzone statt zwei - also die Hälfte der Fahrtkosten. */
+    const istDresden = (plz) =>
+      /^(0106[7-9]|010[7-9]\d|01[12]\d{2}|013[0-2]\d)$/.test((plz || "").trim());
 
     let gewaehlteLiga = null;
+
+    /* Eine Spielart statt drei sich gegenseitig ausschließender Haken. Vorher
+       musste beim Anklicken von "Pokal" das Häkchen bei "Freundschaftsspiel"
+       von Hand geleert werden - eine Mechanik, die genau einmal falsch
+       herum implementiert war und dabei eine Auswahl unerreichbar machte.
+       Ein Zustand kann das gar nicht. */
+    let spielart = "meister";
+
+    /* Von Hand geänderte Beträge in der Quittung. Schlüssel ist die Rolle plus
+       "spesen"/"fahrt". Max, 21.08.2026: "gerade wenn du Assistenten hast,
+       das noch bearbeiten kannst und händisch noch eintragen kannst, wer was
+       hat." */
+    const handEingaben = new Map();
+
+    /* Steht auf true, solange die Quittung gerade neu aufgebaut wird.
+       Chrome feuert beim Entfernen des fokussierten Feldes ein "blur" -
+       und zwar BEVOR das Feld aus dem Dokument fliegt, isConnected ist
+       zu dem Zeitpunkt also noch true (am 22.08.2026 im Browser
+       gemessen). Ohne diese Marke hielte der Aufräumcode im blur jeden
+       Tastendruck für ein echtes Verlassen des Feldes. */
+    let imNeuaufbau = false;
 
     ALTERSKLASSEN.forEach((a, i) => {
       const o = document.createElement("option");
       o.value = i; o.textContent = a.name;
       $("alter").appendChild(o);
     });
+    /* Vorbelegung der Postleitzahlen aus der Konfiguration. Stand vorher
+       fest im HTML, ohne dass ersichtlich war warum. */
+    if (VEREIN.standortPlz) {
+      ["plz", "plzA1", "plzA2"].forEach((id) => { $(id).value = VEREIN.standortPlz; });
+    }
+
     VEREINE.forEach((v) => {
       const o = document.createElement("option");
       o.value = v.name; $("vereinsliste").appendChild(o);
     });
 
     /**
-     * Baut die Liga-Leiter neu auf. Sortiert nach "stufe" ABSTEIGEND, sodass
-     * die stärkste Liga oben steht - wie man eine Ligapyramide liest. Die
-     * DOM-Reihenfolge entspricht dabei der Bildschirmreihenfolge; das frühere
-     * "column-reverse" ist bewusst entfallen, weil es beide auseinanderriss
-     * und die Tastaturbedienung gegen den Augenschein laufen ließ.
+     * Füllt das Liga-Auswahlfeld. Absteigend sortiert, sodass die stärkste
+     * Klasse oben steht - wie man eine Ligapyramide liest. Vorbelegt wird die
+     * SCHWÄCHSTE, das ist der häufigste Fall.
+     *
+     * Vorher war das eine Leiter aus Schaltflächen mit Beträgen daneben. Max
+     * am 21.08.2026: "Da würde ich dann auch einfach nur so ein Auswählreiter
+     * machen." Bei elf Altersklassen wurde die Leiter sehr lang, und die
+     * Beträge stehen ohnehin rechts in der Quittung.
      */
     function baueLigen() {
       const gruppe = ALTERSKLASSEN[Number($("alter").value)];
-      const leiter = $("ligaLeiter");
-      leiter.innerHTML = "";
+      const feld = $("liga");
+      const vorher = gewaehlteLiga ? gewaehlteLiga.voll : null;
+      feld.innerHTML = "";
 
-      // Absteigend: stärkste Liga oben, wie man eine Ligapyramide liest.
-      // Vorbelegt wird die SCHWÄCHSTE - das ist der häufigste Fall.
       const sortiert = [...gruppe.ligen].sort((a, b) => b.stufe - a.stufe);
-      const vorbelegt = sortiert.length - 1;
-      gewaehlteLiga = sortiert[vorbelegt];
-
       sortiert.forEach((liga, i) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "liga" + (i === vorbelegt ? " an" : "");
-        // Bewusst KEINE role="radio": Das verspricht Pfeiltasten-Bedienung
-        // und einen Roving-Tabindex, beides gäbe es hier nicht. Als
-        // gewöhnliche Schaltflächen mit "aria-pressed" stimmt die Ansage.
-        b.setAttribute("aria-pressed", String(i === vorbelegt));
-        b.title = liga.voll;
-        const vb = VERBAENDE[liga.verband];
-        b.innerHTML = `<span class="nam">${liga.kurz}</span>
-          <span class="vb vb-${liga.verband}">${vb.kurz}</span>
-          <span class="betrag">${euro(liga.sr)}</span>`;
-        b.addEventListener("click", () => {
-          leiter.querySelectorAll(".liga").forEach((x) => {
-            x.classList.remove("an"); x.setAttribute("aria-pressed", "false");
-          });
-          b.classList.add("an"); b.setAttribute("aria-pressed", "true");
-          gewaehlteLiga = liga;
-          rechne();
-        });
-        leiter.appendChild(b);
+        const o = document.createElement("option");
+        o.value = String(i);
+        o.textContent = `${liga.kurz} · ${VERBAENDE[liga.verband].kurz} · ${euro(liga.sr)}`;
+        feld.appendChild(o);
       });
+
+      /* Beim Wechsel der Altersklasse dieselbe Liga wiederfinden, wenn es sie
+         dort gibt - sonst springt man von "Landesklasse" auf "Stadtklasse"
+         und wundert sich über den Betrag. */
+      const gleiche = sortiert.findIndex((l) => l.voll === vorher);
+      const vorbelegt = gleiche >= 0 ? gleiche : sortiert.length - 1;
+      feld.value = String(vorbelegt);
+      gewaehlteLiga = sortiert[vorbelegt];
+      /* Andere Liga heißt andere Sätze - von Hand eingetragene Beträge
+         beziehen sich dann auf etwas anderes (22.08.2026). */
+      feld.onchange = () => {
+        gewaehlteLiga = sortiert[Number(feld.value)];
+        handEingaben.clear();
+        rechne();
+      };
       rechne();
     }
 
@@ -383,6 +448,11 @@
     /** Zahl deutsch schreiben - "48.5 km" sah neben "0,39 €" falsch aus. */
     const zahlText = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
 
+    /** Auf Cent runden. Muss VOR dem Summieren passieren, sonst zeigt die
+        Quittung gerundete Zeilen und darunter eine Summe, die um einen
+        Cent danebenliegt (0,35 €/km × 48,5 km = 16,975). */
+    const cent = (n) => Math.round(n * 100) / 100;
+
     function fahrtkostenLand() {
       const art = $("anreise").value;
       const s = FAHRTKOSTEN.sfv;
@@ -449,13 +519,29 @@
        Turniere sind ausgenommen, solange für sie keine Landesebenen-Sätze
        belegt sind. */
     function istLandesebene() {
-      return !!gewaehlteLiga && gewaehlteLiga.verband === "sfv" && !$("cbTurnier").checked;
+      return !!gewaehlteLiga && gewaehlteLiga.verband === "sfv" && spielart !== "turnier";
+    }
+
+    /* Beim Tippen in ein Betragsfeld wird die Quittung neu aufgebaut - dabei
+       verlöre das Feld den Fokus mitten im Tippen. Deshalb Position und Feld
+       merken und danach wiederherstellen. */
+    function neuRechnenOhneFokusverlust() {
+      const aktiv = document.activeElement;
+      const marke = aktiv && aktiv.classList.contains("q-eingabe")
+        ? { label: aktiv.getAttribute("aria-label"), pos: aktiv.selectionStart }
+        : null;
+      rechne();
+      if (!marke) return;
+      const neu = document.querySelector(`.q-eingabe[aria-label="${marke.label}"]`);
+      if (!neu) return;
+      neu.focus();
+      try { neu.setSelectionRange(marke.pos, marke.pos); } catch (e) { /* egal */ }
     }
 
     function rechne() {
       if (!gewaehlteLiga) return;
       const liga = gewaehlteLiga;
-      const turnier = $("cbTurnier").checked;
+      const turnier = spielart === "turnier";
 
       $("turnierBlock").hidden = !turnier;
 
@@ -483,8 +569,7 @@
       funktion.options[1].disabled = !assMoeglich;
       if (!assMoeglich && funktion.value === "sra") funktion.value = "sr";
 
-      [["cbPokal", "lblPokal"], ["cbFreund", "lblFreund"],
-       ["cbTurnier", "lblTurnier"], ["cbAusfall", "lblAusfall"], ["cbAss", "lblAss"]]
+      [["cbAusfall", "lblAusfall"], ["cbAss", "lblAss"]]
         .forEach(([c, l]) => $(l).classList.toggle("an", $(c).checked));
 
       // Anreise-Auswahl gibt es nur auf Landesebene - auf Stadtebene ist die
@@ -497,25 +582,32 @@
       $("lblMitnahme").hidden = !aufLandesebene || anreiseArt !== "auto";
       $("lblMitnahme").classList.toggle("an", $("cbMitnahme").checked);
 
-      // Pokal und Freundschaftsspiel schließen sich aus - es wird die
-      // jeweils ANDERE Box geleert, nicht immer dieselbe.
-      if ($("cbPokal").checked && $("cbFreund").checked) {
-        const andere = zuletztGeklickt === "cbPokal" ? "cbFreund" : "cbPokal";
-        $(andere).checked = false;
-        $(andere === "cbFreund" ? "lblFreund" : "lblPokal").classList.remove("an");
-      }
+      $("artHinweis").textContent =
+        spielart === "pokal"
+          ? "Bei Pokalspielen zählt die höchstklassige am Spiel beteiligte Mannschaft. "
+            + "Achtung: Auf Landesebene hat der Pokal eigene Sätze, die hier noch nicht "
+            + "hinterlegt sind – gerechnet wird vorerst mit dem Meisterschaftssatz."
+          : spielart === "turnier"
+            ? "Turniere werden pauschal nach Dauer abgerechnet, nicht nach Spielklasse."
+            : spielart === "freund"
+              ? "Bei Freundschaftsspielen zählt die Spielklasse der Platzmannschaft."
+              : "";
 
-      $("artHinweis").textContent = $("cbAusfall").checked
-        ? "Bei Spielausfall gibt es 50 % der Entschädigung – das steht so in der "
-          + "Finanzordnung des Landesverbands. Für reine Stadtspiele ist noch nicht "
-          + "belegt, ob der Stadtverband es genauso hält."
-        : !assMoeglich && !turnier
-          ? `In der Klasse „${liga.voll}" sind keine Assistenten vorgesehen.`
-          : $("cbPokal").checked
-            ? "Bei Pokalspielen zählt die höchstklassige am Spiel beteiligte Mannschaft."
-            : turnier
-              ? "Turniere werden pauschal nach Dauer abgerechnet."
-              : "Ohne Häkchen wird ein normales Meisterschaftsspiel gerechnet.";
+      $("assHinweis").textContent = !assMoeglich && !turnier
+        ? `In der Klasse „${liga.voll}" sind keine Assistenten vorgesehen.`
+        : "";
+
+      $("ausfallHinweis").textContent = turnier
+        ? "Für Turniere ist die 50-Prozent-Regel nicht belegt – deshalb hier gesperrt."
+        : $("cbAusfall").checked
+          ? "50 % der Entschädigung. So steht es in der Finanzordnung des "
+            + "Landesverbands; ob der Stadtverband es genauso hält, ist nicht belegt."
+          : "";
+
+      $("ligaSchritt").classList.toggle("gedaempft", turnier);
+      $("ligaHinweis").textContent = turnier
+        ? "Für die Turnierpauschale spielt die Liga keine Rolle."
+        : liga.voll;
 
       $("plzHinweis").textContent = aufLandesebene
         ? "Auf Landesebene spielt die Tarifzone keine Rolle – dort gilt § 8 der "
@@ -578,60 +670,235 @@
       $("lblPlzA1").textContent = ichBinAssistent
         ? "Postleitzahl des Schiedsrichters" : "Postleitzahl Assistent 1";
 
+      /* "sitz" ist der feste Platz auf der Quittung, unabhängig von der
+         Reihenfolge im Array. Vorher hingen die von Hand eingetragenen
+         Beträge am Array-Index - stellte man die Funktion von
+         Schiedsrichter auf Assistent um, rutschte der eigene Betrag
+         sichtbar auf eine ANDERE Person. Gefunden im Review am
+         22.08.2026. */
       const personen = [];
       personen.push({
+        sitz: ichBinAssistent ? "a1" : "sr",
         rolle: ichBinAssistent ? "Assistent 1 (du)" : "Schiedsrichter (du)",
         satz: satz(ichBinAssistent), fahrt: fahrtkosten($("plz").value, true),
       });
       if ($("cbAss").checked) {
         if (ichBinAssistent) {
-          personen.unshift({ rolle: "Schiedsrichter", satz: satz(false), fahrt: fahrtkosten($("plzA1").value, false) });
-          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
+          personen.unshift({ sitz: "sr", rolle: "Schiedsrichter", satz: satz(false), fahrt: fahrtkosten($("plzA1").value, false) });
+          personen.push({ sitz: "a2", rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
         } else {
-          personen.push({ rolle: "Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value, false) });
-          personen.push({ rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
+          personen.push({ sitz: "a1", rolle: "Assistent 1", satz: satz(true), fahrt: fahrtkosten($("plzA1").value, false) });
+          personen.push({ sitz: "a2", rolle: "Assistent 2", satz: satz(true), fahrt: fahrtkosten($("plzA2").value, false) });
         }
       }
 
+      /* ---------- Quittung ----------
+         Jeder Betrag ist ein Eingabefeld. Was von Hand geändert wurde, merkt
+         sich "handEingaben" und überlebt jede Neuberechnung - sonst wäre die
+         Eingabe beim nächsten Tastendruck woanders wieder weg. Max,
+         21.08.2026: "gerade wenn du Assistenten hast, das noch bearbeiten
+         kannst und händisch noch eintragen kannst, wer was hat." */
       const koerper = $("qKoerper");
+      imNeuaufbau = true;
       koerper.innerHTML = "";
-      let gesamt = 0;
+      let sumSpesen = 0, sumFahrt = 0;
+
+      const wert = (schluessel, berechnet) =>
+        handEingaben.has(schluessel) ? handEingaben.get(schluessel).wert : berechnet;
+
       personen.forEach((p) => {
-        const summe = p.satz.betrag + p.fahrt.betrag;
-        gesamt += summe;
+        const kS = `${p.sitz}-spesen`, kF = `${p.sitz}-fahrt`;
+        /* Auf Cent runden, BEVOR summiert wird. Vorher zeigte jede Zeile
+           einen gerundeten Betrag, addiert wurde aber der ungerundete:
+           bei 48,5 km standen 16,97 + 55,00 da und darunter 71,98.
+           Auf einem Formular, das jemand abtippt und nachrechnet, ist
+           das genau die Zahl, die nicht stimmt. */
+        const betragS = cent(wert(kS, p.satz.betrag));
+        const betragF = cent(wert(kF, p.fahrt.betrag));
+        sumSpesen += betragS;
+        sumFahrt += betragF;
+
         const block = document.createElement("div");
         block.className = "person";
-        block.innerHTML = `
-          <div class="person-kopf">${p.rolle}</div>
-          <div class="q-zeile${p.fahrt.unsicher ? " unsicher" : ""}"><span>Fahrtkosten<span class="klein">${p.fahrt.text}</span></span><b>${euro(p.fahrt.betrag)}</b></div>
-          <div class="q-zeile${p.satz.unsicher ? " unsicher" : ""}"><span>Spesen<span class="klein">${p.satz.text}</span></span><b>${euro(p.satz.betrag)}</b></div>
-          <div class="q-zeile person-summe"><span>Summe</span><b>${euro(summe)}</b></div>`;
+
+        const zeile = (schluessel, titel, unter, betrag, unsicher) => {
+          const d = document.createElement("div");
+          d.className = "q-zeile" + (unsicher && !handEingaben.has(schluessel) ? " unsicher" : "");
+          const links = document.createElement("span");
+          links.textContent = titel;
+          const klein = document.createElement("span");
+          klein.className = "klein";
+          klein.textContent = handEingaben.has(schluessel) ? "von Hand geändert" : unter;
+          links.appendChild(klein);
+          const feld = document.createElement("input");
+          feld.className = "q-eingabe" + (handEingaben.has(schluessel) ? " geaendert" : "");
+          feld.inputMode = "decimal";
+          /* ---------------------------------------------------------
+             Im Feld steht GENAU das, was getippt wurde - nicht die neu
+             formatierte Zahl.
+
+             Vorher wurde bei jedem Tastendruck die ganze Quittung neu
+             aufgebaut und der formatierte Wert ins Feld zurückgeschrieben.
+             Wer "12,50" tippte, bekam 25,50 heraus: nach dem Komma war der
+             Zwischenstand kurz unlesbar, der Handeintrag flog raus, das
+             Feld wurde mit dem berechneten 25,00 überschrieben - und die
+             schon getippten Ziffern standen weiter davor. Aus demselben
+             Grund ließ sich das Feld nicht leeren.
+
+             Gefunden im Review am 22.08.2026, im Browser nachgestellt.
+             --------------------------------------------------------- */
+          feld.value = handEingaben.has(schluessel)
+            ? handEingaben.get(schluessel).roh
+            : betrag.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          feld.setAttribute("aria-label", `${titel} ${p.rolle} in Euro`);
+          feld.addEventListener("input", () => {
+            const roh = feld.value;
+            const z = zahl(roh);
+            /* Unlesbares und Leeres zählen als 0, statt den Eintrag zu
+               verwerfen. So bleibt stehen, was dasteht; die Summe darunter
+               folgt beim Weitertippen. */
+            handEingaben.set(schluessel, { roh, wert: z == null ? 0 : cent(z) });
+            neuRechnenOhneFokusverlust();
+          });
+          /* Beim Verlassen aufräumen: leeres Feld heißt "doch wieder der
+             berechnete Wert", ein krummer Eintrag wird sauber geschrieben
+             ("12,5" wird zu "12,50").
+
+             Die Abfrage auf "imNeuaufbau" ist der Kern der Sache. Beim
+             Neuaufbau der Quittung fliegt das alte Feld aus dem Dokument,
+             und Chrome feuert dabei ein blur - mitten im Tippen. Ohne
+             diese Abfrage schrieb sich das Feld nach jedem Zeichen selbst
+             neu: aus "12,50" wurde "25,50", weil der Zwischenstand
+             "12,,00" unlesbar war.
+
+             isConnected allein reichte NICHT: Chrome meldet beim blur
+             noch true und entfernt das Feld erst danach. Zeichen für
+             Zeichen im Browser gemessen (22.08.2026). */
+          feld.addEventListener("blur", () => {
+            if (imNeuaufbau || !feld.isConnected) return;
+            const eintrag = handEingaben.get(schluessel);
+            if (!eintrag) return;
+            if (!String(eintrag.roh).trim() || zahl(eintrag.roh) == null) {
+              handEingaben.delete(schluessel);
+            } else {
+              eintrag.roh = eintrag.wert.toLocaleString(
+                "de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            }
+            rechne();
+          });
+          /* Das Eurozeichen steht neben dem Feld, nicht darin - im Feld
+             müsste man es beim Tippen jedes Mal umschiffen. */
+          const rechts = document.createElement("span");
+          rechts.className = "q-eingabe-halter";
+          const zeichen = document.createElement("span");
+          zeichen.className = "q-euro";
+          zeichen.textContent = "€";
+          rechts.append(feld, zeichen);
+          d.append(links, rechts);
+          return d;
+        };
+
+        const kopf = document.createElement("div");
+        kopf.className = "person-kopf";
+        kopf.textContent = p.rolle;
+
+        block.append(
+          kopf,
+          zeile(kF, "Fahrtkosten", p.fahrt.text, betragF, p.fahrt.unsicher),
+          zeile(kS, "Spesen", p.satz.text, betragS, p.satz.unsicher),
+        );
+
+        /* Die Summe je Person nur, wenn es mehr als eine gibt.
+           Im Rendering am 22.08.2026 gesehen: Beim Schiedsrichter allein
+           standen unter zwei Betraegen vier Summenzeilen - "Summe",
+           "Spesen zusammen", "Fahrtkosten zusammen", "Gesamt" - und drei
+           davon zeigten denselben Wert. Mit Assistenten ist die Zeile
+           dagegen die wichtigste der Quittung: sie sagt, wer wie viel
+           bekommt. */
+        if (personen.length > 1) {
+          const summe = document.createElement("div");
+          summe.className = "q-zeile person-summe";
+          const sl = document.createElement("span"); sl.textContent = "Summe";
+          const sb = document.createElement("b"); sb.textContent = euro(betragS + betragF);
+          summe.append(sl, sb);
+          block.appendChild(summe);
+        }
+
         koerper.appendChild(block);
       });
+      imNeuaufbau = false;
 
+      $("qSpesen").textContent = euro(sumSpesen);
+      $("qFahrt").textContent = euro(sumFahrt);
+      const gesamt = cent(sumSpesen + sumFahrt);
       $("qGesamt").textContent = euro(gesamt);
+      /* Nur zeigen, wenn wirklich eine SICHTBARE Zeile geändert ist.
+         Sonst blieb der Hinweis nach einem Rollenwechsel stehen und
+         verwies auf einen Eintrag, den es auf der Quittung nicht mehr
+         gibt. */
+      $("qBearbeitetHinweis").hidden = !personen.some((p) =>
+        handEingaben.has(`${p.sitz}-spesen`) || handEingaben.has(`${p.sitz}-fahrt`));
+
       /* Wenn irgendeine Zeile unsicher ist, darf die Gesamtsumme nicht wie
          ein Endergebnis aussehen. Auf Landesebene fehlen z.B. die
-         Fahrtkosten der Assistenten - die kennt nur jeder für sich. */
-      const luecken = personen.some((p) => p.fahrt.unsicher || p.satz.unsicher);
+         Fahrtkosten der Assistenten - die kennt nur jeder für sich. Von Hand
+         eingetragene Zeilen gelten dagegen als geklärt. */
+      const luecken = personen.some((p) =>
+        (p.fahrt.unsicher && !handEingaben.has(`${p.sitz}-fahrt`)) ||
+        (p.satz.unsicher && !handEingaben.has(`${p.sitz}-spesen`)));
       $("qGesamtLabel").textContent = luecken ? "Gesamt, unvollständig" : "Gesamt";
       $("qGesamt").closest(".q-gesamt")?.classList.toggle("unvollstaendig", luecken);
+
       const ort = $("verein").value ? ` · ${$("verein").value}` : "";
-      $("qSub").textContent = (turnier ? "Turnier" : liga.kurz)
-        + ($("cbPokal").checked ? " · Pokal" : "")
-        + ($("cbFreund").checked ? " · Freundschaftsspiel" : "")
+      const artName = { meister: "Meisterschaft", pokal: "Pokal",
+                        freund: "Freundschaftsspiel", turnier: "Turnier" }[spielart];
+      $("qSub").textContent = (turnier ? "Turnier" : `${liga.kurz} · ${artName}`)
         + ($("cbAusfall").checked ? " · ausgefallen" : "")
         + (aufLandesebene ? " · Landesebene" : "") + ort;
     }
 
-    let zuletztGeklickt = null;
-    ["cbPokal", "cbFreund"].forEach((id) =>
-      $(id).addEventListener("click", () => { zuletztGeklickt = id; })
+    $("artFilter").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", () => {
+        if (!b.dataset.art) return;
+        $("artFilter").querySelectorAll("button")
+          .forEach((x) => x.setAttribute("aria-pressed", "false"));
+        b.setAttribute("aria-pressed", "true");
+        spielart = b.dataset.art;
+        /* Die Spielart ändert die Sätze - von Hand eingetragene Beträge
+           beziehen sich dann auf etwas anderes und würden still stehen
+           bleiben. Deshalb hier zurücksetzen. */
+        handEingaben.clear();
+        rechne();
+      })
     );
 
-    $("alter").addEventListener("change", baueLigen);
-    ["funktion", "plz", "plzA1", "plzA2", "stunden", "verein",
-     "cbAss", "cbPokal", "cbFreund", "cbTurnier", "cbAusfall",
+    $("qZuruecksetzen").addEventListener("click", () => {
+      handEingaben.clear();
+      rechne();
+    });
+
+    /* ------------------------------------------------------------------
+       Was von Hand eingetragen wurde, gilt für GENAU diese Konstellation.
+       Ändert sich, wie viel jemandem zusteht oder wer überhaupt auf der
+       Quittung steht, dann bezieht sich eine alte Eingabe auf etwas
+       anderes - sie bliebe still stehen und wäre schlicht falsch.
+
+       Deshalb: Altersklasse, Liga, Spielart, eigene Funktion, Assistenten
+       und Ausfall setzen die Handeinträge zurück. Postleitzahl,
+       Kilometer, Verein und Turnierdauer nicht - dort ist ein
+       überschriebener Betrag ja gerade die Absicht.
+       ------------------------------------------------------------------ */
+    function rechneMitZuruecksetzen() {
+      handEingaben.clear();
+      rechne();
+    }
+
+    // Die Liga hängt an baueLigen und setzt dort selbst zurück.
+    $("alter").addEventListener("change", () => { handEingaben.clear(); baueLigen(); });
+    ["funktion", "cbAss", "cbAusfall"].forEach((id) =>
+      $(id).addEventListener("change", rechneMitZuruecksetzen));
+
+    ["plz", "plzA1", "plzA2", "stunden", "verein",
      "anreise", "ticketBetrag", "km", "cbMitnahme"]
       .forEach((id) => $(id).addEventListener("input", rechne));
 

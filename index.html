@@ -27,9 +27,10 @@
 
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html" aria-current="page">Start</a>
-        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="regeluebersicht.html">Regeln</a>
         <a href="spesenrechner.html">Spesenrechner</a>
-        <a href="informationen.html">Informationen</a>
+        <a href="vorlagen.html">Vorlagen</a>
+        <a href="informationen.html">Unterlagen</a>
         <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
@@ -37,14 +38,24 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
 
-    <!-- ---------- Aufmacher ----------
-         Deutlich höher als vorher und mit einem Kicker über der Zeile.
-         Max, 21.08.2026: "mit großen Überschriften, mit großen
-         Schlagwörtern arbeiten". -->
+    <!-- ============================================================
+         Reihenfolge nach Max' Entscheidung vom 21.08.2026:
+         Aufmacher · Schiri werden · Probefrage · Werkzeugkasten · Termine.
+
+         Die Termine stehen bewusst GANZ UNTEN und nicht in der Mitte.
+         Max: "so dass man einmal bis nach ganz unten durchscrollen kann und
+         immer weiß, dass es ganz unten ist und nicht irgendwo in der Mitte."
+         Ein fester Platz am Ende ist leichter zu merken als ein guter Platz
+         in der Mitte.
+
+         Die Bildzeile "Was steht mir eigentlich zu?" ist entfallen - sie
+         beschrieb ein Werkzeug, das jetzt seinen eigenen Punkt in der
+         Navigation hat.
+         ============================================================ -->
+
     <section class="aufmacher">
       <div class="bildflaeche">
-        <img src="https://images.pexels.com/photos/47343/the-ball-stadion-horn-corner-47343.jpeg?auto=compress&cs=tinysrgb&w=1800"
-             alt="" loading="eager" />
+        <img data-bild="aufmacher" src="bilder/motiv-aufmacher.svg" alt="" loading="eager" />
       </div>
       <div class="aufmacher-text">
         <span class="kicker">Schiedsrichter · FV Löbtauer Kickers</span>
@@ -52,126 +63,33 @@
         <p>Neunzig Minuten, zweiundzwanzig Meinungen, eine Entscheidung.</p>
         <div class="aufmacher-knoepfe">
           <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
-          <a class="knopf-rand" href="informationen.html">Regeln nachschlagen</a>
+          <a class="knopf-rand" href="quiz.html#gast">Dein Fußballwissen testen</a>
         </div>
       </div>
     </section>
 
-    <!-- ---------- Bildgeführte Zeilen ----------
-         Ersetzen die Kachelreihe als Einstieg. Ein großes Foto neben
-         einer großen Überschrift trägt weiter als vier kleine Kästchen
-         nebeneinander - und sieht nicht nach Baukasten aus.
-
-         Alle Fotos zeigen bewusst KEINE erkennbaren Personen: die
-         Lizenzen von Pexels decken nur das Urheberrecht ab, nicht das
-         Recht am eigenen Bild. Register in bilder/QUELLEN.md. -->
-
+    <!-- "Schiri werden" ist aus der Navigationsleiste verschwunden (die ist
+         für unsere eigenen Schiedsrichter). Damit es trotzdem gefunden wird,
+         steht es hier gleich als erste Bildzeile. -->
     <section class="wechsel">
       <div class="wechsel-bild">
-        <div class="bildflaeche">
-          <img src="https://images.pexels.com/photos/6204479/pexels-photo-6204479.jpeg?auto=compress&cs=tinysrgb&w=1200"
-               alt="" loading="lazy" />
-        </div>
+        <div class="bildflaeche"><img data-bild="schiriWerden" src="bilder/motiv-regeln.svg" alt="" loading="lazy" /></div>
       </div>
       <div class="wechsel-text">
-        <span class="kicker">Nach dem Spiel</span>
-        <h2>Was steht mir eigentlich zu?</h2>
+        <span class="kicker">Ab 12 Jahren</span>
+        <h2>Steh mitten im Spiel, statt danebenzustehen</h2>
         <p>
-          Entschädigung und Fahrtkosten unterscheiden sich je nach Spielklasse –
-          und auf Landesebene gilt ein anderes Regelwerk als in der Stadt. Der
-          Rechner nimmt dir das ab und gibt es in der Form aus, die auf der
-          Quittung verlangt wird.
+          Sieben Abende Lehrgang, danach pfeifst du dein erstes Spiel – mit einem
+          erfahrenen Schiedsrichter als Paten an der Seite. Rund 25 € je Spiel,
+          Fahrtkosten dazu, die Kleidung übernimmt der Verein. Und mit dem Ausweis
+          kommst du zu jedem Spiel im DFB-Gebiet frei rein.
         </p>
-        <a class="knopf-dunkel" href="spesenrechner.html">Zum Spesenrechner</a>
+        <a class="knopf-dunkel" href="schiri-werden.html">So läuft der Einstieg</a>
       </div>
     </section>
 
-    <section class="wechsel gedreht">
-      <div class="wechsel-bild">
-        <div class="bildflaeche">
-          <img src="https://images.pexels.com/photos/46798/pexels-photo-46798.jpeg?auto=compress&cs=tinysrgb&w=1200"
-               alt="" loading="lazy" />
-        </div>
-      </div>
-      <div class="wechsel-text">
-        <span class="kicker">Vor dem Spiel</span>
-        <h2>Spielzeit, Feldmaß, Abseits – für jede Altersklasse</h2>
-        <p>
-          Bei den C-Junioren wird in Vierteln gespielt, bei den D-Junioren gibt es
-          keine Gelb-Rote Karte, und die Mittellinienregel liegt in Dresden anders
-          als in der Landesklasse. Alles filterbar, nach Ebene getrennt.
-        </p>
-        <a class="knopf-dunkel" href="regeluebersicht.html">Regeln auf einen Blick</a>
-      </div>
-    </section>
-
-    <!-- ---------- Kacheln ----------
-         Bleiben als kurzer Überblick, aber mit festem Seitenverhältnis
-         und größerer Schrift. Vorher war das Bild ein 118px-Streifen. -->
-    <section class="abschnitt">
-      <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
-      <div class="kachelraster">
-
-        <a class="bildkachel" href="quiz.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/17203165/pexels-photo-17203165.jpeg?auto=compress&cs=tinysrgb&w=800"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Regelquiz</h3>
-            <p>Jede Woche neue Fragen.</p>
-          </div>
-        </a>
-
-        <a class="bildkachel" href="vorlagen.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/47730/pexels-photo-47730.jpeg?auto=compress&cs=tinysrgb&w=800"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Absagen</h3>
-            <p>Fertige E-Mail, alle Pflichtangaben drin.</p>
-          </div>
-        </a>
-
-        <a class="bildkachel" href="informationen.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/30956958/pexels-photo-30956958.jpeg?auto=compress&cs=tinysrgb&w=800"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Dokumente</h3>
-            <p>Stadtverband und Landesverband an einer Stelle.</p>
-          </div>
-        </a>
-
-        <!-- Bekommt vorerst ebenfalls ein Foto. Der Platzhalter stand als
-             einziger dunkler Kasten neben drei Bildern und sah nach
-             Fehler aus statt nach Absicht (Max, 21.08.2026). Sobald ein
-             eigenes Foto der Trikots da ist, wird es hier getauscht -
-             steht als offener Punkt in bilder/QUELLEN.md. -->
-        <a class="bildkachel" href="informationen.html">
-          <div class="bildflaeche">
-            <img src="https://images.pexels.com/photos/9735384/pexels-photo-9735384.jpeg?auto=compress&cs=tinysrgb&w=800"
-                 alt="" loading="lazy" />
-          </div>
-          <div class="bildkachel-text">
-            <h3>Ausrüstung</h3>
-            <p>Trikots und Zubehör anfragen.</p>
-          </div>
-        </a>
-
-      </div>
-    </section>
-
-    <!-- ---------- Probefrage ----------
-         Ersetzt den Knopf "Fragen ausprobieren" (Max mochte ihn nicht:
-         er verspricht etwas, statt es zu zeigen).
-
-         Nachgebessert am 21.08.2026: Die Fragen kommen jetzt WÖRTLICH
-         aus dem eigenen Katalog, nicht mehr aus einer selbst gebauten.
-         Bei jedem Aufruf wird eine andere gezogen - wer wiederkommt,
-         sieht nicht dieselbe. -->
+    <!-- Probefrage: eine echte Frage aus dem eigenen Katalog. Siehe Skript
+         am Seitenende. -->
     <section class="band band-dunkel">
       <div class="band-zwei">
         <div class="band-text">
@@ -187,11 +105,6 @@
           <div class="marke" id="probe-regel">Regel</div>
           <p class="frage" id="probe-frage"></p>
           <div class="probe-optionen" id="probe-optionen" role="group" aria-labelledby="probe-frage"></div>
-          <!-- Kein "hidden": eine Live-Region, die beim Setzen des Textes nicht
-               im Barrierefreiheitsbaum steht, sagt bei manchen Vorleseprogrammen
-               gar nichts an. Deshalb bleibt sie dauerhaft im Dokument, wird nur
-               ausgeblendet - und der Text kommt erst NACH dem Einblenden rein.
-               Review 21.08.2026. -->
           <div class="probe-aufloesung leer" id="probe-aufloesung" role="status" aria-live="polite">
             <p id="probe-text" style="margin:0"></p>
             <a href="quiz.html#gast" id="probe-weiter">Weiter zum Gastzugang – über 40 Fragen →</a>
@@ -200,34 +113,62 @@
       </div>
     </section>
 
-    <!-- ---------- Termine ----------
-         WICHTIG (Max, 18.08.2026): Hier dürfen ausschließlich öffentliche
-         Termine stehen. Keine vereinsinternen Sachen, keine Geburtstage.
-         Beim späteren Anbinden an die Datenbank muss die Trennung
-         öffentlich/intern schon dort passieren - nicht als nachträglicher
-         Filter in der Anzeige, denn dabei rutscht irgendwann etwas durch. -->
+    <!-- Werkzeugkasten: nur noch das, was wir selbst gebaut haben. Die
+         Verbandsunterlagen haben ihren eigenen Punkt in der Leiste. -->
     <section class="abschnitt">
+      <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
+      <div class="kachelraster">
+
+        <a class="bildkachel" href="quiz.html">
+          <div class="bildflaeche"><img data-bild="quiz" src="bilder/motiv-quiz.svg" alt="" loading="lazy" /></div>
+          <div class="bildkachel-text">
+            <h3>Regelquiz</h3>
+            <p>Jede Woche neue Fragen.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="spesenrechner.html">
+          <div class="bildflaeche"><img data-bild="spesen" src="bilder/motiv-spesen.svg" alt="" loading="lazy" /></div>
+          <div class="bildkachel-text">
+            <h3>Spesenrechner</h3>
+            <p>Entschädigung und Fahrtkosten für dein Spiel.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="vorlagen.html">
+          <div class="bildflaeche"><img data-bild="vorlagen" src="bilder/motiv-absage.svg" alt="" loading="lazy" /></div>
+          <div class="bildkachel-text">
+            <h3>Absagen</h3>
+            <p>Fertige E-Mail, alle Pflichtangaben drin.</p>
+          </div>
+        </a>
+
+        <a class="bildkachel" href="informationen.html">
+          <div class="bildflaeche"><img data-bild="unterlagen" src="bilder/motiv-dokumente.svg" alt="" loading="lazy" /></div>
+          <div class="bildkachel-text">
+            <h3>Unterlagen</h3>
+            <p>Stadtverband und Landesverband an einer Stelle.</p>
+          </div>
+        </a>
+
+      </div>
+    </section>
+
+    <!-- ---------- Termine, ganz unten ----------
+         Kommen aus dem Schiri-Obmann-Dashboard. Gelesen wird ausschließlich
+         über die Datenbankfunktion "oeffentliche_termine", die nur
+         freigegebene, künftige Termine dieses Vereins zurückgibt - die
+         Tabelle selbst ist von außen nicht lesbar.
+
+         Der Abschnitt ist zu Beginn ausgeblendet und erscheint nur, wenn
+         wirklich Termine kommen. Ist die Datenbank nicht erreichbar, bleibt
+         die Startseite vollständig - sie zeigt dann eben keine Termine
+         statt einer Fehlermeldung. -->
+    <section class="abschnitt" id="termineAbschnitt" hidden>
       <div class="abschnitt-kopf">
         <h2>Nächste Termine</h2>
-        <a class="mehr" href="informationen.html">Alle Termine →</a>
       </div>
-      <div class="termine">
-        <div class="termin">
-          <div class="termin-datum"><span class="tag">25</span><span class="monat">Aug</span></div>
-          <div>
-            <div class="termin-was">Regellehrabend</div>
-            <div class="termin-wo">Sportpark Ostra · 19:00 Uhr</div>
-          </div>
-        </div>
-        <div class="termin">
-          <div class="termin-datum"><span class="tag">14</span><span class="monat">Sep</span></div>
-          <div>
-            <div class="termin-was">Neulingslehrgang SVF Dresden</div>
-            <div class="termin-wo">Anmeldung bis 07.09.</div>
-          </div>
-        </div>
-      </div>
-      <p class="abschnitt-hinweis" style="margin-top:12px">Beispieltermine.</p>
+      <div class="termine" id="termineListe"></div>
     </section>
 
   </main>
@@ -244,6 +185,98 @@
   </footer>
 
   <script type="module" src="seite.js"></script>
+
+  <script type="module">
+    /* ============================================================
+       Termine aus dem Schiri-Obmann-Dashboard.
+
+       Bewusst als eigenes, kleines Modul und nicht über die
+       Supabase-Bibliothek: ein einziger Aufruf braucht keine 60 KB
+       Fremdcode auf der Seite, die jeder zuerst öffnet.
+
+       Gelesen wird nur "oeffentliche_termine" - eine Funktion, die
+       ausschließlich freigegebene, künftige Termine dieses Vereins
+       zurückgibt. Die Tabelle selbst ist von außen nicht lesbar.
+
+       Schlägt irgendetwas fehl, passiert genau nichts: Der Abschnitt
+       bleibt ausgeblendet. Die Startseite darf nicht davon abhängen,
+       dass ein fremder Dienst antwortet.
+       ============================================================ */
+    import { VEREIN, DATENBANK } from "./verein.config.js";
+
+    const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
+
+    (async () => {
+      const abschnitt = document.getElementById("termineAbschnitt");
+      const liste = document.getElementById("termineListe");
+      if (!abschnitt || !liste || !VEREIN.seitenschluessel) return;
+
+      /* Das ganze Modul liegt in EINEM try/catch. Vorher lag nur der
+         fetch darin und das Aufbauen der Zeilen darunter - ein
+         unerwarteter Eintrag in der Antwort hätte dort einen
+         unbehandelten Fehler geworfen, entgegen der Zusage im
+         Kopfkommentar. Gefunden im Review am 22.08.2026. */
+      try {
+        const antwort = await fetch(
+          `${DATENBANK.adresse}/rest/v1/rpc/oeffentliche_termine`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              apikey: DATENBANK.oeffentlicherSchluessel,
+              Authorization: `Bearer ${DATENBANK.oeffentlicherSchluessel}`,
+            },
+            body: JSON.stringify({ p_seitenschluessel: VEREIN.seitenschluessel }),
+          }
+        );
+        if (!antwort.ok) return;
+
+        const termine = await antwort.json();
+        if (!Array.isArray(termine) || termine.length === 0) return;
+
+        termine.forEach((t) => {
+          if (!t || typeof t.titel !== "string" || !t.titel.trim()) return;
+          const d = new Date(String(t.datum) + "T12:00:00");
+          if (Number.isNaN(d.getTime())) return;
+
+          const zeile = document.createElement("div");
+          zeile.className = "termin";
+
+          const datum = document.createElement("div");
+          datum.className = "termin-datum";
+          const tag = document.createElement("span");
+          tag.className = "tag";
+          tag.textContent = String(d.getDate());
+          const monat = document.createElement("span");
+          monat.className = "monat";
+          monat.textContent = MONATE[d.getMonth()];
+          datum.append(tag, monat);
+
+          const rechts = document.createElement("div");
+          const was = document.createElement("div");
+          was.className = "termin-was";
+          was.textContent = t.titel;
+          rechts.appendChild(was);
+          if (t.beschreibung) {
+            const wo = document.createElement("div");
+            wo.className = "termin-wo";
+            wo.textContent = String(t.beschreibung);
+            rechts.appendChild(wo);
+          }
+
+          zeile.append(datum, rechts);
+          liste.appendChild(zeile);
+        });
+
+        if (liste.children.length > 0) abschnitt.hidden = false;
+      } catch (e) {
+        /* Kein Netz, unerwartete Antwort, irgendetwas: Der Abschnitt
+           bleibt ausgeblendet. Die Startseite darf nicht davon abhängen,
+           dass ein fremder Dienst antwortet. */
+      }
+    })();
+  </script>
+
   <script>
     /* ============================================================
        Probefrage.
@@ -253,11 +286,13 @@
        richtigen Fragen von meiner Webseite. Ich hätte schon gerne, dass
        auch die Fragen sind und nicht so generische Fragen."
 
-       Bewusst fest eingetragen und nicht live geladen: Die Startseite
-       hat KEINE Datenbankanbindung, und das soll so bleiben - sonst
-       hängt ausgerechnet die Seite, die jeder zuerst sieht, an einem
-       fremden Dienst. Es sind alles Fragen, bei denen die naheliegende
-       Antwort falsch ist; genau das ist hier der Zweck.
+       Bewusst fest eingetragen und nicht live geladen. Die Startseite
+       fragt seit dem 22.08.2026 zwar die Termine aus der Datenbank ab -
+       aber dieser Abschnitt hier darf nicht davon abhängen. Die Termine
+       verschwinden bei einer Störung stillschweigend; eine Probefrage,
+       die nur manchmal da ist, wäre ein Loch mitten auf der Seite.
+       Es sind alles Fragen, bei denen die naheliegende Antwort falsch
+       ist; genau das ist hier der Zweck.
        ============================================================ */
     const PROBEFRAGEN = [
       {

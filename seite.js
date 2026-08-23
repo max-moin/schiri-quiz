@@ -18,7 +18,7 @@
 //  leeren Fläche.
 // ============================================================
 
-import { VEREIN } from "./verein.config.js";
+import { VEREIN, BILDER } from "./verein.config.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -65,6 +65,30 @@ if (VEREIN.logo) {
   const symbol = document.querySelector('link[rel="icon"]');
   if (symbol) symbol.setAttribute("href", VEREIN.logo);
 }
+
+// ---------- Bilder: Foto nur, wenn es wirklich lädt ----------
+//
+// Das Ersatzmotiv steht seit dem 22.08.2026 direkt als "src" im HTML und
+// nicht mehr erst hier. Grund aus dem Review: Vorher hatten sechs <img>
+// gar kein src-Attribut. Ohne JavaScript - oder schon bei einem
+// Tippfehler in verein.config.js, die beide Module laden - waren alle
+// Bilder leer. Das widerspricht genau der Zusage im Kopf dieser Datei.
+//
+// Diese Schleife hat deshalb nur noch eine Aufgabe: das Motiv gegen ein
+// Foto tauschen, sobald das Foto nachweislich geladen ist. Am 21.08.2026
+// blieben Kacheln leer, weil geratene Foto-Adressen ins Leere zeigten -
+// so kann daraus höchstens noch "kein Foto" werden, nie "kein Bild".
+
+document.querySelectorAll("img[data-bild]").forEach((el) => {
+  const eintrag = BILDER[el.dataset.bild];
+  if (!eintrag) return;
+  // Ersatzmotiv nachtragen, falls im HTML doch keins steht.
+  if (!el.getAttribute("src") && eintrag.ersatz) el.src = eintrag.ersatz;
+  if (!eintrag.foto) return;
+  const probe = new Image();
+  probe.onload = () => { el.src = eintrag.foto; };
+  probe.src = eintrag.foto;
+});
 
 // ---------- Menü für schmale Bildschirme ----------
 

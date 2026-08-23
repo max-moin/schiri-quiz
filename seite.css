@@ -1,6 +1,6 @@
 /* ============================================================
-   Styles für die neuen Vereinsseiten (Startseite, Informationen,
-   Spesenrechner).
+   Styles für die Vereinsseiten: Startseite, Schiri werden, Regeln,
+   Spesenrechner, Vorlagen und Unterlagen.
 
    BEWUSST GETRENNT von style.css: Das Quiz läuft seit Wochen und wird
    von echten Schiedsrichtern benutzt. Eine gemeinsame Datei hieße, dass
@@ -244,6 +244,15 @@ select:focus-visible {
   margin: 6px 0 8px;
 }
 .seiten-unter { color: var(--muted); font-size: 1rem; margin: 0 0 30px; max-width: 60ch; line-height: 1.6; }
+/* Links im Vorspann sahen als blaue Standardlinks aus wie ein Fremdkoerper
+   im Layout (im Rendering am 22.08.2026 gesehen). Gleiche Sprache wie die
+   Links in der Probefrage: Markenfarbe, gruene Unterkante statt
+   Unterstreichung. */
+.seiten-unter a {
+  color: var(--marke-dunkel); font-weight: 600; text-decoration: none;
+  border-bottom: 2px solid var(--green); padding-bottom: 1px;
+}
+.seiten-unter a:hover { border-bottom-color: var(--marke-dunkel); }
 
 /* ---------- Bildflächen ----------
    Solange keine echten Fotos vorliegen, zeigen diese Flächen einen
@@ -588,7 +597,7 @@ body { overflow-x: hidden; }
   padding: 4px 9px; border-radius: 999px;
 }
 
-/* ---------- Listenzeilen (Informationen) ----------
+/* ---------- Listenzeilen (Unterlagen) ----------
    Ersetzt fünf identische Kachelraster. Wer auf dieser Seite landet,
    sucht ein bestimmtes Dokument - dafür sind schmale Zeilen mit
    gleichbleibender Titelposition schneller zu überfliegen als Karten,
@@ -860,6 +869,10 @@ body { overflow-x: hidden; }
   justify-content: space-between;
 }
 .aufruf-text h2 { margin: 0 0 6px; }
+/* Zwei Knoepfe nebeneinander, seit die Unterlagenseite auf beide
+   Verbandsseiten verweist (22.08.2026). Auf schmalen Geraeten brechen sie
+   um - sonst quetschen sich zwei 48-px-Knoepfe in eine Zeile von 320 px. */
+.aufruf-knoepfe { display: flex; gap: 10px; flex-wrap: wrap; }
 .knopf-weiss {
   background: #fff; color: var(--marke-dunkel);
   border: 0; border-radius: 999px;
@@ -1148,3 +1161,55 @@ body { overflow-x: hidden; }
 /* Ausgeblendete, aber im Dokument verbleibende Auflösung. "hidden" hätte
    sie aus dem Barrierefreiheitsbaum genommen - siehe Kommentar im Markup. */
 .probe-aufloesung.leer { display: none; }
+
+/* ---------- Spesenquittung: bearbeitbare Beträge ---------- */
+
+.q-eingabe {
+  width: 92px;
+  text-align: right;
+  font: inherit;
+  font-weight: 700;
+  font-size: .92rem;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: inherit;
+}
+.q-eingabe:hover { border-color: var(--border); }
+.q-eingabe:focus { border-color: var(--marke-hell); background: var(--card); outline: none; }
+.q-eingabe.geaendert { border-color: var(--karte-gelb); background: var(--karte-gelb-hell); }
+
+.q-summen { border-top: 1px solid var(--border); }
+.q-summen .q-zeile { font-weight: 600; }
+/* Gleiche Sprache wie die Personenueberschrift darueber (.person-kopf),
+   damit der Block als eigener Abschnitt gelesen wird und nicht als
+   Wiederholung der Zeilen davor. */
+.q-summen-kopf {
+  padding: 12px 16px 2px;
+  font-size: .72rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .07em;
+  color: var(--muted);
+}
+
+.linkknopf {
+  font: inherit; font-size: inherit; font-weight: 700;
+  background: none; border: 0; padding: 0;
+  color: var(--marke-dunkel); cursor: pointer;
+  text-decoration: underline;
+}
+
+/* Schritt, der gerade nichts zur Rechnung beiträgt (z. B. die Liga bei
+   einem Turnier). Nicht ausblenden - man soll sehen, dass es ihn gibt. */
+.schritt.gedaempft { opacity: .55; }
+.schritt-still { background: transparent; border-style: dashed; }
+
+.feldname {
+  display: block;
+  font-size: .82rem; font-weight: 600;
+  color: var(--marke-hell); margin-bottom: 7px;
+}
+.segment-breit { display: flex; flex-wrap: wrap; width: 100%; }
+.segment-breit button { flex: 1 1 auto; padding: 9px 14px; }
+.q-eingabe-halter { display: inline-flex; align-items: center; gap: 3px; flex: none; }
+.q-euro { font-weight: 700; font-size: .92rem; }

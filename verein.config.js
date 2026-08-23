@@ -30,6 +30,35 @@ export const VEREIN = {
   // Solange null, steht dort "[E-Mail eures Obmanns]".
   kontakt: { obmann: "Max M.", email: null },
 
+  // ============================================================
+  // Schlüssel für die Terminabfrage der Startseite.
+  //
+  // ACHTUNG, hier stand am 22.08.2026 kurzzeitig die Vereinskennung.
+  // Sie wird hier absichtlich NICHT genannt - auch ein Kommentar wird
+  // an jeden Besucher ausgeliefert. Das war ein Fehler, und zwar ein
+  // ernster: Die
+  // Vereinskennung ist im Quiz ein Zugangsgeheimnis. app.js verdeckt
+  // das Eingabefeld absichtlich ("irgendwo trotzdem ein Passwort"),
+  // und schiri_liste(p_kennung) gibt allein mit der Kennung, ohne PIN,
+  // die Namen aller Schiedsrichter des Vereins heraus - bei einem
+  // Einstiegsalter von 12 Jahren also auch die von Minderjährigen.
+  // Diese Datei wird von jedem Besucher der Startseite geladen.
+  //
+  // Deshalb gibt es jetzt einen zweiten, ausdrücklich öffentlichen
+  // Schlüssel (vereine.oeffentliche_kennung, Migration v84). Er öffnet
+  // nichts außer den freigegebenen Terminen.
+  //
+  // Die Vereinskennung gehört NIE in diese Datei.
+  // ============================================================
+  seitenschluessel: "loebtauer-kickers",
+
+  // Vorbelegung im Spesenrechner. Max, 21.08.2026: "Ich weiß auch nicht,
+  // warum standardmäßig die 01159 hinterlegt ist." Sie stand fest im HTML -
+  // 01159 ist Löbtau, also die Gegend des Vereins. Jetzt steht sie hier, wo
+  // ein anderer Verein sie ändern kann, ohne den Rechner anzufassen.
+  // Auf null setzen heißt: Feld bleibt leer.
+  standortPlz: "01159",
+
   links: {
     verein: null,
     stadtverband: "https://www.svf-dresden.de",
@@ -39,6 +68,23 @@ export const VEREIN = {
     stadtverbandDokumente: "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
     dfbnet: "https://www.dfbnet.org",
   },
+};
+
+// ============================================================
+//  Zugang zur Datenbank für den ÖFFENTLICHEN Teil
+// ============================================================
+//  Steht hier statt in index.html, weil diese Datei die einzige Stelle
+//  mit Vereinsspezifischem sein soll - ein zweiter Verein soll nichts
+//  anderes anfassen müssen.
+//
+//  Der Schlüssel ist ein "publishable key". Er ist dafür gemacht, im
+//  Browser zu stehen; der Schutz kommt aus den Rechten in der Datenbank,
+//  nicht aus seiner Geheimhaltung. Ein sb_secret_... oder ein
+//  service_role-Schlüssel hat hier NICHTS zu suchen - der Test in
+//  tests/api-sicherheit.test.js prüft das.
+export const DATENBANK = {
+  adresse: "https://ivwmixaicpmtvcjtnbjv.supabase.co",
+  oeffentlicherSchluessel: "sb_publishable_ceeSGcYMSSLSdAJgqbC8mQ_W93x2oq8",
 };
 
 // ============================================================
@@ -234,6 +280,59 @@ export const FAHRTKOSTEN = {
 // assistenten erhalten bei Spielausfall gleich aus welchem Grund 50 % der
 // Entschädigungspauschale."
 export const AUSFALL_ANTEIL = 0.5;
+
+// ============================================================
+//  Bilder - mit Rückfallebene
+// ============================================================
+//  Jedes Bild hat ZWEI Quellen: ein Foto und ein selbst gezeichnetes
+//  Ersatzmotiv. Lädt das Foto nicht, bleibt das Motiv stehen - statt einer
+//  leeren Fläche.
+//
+//  Der Grund (21.08.2026): Neun von zehn Foto-Adressen waren geraten und
+//  zeigten ins Leere. Aus der Arbeitsumgebung heraus lassen sich diese
+//  Adressen nicht prüfen. Das Ersatzmotiv macht einen solchen Fehler
+//  folgenlos - schlimmstenfalls sieht man das Vereinsmotiv.
+//
+//  Eigenes Foto einbauen: "foto" auf den eigenen Dateinamen setzen, z. B.
+//  "bilder/platz-abends.jpg". Sonst ändert sich nichts.
+// ============================================================
+
+// ------------------------------------------------------------------
+//  Warum die meisten "foto"-Felder auf null stehen (22.08.2026)
+//
+//  Max hat entschieden: "trotzdem stockfotos einbinden". Die Mechanik
+//  dafür steht - seite.js tauscht das Motiv gegen das Foto, sobald das
+//  Foto tatsächlich geladen ist.
+//
+//  Nur: Ich habe am 21.08.2026 schon einmal neun von zehn
+//  Pexels-Adressen GERATEN. Genau eine hat geladen, und Max' Rückmeldung
+//  war "bei der Seite fehlen zwar immer noch in manchen Kästchen die
+//  Bilder". Aus dieser Umgebung heraus komme ich an pexels.com nicht
+//  heran, kann die Adressen also nicht nachprüfen. Sie ein zweites Mal
+//  ungeprüft einzutragen hieße, denselben Fehler zu wiederholen - und
+//  wegen der Rückfallebene würde man ihn nicht einmal sehen.
+//
+//  Deshalb: null, bis die Datei wirklich vorliegt. Die Kandidaten stehen
+//  in bilder/QUELLEN.md.
+//
+//  Besser als eine Adresse ist ohnehin eine Datei in "bilder/": dann
+//  geht beim Aufruf der Seite keine Anfrage an einen fremden Server,
+//  und niemandes IP-Adresse wandert vor jeder Einwilligung nach außen.
+// ------------------------------------------------------------------
+export const BILDER = {
+  aufmacher: {
+    // Als einzige Adresse nachweislich geladen (im Rendering am
+    // 21.08.2026 gesehen) - sie war wörtlich aus einem Suchergebnis
+    // übernommen, nicht zusammengebaut.
+    foto: "https://images.pexels.com/photos/47343/the-ball-stadion-horn-corner-47343.jpeg?auto=compress&cs=tinysrgb&w=1800",
+    ersatz: "bilder/motiv-aufmacher.svg",
+  },
+  schiriWerden: { foto: null, ersatz: "bilder/motiv-regeln.svg" },
+  quiz:         { foto: null, ersatz: "bilder/motiv-quiz.svg" },
+  spesen:       { foto: null, ersatz: "bilder/motiv-spesen.svg" },
+  vorlagen:     { foto: null, ersatz: "bilder/motiv-absage.svg" },
+  unterlagen:   { foto: null, ersatz: "bilder/motiv-dokumente.svg" },
+};
 
 // ============================================================
 //  Vereine des Stadtverbands

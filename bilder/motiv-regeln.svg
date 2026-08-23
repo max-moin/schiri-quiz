@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivregeln" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivregeln" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivregeln"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivregeln)"/>
+<rect width="1200" height="900" fill="url(#smotivregeln)"/>
+<g clip-path="url(#cmotivregeln)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><rect x="120" y="150" width="960" height="600" rx="6"/><line x1="600" y1="150" x2="600" y2="750"/><circle cx="600" cy="450" r="120"/><path d="M120 300 h150 v300 H120"/><path d="M1080 300 h-150 v300 h150"/><path d="M120 375 h60 v150 h-60"/><path d="M1080 375 h-60 v150 h60"/><circle cx="600" cy="450" r="8" fill="#ffffff" stroke="none"/><path d="M120 180 a30 30 0 0 0 30-30"/><path d="M1080 180 a30 30 0 0 1-30-30"/><path d="M120 720 a30 30 0 0 1 30 30"/><path d="M1080 720 a30 30 0 0 0-30 30"/></g></svg>

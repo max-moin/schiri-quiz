@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivausruestung" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivausruestung" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivausruestung"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivausruestung)"/>
+<rect width="1200" height="900" fill="url(#smotivausruestung)"/>
+<g clip-path="url(#cmotivausruestung)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><circle cx="900" cy="250" r="200"/><path d="M0 560 h1200"/><g stroke="none"><rect x="220" y="250" width="211" height="340" rx="27" fill="#facc15" transform="rotate(-13 220 250)"/><rect x="336" y="304" width="211" height="340" rx="27" fill="#ef4444" transform="rotate(8 336 304)"/></g><defs><clipPath id="ballrund880640"><circle cx="880" cy="640" r="150"/></clipPath></defs><g opacity="1.0" stroke="none"><circle cx="880" cy="640" r="150" fill="#ffffff"/><polygon points="880.0,595.0 922.8,626.1 906.5,676.4 853.5,676.4 837.2,626.1" fill="#0a2418"/><polygon points="919.0,509.5 892.1,546.6 848.4,532.4 848.4,486.6 892.1,472.4" fill="#0a2418" clip-path="url(#ballrund880640)"/><polygon points="1016.2,636.8 972.6,622.6 972.6,576.7 1016.2,562.6 1043.1,599.7" fill="#0a2418" clip-path="url(#ballrund880640)"/><polygon points="925.2,768.5 925.2,722.7 968.8,708.5 995.7,745.6 968.8,782.7" fill="#0a2418" clip-path="url(#ballrund880640)"/><polygon points="771.7,722.7 815.3,708.5 842.3,745.6 815.3,782.7 771.7,768.5" fill="#0a2418" clip-path="url(#ballrund880640)"/><polygon points="767.9,562.6 794.9,599.7 767.9,636.8 724.3,622.6 724.3,576.7" fill="#0a2418" clip-path="url(#ballrund880640)"/></g><g stroke="#0a2418" stroke-width="7.5" opacity="1.0"><line x1="880.0" y1="595.0" x2="880.0" y2="548.5"/><line x1="922.8" y1="626.1" x2="967.0" y2="611.7"/><line x1="906.5" y1="676.4" x2="933.8" y2="714.0"/><line x1="853.5" y1="676.4" x2="826.2" y2="714.0"/><line x1="837.2" y1="626.1" x2="793.0" y2="611.7"/></g></g></svg>

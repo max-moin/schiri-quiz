@@ -25,13 +25,149 @@ test("die Browserbibliothek ist auf die geprüfte Version festgelegt", () => {
   assert.match(html, /integrity="sha384-[^"]+"/);
 });
 
-// Gegenprobe zum Umzug: Die öffentliche Startseite darf gar keine
-// Datenbank-Anbindung haben. Sonst wäre versehentlich Quiz-Code in den
-// offenen Bereich gerutscht.
-test("die Startseite bindet keine Datenbank-Bibliothek ein", () => {
+// Bis zum 21.08.2026 stand hier "die Startseite bindet keine
+// Datenbank-Bibliothek ein" - eine Gegenprobe zum Umzug des Quiz nach
+// quiz.html. Seit dem 22.08.2026 holt die Startseite die freigegebenen
+// Vereinstermine, also stimmt der Satz nicht mehr.
+//
+// Der Test wurde deshalb NICHT geloescht, sondern verschaerft. Die
+// Entscheidung war "genau ein Datenweg, und zwar lesend": die Startseite
+// darf die eine oeffentliche RPC rufen und sonst nichts. Ein blosses
+// Streichen des Tests haette genau die Luecke geoeffnet, die er bewachen
+// sollte - dass irgendwann Quiz-Code in den offenen Bereich rutscht.
+test("die Startseite spricht nur die eine öffentliche Termin-Funktion an", () => {
   const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
-  assert.doesNotMatch(html, /supabase/i);
-  assert.doesNotMatch(html, /config\.js/);
+
+  // Kein Quizbereich im offenen Teil: keine Supabase-Bibliothek, kein
+  // Client, nicht die Quiz-Konfiguration, nicht die Quiz-Anwendung.
+  assert.doesNotMatch(html, /@supabase\/supabase-js/);
+  assert.doesNotMatch(html, /createClient/);
+  assert.doesNotMatch(html, /["'/]config\.js/);
+  assert.doesNotMatch(html, /["'/]app\.js/);
+
+  // Ein geheimer Schluessel hat im Browser nichts zu suchen. Der
+  // veroeffentlichbare (sb_publishable_...) ist dagegen dafuer gemacht.
+  assert.doesNotMatch(html, /sb_secret_/);
+  assert.doesNotMatch(html, /service_role/);
+  assert.doesNotMatch(html, /eyJ[A-Za-z0-9_-]{20,}/); // alter JWT-Schluessel
+
+  // Und genau ein RPC-Aufruf, naemlich der lesende.
+  const rpcAufrufe = html.match(/\/rest\/v1\/rpc\/[a-z_]+/g) || [];
+  assert.deepEqual(rpcAufrufe, ["/rest/v1/rpc/oeffentliche_termine"]);
+
+  // Kein direkter Tabellenzugriff an der Funktion vorbei.
+  assert.doesNotMatch(html, /\/rest\/v1\/(?!rpc\/)/);
+});
+
+/* Kommentare wegwerfen, bevor geprueft wird.
+   Der Review am 22.08.2026 hat vorgefuehrt, warum: /security definer/
+   stand auch im Kopfkommentar der Migration. Nimmt man die Zeile aus dem
+   eigentlichen DDL heraus, bleibt der Test gruen - und bewacht nichts
+   mehr. Die Funktion liefe dann als "anon", RLS auf "termine" griffe,
+   sie gaebe immer null Zeilen zurueck, und weil der Abschnitt sich bei
+   leerem Ergebnis ohnehin versteckt, waere es niemandem aufgefallen. */
+const ohneKommentare = (sql) => sql.replace(/--[^\n]*/g, "");
+
+const migration = (datei) =>
+  ohneKommentare(
+    readFileSync(new URL(`../supabase/migrations/${datei}`, import.meta.url), "utf8")
+  );
+
+// Die Funktion selbst ist die eigentliche Absicherung: auf "termine" ist
+// RLS an und es gibt keine Policy, die Tabelle ist von aussen also
+// unlesbar. Alles haengt daran, dass diese eine Funktion nicht mehr
+// herausgibt als sie soll.
+test("die öffentliche Termin-Funktion gibt nur freigegebene Termine heraus", () => {
+  const sql = migration("20260822081500_v84_oeffentlicher_seitenschluessel.sql");
+
+  assert.match(sql, /security definer/i);
+  assert.match(sql, /set search_path to public/i);
+
+  // Die drei Bedingungen, ohne die interne, vergangene oder fremde
+  // Termine nach aussen kaemen.
+  assert.match(sql, /and t\.oeffentlich\b/);
+  assert.match(sql, /and t\.datum >= \(now\(\) at time zone 'Europe\/Berlin'\)::date/);
+  assert.match(sql, /where v\.oeffentliche_kennung = p_seitenschluessel/);
+
+  // Keine ausufernde Ausgabe und keine internen Spalten.
+  assert.match(sql, /limit 6\s*;/);
+  assert.match(sql, /select t\.titel, t\.datum, t\.beschreibung/);
+  assert.doesNotMatch(sql, /select\s+t\.\*/);
+
+  // Rechte: erst wegnehmen, dann gezielt geben - und niemals an public.
+  assert.match(
+    sql,
+    /revoke all on function public\.oeffentliche_termine\(text\) from public/
+  );
+  assert.match(
+    sql,
+    /grant execute on function public\.oeffentliche_termine\(text\) to anon, authenticated/
+  );
+  assert.doesNotMatch(sql, /grant execute[^;]*to public\b/i);
+});
+
+/* ------------------------------------------------------------------
+   Der wichtigste Test dieser Runde.
+
+   In der ersten Fassung vom 22.08.2026 stand die VEREINSKENNUNG in
+   verein.config.js, weil die Terminfunktion sie als Schluessel nahm.
+   Die Kennung ist aber ein Zugangsgeheimnis: app.js verdeckt das
+   Eingabefeld absichtlich, und schiri_liste(p_kennung) gibt allein mit
+   ihr, ohne PIN, die Namen aller Schiedsrichter des Vereins heraus -
+   bei einem Einstiegsalter von 12 Jahren also auch die von
+   Minderjaehrigen. verein.config.js laedt jeder Besucher der
+   Startseite.
+
+   Seit v84 gibt es dafuer einen eigenen, harmlosen Schluessel. Dieser
+   Test sorgt dafuer, dass die Kennung nicht wieder hineinrutscht.
+   ------------------------------------------------------------------ */
+test("die Vereinskennung steht in keiner öffentlichen Datei", () => {
+  const oeffentlich = [
+    "../verein.config.js",
+    "../seite.js",
+    "../index.html",
+    "../schiri-werden.html",
+    "../regeluebersicht.html",
+    "../spesenrechner.html",
+    "../vorlagen.html",
+    "../informationen.html",
+  ];
+
+  for (const datei of oeffentlich) {
+    const inhalt = readFileSync(new URL(datei, import.meta.url), "utf8");
+
+    /* Die Kennung selbst wird OHNE Kommentarfilter geprueft. Ein
+       Kommentar wird genauso an jeden Besucher ausgeliefert wie der
+       Code darunter - "steht ja nur im Kommentar" hilft niemandem.
+       (Beim Gegenlesen der ausgelieferten Dateien am 22.08.2026
+       aufgefallen: Der erklaerende Kommentar zur Behebung nannte die
+       Kennung im Klartext und veroeffentlichte damit genau das, was er
+       schuetzen sollte.) */
+    assert.doesNotMatch(inhalt, /\b456789\b/, `Vereinskennung steht in ${datei}`);
+
+    /* Der Feldname und der alte RPC-Parameter dagegen duerfen im
+       Kommentar erklaert werden - sie sind kein Geheimnis, nur ein
+       falscher Weg. Deshalb hier ohne Kommentare pruefen. */
+    const code = inhalt
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .replace(/(^|[^:])\/\/[^\n]*/g, "$1")
+      .replace(/<!--[\s\S]*?-->/g, "");
+    assert.doesNotMatch(code, /\bkennung\s*:/, `Feld "kennung" steht in ${datei}`);
+    assert.doesNotMatch(code, /p_kennung/, `p_kennung wird in ${datei} benutzt`);
+  }
+});
+
+// Ohne diesen Schalter haette die Freigabe keine Wirkung - und ein
+// "default true" haette rueckwirkend jeden bestehenden Termin
+// veroeffentlicht.
+test("der Freigabeschalter für Termine ist standardmäßig aus", () => {
+  const sql = migration("20260822074620_v82_termine_oeffentlich.sql");
+
+  assert.match(
+    sql,
+    /add column if not exists oeffentlich boolean not null default false/
+  );
+  assert.doesNotMatch(sql, /default true/i);
 });
 
 test("API-Fehler geben keine internen Details an den Browser", () => {

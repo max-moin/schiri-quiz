@@ -43,9 +43,20 @@ SwiftUI-App des Obmanns
 
 ## Projektstruktur
 
+Seit dem Umbau zur Vereinsseite (August 2026) gibt es zwei getrennte
+Bereiche, die sich keine Dateien teilen: den **offenen Teil** (Startseite,
+Schiri werden, Regeln, Spesenrechner, Vorlagen, Unterlagen) und das
+**Quiz** hinter der Anmeldung. Das ist Absicht – das Quiz läuft im
+Echtbetrieb, und eine Änderung an der Vereinsseite soll es nicht anfassen
+können.
+
 | Pfad | Zweck |
 |---|---|
-| `index.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
+| `index.html` | öffentliche Startseite des Vereins |
+| `schiri-werden.html`, `regeluebersicht.html`, `spesenrechner.html`, `vorlagen.html`, `informationen.html` | die übrigen offenen Seiten; `informationen.html` heißt in der Navigation „Unterlagen" |
+| `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
+| `bilder/` | Wappen und die selbst gezeichneten Motive; `bilder/QUELLEN.md` hält fest, woher welches Bild stammt |
+| `quiz.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
 | `src/quiz-utils.js` | erste ausgelagerte, unabhängig testbare Browser-Hilfsfunktionen |
 | `api/` | serverseitige KI-Bewertung und Erklärungen |
 | `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
@@ -83,7 +94,7 @@ Benötigt wird Node.js 22 oder neuer. Es gibt keine zu installierenden Laufzeita
 npm run check
 ```
 
-Der Befehl prüft die JavaScript-Syntax und führt aktuell 28 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+Der Befehl prüft die JavaScript-Syntax und führt aktuell 32 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
 
 ## Konfiguration
 

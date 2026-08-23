@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivspesen" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivspesen" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivspesen"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivspesen)"/>
+<rect width="1200" height="900" fill="url(#smotivspesen)"/>
+<g clip-path="url(#cmotivspesen)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><path d="M1200 120 H420 v660 h780"/><path d="M1200 330 H640 v240 h560"/><circle cx="760" cy="450" r="9" fill="#ffffff" stroke="none"/><path d="M420 300 a190 190 0 0 0 0 300"/><g stroke="none"><rect x="180" y="300" width="186" height="300" rx="24" fill="#facc15" transform="rotate(-13 180 300)"/><rect x="282" y="348" width="186" height="300" rx="24" fill="#ef4444" transform="rotate(8 282 348)"/></g></g></svg>

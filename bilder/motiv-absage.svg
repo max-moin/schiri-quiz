@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivabsage" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivabsage" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivabsage"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivabsage)"/>
+<rect width="1200" height="900" fill="url(#smotivabsage)"/>
+<g clip-path="url(#cmotivabsage)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><path d="M170 900 V210"/><path d="M170 210 l190 66 -190 66" fill="#ffffff" fill-opacity=".55" stroke="none"/><path d="M330 900 a520 520 0 0 1 520-520"/><path d="M1200 640 H820 v260"/></g></svg>

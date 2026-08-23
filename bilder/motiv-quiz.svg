@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivquiz" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivquiz" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivquiz"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivquiz)"/>
+<rect width="1200" height="900" fill="url(#smotivquiz)"/>
+<g clip-path="url(#cmotivquiz)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><circle cx="300" cy="700" r="260"/><line x1="0" y1="240" x2="1200" y2="240"/><defs><clipPath id="ballrund820380"><circle cx="820" cy="380" r="220"/></clipPath></defs><g opacity="1.0" stroke="none"><circle cx="820" cy="380" r="220" fill="#ffffff"/><polygon points="820.0,314.0 882.8,359.6 858.8,433.4 781.2,433.4 757.2,359.6" fill="#0a2418"/><polygon points="877.2,188.6 837.7,243.0 773.7,222.2 773.7,155.0 837.7,134.2" fill="#0a2418" clip-path="url(#ballrund820380)"/><polygon points="1019.7,375.3 955.8,354.5 955.8,287.2 1019.7,266.5 1059.2,320.9" fill="#0a2418" clip-path="url(#ballrund820380)"/><polygon points="886.2,568.5 886.2,501.2 950.2,480.4 989.7,534.8 950.2,589.2" fill="#0a2418" clip-path="url(#ballrund820380)"/><polygon points="661.2,501.2 725.2,480.4 764.7,534.8 725.2,589.2 661.2,568.5" fill="#0a2418" clip-path="url(#ballrund820380)"/><polygon points="655.6,266.5 695.2,320.9 655.6,375.3 591.7,354.5 591.7,287.2" fill="#0a2418" clip-path="url(#ballrund820380)"/></g><g stroke="#0a2418" stroke-width="11.0" opacity="1.0"><line x1="820.0" y1="314.0" x2="820.0" y2="245.8"/><line x1="882.8" y1="359.6" x2="947.6" y2="338.5"/><line x1="858.8" y1="433.4" x2="898.9" y2="488.6"/><line x1="781.2" y1="433.4" x2="741.1" y2="488.6"/><line x1="757.2" y1="359.6" x2="692.4" y2="338.5"/></g></g></svg>

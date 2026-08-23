@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-hidden="true">
+<defs>
+  <linearGradient id="gmotivdokumente" x1="0" y1="0" x2=".35" y2="1">
+    <stop offset="0%" stop-color="#14532d"/><stop offset="55%" stop-color="#0f3d23"/><stop offset="100%" stop-color="#0a2418"/>
+  </linearGradient>
+  <pattern id="smotivdokumente" width="133.3" height="900" patternUnits="userSpaceOnUse">
+    <rect width="66.7" height="900" fill="#ffffff" opacity=".025"/>
+  </pattern>
+  <clipPath id="cmotivdokumente"><rect width="1200" height="900"/></clipPath>
+</defs>
+<rect width="1200" height="900" fill="url(#gmotivdokumente)"/>
+<rect width="1200" height="900" fill="url(#smotivdokumente)"/>
+<g clip-path="url(#cmotivdokumente)" fill="none" stroke="#ffffff" stroke-opacity=".30" stroke-width="3"><g stroke="none"><rect x="250" y="180" width="620" height="560" rx="16" fill="#ffffff" opacity=".10" transform="rotate(-7 560 460)"/><rect x="310" y="200" width="620" height="560" rx="16" fill="#ffffff" opacity=".16" transform="rotate(3 620 480)"/></g><g stroke="#ffffff" stroke-opacity=".38" stroke-width="10" stroke-linecap="round"><line x1="400" y1="330" x2="800" y2="352"/><line x1="396" y1="420" x2="760" y2="440"/><line x1="392" y1="510" x2="820" y2="533"/><line x1="388" y1="600" x2="700" y2="616"/></g></g></svg>

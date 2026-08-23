@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Informationen – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Regeln zum Nachschlagen, Vorlagen und Dokumente des Stadtverbands Fußball Dresden – sortiert danach, wann man sie braucht." />
+  <title>Unterlagen – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Die Dokumente des Stadtverbands Fußball Dresden und des Sächsischen Fußball-Verbands – sortiert danach, wann man sie braucht." />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -25,9 +25,10 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html">Start</a>
-        <a href="schiri-werden.html">Schiri werden</a>
+        <a href="regeluebersicht.html">Regeln</a>
         <a href="spesenrechner.html">Spesenrechner</a>
-        <a href="informationen.html" aria-current="page">Informationen</a>
+        <a href="vorlagen.html">Vorlagen</a>
+        <a href="informationen.html" aria-current="page">Unterlagen</a>
         <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
@@ -35,12 +36,26 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
 
-    <span class="kicker">Nachschlagen</span>
-    <h1 class="seiten-titel">Informationen</h1>
+    <span class="kicker">Von den Verbänden</span>
+    <h1 class="seiten-titel">Unterlagen</h1>
     <p class="seiten-unter">
-      Sortiert danach, wann du es brauchst – nicht danach, wie das Dokument heißt.
-      Der farbige Strich links zeigt die Herkunft: grün von uns, blau vom
-      Stadtverband, violett vom Landesverband.
+      Alles, was Stadtverband und Landesverband herausgeben – sortiert danach,
+      wann du es brauchst, nicht danach, wie das Dokument heißt. Der farbige
+      Strich links zeigt, wer dafür geradesteht: blau der Stadtverband Dresden,
+      violett der Sächsische Fußball-Verband.
+    </p>
+    <!-- Entscheidung vom 22.08.2026 (Vorschlag A): Die eigenen Werkzeuge -
+         Regeln, Spesenrechner, Vorlagen, Quiz - stehen jetzt einzeln in der
+         Navigationsleiste und nicht mehr zwischen den Verbandsdokumenten.
+         Max: "Das sind ja die eigenen Sachen. Das, was extern ist, das
+         vielleicht so, wie es jetzt aufbereitet ist." Der Satz hier bleibt
+         als Wegweiser stehen, weil jemand diese Seite verlinkt haben
+         koennte, um den Spesenrechner zu finden. -->
+    <p class="seiten-unter" style="margin-top:-10px">
+      Unsere eigenen Sachen – <a href="regeluebersicht.html">Regeln auf einen Blick</a>,
+      <a href="spesenrechner.html">Spesenrechner</a>,
+      <a href="vorlagen.html">Vorlagen</a> und das
+      <a href="quiz.html">Regelquiz</a> – findest du oben in der Leiste.
     </p>
 
     <!-- ============================================================
@@ -64,7 +79,7 @@
     <div class="werkzeugleiste">
       <div class="suchzeile">
         <label class="nur-vorlesen" for="dokSuche">Dokumente durchsuchen</label>
-        <input id="dokSuche" type="search" placeholder="Suchen, z. B. „Absage&quot; oder „Spielbericht&quot; …" />
+        <input id="dokSuche" type="search" placeholder="Suchen, z. B. „Spielbericht&quot; oder „Finanzordnung&quot; …" />
       </div>
       <div class="filterleiste" id="anlassFilter" role="group" aria-label="Nach Anlass filtern"></div>
     </div>
@@ -82,14 +97,17 @@
         <div class="aufruf-text">
           <h2>Was hier nicht steht</h2>
           <p style="max-width:56ch">
-            Anweisungen für Schiedsrichter und Beobachter, Qualifikations­richtlinie,
-            Handreichungen für C- und D-Junioren, Umgang mit Diskriminierung und
-            Gewalt, Mitteilungsblätter, Quittungsformulare – alles, was man einmal
-            im Jahr braucht, liegt beim Stadtverband.
+            Anweisungen an Schiedsrichter, Beobachter und Paten, Mitteilungs­blätter,
+            Staffeleinteilungen, Satzung und Ordnungen – alles, was man höchstens
+            einmal im Jahr aufschlägt, liegt vollständig bei den Verbänden.
           </p>
         </div>
-        <a class="knopf-weiss" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
-           target="_blank" rel="noopener noreferrer">Alle Dokumente des SVFD ↗</a>
+        <div class="aufruf-knoepfe">
+          <a class="knopf-weiss" href="https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/"
+             target="_blank" rel="noopener noreferrer">Dokumente des SVFD ↗</a>
+          <a class="knopf-weiss" href="https://www.sfv-online.de/vereinsservice/downloads"
+             target="_blank" rel="noopener noreferrer">Downloads des SFV ↗</a>
+        </div>
       </div>
     </section>
 
@@ -130,15 +148,22 @@
        Stadtverband und der Landesverband widersprechen sich an mehreren
        Stellen, und dann hängt alles daran, welches Dokument gilt. */
     const HERKUNFT = {
+      /* "hier" steht seit dem 22.08.2026 in keiner Zeile mehr - die eigenen
+         Werkzeuge sind aus dieser Liste heraus. Der Eintrag bleibt trotzdem
+         stehen: sonst faellt ein spaeter ergaenztes q:"hier" stillschweigend
+         auf "Stadtverband" zurueck und traegt ein falsches Schild. */
       hier:  { text: "Bei uns",       klasse: "abz-hier",   symbol: "hier",   extern: false },
       svfd:  { text: "Stadtverband",  klasse: "abz-extern", symbol: "extern", extern: true },
       sfv:   { text: "Landesverband", klasse: "abz-land",   symbol: "land",   extern: true },
     };
 
+    /* Die Gruppe "Wenn du absagen musst" ist weggefallen: darin standen nur
+       unsere beiden eigenen Vorlagen, und die haben jetzt einen eigenen
+       Punkt in der Navigation. Ein Filterknopf, der auf eine leere Liste
+       fuehrt, waere schlechter als gar keiner. */
     const GRUPPEN = [
       { id: "vor",    titel: "Vor dem Spiel",        kurz: "Vor dem Spiel" },
       { id: "nach",   titel: "Nach dem Spiel",       kurz: "Nach dem Spiel" },
-      { id: "absage", titel: "Wenn du absagen musst", kurz: "Absagen" },
       { id: "lernen", titel: "Zum Lernen",           kurz: "Lernen" },
       /* Eigene Gruppe, weil man in genau dieser Lage nicht suchen will
          (21.08.2026). Grundlage sind die Handlungsempfehlungen des SFV. */
@@ -146,9 +171,6 @@
     ];
 
     const DOKUMENTE = [
-      { g: "vor", titel: "Regeln auf einen Blick",
-        sub: "Spielzeit, Spielfeld, Spieleranzahl, Wechsler und Abbruchtemperatur – für jede Altersklasse.",
-        href: "regeluebersicht.html", q: "hier" },
       { g: "vor", titel: "Kurzübersicht Regeln des Stadtverbands",
         sub: "Das Original zu unserer Tabelle. Weiterhin die Fassung von 2024 – für "
            + "C- und D-Junioren gilt die Handreichung darüber.",
@@ -165,9 +187,6 @@
         sub: "Was vor dem Anpfiff kontrolliert wird und was bei Unstimmigkeiten gilt.",
         href: SVFD_DOKS, q: "svfd" },
 
-      { g: "nach", titel: "Spesenrechner",
-        sub: "Entschädigung und Fahrtkosten ausrechnen, aufgeteilt wie auf der offiziellen Quittung.",
-        href: "spesenrechner.html", q: "hier" },
       { g: "nach", titel: "Wiedereinwechslungen eintragen",
         sub: "Klickanleitung für den Spielbericht – wo genau man was einträgt.",
         href: SVFD_DOKS, q: "svfd" },
@@ -175,16 +194,6 @@
         sub: "Das Originalformular des Stadtverbands zum Ausdrucken.",
         href: SVFD_DOKS, q: "svfd" },
 
-      { g: "absage", titel: "Spielabsage",
-        sub: "Fertige E-Mail mit allen Angaben, die der Stadtverband verlangt – Spielkennung, Datum, Begegnung, Funktion, Begründung.",
-        href: "vorlagen.html#spiel", q: "hier" },
-      { g: "absage", titel: "Regellehrabend absagen",
-        sub: "Kurze Vorlage für den Fall, dass du beim Pflichtabend nicht kannst.",
-        href: "vorlagen.html#lehrabend", q: "hier" },
-
-      { g: "lernen", titel: "Regelquiz",
-        sub: "Jede Woche neue Fragen, dazu ein Übungsbereich mit allen bisherigen.",
-        href: "quiz.html", q: "hier" },
       /* Max' offene Frage seit dem 18.08.2026 - der Link steht jetzt drin
          statt eines Verweises auf die Sammelseite. Auf der Seite liegen die
          Fragen, die Lösungen und die Antwortvorlage als Tabelle. */
