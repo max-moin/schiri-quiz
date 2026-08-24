@@ -1659,15 +1659,48 @@ let youtubeApiPromise = null;
 function ladeYoutubeApi() {
   if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
   if (youtubeApiPromise) return youtubeApiPromise;
-  youtubeApiPromise = new Promise((resolve) => {
+  youtubeApiPromise = new Promise((resolve, reject) => {
+    let abgeschlossen = false;
+    const apiZeitlimit = window.setTimeout(() => {
+      if (abgeschlossen) return;
+      abgeschlossen = true;
+      youtubeApiPromise = null;
+      const altesScript = document.getElementById("youtube-iframe-api");
+      if (altesScript) altesScript.remove();
+      reject(new Error("YouTube hat nicht rechtzeitig geantwortet."));
+    }, 12000);
+
+    function erfolgreich() {
+      if (abgeschlossen) return;
+      abgeschlossen = true;
+      window.clearTimeout(apiZeitlimit);
+      resolve(window.YT);
+    }
+
+    function fehlgeschlagen() {
+      if (abgeschlossen) return;
+      abgeschlossen = true;
+      window.clearTimeout(apiZeitlimit);
+      youtubeApiPromise = null;
+      const altesScript = document.getElementById("youtube-iframe-api");
+      if (altesScript) altesScript.remove();
+      reject(new Error("Die YouTube-Schnittstelle konnte nicht geladen werden."));
+    }
+
     const vorherigerHandler = window.onYouTubeIframeAPIReady;
     window.onYouTubeIframeAPIReady = () => {
       if (typeof vorherigerHandler === "function") vorherigerHandler();
-      resolve(window.YT);
+      erfolgreich();
     };
-    const script = document.createElement("script");
-    script.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(script);
+
+    let script = document.getElementById("youtube-iframe-api");
+    if (!script) {
+      script = document.createElement("script");
+      script.id = "youtube-iframe-api";
+      script.src = "https://www.youtube.com/iframe_api";
+      document.head.appendChild(script);
+    }
+    script.addEventListener("error", fehlgeschlagen, { once: true });
   });
   return youtubeApiPromise;
 }
@@ -1683,28 +1716,40 @@ function ladeYoutubeApi() {
 // als ein "orientationchange"-Event-Listener.
 let aktuellerGrossSpielerWrap = null;
 let aktuellerGrossSpielerRueckgabeStelle = null;
+let letzterVideoGrossTrigger = null;
 
 function schliesseVideoGrossansicht() {
   const overlay = document.getElementById("video-gross-overlay");
   const halter = document.getElementById("video-gross-spieler-halter");
   if (!overlay || !halter) return;
   if (aktuellerGrossSpielerWrap && aktuellerGrossSpielerRueckgabeStelle && halter.firstChild) {
+    aktuellerGrossSpielerWrap.classList.remove("ist-gross");
     aktuellerGrossSpielerRueckgabeStelle.appendChild(halter.firstChild);
   }
   overlay.hidden = true;
+  document.body.classList.remove("video-dialog-offen");
   aktuellerGrossSpielerWrap = null;
   aktuellerGrossSpielerRueckgabeStelle = null;
+  if (letzterVideoGrossTrigger && document.contains(letzterVideoGrossTrigger)) {
+    letzterVideoGrossTrigger.focus();
+  }
+  letzterVideoGrossTrigger = null;
 }
 
-function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle) {
+function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle, ausloeser) {
   const overlay = document.getElementById("video-gross-overlay");
   const halter = document.getElementById("video-gross-spieler-halter");
   if (!overlay || !halter) return;
   halter.innerHTML = "";
   halter.appendChild(spielerElement);
+  spielerElement.classList.add("ist-gross");
   aktuellerGrossSpielerWrap = spielerElement;
   aktuellerGrossSpielerRueckgabeStelle = rueckgabeStelle;
+  letzterVideoGrossTrigger = ausloeser || document.activeElement;
   overlay.hidden = false;
+  document.body.classList.add("video-dialog-offen");
+  const schliessenButton = document.getElementById("video-gross-schliessen-button");
+  if (schliessenButton) schliessenButton.focus();
 }
 
 (function initVideoGrossansichtOverlay() {
@@ -1741,12 +1786,13 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
   // angeschaut", nicht "habe ich es bis zum Ende geschaut".
   let bereitsAngesehen = false;
 
-  function baueUndZeigePlatzhalter() {
+  function baueUndZeigePlatzhalter(fehlerNachricht = "") {
     wrap.innerHTML = "";
 
     const platzhalter = document.createElement("button");
     platzhalter.type = "button";
     platzhalter.className = "video-platzhalter" + (bereitsAngesehen ? " video-platzhalter-angesehen" : "");
+    if (fehlerNachricht) platzhalter.classList.add("video-platzhalter-fehler");
 
     if (bereitsAngesehen) {
       const badge = document.createElement("span");
@@ -1762,14 +1808,18 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
 
     const text = document.createElement("span");
     text.className = "video-platzhalter-text";
-    text.textContent = bereitsAngesehen ? "Video nochmal ansehen" : "Video laden und ansehen";
+    text.textContent = fehlerNachricht
+      ? "Video erneut laden"
+      : bereitsAngesehen
+        ? "Video nochmal ansehen"
+        : "Video laden und ansehen";
     platzhalter.appendChild(text);
 
     const hinweis = document.createElement("span");
     hinweis.className = "video-platzhalter-hinweis";
-    hinweis.textContent = stumm
+    hinweis.textContent = fehlerNachricht || (stumm
       ? "Lädt erst nach Klick von YouTube - ohne Ton, damit kein Kommentator die Antwort verrät."
-      : "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.";
+      : "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.");
     platzhalter.appendChild(hinweis);
 
     platzhalter.addEventListener("click", () => {
@@ -1786,31 +1836,16 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         const spielerZiel = document.createElement("div");
         spielerHalter.appendChild(spielerZiel);
 
-        // Eigener Pause/Play-Button (12.07.2026, Nachbesserung Runde 2) -
-        // lebt bewusst INNERHALB von "spielerHalter", nicht in "wrap": beim
-        // "Groß ansehen" wandert "spielerHalter" per DOM-Move ins Overlay,
-        // der Button wandert automatisch mit, ohne eigene Verdrahtung dafür.
-        // Klickfänger über dem gesamten Player (07.08.2026, Max' Test mit
-        // seinem Neffen): der hat zum Vergrößern instinktiv auf das
-        // YouTube-Logo im Video geklickt statt auf unseren kleinen
-        // "Groß ansehen"-Knopf darunter - und landete damit auf YouTube.
-        //
-        // Diese transparente Fläche liegt über dem iframe und schluckt JEDEN
-        // Klick aufs Video. Statt YouTubes eigener Bedienelemente (Logo,
-        // "Später ansehen", "Teilen", Titel-Link) öffnet ein Klick jetzt
-        // unsere Großansicht - also genau das, was der Nutzer ohnehin wollte.
-        // Nebeneffekt: die restlichen YouTube-Overlays sind damit gar nicht
-        // mehr erreichbar, auch wenn sie sichtbar bleiben.
-        //
-        // Der eigene Pause/Play-Knopf liegt bewusst DARÜBER (höherer
-        // z-index), sonst würde der Klickfänger auch ihn schlucken.
-        const klickFaenger = document.createElement("button");
-        klickFaenger.type = "button";
-        klickFaenger.className = "video-klickfaenger";
-        klickFaenger.setAttribute("aria-label", "Video groß ansehen");
-        klickFaenger.title = "Groß ansehen";
-        spielerHalter.appendChild(klickFaenger);
+        // Die Bedienung liegt bewusst UNTER dem YouTube-Player. YouTube
+        // untersagt transparente Klickfänger oder andere Overlays vor einem
+        // eingebetteten Player. Play/Pause und Vergrößern bleiben trotzdem
+        // als klar beschriftete eigene Knöpfe erreichbar.
+        const spielerBuehne = document.createElement("div");
+        spielerBuehne.className = "video-spieler-buehne";
+        spielerBuehne.appendChild(spielerHalter);
 
+        const bedienleiste = document.createElement("div");
+        bedienleiste.className = "video-bedienleiste";
         const abspielButton = document.createElement("button");
         abspielButton.type = "button";
         abspielButton.className = "video-abspiel-button";
@@ -1819,69 +1854,52 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
         /// Rutsch. Vorher wurde das an drei Stellen einzeln gemacht, wodurch
         /// Zeichen und Beschriftung auseinanderlaufen konnten.
         function setzeAbspielKnopf(laeuft) {
-          abspielButton.textContent = laeuft ? "❚❚" : "▶";
+          abspielButton.textContent = laeuft ? "❚❚ Pausieren" : "▶ Abspielen";
           abspielButton.classList.toggle("laeuft", laeuft);
           const text = laeuft ? "Video anhalten" : "Video abspielen";
           abspielButton.setAttribute("aria-label", text);
           abspielButton.title = text;
         }
-        // Startzustand: WIEDERGABE (10.08.2026, Max' Meldung "der Button
-        // zeigt Pause an, obwohl das Video noch gar nicht gestartet ist").
-        // Der Knopf wurde fest mit dem Pause-Zeichen angelegt, weil der
-        // Player mit "autoplay: 1" gebaut wird - auf dem Handy greift
-        // Autoplay aber häufig nicht (iOS blockiert Wiedergabe ohne
-        // direkte Nutzergeste), sodass der Knopf ohne laufendes Video
-        // Pause anzeigte. Der tatsächliche Zustand wird ohnehin in
-        // "onStateChange" nachgeführt - der Startwert muss also nur den
-        // wahrscheinlicheren Fall treffen, und das ist "läuft noch nicht".
         setzeAbspielKnopf(false);
-        spielerHalter.appendChild(abspielButton);
+        abspielButton.disabled = true;
+        bedienleiste.appendChild(abspielButton);
 
-        wrap.innerHTML = "";
-        wrap.appendChild(spielerHalter);
+        const status = document.createElement("span");
+        status.className = "video-status";
+        status.setAttribute("role", "status");
+        status.setAttribute("aria-live", "polite");
+        status.hidden = true;
 
-        // "Groß ansehen" bleibt bewusst in "wrap" (nicht in "spielerHalter")
-        // - dadurch verschwindet er automatisch mit dem Rest von "wrap"
-        // hinter dem Overlay, sobald schon groß angesehen wird, statt sich
-        // sinnlos "in sich selbst" nochmal anzubieten. Wird EINMALIG hier
-        // angelegt (nicht erst in "onReady", siehe Kommentar dort) - das ist
-        // der eigentliche Fix für den gemeldeten "Button erscheint mehrfach"-
-        // Bug.
         const grossButton = document.createElement("button");
         grossButton.type = "button";
-        // "auffaellig" seit 07.08.2026: der Knopf war vorher ein schmaler
-        // Umriss-Button und wurde schlicht übersehen.
         grossButton.className = "video-gross-button auffaellig";
         grossButton.textContent = "⤢ Video groß ansehen";
         grossButton.addEventListener("click", () => {
-          oeffneVideoGrossansicht(spielerHalter, wrap);
+          oeffneVideoGrossansicht(spielerBuehne, wrap, grossButton);
         });
-        wrap.appendChild(grossButton);
+        bedienleiste.appendChild(grossButton);
+        bedienleiste.appendChild(status);
+        spielerBuehne.appendChild(bedienleiste);
 
-        // Klick irgendwo aufs Video öffnet dieselbe Großansicht.
-        klickFaenger.addEventListener("click", () => {
-          oeffneVideoGrossansicht(spielerHalter, wrap);
-        });
+        wrap.innerHTML = "";
+        wrap.appendChild(spielerBuehne);
 
         const playerVars = {
-          autoplay: 1,
-          // Nachbesserung (Max' zweite Live-Test-Runde, 12.07.2026):
-          // YouTubes komplette native Steuerleiste ausblenden statt nur den
-          // Vollbild-Button ("fs: 0" reichte allein nicht) - damit ist auch
-          // die Fortschritts-/Zeitleiste weg, über die man sonst zu jedem
-          // beliebigen Zeitpunkt hätte springen können (Max' zweiter
-          // gemeldeter Punkt). Eigene, schlanke Pause/Play- und
-          // "Groß ansehen"-Buttons ersetzen sie (s.o.).
+          // Der Player wird erst nach dem ausdrücklichen Klick aufgebaut.
+          // Wiedergabe startet anschließend über playVideo(), damit stumme
+          // Clips vorher zuverlässig per API stummgeschaltet werden können.
+          autoplay: 0,
           controls: 0,
           disablekb: 1,
-          modestbranding: 1,
           rel: 0,
           iv_load_policy: 3,
-          cc_load_policy: 0,
           fs: 0,
           playsinline: 1,
-          mute: stumm ? 1 : 0,
+          hl: "de",
         };
+        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+          playerVars.origin = window.location.origin;
+        }
         // "start"/"end" nur mitgeben, wenn tatsächlich gesetzt - ein
         // "undefined"-Wert im Objekt würde beim Zusammenbauen der
         // YouTube-Embed-URL sonst als Literal-String "undefined" landen.
@@ -1935,32 +1953,29 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
           }
         }
 
-        function beendeVideo() {
+        function beendeVideo(fehlerNachricht = "") {
           if (beendetAusgeloest) return;
           beendetAusgeloest = true;
           stoppeEndUeberwachung();
-          if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
-          spieler.destroy();
-          baueUndZeigePlatzhalter();
+          if (aktuellerGrossSpielerWrap === spielerBuehne) schliesseVideoGrossansicht();
+          if (spieler && typeof spieler.destroy === "function") spieler.destroy();
+          baueUndZeigePlatzhalter(fehlerNachricht);
         }
 
-        // Nachbesserung Runde 3/4 (12.07.2026): Untertitel sollen IMMER aus
-        // bleiben. "cc_load_policy: 0" oben in "playerVars" verhindert nur,
-        // dass Untertitel automatisch nach Zuschauer-Voreinstellung
-        // eingeschaltet werden - reicht laut Max' Beobachtung in der Praxis
-        // nicht zuverlässig aus. Das komplette Entladen des Untertitel-
-        // Moduls über die (offiziell nicht dokumentierte, aber weithin
-        // genutzte) Player-API-Methode "unloadModule" ist der zuverlässigste
-        // bekannte Weg. Als eigene Funktion, weil sie an mehreren Stellen
-        // aufgerufen wird (siehe Kommentar bei "onStateChange" unten, wieso
-        // einmaliges Aufrufen in "onReady" allein nicht reichte).
-        function unterdrueckeUntertitel() {
-          if (typeof spieler.unloadModule === "function") {
-            spieler.unloadModule("captions");
-          }
+        function zeigeStatus(meldung) {
+          status.textContent = meldung;
+          status.hidden = !meldung;
         }
 
-        const spieler = new YT.Player(spielerZiel, {
+        function youtubeFehlertext(code) {
+          if (code === 100) return "Das Video wurde entfernt oder ist privat.";
+          if (code === 101 || code === 150) return "YouTube erlaubt die Einbettung dieses Videos nicht.";
+          if (code === 153) return "YouTube konnte diese Seite nicht eindeutig zuordnen. Bitte neu laden.";
+          return "Das Video kann momentan nicht abgespielt werden.";
+        }
+
+        let spieler = null;
+        spieler = new YT.Player(spielerZiel, {
           host: "https://www.youtube-nocookie.com",
           videoId,
           playerVars,
@@ -1968,6 +1983,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
             onReady: () => {
               if (bereitsEingerichtet) return;
               bereitsEingerichtet = true;
+              abspielButton.disabled = false;
 
               abspielButton.addEventListener("click", () => {
                 if (spieler.getPlayerState() === YT.PlayerState.PLAYING) {
@@ -1976,55 +1992,15 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                   spieler.playVideo();
                 }
               });
-
-              // Zusätzliche Absicherung GEGEN natives Vollbild auf
-              // DOM-/Berechtigungs-Ebene, nicht nur über "fs: 0"/
-              // "controls: 0" (die schalten nur YouTubes eigene Bedienung
-              // ab, verhindern aber nicht zwingend jede browser-/
-              // OS-seitige Vollbild-Möglichkeit für das iframe). Ein
-              // iframe ohne "allow=fullscreen" darf laut Fullscreen-API-
-              // Spezifikation gar keine Vollbild-Anfrage mehr stellen -
-              // das ist eine echte Browser-Sperre, keine reine Kosmetik.
-              const iframe = spieler.getIframe();
-              if (iframe) {
-                iframe.removeAttribute("allowfullscreen");
-                if (iframe.allow) {
-                  iframe.allow = iframe.allow
-                    .split(";")
-                    .map((teil) => teil.trim())
-                    .filter((teil) => teil && !teil.startsWith("fullscreen"))
-                    .join("; ");
-                }
-              }
-
-              unterdrueckeUntertitel();
+              if (stumm && typeof spieler.mute === "function") spieler.mute();
+              spieler.playVideo();
             },
-            // Nachbesserung Runde 5 (13.07.2026, Max meldet: Untertitel sind
-            // trotz Runde 3/4 offenbar auf einem echten Gerät immer noch
-            // manchmal zu sehen). "onApiChange" ist das offizielle YouTube-
-            // IFrame-API-Event dafür, dass sich verfügbare Player-Module
-            // (u.a. das Untertitel-Modul "captions") ändern oder neu laden -
-            // genau der Moment, in dem sich das Modul laut YouTubes eigener
-            // (unvollständiger) Doku unbemerkt selbst neu initialisieren
-            // kann. Zusätzlich zu den bestehenden Aufrufen bei "onReady" und
-            // "PLAYING" hier nochmal an der offiziellen Quelle abgreifen -
-            // deckt zusammen mit den bisherigen Aufrufen praktisch jeden
-            // bekannten Zeitpunkt ab, zu dem das Modul (wieder) aktiv werden
-            // könnte.
-            //
-            // WICHTIG (siehe Notiz in Backlog/Dashboard): sollte es auf dem
-            // iPhone TROTZDEM noch vorkommen, ist die wahrscheinlichste
-            // Ursache keine Lücke mehr in diesem Code, sondern die iOS-
-            // Systemeinstellung "Einstellungen > Bedienungshilfen >
-            // Untertitel & Untertitelung > Untertitel + SDH". Ist die
-            // eingeschaltet, erzwingt iOS/Safari selbst Untertitel bei JEDER
-            // Videowiedergabe (auch eingebettete YouTube-Player) - das
-            // passiert unterhalb der Web-Player-API und lässt sich von
-            // keiner Website per JavaScript übersteuern. Kurzer Check auf
-            // dem eigenen Handy lohnt sich, bevor hier weiter nachgebessert
-            // wird.
-            onApiChange: () => {
-              unterdrueckeUntertitel();
+            onAutoplayBlocked: () => {
+              setzeAbspielKnopf(false);
+              zeigeStatus("Automatischer Start blockiert – bitte auf „Abspielen“ tippen.");
+            },
+            onError: (ereignis) => {
+              beendeVideo(youtubeFehlertext(ereignis.data));
             },
             onStateChange: (ereignis) => {
               if (ereignis.data === YT.PlayerState.ENDED) {
@@ -2033,24 +2009,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
               }
               if (ereignis.data === YT.PlayerState.PLAYING) {
                 setzeAbspielKnopf(true);
-                // Nachbesserung Runde 4 (12.07.2026, Max' Rückmeldung: der
-                // Runde-3-Fix "unloadModule('captions')" EINMALIG in
-                // "onReady" hat in der Praxis nicht gereicht). Bekanntes,
-                // offiziell nicht dokumentiertes Verhalten des Untertitel-
-                // Moduls: es kann sich beim TATSÄCHLICHEN Start der
-                // Wiedergabe (nicht schon bei "onReady", das vor dem
-                // eigentlichen Abspielen feuert) selbst neu laden, auch
-                // nachdem es einmal entladen wurde. Deshalb hier zusätzlich
-                // bei JEDEM "PLAYING" nochmal entladen, plus zwei verzögerte
-                // Nachschläge (300ms/1500ms), um ein eventuell erst leicht
-                // verzögert nachladendes Untertitel-Modul ebenfalls zu
-                // erwischen. Es gibt dafür keinen offiziellen, garantiert
-                // hundertprozentigen Weg von YouTube selbst (bestätigt durch
-                // mehrere offene YouTube-eigene Bugreports zu genau diesem
-                // Verhalten) - das hier ist der robusteste bekannte Ansatz.
-                unterdrueckeUntertitel();
-                setTimeout(unterdrueckeUntertitel, 300);
-                setTimeout(unterdrueckeUntertitel, 1500);
+                zeigeStatus("");
                 // Startet die Endzeit-Überwachung (siehe Kommentar bei
                 // "VORLAUF_SEKUNDEN" oben) - nur, wenn nicht schon eine läuft,
                 // damit mehrfaches Play/Pause nicht mehrere Intervalle parallel
@@ -2068,6 +2027,7 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
                 }
               } else if (ereignis.data === YT.PlayerState.PAUSED) {
                 setzeAbspielKnopf(false);
+                zeigeStatus("");
                 // Überwachung während der Pause anhalten (spart Ressourcen,
                 // die Wiedergabezeit steht ohnehin still) - startet beim
                 // nächsten "PLAYING" automatisch wieder neu.
@@ -2076,6 +2036,8 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
             },
           },
         });
+      }).catch((fehler) => {
+        baueUndZeigePlatzhalter(fehler.message || "Video konnte nicht geladen werden.");
       });
     });
 

@@ -18,3 +18,14 @@ test("das Paragraphzeichen im Regel-Badge ist rein dekorativ", () => {
 test("ein leerer Gastmodus erklärt den Zustand statt einen Abschluss vorzutäuschen", () => {
   assert.match(app, /Für den Gast-Modus sind momentan noch keine Fragen freigeschaltet/);
 });
+
+test("Video-Fragen bedienen YouTube ohne Klickfänger vor dem Player", () => {
+  assert.doesNotMatch(app, /video-klickfaenger/);
+  assert.doesNotMatch(css, /\.video-klickfaenger/);
+  assert.match(app, /controls:\s*0/);
+  assert.match(app, /playerVars\.origin\s*=\s*window\.location\.origin/);
+  assert.match(app, /onAutoplayBlocked:/);
+  assert.match(app, /onError:/);
+  assert.doesNotMatch(app, /unloadModule\("captions"\)/);
+  assert.doesNotMatch(app, /modestbranding/);
+});
