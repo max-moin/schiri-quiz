@@ -29,3 +29,16 @@ test("Video-Fragen bedienen YouTube ohne Klickfänger vor dem Player", () => {
   assert.doesNotMatch(app, /unloadModule\("captions"\)/);
   assert.doesNotMatch(app, /modestbranding/);
 });
+
+test("Video-Fragen starten modal und bieten Reset, Endkarte und Info-Fallback", () => {
+  assert.match(app, /function baueVideoEinbettungModal/);
+  assert.match(app, /oeffneVideoGrossansicht\(dialogInhalt, ausloeser, controller\)/);
+  assert.match(app, /↻ Neu starten/);
+  assert.match(app, /Ausschnitt beendet/);
+  assert.match(app, /ⓘ Ausschnitt & Situation/);
+  assert.match(app, /frage\.antwort_hinweis/);
+  assert.match(app, /synchronisiereZustand\(YT\)/);
+  assert.match(app, /window\.setInterval/);
+  assert.match(css, /\.video-info-panel/);
+  assert.match(css, /\.video-dialog-karte/);
+});
