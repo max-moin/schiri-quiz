@@ -1705,46 +1705,38 @@ function ladeYoutubeApi() {
   return youtubeApiPromise;
 }
 
-// Gemeinsames "Groß ansehen"-Overlay (ein einziges für die ganze Seite,
-// analog zum Erklärung-Popup) - merkt sich, in welchen Wrapper der Player
-// beim Schließen zurückwandert. Die eigentliche Größenanpassung bei
-// Drehung des Handys passiert rein über CSS (siehe style.css,
-// ".video-gross-spieler-halter": Breite = das Minimum aus 94% der
-// Viewport-Breite UND einer aus 94% der Viewport-Höhe abgeleiteten
-// 16:9-Breite) - dadurch reagiert die Größe automatisch und ohne eigenen
-// JS-Resize-Handler auf jede Drehung/Größenänderung, auch zuverlässiger
-// als ein "orientationchange"-Event-Listener.
-let aktuellerGrossSpielerWrap = null;
-let aktuellerGrossSpielerRueckgabeStelle = null;
+// Gemeinsame Großansicht für alle Video-Fragen. Der YouTube-Player wird
+// ausschließlich hier aufgebaut; in der kleinen Fragenkarte liegt niemals
+// ein iframe. Das ist auf Mobilgeräten verlässlicher und verhindert die
+// frühere fehleranfällige Verschiebe-Logik zwischen Karte und Dialog.
+let aktuellerVideoGrossController = null;
 let letzterVideoGrossTrigger = null;
 
 function schliesseVideoGrossansicht() {
   const overlay = document.getElementById("video-gross-overlay");
   const halter = document.getElementById("video-gross-spieler-halter");
   if (!overlay || !halter) return;
-  if (aktuellerGrossSpielerWrap && aktuellerGrossSpielerRueckgabeStelle && halter.firstChild) {
-    aktuellerGrossSpielerWrap.classList.remove("ist-gross");
-    aktuellerGrossSpielerRueckgabeStelle.appendChild(halter.firstChild);
+  const controller = aktuellerVideoGrossController;
+  aktuellerVideoGrossController = null;
+  if (controller && typeof controller.beimSchliessen === "function") {
+    controller.beimSchliessen();
   }
+  halter.replaceChildren();
   overlay.hidden = true;
   document.body.classList.remove("video-dialog-offen");
-  aktuellerGrossSpielerWrap = null;
-  aktuellerGrossSpielerRueckgabeStelle = null;
   if (letzterVideoGrossTrigger && document.contains(letzterVideoGrossTrigger)) {
     letzterVideoGrossTrigger.focus();
   }
   letzterVideoGrossTrigger = null;
 }
 
-function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle, ausloeser) {
+function oeffneVideoGrossansicht(inhalt, ausloeser, controller) {
   const overlay = document.getElementById("video-gross-overlay");
   const halter = document.getElementById("video-gross-spieler-halter");
   if (!overlay || !halter) return;
-  halter.innerHTML = "";
-  halter.appendChild(spielerElement);
-  spielerElement.classList.add("ist-gross");
-  aktuellerGrossSpielerWrap = spielerElement;
-  aktuellerGrossSpielerRueckgabeStelle = rueckgabeStelle;
+  if (!overlay.hidden) schliesseVideoGrossansicht();
+  halter.replaceChildren(inhalt);
+  aktuellerVideoGrossController = controller || null;
   letzterVideoGrossTrigger = ausloeser || document.activeElement;
   overlay.hidden = false;
   document.body.classList.add("video-dialog-offen");
@@ -1765,129 +1757,326 @@ function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle, ausloeser) {
   });
 })();
 
-function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
+let videoInfoZaehler = 0;
+
+// Modal-first-Player (24.08.2026): Der eigentliche YouTube-Player entsteht
+// erst nach dem Klick und direkt in der Großansicht. Die Fragenkarte bleibt
+// eine einfache, robuste Startkarte. Ein optionaler Info-Bereich hält
+// Zeitfenster und Situationsbeschreibung als Fallback bereit, falls die
+// Wiedergabe auf einem Gerät nicht zuverlässig funktioniert.
+function baueVideoEinbettungModal(videoUrl, startSekunden, endSekunden, stumm, fallbackBeschreibung = "") {
   const videoId = extrahiereYoutubeId(videoUrl);
   if (!videoId) return null;
 
+  const alsSekunden = (wert) => {
+    if (wert === null || wert === undefined || wert === "") return null;
+    const zahl = Number(wert);
+    return Number.isFinite(zahl) && zahl >= 0 ? zahl : null;
+  };
+  const clipStart = alsSekunden(startSekunden) ?? 0;
+  const rohesClipEnde = alsSekunden(endSekunden);
+  const clipEnde = rohesClipEnde !== null && rohesClipEnde > clipStart ? rohesClipEnde : null;
+  const beschreibung = String(fallbackBeschreibung || "").trim();
+
+  const formatiereZeit = (sekunden) => {
+    const ganz = Math.max(0, Math.floor(sekunden));
+    const minuten = Math.floor(ganz / 60);
+    const rest = String(ganz % 60).padStart(2, "0");
+    return `${minuten}:${rest}`;
+  };
+
   const wrap = document.createElement("div");
-  wrap.className = "video-einbettung";
+  wrap.className = "video-einbettung video-einbettung-modal";
 
-  // Nachbesserung (13.07.2026, Max' Feedback: bei zwei Video-Fragen
-  // hintereinander sehen beide Platzhalter identisch aus - kombiniert mit
-  // Hoch/Quer-Drehen auf dem Handy wusste er nicht mehr, welches Video er
-  // schon angesehen hatte und zu welcher Frage es gehörte). Der Platzhalter
-  // ist bewusst generisch OHNE YouTube-Vorschaubild (kein Kontakt zu
-  // YouTube vor dem Klick, siehe Hinweistext) - darum braucht er eine
-  // EIGENE, rein lokale Markierung, ob dieses Video schon geöffnet wurde.
-  // "bereitsAngesehen" lebt in diesem Closure, also pro Video-Frage einzeln
-  // (keine Verwechslungsgefahr zwischen mehreren Karten). Wird schon beim
-  // ERSTEN Klick (Start des Ladens) gesetzt, nicht erst nach komplettem
-  // Durchschauen - Max wollte wissen "habe ich mir das überhaupt schon
-  // angeschaut", nicht "habe ich es bis zum Ende geschaut".
   let bereitsAngesehen = false;
+  let fortsetzenSekunden = clipStart;
+  let fehlerNachricht = "";
 
-  function baueUndZeigePlatzhalter(fehlerNachricht = "") {
-    wrap.innerHTML = "";
+  const startButton = document.createElement("button");
+  startButton.type = "button";
+  startButton.className = "video-platzhalter";
 
-    const platzhalter = document.createElement("button");
-    platzhalter.type = "button";
-    platzhalter.className = "video-platzhalter" + (bereitsAngesehen ? " video-platzhalter-angesehen" : "");
-    if (fehlerNachricht) platzhalter.classList.add("video-platzhalter-fehler");
+  const badge = document.createElement("span");
+  badge.className = "video-platzhalter-badge";
+  badge.textContent = "✓ Angesehen";
+  badge.hidden = true;
+  startButton.appendChild(badge);
 
-    if (bereitsAngesehen) {
-      const badge = document.createElement("span");
-      badge.className = "video-platzhalter-badge";
-      badge.textContent = "✓ Angesehen";
-      platzhalter.appendChild(badge);
+  const icon = document.createElement("span");
+  icon.className = "video-platzhalter-icon";
+  icon.textContent = "▶";
+  startButton.appendChild(icon);
+
+  const startText = document.createElement("span");
+  startText.className = "video-platzhalter-text";
+  startButton.appendChild(startText);
+
+  const startHinweis = document.createElement("span");
+  startHinweis.className = "video-platzhalter-hinweis";
+  startButton.appendChild(startHinweis);
+  wrap.appendChild(startButton);
+
+  function hatFortsetzungsstand() {
+    return fortsetzenSekunden > clipStart + 0.5 && (!clipEnde || fortsetzenSekunden < clipEnde - 0.5);
+  }
+
+  function aktualisiereStartkarte() {
+    const fortsetzen = hatFortsetzungsstand();
+    startButton.classList.toggle("video-platzhalter-angesehen", bereitsAngesehen);
+    startButton.classList.toggle("video-platzhalter-fehler", Boolean(fehlerNachricht));
+    badge.hidden = !bereitsAngesehen;
+    icon.textContent = fehlerNachricht || bereitsAngesehen ? "↻" : "▶";
+    startText.textContent = fehlerNachricht
+      ? "Video erneut laden"
+      : fortsetzen
+        ? `Video bei ${formatiereZeit(fortsetzenSekunden)} fortsetzen`
+        : bereitsAngesehen
+          ? "Video nochmal ansehen"
+          : "Video ansehen";
+    startHinweis.textContent = fehlerNachricht || (stumm
+      ? "Öffnet direkt in der Großansicht – ohne Ton."
+      : "Öffnet direkt in der Großansicht.");
+  }
+
+  const hatInfo = Boolean(beschreibung) || clipStart > 0 || clipEnde !== null;
+  if (hatInfo) {
+    const aktionen = document.createElement("div");
+    aktionen.className = "video-karten-aktionen";
+
+    const infoButton = document.createElement("button");
+    infoButton.type = "button";
+    infoButton.className = "video-info-button";
+    infoButton.textContent = "ⓘ Ausschnitt & Situation";
+    const infoId = `video-info-${++videoInfoZaehler}`;
+    infoButton.setAttribute("aria-controls", infoId);
+    infoButton.setAttribute("aria-expanded", "false");
+
+    const infoPanel = document.createElement("div");
+    infoPanel.id = infoId;
+    infoPanel.className = "video-info-panel";
+    infoPanel.hidden = true;
+    infoPanel.setAttribute("role", "note");
+
+    const zeit = document.createElement("p");
+    zeit.className = "video-info-zeit";
+    zeit.textContent = clipEnde !== null
+      ? `Vorgesehener Ausschnitt: ${formatiereZeit(clipStart)} bis ${formatiereZeit(clipEnde)}`
+      : `Vorgesehener Start: ${formatiereZeit(clipStart)}`;
+    infoPanel.appendChild(zeit);
+
+    if (beschreibung) {
+      const situation = document.createElement("p");
+      situation.textContent = beschreibung;
+      infoPanel.appendChild(situation);
     }
 
-    const icon = document.createElement("span");
-    icon.className = "video-platzhalter-icon";
-    icon.textContent = bereitsAngesehen ? "↻" : "▶";
-    platzhalter.appendChild(icon);
+    const fallback = document.createElement("p");
+    fallback.className = "video-info-fallback";
+    fallback.textContent = beschreibung
+      ? "Falls das Video auf deinem Gerät nicht funktioniert, kannst du die Frage anhand dieser Beschreibung beantworten."
+      : "Der Zeitbereich hilft dir, den vorgesehenen Ausschnitt gezielt erneut zu starten.";
+    infoPanel.appendChild(fallback);
 
-    const text = document.createElement("span");
-    text.className = "video-platzhalter-text";
-    text.textContent = fehlerNachricht
-      ? "Video erneut laden"
-      : bereitsAngesehen
-        ? "Video nochmal ansehen"
-        : "Video laden und ansehen";
-    platzhalter.appendChild(text);
+    infoButton.addEventListener("click", () => {
+      const wirdGeoeffnet = infoPanel.hidden;
+      infoPanel.hidden = !wirdGeoeffnet;
+      infoButton.setAttribute("aria-expanded", String(wirdGeoeffnet));
+      infoButton.textContent = wirdGeoeffnet ? "ⓘ Hilfe schließen" : "ⓘ Ausschnitt & Situation";
+    });
 
-    const hinweis = document.createElement("span");
-    hinweis.className = "video-platzhalter-hinweis";
-    hinweis.textContent = fehlerNachricht || (stumm
-      ? "Lädt erst nach Klick von YouTube - ohne Ton, damit kein Kommentator die Antwort verrät."
-      : "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.");
-    platzhalter.appendChild(hinweis);
+    aktionen.appendChild(infoButton);
+    wrap.appendChild(aktionen);
+    wrap.appendChild(infoPanel);
+  }
 
-    platzhalter.addEventListener("click", () => {
-      bereitsAngesehen = true;
-      platzhalter.disabled = true;
-      text.textContent = "Wird geladen ...";
-      ladeYoutubeApi().then((YT) => {
-        // Falls der Nutzer während des Ladens schon weitergeklickt/die Frage
-        // verlassen hat, könnte "wrap" inzwischen woanders hinzeigen - hier
-        // bewusst kein zusätzlicher Check nötig, der Platzhalter bleibt Teil
-        // von "wrap" bis er ersetzt wird.
-        const spielerHalter = document.createElement("div");
-        spielerHalter.className = "video-spieler-halter";
-        const spielerZiel = document.createElement("div");
-        spielerHalter.appendChild(spielerZiel);
+  function oeffnePlayerDialog(ausloeser) {
+    bereitsAngesehen = true;
+    fehlerNachricht = "";
+    startButton.disabled = true;
+    aktualisiereStartkarte();
 
-        // Die Bedienung liegt bewusst UNTER dem YouTube-Player. YouTube
-        // untersagt transparente Klickfänger oder andere Overlays vor einem
-        // eingebetteten Player. Play/Pause und Vergrößern bleiben trotzdem
-        // als klar beschriftete eigene Knöpfe erreichbar.
-        const spielerBuehne = document.createElement("div");
-        spielerBuehne.className = "video-spieler-buehne";
-        spielerBuehne.appendChild(spielerHalter);
+    const dialogInhalt = document.createElement("div");
+    dialogInhalt.className = "video-dialog-sitzung";
+    const sitzung = {
+      aktiv: true,
+      player: null,
+      intervall: null,
+    };
 
-        const bedienleiste = document.createElement("div");
-        bedienleiste.className = "video-bedienleiste";
-        const abspielButton = document.createElement("button");
-        abspielButton.type = "button";
-        abspielButton.className = "video-abspiel-button";
+    function stoppeIntervall() {
+      if (sitzung.intervall) {
+        window.clearInterval(sitzung.intervall);
+        sitzung.intervall = null;
+      }
+    }
 
-        /// Setzt Zeichen, Vorlesetext und Kurzhinweis des Knopfes in einem
-        /// Rutsch. Vorher wurde das an drei Stellen einzeln gemacht, wodurch
-        /// Zeichen und Beschriftung auseinanderlaufen konnten.
-        function setzeAbspielKnopf(laeuft) {
-          abspielButton.textContent = laeuft ? "❚❚ Pausieren" : "▶ Abspielen";
-          abspielButton.classList.toggle("laeuft", laeuft);
-          const text = laeuft ? "Video anhalten" : "Video abspielen";
-          abspielButton.setAttribute("aria-label", text);
-          abspielButton.title = text;
+    function raeumePlayerAuf(speicherePosition) {
+      stoppeIntervall();
+      if (sitzung.player) {
+        if (speicherePosition && typeof sitzung.player.getCurrentTime === "function") {
+          const aktuelleZeit = Number(sitzung.player.getCurrentTime());
+          if (Number.isFinite(aktuelleZeit) && aktuelleZeit > clipStart + 0.5 && (!clipEnde || aktuelleZeit < clipEnde - 0.5)) {
+            fortsetzenSekunden = aktuelleZeit;
+          } else {
+            fortsetzenSekunden = clipStart;
+          }
         }
-        setzeAbspielKnopf(false);
-        abspielButton.disabled = true;
-        bedienleiste.appendChild(abspielButton);
+        if (typeof sitzung.player.destroy === "function") sitzung.player.destroy();
+        sitzung.player = null;
+      }
+    }
 
-        const status = document.createElement("span");
-        status.className = "video-status";
-        status.setAttribute("role", "status");
-        status.setAttribute("aria-live", "polite");
-        status.hidden = true;
+    const controller = {
+      beimSchliessen() {
+        sitzung.aktiv = false;
+        raeumePlayerAuf(true);
+        startButton.disabled = false;
+        aktualisiereStartkarte();
+      },
+    };
 
-        const grossButton = document.createElement("button");
-        grossButton.type = "button";
-        grossButton.className = "video-gross-button auffaellig";
-        grossButton.textContent = "⤢ Video groß ansehen";
-        grossButton.addEventListener("click", () => {
-          oeffneVideoGrossansicht(spielerBuehne, wrap, grossButton);
-        });
-        bedienleiste.appendChild(grossButton);
-        bedienleiste.appendChild(status);
-        spielerBuehne.appendChild(bedienleiste);
+    function youtubeFehlertext(code) {
+      if (code === 100) return "Das Video wurde entfernt oder ist privat.";
+      if (code === 101 || code === 150) return "YouTube erlaubt die Einbettung dieses Videos nicht.";
+      if (code === 153) return "YouTube konnte diese Seite nicht eindeutig zuordnen. Bitte neu laden.";
+      return "Das Video kann momentan nicht abgespielt werden.";
+    }
 
-        wrap.innerHTML = "";
-        wrap.appendChild(spielerBuehne);
+    function zeigeDialogkarte(titel, text, primaerText, primaerAktion) {
+      const karte = document.createElement("div");
+      karte.className = "video-dialog-karte";
+      const iconElement = document.createElement("span");
+      iconElement.className = "video-dialog-karte-icon";
+      iconElement.textContent = titel === "Ausschnitt beendet" ? "✓" : "!";
+      karte.appendChild(iconElement);
+      const ueberschrift = document.createElement("h3");
+      ueberschrift.textContent = titel;
+      karte.appendChild(ueberschrift);
+      const beschreibungElement = document.createElement("p");
+      beschreibungElement.textContent = text;
+      karte.appendChild(beschreibungElement);
 
+      const aktionen = document.createElement("div");
+      aktionen.className = "video-dialog-karte-aktionen";
+      const primaer = document.createElement("button");
+      primaer.type = "button";
+      primaer.className = "video-dialog-primaer-button";
+      primaer.textContent = primaerText;
+      primaer.addEventListener("click", primaerAktion);
+      aktionen.appendChild(primaer);
+      const zurFrage = document.createElement("button");
+      zurFrage.type = "button";
+      zurFrage.className = "video-dialog-sekundaer-button";
+      zurFrage.textContent = "Zur Frage";
+      zurFrage.addEventListener("click", schliesseVideoGrossansicht);
+      aktionen.appendChild(zurFrage);
+      karte.appendChild(aktionen);
+      dialogInhalt.replaceChildren(karte);
+      window.setTimeout(() => primaer.focus(), 0);
+    }
+
+    function startePlayer(abSekunde) {
+      if (!sitzung.aktiv) return;
+      raeumePlayerAuf(false);
+      fehlerNachricht = "";
+      fortsetzenSekunden = abSekunde;
+
+      const buehne = document.createElement("div");
+      buehne.className = "video-spieler-buehne ist-gross";
+      const spielerHalter = document.createElement("div");
+      spielerHalter.className = "video-spieler-halter";
+      const ladeText = document.createElement("p");
+      ladeText.className = "video-ladeanzeige";
+      ladeText.textContent = "Video wird geladen …";
+      spielerHalter.appendChild(ladeText);
+      buehne.appendChild(spielerHalter);
+
+      const bedienleiste = document.createElement("div");
+      bedienleiste.className = "video-bedienleiste";
+      const abspielButton = document.createElement("button");
+      abspielButton.type = "button";
+      abspielButton.className = "video-abspiel-button";
+      abspielButton.disabled = true;
+      bedienleiste.appendChild(abspielButton);
+
+      const resetButton = document.createElement("button");
+      resetButton.type = "button";
+      resetButton.className = "video-reset-button";
+      resetButton.textContent = "↻ Neu starten";
+      resetButton.disabled = true;
+      bedienleiste.appendChild(resetButton);
+
+      const status = document.createElement("span");
+      status.className = "video-status";
+      status.setAttribute("role", "status");
+      status.setAttribute("aria-live", "polite");
+      status.hidden = true;
+      bedienleiste.appendChild(status);
+      buehne.appendChild(bedienleiste);
+      dialogInhalt.replaceChildren(buehne);
+
+      function zeigeStatus(meldung) {
+        status.textContent = meldung;
+        status.hidden = !meldung;
+      }
+
+      function setzeAbspielKnopf(zustand) {
+        if (zustand === "laedt") {
+          abspielButton.textContent = "… Lädt";
+          abspielButton.disabled = true;
+          abspielButton.classList.remove("laeuft");
+          return;
+        }
+        const laeuft = zustand === "laeuft";
+        abspielButton.disabled = false;
+        abspielButton.textContent = laeuft ? "❚❚ Pausieren" : "▶ Abspielen";
+        abspielButton.classList.toggle("laeuft", laeuft);
+        const zugangstext = laeuft ? "Video anhalten" : "Video abspielen";
+        abspielButton.setAttribute("aria-label", zugangstext);
+        abspielButton.title = zugangstext;
+      }
+      setzeAbspielKnopf("laedt");
+
+      let durchlaufBeendet = false;
+      const VORLAUF_SEKUNDEN = 0.55;
+
+      function zeigeEndkarte() {
+        if (durchlaufBeendet || !sitzung.aktiv) return;
+        durchlaufBeendet = true;
+        raeumePlayerAuf(false);
+        fortsetzenSekunden = clipStart;
+        aktualisiereStartkarte();
+        zeigeDialogkarte(
+          "Ausschnitt beendet",
+          "Du kannst den Ausschnitt erneut ansehen oder direkt zur Frage zurückkehren.",
+          "↻ Erneut ansehen",
+          () => startePlayer(clipStart)
+        );
+      }
+
+      function synchronisiereZustand(YT) {
+        if (!sitzung.player || durchlaufBeendet) return;
+        const zustand = sitzung.player.getPlayerState();
+        if (zustand === YT.PlayerState.ENDED) {
+          zeigeEndkarte();
+          return;
+        }
+        if (zustand === YT.PlayerState.PLAYING) {
+          setzeAbspielKnopf("laeuft");
+          zeigeStatus("");
+        } else if (zustand === YT.PlayerState.BUFFERING) {
+          setzeAbspielKnopf("laedt");
+          zeigeStatus("Video lädt …");
+        } else {
+          setzeAbspielKnopf("pausiert");
+        }
+      }
+
+      ladeYoutubeApi().then((YT) => {
+        if (!sitzung.aktiv || durchlaufBeendet) return;
+        const spielerZiel = document.createElement("div");
+        spielerHalter.replaceChildren(spielerZiel);
         const playerVars = {
-          // Der Player wird erst nach dem ausdrücklichen Klick aufgebaut.
-          // Wiedergabe startet anschließend über playVideo(), damit stumme
-          // Clips vorher zuverlässig per API stummgeschaltet werden können.
           autoplay: 0,
           controls: 0,
           disablekb: 1,
@@ -1896,155 +2085,78 @@ function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
           fs: 0,
           playsinline: 1,
           hl: "de",
+          start: Math.max(0, Math.floor(abSekunde)),
         };
+        if (clipEnde !== null) playerVars.end = Math.max(0, Math.floor(clipEnde));
         if (window.location.protocol === "http:" || window.location.protocol === "https:") {
           playerVars.origin = window.location.origin;
         }
-        // "start"/"end" nur mitgeben, wenn tatsächlich gesetzt - ein
-        // "undefined"-Wert im Objekt würde beim Zusammenbauen der
-        // YouTube-Embed-URL sonst als Literal-String "undefined" landen.
-        if (Number.isFinite(startSekunden)) playerVars.start = Math.max(0, Math.floor(startSekunden));
-        if (Number.isFinite(endSekunden)) playerVars.end = Math.max(0, Math.floor(endSekunden));
 
-        // "bereitsEingerichtet" schützt zusätzlich gegen den Fall, dass die
-        // YouTube-API "onReady" tatsächlich mehrfach für denselben Player
-        // feuert (beobachtetes Verhalten auf dem Handy, vermutlich durch
-        // eine interne Neuinitialisierung beim Verlassen eines nativen
-        // Vollbildmodus ausgelöst) - ohne diese Sperre würden Klick-Handler
-        // mehrfach registriert.
-        let bereitsEingerichtet = false;
-
-        // ============================================================
-        // Nachbesserung Runde 3 (12.07.2026, Max' drittes Live-Test-
-        // Feedback): YouTube zeigt am ECHTEN Ende eines Videos automatisch
-        // einen eigenen "weitere Videos ansehen"-Vorschlagsbildschirm mit
-        // klickbaren Vorschau-Kacheln - das ist Teil der Kern-Wiedergabe-UI,
-        // nicht der "controls"-Leiste, und lässt sich über KEINEN
-        // IFrame-Player-Parameter mehr vollständig abschalten ("rel: 0"
-        // schränkt seit einer YouTube-Änderung von 2018 nur noch auf
-        // Videos DESSELBEN Kanals ein, verhindert die Anzeige aber nicht
-        // mehr komplett). Da wir den Player erst REAGIEREN, nachdem
-        // YouTube den "ENDED"-Zustand meldet, konnte dieser Bildschirm
-        // bisher kurz aufblitzen, bevor unser Code den Platzhalter zeigt -
-        // umso auffälliger, seit die restliche Steuerleiste durch
-        // "controls: 0" schon weg ist.
-        //
-        // Fix: wir warten den echten "ENDED"-Zustand gar nicht erst ab,
-        // sondern beobachten die Wiedergabezeit selbst (alle 200ms) und
-        // lösen unser eigenes "Video zu Ende"-Aufräumen (Platzhalter zeigen,
-        // Player zerstören) schon "VORLAUF_SEKUNDEN" VOR dem eigentlichen
-        // Ende aus - der Vorsprung ist größer als das Abfrage-Intervall,
-        // damit er zuverlässig vor YouTubes eigenem Vorschlagsbildschirm
-        // greift. 0,35s vor Schluss abzuschneiden fällt beim Zuschauen
-        // nicht auf, verhindert aber zuverlässig, dass YouTubes Bildschirm
-        // überhaupt erst zu rendern anfängt. Der echte "ENDED"-Fall bleibt
-        // als Rückfallebene bestehen (z.B. falls "getDuration()" mal nichts
-        // Sinnvolles liefert), "beendetAusgeloest" verhindert ein doppeltes
-        // Aufräumen (zweimaliges "destroy()" würde einen Fehler werfen).
-        // ============================================================
-        const VORLAUF_SEKUNDEN = 0.35;
-        let beendetAusgeloest = false;
-        let endUeberwachungsIntervall = null;
-
-        function stoppeEndUeberwachung() {
-          if (endUeberwachungsIntervall) {
-            clearInterval(endUeberwachungsIntervall);
-            endUeberwachungsIntervall = null;
-          }
-        }
-
-        function beendeVideo(fehlerNachricht = "") {
-          if (beendetAusgeloest) return;
-          beendetAusgeloest = true;
-          stoppeEndUeberwachung();
-          if (aktuellerGrossSpielerWrap === spielerBuehne) schliesseVideoGrossansicht();
-          if (spieler && typeof spieler.destroy === "function") spieler.destroy();
-          baueUndZeigePlatzhalter(fehlerNachricht);
-        }
-
-        function zeigeStatus(meldung) {
-          status.textContent = meldung;
-          status.hidden = !meldung;
-        }
-
-        function youtubeFehlertext(code) {
-          if (code === 100) return "Das Video wurde entfernt oder ist privat.";
-          if (code === 101 || code === 150) return "YouTube erlaubt die Einbettung dieses Videos nicht.";
-          if (code === 153) return "YouTube konnte diese Seite nicht eindeutig zuordnen. Bitte neu laden.";
-          return "Das Video kann momentan nicht abgespielt werden.";
-        }
-
-        let spieler = null;
-        spieler = new YT.Player(spielerZiel, {
+        sitzung.player = new YT.Player(spielerZiel, {
           host: "https://www.youtube-nocookie.com",
           videoId,
           playerVars,
           events: {
             onReady: () => {
-              if (bereitsEingerichtet) return;
-              bereitsEingerichtet = true;
-              abspielButton.disabled = false;
+              if (!sitzung.aktiv || !sitzung.player) return;
+              resetButton.disabled = false;
+              setzeAbspielKnopf("pausiert");
+              if (stumm && typeof sitzung.player.mute === "function") sitzung.player.mute();
 
               abspielButton.addEventListener("click", () => {
-                if (spieler.getPlayerState() === YT.PlayerState.PLAYING) {
-                  spieler.pauseVideo();
+                if (!sitzung.player) return;
+                if (sitzung.player.getPlayerState() === YT.PlayerState.PLAYING) {
+                  sitzung.player.pauseVideo();
                 } else {
-                  spieler.playVideo();
+                  sitzung.player.playVideo();
                 }
+                window.setTimeout(() => synchronisiereZustand(YT), 80);
               });
-              if (stumm && typeof spieler.mute === "function") spieler.mute();
-              spieler.playVideo();
+              resetButton.addEventListener("click", () => startePlayer(clipStart));
+
+              // Safari liefert Zustandsereignisse bei eingebetteten Videos
+              // nicht immer zuverlässig. Deshalb gleicht ein einziges
+              // Intervall sowohl Play/Pause als auch das Clip-Ende ab.
+              sitzung.intervall = window.setInterval(() => {
+                if (!sitzung.player || durchlaufBeendet) return;
+                synchronisiereZustand(YT);
+                if (!sitzung.player || durchlaufBeendet) return;
+                const aktuelleZeit = Number(sitzung.player.getCurrentTime());
+                const dauer = Number(sitzung.player.getDuration());
+                const zielEnde = clipEnde !== null ? clipEnde : dauer;
+                if (Number.isFinite(zielEnde) && zielEnde > 0 && aktuelleZeit >= zielEnde - VORLAUF_SEKUNDEN) {
+                  zeigeEndkarte();
+                }
+              }, 200);
+              sitzung.player.playVideo();
             },
             onAutoplayBlocked: () => {
-              setzeAbspielKnopf(false);
+              setzeAbspielKnopf("pausiert");
               zeigeStatus("Automatischer Start blockiert – bitte auf „Abspielen“ tippen.");
             },
             onError: (ereignis) => {
-              beendeVideo(youtubeFehlertext(ereignis.data));
+              const meldung = youtubeFehlertext(ereignis.data);
+              fehlerNachricht = meldung;
+              raeumePlayerAuf(false);
+              zeigeDialogkarte("Video nicht verfügbar", meldung, "Erneut versuchen", () => startePlayer(fortsetzenSekunden));
             },
-            onStateChange: (ereignis) => {
-              if (ereignis.data === YT.PlayerState.ENDED) {
-                beendeVideo();
-                return;
-              }
-              if (ereignis.data === YT.PlayerState.PLAYING) {
-                setzeAbspielKnopf(true);
-                zeigeStatus("");
-                // Startet die Endzeit-Überwachung (siehe Kommentar bei
-                // "VORLAUF_SEKUNDEN" oben) - nur, wenn nicht schon eine läuft,
-                // damit mehrfaches Play/Pause nicht mehrere Intervalle parallel
-                // aufmacht.
-                if (!endUeberwachungsIntervall) {
-                  endUeberwachungsIntervall = setInterval(() => {
-                    if (beendetAusgeloest) return;
-                    const aktuelleZeit = typeof spieler.getCurrentTime === "function" ? spieler.getCurrentTime() : 0;
-                    const gesamtDauer = typeof spieler.getDuration === "function" ? spieler.getDuration() : 0;
-                    const zielEnde = Number.isFinite(endSekunden) && endSekunden > 0 ? endSekunden : gesamtDauer;
-                    if (zielEnde && aktuelleZeit >= zielEnde - VORLAUF_SEKUNDEN) {
-                      beendeVideo();
-                    }
-                  }, 200);
-                }
-              } else if (ereignis.data === YT.PlayerState.PAUSED) {
-                setzeAbspielKnopf(false);
-                zeigeStatus("");
-                // Überwachung während der Pause anhalten (spart Ressourcen,
-                // die Wiedergabezeit steht ohnehin still) - startet beim
-                // nächsten "PLAYING" automatisch wieder neu.
-                stoppeEndUeberwachung();
-              }
-            },
+            onStateChange: () => synchronisiereZustand(YT),
           },
         });
       }).catch((fehler) => {
-        baueUndZeigePlatzhalter(fehler.message || "Video konnte nicht geladen werden.");
+        if (!sitzung.aktiv) return;
+        const meldung = fehler.message || "Video konnte nicht geladen werden.";
+        fehlerNachricht = meldung;
+        zeigeDialogkarte("Video nicht verfügbar", meldung, "Erneut versuchen", () => startePlayer(fortsetzenSekunden));
       });
-    });
+    }
 
-    wrap.appendChild(platzhalter);
+    oeffneVideoGrossansicht(dialogInhalt, ausloeser, controller);
+    startePlayer(fortsetzenSekunden);
   }
 
-  baueUndZeigePlatzhalter();
+  startButton.addEventListener("click", () => oeffnePlayerDialog(startButton));
+  aktualisiereStartkarte();
   return wrap;
 }
 
@@ -2067,7 +2179,13 @@ function baueFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const optionListe = document.createElement("div");
@@ -2143,7 +2261,13 @@ function baueBeantworteteFrageElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
@@ -2222,10 +2346,16 @@ function baueFreitextFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
-  if (frage.antwort_hinweis) {
+  if (frage.antwort_hinweis && !frage.video_url) {
     const hinweis = document.createElement("p");
     hinweis.className = "freitext-hinweis";
     hinweis.textContent = frage.antwort_hinweis;
@@ -2513,7 +2643,13 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const deineAntwort = document.createElement("p");
