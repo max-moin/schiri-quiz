@@ -90,6 +90,19 @@ document.querySelectorAll("img[data-bild]").forEach((el) => {
   probe.src = eintrag.foto;
 });
 
+// Der Redaktionszugang ist kein Sicherheitsgeheimnis und wird deshalb nicht
+// durch einen kryptischen URL-Trick versteckt. Er bleibt im Footer bewusst
+// leise, waehrend Auth, TOTP und RLS den eigentlichen Schutz uebernehmen.
+document.querySelectorAll(".seiten-fuss .fuss-innen").forEach((fuss) => {
+  if (fuss.querySelector('[href="obmann.html"]')) return;
+  const link = document.createElement("a");
+  link.href = "obmann.html";
+  link.textContent = "Obmann-Zugang";
+  link.className = "fuss-obmann";
+  const zeile = fuss.querySelector(".fuss-zeile");
+  fuss.insertBefore(link, zeile || null);
+});
+
 // ---------- Menü für schmale Bildschirme ----------
 
 const navKnopf = document.getElementById("nav-knopf");

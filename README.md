@@ -19,6 +19,8 @@ Das Projekt befindet sich im **aktiven Pilotbetrieb** in einem kleinen Verein. E
 - Übungsmodus für ältere Fragen und separater Gastzugang
 - Anfragen an den Obmann, etwa für Ausrüstung oder allgemeine Anliegen
 - responsive Oberfläche für Smartphone und Desktop
+- künftige Vereinsseite: geschützter Obmann-Pilot für Spesensätze mit
+  Supabase Auth, TOTP/2FAS und Datenbank-RLS
 
 ## Architektur
 
@@ -55,6 +57,8 @@ können.
 | `index.html` | öffentliche Startseite des Vereins |
 | `schiri-werden.html`, `regeluebersicht.html`, `spesenrechner.html`, `vorlagen.html`, `informationen.html` | die übrigen offenen Seiten; `informationen.html` heißt in der Navigation „Unterlagen" |
 | `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
+| `obmann.html`, `src/admin/` | geschützter Redaktionspilot; E-Mail/Passwort plus TOTP, derzeit nur Spesen |
+| `src/website/` | öffentliche Datenlader mit statischem Fallback bei leerer/nicht erreichbarer Datenbank |
 | `bilder/` | Wappen und die selbst gezeichneten Motive; `bilder/QUELLEN.md` hält fest, woher welches Bild stammt |
 | `quiz.html`, `style.css` | Teilnehmeroberfläche und Gestaltung des Quiz |
 | `app.js` | kleiner Composition Root: erzeugt den Supabase-Client und verdrahtet ausschließlich die Module |
@@ -79,6 +83,14 @@ Der Wert `SUPABASE_ANON_KEY` in `config.js` ist ein **Publishable Key** und darf
 Diese Werte werden ausschließlich als Vercel-Umgebungsvariablen verwendet. Die beiden KI-Endpunkte verweigern ihren Betrieb, wenn kein geheimer Supabase-Schlüssel vorhanden ist.
 
 Die Anwendung schützt Daten zusätzlich über RLS, eingeschränkte Datenbankrechte und PIN-prüfende RPCs. Die KI-nahen RPCs sind nur für den serverseitigen Supabase-Schlüssel vorgesehen. Automatische Tests prüfen unter anderem, dass kein geheimer Schlüssel an den Browser fällt und dass interne Serverfehler nicht offengelegt werden.
+
+Der neue Obmann-Bereich der Vereinsseite verwendet bewusst ein anderes
+Sicherheitsmodell als die alten Quiz-PINs: Ein Supabase-Auth-Konto meldet sich
+mit E-Mail und starkem Passwort an, danach wird ein TOTP-Code aus einer
+Authenticator-App wie 2FAS verlangt. Schreibzugriffe auf die
+Spesenkonfiguration akzeptiert Postgres nur mit `aal2` und einer expliziten
+Zuordnung des Benutzers zur Vereinsseite. Es gibt keine öffentliche
+Registrierung und keinen Secret Key im Browser.
 
 Bekannte Grenzen:
 

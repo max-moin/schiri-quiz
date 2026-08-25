@@ -141,6 +141,33 @@ Nach einer Sicherheitsmigration werden mindestens geprüft:
 - `service_role` kann sie weiterhin ausführen;
 - der normale Website-Ablauf funktioniert weiterhin über die Vercel Function.
 
+## Obmann-Zugang der Vereinsseite
+
+Der Redaktionspilot unter `obmann.html` ist absichtlich kein weiterer
+vierstelliger PIN-Zugang. Er benötigt:
+
+1. ein manuell angelegtes Supabase-Auth-Konto mit bestätigter E-Mail und
+   starkem Passwort;
+2. eine Zeile in `public.website_redakteure` für den Seitenschlüssel
+   `loebtauer-kickers`;
+3. einen eingerichteten TOTP-Faktor, zum Beispiel in 2FAS.
+
+Beim ersten erfolgreichen Passwortlogin zeigt die Website einen QR-Code. Max
+scannt ihn in 2FAS und bestätigt den sechsstelligen Code. Danach besitzt die
+Sitzung `aal2`. RLS prüft `auth.uid()`, Vereinszuordnung und `aal2` bei jedem
+Schreibzugriff; das bloße Anzeigen oder Manipulieren der Oberfläche genügt
+nicht.
+
+Die Migrationen v86 und v87 legen nur Tabellen, Rechte, RLS und einen Index
+an. Sie erzeugen absichtlich keinen Benutzer und enthalten weder E-Mail noch
+Passwort. Benutzer und Zuordnung werden einmalig außerhalb des öffentlichen
+Repositorys eingerichtet.
+
+Der öffentliche Spesenrechner lädt einen veröffentlichten Datenbankstand,
+falls vorhanden. Bei leerer oder nicht erreichbarer Datenbank verwendet er
+weiterhin `verein.config.js`. Regeln, Absagevorlagen und Unterlagen sind noch
+nicht Teil dieses Piloten.
+
 ## Noch offene technische Grundlage
 
 Für eine wirklich reproduzierbare Weiterentwicklung fehlen noch:

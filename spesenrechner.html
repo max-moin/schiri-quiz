@@ -283,7 +283,40 @@
   <script type="module" src="seite.js"></script>
 
   <script type="module">
-    import { VEREIN, ALTERSKLASSEN, VERBAENDE, TURNIER, FAHRTKOSTEN, VEREINE, AUSFALL_ANTEIL } from "./verein.config.js";
+    import {
+      VEREIN,
+      DATENBANK,
+      ALTERSKLASSEN as STANDARD_ALTERSKLASSEN,
+      VERBAENDE,
+      TURNIER as STANDARD_TURNIER,
+      FAHRTKOSTEN as STANDARD_FAHRTKOSTEN,
+      VEREINE as STANDARD_VEREINE,
+      AUSFALL_ANTEIL as STANDARD_AUSFALL_ANTEIL,
+    } from "./verein.config.js";
+    import {
+      ladeSpesenKonfiguration,
+      standardSpesenKonfiguration,
+    } from "./src/website/spesen-config.js";
+
+    const fallback = standardSpesenKonfiguration({
+      altersklassen: STANDARD_ALTERSKLASSEN,
+      turnier: STANDARD_TURNIER,
+      fahrtkosten: STANDARD_FAHRTKOSTEN,
+      vereine: STANDARD_VEREINE,
+      ausfallAnteil: STANDARD_AUSFALL_ANTEIL,
+    });
+    const geladen = await ladeSpesenKonfiguration({
+      datenbank: DATENBANK,
+      seitenschluessel: VEREIN.seitenschluessel,
+      fallback,
+    });
+    const {
+      altersklassen: ALTERSKLASSEN,
+      turnier: TURNIER,
+      fahrtkosten: FAHRTKOSTEN,
+      vereine: VEREINE,
+      ausfallAnteil: AUSFALL_ANTEIL,
+    } = geladen.konfiguration;
 
     const $ = (id) => document.getElementById(id);
     const euro = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";

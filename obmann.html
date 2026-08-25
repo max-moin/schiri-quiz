@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Obmann-Zugang – FV Löbtauer Kickers</title>
+  <meta name="robots" content="noindex,nofollow" />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="seite.css" />
+</head>
+<body class="admin-seite">
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
+        <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
+      </a>
+      <a class="admin-zurueck" href="index.html">Zur Vereinsseite</a>
+    </div>
+  </header>
+
+  <main class="inhalt admin-inhalt" id="inhalt" tabindex="-1">
+    <div id="authFehler" class="admin-meldung" data-art="fehler" role="alert" hidden></div>
+
+    <section class="admin-auth-karte" id="laden">
+      <p>Geschützter Bereich wird geprüft …</p>
+    </section>
+
+    <section class="admin-auth-karte" id="login" hidden>
+      <p class="admin-kicker">Geschützter Bereich</p>
+      <h1>Obmann-Zugang</h1>
+      <p>Erste Stufe: Melde dich mit deiner hinterlegten E-Mail-Adresse und deinem Passwort an.</p>
+      <form id="loginForm" class="admin-form">
+        <label>E-Mail-Adresse<input id="email" type="email" autocomplete="username" required /></label>
+        <label>Passwort<input id="passwort" type="password" autocomplete="current-password" required /></label>
+        <button class="knopf knopf-primaer" type="submit">Weiter zu 2FAS</button>
+      </form>
+      <p class="admin-hinweis">Es gibt keine öffentliche Registrierung. Ein Konto wird einmalig im Supabase-Dashboard angelegt.</p>
+    </section>
+
+    <section class="admin-auth-karte" id="totpSetup" hidden>
+      <p class="admin-kicker">Einmalige Einrichtung</p>
+      <h1>2FAS verbinden</h1>
+      <ol class="admin-schritte">
+        <li>Öffne 2FAS und tippe auf das Plus.</li>
+        <li>Scanne den QR-Code.</li>
+        <li>Gib den angezeigten sechsstelligen Code ein.</li>
+      </ol>
+      <img id="totpQr" class="admin-qr" alt="QR-Code zur Einrichtung in 2FAS" />
+      <details><summary>Statt QR-Code manuell eingeben</summary><code id="totpSecret" class="admin-secret"></code></details>
+      <form id="totpSetupForm" class="admin-form admin-code-form">
+        <label>Code aus 2FAS<input id="totpSetupCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required /></label>
+        <button class="knopf knopf-primaer" type="submit">2FAS bestätigen</button>
+      </form>
+      <button class="linkknopf" type="button" data-abmelden>Einrichtung abbrechen und abmelden</button>
+    </section>
+
+    <section class="admin-auth-karte" id="totpCode" hidden>
+      <p class="admin-kicker">Zweite Stufe</p>
+      <h1>Code aus 2FAS</h1>
+      <p>Öffne 2FAS und gib den aktuellen sechsstelligen Code ein.</p>
+      <form id="totpCodeForm" class="admin-form admin-code-form">
+        <label>2FAS-Code<input id="totpLoginCode" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required /></label>
+        <button class="knopf knopf-primaer" type="submit">Geschützten Bereich öffnen</button>
+      </form>
+      <button class="linkknopf" type="button" data-abmelden>Abmelden</button>
+    </section>
+
+    <section class="admin-auth-karte" id="keinZugriff" hidden>
+      <h1>Kein Redaktionsrecht</h1>
+      <p>Das Konto ist sicher angemeldet, wurde dieser Vereinsseite aber noch nicht als Redakteur zugeordnet.</p>
+      <button class="knopf" type="button" data-abmelden>Abmelden</button>
+    </section>
+
+    <section id="editor" hidden>
+      <div class="admin-editor-kopf">
+        <div><p class="admin-kicker">Website-Redaktion · Pilot</p><h1>Spesen verwalten</h1><p id="editorVerein"></p></div>
+        <button class="knopf" type="button" data-abmelden>Abmelden</button>
+      </div>
+      <div class="admin-meldung" data-admin-status role="status"></div>
+      <div class="admin-warnung"><b>Bewusst noch nicht im Pilot:</b> Regeln, Absagevorlagen und Unterlagen bleiben vorerst im Code. Erst der Spesen-Workflow wird praktisch getestet.</div>
+
+      <section class="admin-panel">
+        <div class="admin-panel-kopf"><h2>Spielklassen und Sätze</h2><p>Änderungen werden erst mit „Veröffentlichen“ sichtbar.</p></div>
+        <div data-ligen></div>
+      </section>
+
+      <section class="admin-panel">
+        <div class="admin-panel-kopf"><h2>Neue Liga</h2><p>Eine bestehende Altersklasse wird über denselben Namen erweitert.</p></div>
+        <form class="admin-neue-liga" data-liga-form>
+          <label>Altersklasse<input name="altersklasse" required /></label>
+          <label>Kurzname<input name="kurz" required /></label>
+          <label>Offizieller Name<input name="voll" required /></label>
+          <label>Ebene<select name="verband"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option></select></label>
+          <label>Stufe<input name="stufe" type="number" min="1" value="1" required /></label>
+          <label>SR (€)<input name="sr" type="number" min="0" step="0.01" required /></label>
+          <label>SRA (€)<input name="sra" type="number" min="0" step="0.01" /></label>
+          <label class="admin-checkbox"><input name="ohneSra" type="checkbox" /> Keine Assistenten vorgesehen</label>
+          <button class="knopf" type="submit">Liga lokal ergänzen</button>
+        </form>
+      </section>
+
+      <section class="admin-panel">
+        <div class="admin-panel-kopf"><h2>Weitere Werte</h2></div>
+        <div class="admin-zahlenraster">
+          <label>Turnier-Grundpauschale (€)<input id="turnierGrund" type="number" min="0" step="0.01" /></label>
+          <label>Grundstunden<input id="turnierStunden" type="number" min="1" step="1" /></label>
+          <label>Je weitere Stunde (€)<input id="turnierWeiter" type="number" min="0" step="0.01" /></label>
+          <label>SVFD: Preis je Karte (€)<input id="stadtKarte" type="number" min="0" step="0.01" /></label>
+          <label>SVFD: Karten je Zone<input id="stadtKartenZone" type="number" min="0" step="1" /></label>
+          <label>SFV: Monatskarte (€)<input id="landMonatskarte" type="number" min="0" step="0.01" /></label>
+          <label>SFV: Auto je km (€)<input id="landAuto" type="number" min="0" step="0.01" /></label>
+          <label>SFV: Mitnahme je km (€)<input id="landMitnahme" type="number" min="0" step="0.01" /></label>
+          <label>SFV: Fahrrad je km (€)<input id="landRad" type="number" min="0" step="0.01" /></label>
+          <label>Ausfall-Anteil (0,5 = 50 %)<input id="ausfall" type="number" min="0" max="1" step="0.01" /></label>
+        </div>
+      </section>
+
+      <div class="admin-aktionsleiste">
+        <button class="knopf" type="button" data-zuruecksetzen>Änderungen verwerfen</button>
+        <button class="knopf knopf-primaer" type="button" data-speichern>Im Rechner veröffentlichen</button>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js"></script>
+  <script type="module" src="seite.js"></script>
+  <script type="module" src="src/admin/obmann-page.js"></script>
+</body>
+</html>
