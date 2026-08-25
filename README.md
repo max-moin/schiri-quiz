@@ -56,10 +56,11 @@ können.
 | `schiri-werden.html`, `regeluebersicht.html`, `spesenrechner.html`, `vorlagen.html`, `informationen.html` | die übrigen offenen Seiten; `informationen.html` heißt in der Navigation „Unterlagen" |
 | `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
 | `bilder/` | Wappen und die selbst gezeichneten Motive; `bilder/QUELLEN.md` hält fest, woher welches Bild stammt |
-| `quiz.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
+| `quiz.html`, `style.css` | Teilnehmeroberfläche und Gestaltung des Quiz |
+| `app.js` | kleiner Composition Root: erzeugt den Supabase-Client und verdrahtet ausschließlich die Module |
 | `src/core/` | featureunabhängige Browser-Helfer und Sitzungsspeicher des Quiz |
-| `src/ui/` | wiederverwendbare UI-Controller für Maskierung, Vorlesen und Dialoge |
-| `src/features/` | abgeschlossene Quizfunktionen wie Videoplayer und Gastmodus |
+| `src/ui/` | wiederverwendbare UI-Controller und Bausteine für Maskierung, Vorlesen, Dialoge und Fragenkarten |
+| `src/features/` | abgeschlossene Fachfunktionen: Zugang, Gastmodus, Wochenquiz, Freitext, Üben sowie Profil/Anfragen |
 | `api/` | serverseitige KI-Bewertung und Erklärungen |
 | `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
 | `tests/` | Vertrags-, Sicherheits- und Logiktests |
@@ -97,6 +98,24 @@ npm run check
 ```
 
 Der Befehl prüft die JavaScript-Syntax und führt die automatisierten Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+
+## Regel für neue Frontend-Funktionen
+
+`app.js` ist ausschließlich der **Composition Root**. Dort werden Module
+erzeugt, Abhängigkeiten übergeben und die Anwendung gestartet. Fachlogik,
+DOM-Ereignisse und Supabase-RPC-Aufrufe gehören nicht in `app.js`.
+
+- featureunabhängige Logik kommt nach `src/core/`;
+- wiederverwendbare Darstellung und Bedienung kommt nach `src/ui/`;
+- ein kompletter Nutzerablauf kommt als eigenes Modul nach `src/features/`;
+- neue Module exportieren genau einen eingefrorenen Namespace und erhalten
+  ihre Abhängigkeiten beim Erzeugen statt über versteckte globale Variablen;
+- `quiz.html` lädt das Modul vor `app.js`, und ein Test schützt den neuen
+  Vertrag beziehungsweise den kritischen Nutzerablauf.
+
+Ein Architekturtest begrenzt `app.js` bewusst auf höchstens 180 Zeilen und
+verbietet dort RPC-Aufrufe sowie Event-Listener. Damit wird eine neue Funktion
+nicht wieder bequem in die Einstiegsdatei „hineingeballert“.
 
 ## Konfiguration
 

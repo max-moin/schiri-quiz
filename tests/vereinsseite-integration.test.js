@@ -27,8 +27,14 @@ test("alle Quizmodule existieren und werden vor app.js geladen", () => {
     "src/ui/text-to-speech.js",
     "src/ui/explanation-dialog.js",
     "src/ui/header-menu.js",
+    "src/ui/question-elements.js",
     "src/features/video-player.js",
     "src/features/guest-mode.js",
+    "src/features/profile-requests.js",
+    "src/features/freetext-answers.js",
+    "src/features/history-mode.js",
+    "src/features/weekly-quiz.js",
+    "src/features/access.js",
     "app.js",
   ];
 

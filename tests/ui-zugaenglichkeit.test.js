@@ -9,7 +9,10 @@ const vorlesen = readFileSync(new URL("../src/ui/text-to-speech.js", import.meta
 const maskierteEingabe = readFileSync(new URL("../src/ui/masked-input.js", import.meta.url), "utf8");
 const erklaerungsDialog = readFileSync(new URL("../src/ui/explanation-dialog.js", import.meta.url), "utf8");
 const kopfmenue = readFileSync(new URL("../src/ui/header-menu.js", import.meta.url), "utf8");
+const fragenElemente = readFileSync(new URL("../src/ui/question-elements.js", import.meta.url), "utf8");
 const gastmodus = readFileSync(new URL("../src/features/guest-mode.js", import.meta.url), "utf8");
+const wochenQuiz = readFileSync(new URL("../src/features/weekly-quiz.js", import.meta.url), "utf8");
+const freitext = readFileSync(new URL("../src/features/freetext-answers.js", import.meta.url), "utf8");
 
 test("der Vorlese-Button nennt Screenreadern seinen aktuellen Zustand", () => {
   assert.match(vorlesen, /setAttribute\("aria-label", "Frage vorlesen"\)/);
@@ -17,7 +20,7 @@ test("der Vorlese-Button nennt Screenreadern seinen aktuellen Zustand", () => {
 });
 
 test("das Paragraphzeichen im Regel-Badge ist rein dekorativ", () => {
-  assert.match(app, /regelSymbol\.setAttribute\("aria-hidden", "true"\)/);
+  assert.match(fragenElemente, /regelSymbol\.setAttribute\("aria-hidden", "true"\)/);
   assert.doesNotMatch(css, /\.badge\.regel::before/);
 });
 
@@ -42,7 +45,7 @@ test("Video-Fragen starten modal und bieten Reset, Endkarte und Info-Fallback", 
   assert.match(videoPlayer, /Video neu starten/);
   assert.match(videoPlayer, /Ausschnitt beendet/);
   assert.match(videoPlayer, /ⓘ Hilfe zum Video/);
-  assert.match(app, /frage\.antwort_hinweis/);
+  assert.match(wochenQuiz + freitext, /frage\.antwort_hinweis/);
   assert.match(videoPlayer, /synchronisiereZustand\(YT\)/);
   assert.match(videoPlayer, /window\.setInterval/);
   assert.match(css, /\.video-info-panel/);
@@ -57,7 +60,13 @@ test("app.js bindet die ausgelagerten Browsermodule ein", () => {
   assert.match(app, /SchiriQuizTextToSpeech/);
   assert.match(app, /SchiriQuizExplanationDialog/);
   assert.match(app, /SchiriQuizHeaderMenu/);
+  assert.match(app, /SchiriQuizQuestionElements/);
   assert.match(app, /SchiriQuizGuestMode/);
+  assert.match(app, /SchiriQuizProfileRequests/);
+  assert.match(app, /SchiriQuizFreetextAnswers/);
+  assert.match(app, /SchiriQuizHistoryMode/);
+  assert.match(app, /SchiriQuizWeeklyQuiz/);
+  assert.match(app, /SchiriQuizAccess/);
   assert.doesNotMatch(app, /function baueVideoEinbettungModal/);
   assert.doesNotMatch(app, /sessionStorage/);
   assert.doesNotMatch(app, /SpeechSynthesisUtterance/);
