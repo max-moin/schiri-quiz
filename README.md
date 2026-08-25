@@ -57,7 +57,9 @@ können.
 | `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
 | `bilder/` | Wappen und die selbst gezeichneten Motive; `bilder/QUELLEN.md` hält fest, woher welches Bild stammt |
 | `quiz.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
-| `src/quiz-utils.js` | erste ausgelagerte, unabhängig testbare Browser-Hilfsfunktionen |
+| `src/core/` | featureunabhängige Browser-Helfer und Sitzungsspeicher des Quiz |
+| `src/ui/` | wiederverwendbare UI-Controller für Maskierung, Vorlesen und Dialoge |
+| `src/features/` | abgeschlossene Quizfunktionen wie Videoplayer und Gastmodus |
 | `api/` | serverseitige KI-Bewertung und Erklärungen |
 | `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
 | `tests/` | Vertrags-, Sicherheits- und Logiktests |
@@ -94,7 +96,7 @@ Benötigt wird Node.js 22 oder neuer. Es gibt keine zu installierenden Laufzeita
 npm run check
 ```
 
-Der Befehl prüft die JavaScript-Syntax und führt aktuell 32 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+Der Befehl prüft die JavaScript-Syntax und führt die automatisierten Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
 
 ## Konfiguration
 

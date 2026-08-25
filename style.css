@@ -1075,28 +1075,6 @@ button {
   color: var(--green-dark);
 }
 
-/* ---------- Konfetti ---------- */
-
-.konfetti-schicht {
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  overflow: hidden;
-  z-index: 999;
-}
-
-.konfetti-teil {
-  position: absolute;
-  top: -40px;
-  font-size: 1.6rem;
-  animation: konfetti-fall 2.6s ease-in forwards;
-}
-
-@keyframes konfetti-fall {
-  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(110vh) rotate(360deg); opacity: 0; }
-}
-
 /* ---------- Desktop-Layout ---------- */
 
 @media (min-width: 760px) {
@@ -1575,9 +1553,9 @@ button {
 }
 
 /* ---------- Video-Fragetyp (12.07.2026) ---------- */
-/* Zwei-Klick-Einbettung: erst ein dunkler Platzhalter mit Play-Icon, echtes
-   YouTube-iframe (youtube-nocookie.com) lädt erst nach Klick - siehe
-   app.js "baueVideoEinbettung". */
+/* Datenschutzfreundlicher Modal-first-Ablauf: erst ein lokaler Platzhalter,
+   das YouTube-iframe (youtube-nocookie.com) lädt erst nach Klick und direkt
+   in der Großansicht - siehe src/video-player.js. */
 
 .video-einbettung {
   margin: 0 0 14px;
@@ -1586,10 +1564,75 @@ button {
   gap: 8px;
 }
 
-/* Nachbesserung (12.07.2026): Platzhalter und Spieler bekommen jeweils
-   ihre EIGENE 16:9-Box, statt dass ".video-einbettung" selbst per
-   aspect-ratio begrenzt ist - dadurch kann der "Groß ansehen"-Button
-   darunter Platz finden, ohne dass etwas abgeschnitten wird. */
+.video-karten-aktionen {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.video-info-button {
+  min-height: 40px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--blue);
+  padding: 7px 13px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.video-info-button:hover,
+.video-info-button:focus-visible {
+  border-color: var(--blue);
+  background: var(--bg-end);
+}
+
+.video-info-panel {
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--blue);
+  border-radius: var(--radius-sm);
+  background: var(--bg-end);
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.video-info-panel[hidden] {
+  display: none;
+}
+
+.video-info-panel p {
+  margin: 0;
+}
+
+.video-info-panel p + p {
+  margin-top: 8px;
+}
+
+.video-info-panel .video-info-titel {
+  margin-top: 12px;
+  font-weight: 750;
+  color: var(--text);
+}
+
+.video-info-panel .video-info-titel:first-child {
+  margin-top: 0;
+}
+
+.video-info-zeit {
+  font-weight: 700;
+}
+
+.video-info-fallback {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+/* Platzhalter und Player bekommen jeweils ihre eigene 16:9-Box, statt dass
+   ".video-einbettung" selbst per aspect-ratio begrenzt ist. */
 .video-platzhalter {
   position: relative;
   aspect-ratio: 16 / 9;
@@ -1655,6 +1698,11 @@ button {
   background: linear-gradient(160deg, #1e2f28 0%, #0f1f19 100%);
 }
 
+.video-platzhalter-fehler {
+  border: 2px solid rgba(248, 113, 113, 0.8);
+  background: linear-gradient(160deg, #3b2024 0%, #211014 100%);
+}
+
 .video-platzhalter-badge {
   position: absolute;
   top: 10px;
@@ -1669,15 +1717,20 @@ button {
   letter-spacing: 0.02em;
 }
 
-/* Der laufende Player (echte YouTube-IFrame-Player-API statt statischer
-   iframe-URL, siehe app.js "baueVideoEinbettung") lebt in dieser eigenen
-   16:9-Box - dieselbe Box wird beim "Groß ansehen" per DOM-Verschiebung
-   (kein Reload!) in ".video-gross-spieler-halter" umgehängt und beim
-   Schließen wieder hierher zurückgehängt. */
+/* Bühne aus Player und externer Bedienleiste. Die ganze Bühne wird beim
+   Vergrößern verschoben; der YouTube-Player wird dabei nicht neu geladen. */
+.video-spieler-buehne {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .video-spieler-halter {
   position: relative;
   aspect-ratio: 16 / 9;
   width: 100%;
+  min-height: 200px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: #000;
@@ -1691,96 +1744,98 @@ button {
   border: none;
 }
 
-/* Eigener Pause/Play-Button (12.07.2026, Nachbesserung Runde 2) - ersetzt
-   YouTubes native Steuerleiste (jetzt per "controls: 0" komplett
-   abgeschaltet, siehe app.js). Lebt bewusst innerhalb von
-   ".video-spieler-halter", damit er beim "Groß ansehen" per DOM-Move
-   automatisch mitwandert. */
-/* Klickfänger über dem Player (07.08.2026) - transparente Fläche, die jeden
-   Klick aufs Video abfängt und stattdessen die Großansicht öffnet. Verhindert,
-   dass man versehentlich YouTubes eigene Bedienelemente (Logo, "Teilen",
-   Titel-Link) trifft und die Seite verlässt.
-   z-index 1: über dem iframe, aber unter dem eigenen Pause/Play-Knopf (2). */
-.video-klickfaenger {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-  border: none;
-  background: transparent;
-  cursor: zoom-in;
-  padding: 0;
-}
-.video-klickfaenger:focus-visible {
-  outline: 3px solid var(--blue);
-  outline-offset: -3px;
+/* YouTubes Nutzungsregeln untersagen eigene Overlays vor dem eingebetteten
+   Player. Deshalb liegen Play/Pause und Vergrößern in einer echten Leiste
+   darunter statt als transparente Klickschicht auf dem Video. */
+.video-bedienleiste {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .video-abspiel-button {
-  position: absolute;
-  left: 10px;
-  bottom: 10px;
-  z-index: 2;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(15, 23, 42, 0.72);
-  color: #fff;
-  font-size: 1rem;
-  display: flex;
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  gap: 7px;
 }
 
 .video-abspiel-button:hover {
-  background: rgba(15, 23, 42, 0.9);
-}
-
-.video-gross-button {
-  align-self: flex-start;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: none;
-  border: 1.5px solid var(--border);
-  border-radius: 999px;
-  padding: 6px 13px;
-  font-family: inherit;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--blue);
-  cursor: pointer;
-}
-
-.video-gross-button:hover {
   border-color: var(--blue);
   background: var(--bg-end);
 }
 
-/* Auffällige Variante (07.08.2026): der schmale Umriss-Button wurde beim
-   Test schlicht übersehen - jetzt gefüllt, breiter und mittig unter dem
-   Video, damit klar ist, wo man zum Vergrößern hinmuss. */
-.video-gross-button.auffaellig {
-  align-self: stretch;
-  justify-content: center;
-  background: var(--marke);
-  border-color: var(--marke);
-  color: #fff;
-  font-weight: 600;
-  padding: 10px 16px;
-}
-.video-gross-button.auffaellig:hover {
-  background: var(--marke-dunkel);
-  border-color: var(--marke-dunkel);
+.video-abspiel-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
-/* "Groß ansehen"-Overlay (12.07.2026): eigenes Overlay statt YouTubes
-   nativem Vollbild-Button (den wir per "fs: 0" bewusst abschalten, siehe
-   app.js) - dadurch läuft die Vergrößerung immer über unseren Code, egal
-   wie sich der jeweilige Browser bei echtem Vollbild verhält.
+.video-abspiel-button.laeuft {
+  border-color: var(--blue);
+  color: var(--blue);
+}
+
+.video-status {
+  flex-basis: 100%;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.video-status[hidden] {
+  display: none;
+}
+
+.video-reset-button {
+  min-height: 42px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--blue);
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+}
+
+.video-button-symbol {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1em;
+  line-height: 1;
+}
+
+.video-reset-button:hover {
+  border-color: var(--blue);
+  background: var(--bg-end);
+}
+
+.video-reset-button:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+/* Modal-first-Großansicht: eigenes Overlay statt YouTubes nativem
+   Vollbild-Button (den wir per "fs: 0" bewusst abschalten). Der Player
+   wird direkt hier aufgebaut und muss nicht zwischen Karte und Dialog
+   verschoben werden.
    Die Größe von ".video-gross-spieler-halter" reagiert rein über CSS
    automatisch auf Drehung des Handys: die Breite ist das Minimum aus 94%
    der Viewport-Breite UND der aus 94% der Viewport-HÖHE abgeleiteten
@@ -1802,6 +1857,10 @@ button {
   display: none;
 }
 
+body.video-dialog-offen {
+  overflow: hidden;
+}
+
 .video-gross-inhalt {
   position: relative;
   width: 100%;
@@ -1819,19 +1878,100 @@ button {
      musste das Gerät zurückdrehen, um ihn zu treffen. Die etwas kleinere
      Begrenzung kostet kaum Bildgröße und lässt oben Platz für die
      Bedienung. */
-  width: min(94vw, calc(84vh * 16 / 9));
-  aspect-ratio: 16 / 9;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: #000;
+  width: min(94vw, calc((84vh - 58px) * 16 / 9));
+  /* Der Schließen-Knopf bleibt in einer eigenen Zone oberhalb des Players.
+     So überdeckt keine eigene Bedienfläche das YouTube-iframe. */
+  margin-top: 56px;
 }
 
-.video-gross-spieler-halter iframe {
+.video-gross-spieler-halter .video-spieler-buehne {
+  width: 100%;
+}
+
+.video-dialog-sitzung {
+  width: 100%;
+}
+
+.video-ladeanzeige {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 650;
+}
+
+.video-dialog-karte {
+  aspect-ratio: 16 / 9;
+  min-height: 240px;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(155deg, #17243a 0%, #0f172a 100%);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 28px;
+  text-align: center;
+}
+
+.video-dialog-karte-icon {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #86efac;
+  font-size: 1.55rem;
+  font-weight: 800;
+}
+
+.video-dialog-karte h3,
+.video-dialog-karte p {
+  margin: 0;
+}
+
+.video-dialog-karte p {
+  max-width: 440px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.video-dialog-karte-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.video-dialog-primaer-button,
+.video-dialog-sekundaer-button {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 9px 16px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.video-dialog-primaer-button {
+  border: 1px solid var(--marke);
+  background: var(--marke);
+  color: #fff;
+}
+
+.video-dialog-sekundaer-button {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
 }
 
 .video-gross-schliessen-button {
@@ -2353,11 +2493,11 @@ input.maskiert.sichtbar {
   text-security: none;
 }
 
-/* ---------- Video-Großansicht: Bedienung im Querformat (10.08.2026) ----------
-   Der Schließen-Knopf saß im normalen Fluss über dem Video. Sobald das Video
-   im Querformat die volle Höhe einnahm, rutschte er aus dem Bild. Jetzt liegt
-   er als Overlay in der oberen rechten Ecke und ist dadurch immer erreichbar,
-   unabhängig von der Bildschirmdrehung. */
+/* ---------- Video-Großansicht: kompakte Bedienung (25.08.2026) ----------
+   Die eigenen Schaltflächen liegen außerhalb des YouTube-Players. Im flachen
+   Handy-Querformat werden sie zu einer schmalen Symbolleiste rechts; dadurch
+   bleibt das Video groß, ohne YouTubes Oberfläche mit einer Klickschicht zu
+   überdecken. */
 .video-gross-overlay .video-gross-schliessen-button {
   position: absolute;
   top: max(12px, env(safe-area-inset-top));
@@ -2372,37 +2512,122 @@ input.maskiert.sichtbar {
   backdrop-filter: blur(6px);
 }
 
-/* Der Abspiel-Knopf in der Großansicht darf deutlich größer sein als in der
-   kleinen Vorschau - im Querformat wird er sonst zur Zielscheibe für
-   Fehlgriffe. */
-.video-gross-spieler-halter .video-abspiel-button {
-  width: 56px;
-  height: 56px;
-  min-width: 56px;
-  min-height: 56px;
-  left: max(14px, env(safe-area-inset-left));
-  bottom: max(14px, env(safe-area-inset-bottom));
-  font-size: 1.15rem;
-  background: rgba(15, 23, 42, 0.85);
+/* Die externe Bedienleiste bleibt auch in der Großansicht gut erreichbar,
+   ohne irgendeinen Teil des YouTube-Players zu überdecken. */
+.video-gross-spieler-halter .video-bedienleiste {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.video-gross-spieler-halter .video-abspiel-button,
+.video-gross-spieler-halter .video-reset-button {
+  min-height: 46px;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+  color: #fff;
+  background: rgba(15, 23, 42, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.25);
 }
 
-/* Läuft das Video, wird der Knopf zurückhaltender - er soll das Bild nicht
-   dominieren, aber trotzdem sofort findbar bleiben. */
-.video-abspiel-button.laeuft {
-  background: rgba(15, 23, 42, 0.55);
-}
-.video-abspiel-button:hover {
+.video-gross-spieler-halter .video-abspiel-button:hover,
+.video-gross-spieler-halter .video-reset-button:hover {
   background: rgba(15, 23, 42, 0.92);
 }
 
 /* Im flachen Querformat zusätzlich Höhe sparen. */
 @media (orientation: landscape) and (max-height: 500px) {
   .video-gross-overlay {
-    padding: 8px;
+    padding: 0;
+    align-items: stretch;
   }
+
+  .video-gross-inhalt {
+    height: 100dvh;
+    gap: 0;
+  }
+
   .video-gross-spieler-halter {
-    width: min(96vw, calc(88vh * 16 / 9));
+    width: 100vw;
+    height: 100dvh;
+    margin-top: 0;
+    padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    box-sizing: border-box;
+  }
+
+  .video-gross-spieler-halter .video-dialog-sitzung {
+    height: 100%;
+  }
+
+  .video-gross-spieler-halter .video-spieler-buehne {
+    height: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 52px;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: center;
+    gap: 6px;
+  }
+
+  .video-gross-spieler-halter .video-spieler-halter {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: center;
+    width: min(100%, calc((100dvh - 12px) * 16 / 9));
+    min-height: 0;
+  }
+
+  .video-gross-spieler-halter .video-bedienleiste {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: stretch;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    padding: 58px 0 max(2px, env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+
+  .video-gross-overlay .video-gross-schliessen-button {
+    top: max(6px, env(safe-area-inset-top));
+    right: max(6px, env(safe-area-inset-right));
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .video-gross-spieler-halter .video-abspiel-button,
+  .video-gross-spieler-halter .video-reset-button {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .video-gross-overlay .video-button-beschriftung {
+    display: none;
+  }
+
+  .video-gross-spieler-halter .video-status {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .video-gross-spieler-halter .video-dialog-karte {
+    width: min(calc(100vw - 70px), calc((100dvh - 12px) * 16 / 9));
+    min-height: 0;
+    max-height: calc(100dvh - 12px);
+    margin-right: 58px;
+    padding: 18px;
   }
 }
 

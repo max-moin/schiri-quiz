@@ -4,6 +4,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && node --check src/quiz-utils.js && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"
+    "check": "node --check app.js && node --check src/core/quiz-utils.js && node --check src/core/session-store.js && node --check src/ui/masked-input.js && node --check src/ui/text-to-speech.js && node --check src/ui/explanation-dialog.js && node --check src/ui/header-menu.js && node --check src/features/video-player.js && node --check src/features/guest-mode.js && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"
   }
 }

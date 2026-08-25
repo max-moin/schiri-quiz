@@ -4,13 +4,28 @@
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const {
-  extrahiereYoutubeId,
   formatiereAnfrageDatum,
   freitextStatus,
   schwierigkeitSterne,
 } = SchiriQuizUtils;
+const { erstelleSessionSpeicher } = SchiriQuizSessionStore;
+const { baueVideoEinbettungModal } = SchiriQuizVideoPlayer;
+const {
+  initialisiereMaskierteFelder,
+  verbindeSichtbarkeit,
+  verdecke,
+} = SchiriQuizMaskedInputs;
+const { baueVorlesenButton, stoppeVorlesen } = SchiriQuizTextToSpeech;
+const { erstelleErklaerungsDialog } = SchiriQuizExplanationDialog;
+const { initialisiereKopfmenue } = SchiriQuizHeaderMenu;
+const { erstelleGastmodus } = SchiriQuizGuestMode;
 
 const SESSION_KEY = "schiriQuizSession";
+const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
+const mitgliedSession = erstelleSessionSpeicher(SESSION_KEY);
+const kennungSession = erstelleSessionSpeicher(KENNUNG_SESSION_KEY, {
+  altesRohformatLesen: true,
+});
 
 const nameAuswahl = document.getElementById("name-auswahl");
 const nameEingabe = document.getElementById("name-eingabe");
@@ -35,8 +50,6 @@ const fortschrittText = document.getElementById("fortschritt-text");
 const fortschrittProzent = document.getElementById("fortschritt-prozent");
 const fortschrittFill = document.getElementById("fortschritt-fill");
 const fortschrittTrack = fortschrittFill ? fortschrittFill.parentElement : null;
-const konfettiSchicht = document.getElementById("konfetti-schicht");
-
 // Vereinskennung / Gast-Zugang (13.07.2026, Baustein A/B/C/D) - siehe
 // eigener Block weiter unten für die Ablauf-Logik.
 const kennungBereich = document.getElementById("kennung-bereich");
@@ -49,22 +62,6 @@ const mitgliedBereich = document.getElementById("mitglied-bereich");
 const gastBereich = document.getElementById("gast-bereich");
 const gastNameEingabe = document.getElementById("gast-name-eingabe");
 const gastZurueckButton = document.getElementById("gast-zurueck-button");
-const gastQuizSchritt = document.getElementById("gast-quiz-schritt");
-const gastNameAnzeige = document.getElementById("gast-name-anzeige");
-const gastFortschrittAnzeige = document.getElementById("gast-fortschritt-anzeige");
-const gastFrageBereich = document.getElementById("gast-frage-bereich");
-const gastVerlassenButton = document.getElementById("gast-verlassen-button");
-const interesseOverlay = document.getElementById("interesse-overlay");
-const interesseJaButton = document.getElementById("interesse-ja-button");
-const interesseNeinButton = document.getElementById("interesse-nein-button");
-const interesseNeinOverlay = document.getElementById("interesse-nein-overlay");
-const interesseNeinSchliessenButton = document.getElementById("interesse-nein-schliessen-button");
-const interessentenFormularOverlay = document.getElementById("interessenten-formular-overlay");
-const interessentenFormularInhalt = document.getElementById("interessenten-formular-inhalt");
-const interessentenFormularErfolg = document.getElementById("interessenten-formular-erfolg");
-const interessentEmailEingabe = document.getElementById("interessent-email-eingabe");
-const interessentAbsendenButton = document.getElementById("interessent-absenden-button");
-const interessentenFormularSchliessenButton = document.getElementById("interessenten-formular-schliessen-button");
 
 // Profil-Panel & Anfragen-System (12.07.2026, Baustein 5a) - Nav-Konzept B
 // aus der Brainstorm-Skizze: der Angemeldet-Badge wird zum Menü-Auslöser.
@@ -155,22 +152,12 @@ let historieAktuelleFrageId = null;
 // Vereinskennung / Gast-Zugang (13.07.2026): "loginModus" steuert, welcher
 // der drei Bereiche in der Login-Karte gerade aktiv ist, und wie der
 // gemeinsame "Los geht's"-Button (startButton) reagiert.
-const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
-// Nach wie vielen beantworteten Gast-Fragen das Interesse-Popup erscheint
-// (Baustein C, Max' Vorschlag "z.B. drei") - hier zentral anpassbar.
-const GAST_INTERESSE_TRIGGER_ANZAHL = 3;
 let loginModus = "kennung"; // "kennung" | "mitglied" | "gast"
 // Mehr-Vereine-Umbau (11.08.2026): welcher Verein gerade bestätigt ist und
 // ob er eine Namensliste herausgibt. Beides kommt ausschließlich vom Server
 // (RPC "verein_zugang"); der Browser rät hier nichts.
 let aktuelleKennung = null;
 let vereinZeigtNamensliste = true;
-let gastName = null;
-let gastFragenPool = [];
-let gastFrageIndex = 0;
-let gastBeantwortetAnzahl = 0;
-let gastRichtigAnzahl = 0;
-let gastInteressePopupGezeigt = false;
 
 // Historie-Fortschritt (11.07.2026, Update nach Max' Feedback): wird nicht
 // mehr nach jeder Antwort neu vom Server abgefragt (das ließ die Anzeige bei
@@ -190,6 +177,40 @@ let historieAutoTimer = null;
 let historieScoreboardLetzterGesamt = null;
 let historieScoreboardLetzterRichtig = null;
 
+initialisiereMaskierteFelder();
+verbindeSichtbarkeit(kennungEingabe, kennungAugeButton, {
+  anzeigenText: "Vereinskennung anzeigen",
+  verbergenText: "Vereinskennung verbergen",
+});
+
+const erklaerungsDialog = erstelleErklaerungsDialog({
+  getZugang: () => ({
+    schiedsrichterId: ausgewaehlteSchiedsrichterId,
+    pin: eingegebenePin,
+  }),
+  vorHistorieErklaerung: () => {
+    if (!historieAutoTimer) return;
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  },
+});
+const { baueWarumButton } = erklaerungsDialog;
+
+const gastController = erstelleGastmodus({
+  sb,
+  zeigeFehler,
+  versteckeFehler,
+  loeseOptionenAuf,
+  beiVerlassen: () => {
+    const gemerkteKennung = kennungSession.lesen();
+    if (gemerkteKennung) {
+      void pruefeVereinskennung(gemerkteKennung, { ausSession: true });
+    } else {
+      zeigeKennungBereich();
+    }
+  },
+});
+
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
   fehlerHinweis.hidden = false;
@@ -197,61 +218,6 @@ function zeigeFehler(text) {
 
 function versteckeFehler() {
   fehlerHinweis.hidden = true;
-}
-
-function speichereSession(id, pin, name) {
-  try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id, pin, name }));
-  } catch (e) {
-    // Falls sessionStorage mal nicht verfügbar ist (z.B. privates Fenster) -
-    // kein Problem, dann bleibt man einfach ohne Session-Merken angemeldet.
-  }
-}
-
-function leseGespeicherteSession() {
-  try {
-    const roh = sessionStorage.getItem(SESSION_KEY);
-    return roh ? JSON.parse(roh) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function loescheGespeicherteSession() {
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch (e) {
-    // ignorieren
-  }
-}
-
-// Vereinskennung-Session (13.07.2026, Baustein A) - gleiches Muster wie
-// die Schiedsrichter-Session oben, eigener Key, damit ein "Abmelden" (das
-// nur die Schiedsrichter-Session löscht) die bestätigte Kennung nicht
-// mit wegwirft.
-function speichereKennungSession(kennung) {
-  try {
-    sessionStorage.setItem(KENNUNG_SESSION_KEY, kennung);
-  } catch (e) {
-    // Falls sessionStorage nicht verfügbar ist, bleibt man einfach ohne
-    // Merken angemeldet (wie beim bestehenden Schiedsrichter-Login oben).
-  }
-}
-
-function leseGespeicherteKennung() {
-  try {
-    return sessionStorage.getItem(KENNUNG_SESSION_KEY);
-  } catch (e) {
-    return null;
-  }
-}
-
-function loescheGespeicherteKennungSession() {
-  try {
-    sessionStorage.removeItem(KENNUNG_SESSION_KEY);
-  } catch (e) {
-    // ignorieren
-  }
 }
 
 function zeigeAngemeldetenZustand(name) {
@@ -299,7 +265,7 @@ function pruefeEingabenVollstaendig() {
   // "kennung"-Zustand ist er ohnehin unsichtbar (siehe zeigeMitgliedBereich/
   // zeigeGastBereich), daher hier einfach dauerhaft deaktiviert lassen.
   if (loginModus === "gast") {
-    startButton.disabled = !(gastNameEingabe.value.trim().length > 0);
+    startButton.disabled = !gastController.istStartbereit();
   } else if (loginModus === "mitglied") {
     // Je nach Verein zählt entweder die Auswahlliste oder das Namensfeld.
     const nameDa = vereinZeigtNamensliste
@@ -353,55 +319,6 @@ function zeigeGastBereich() {
   gastNameEingabe.focus();
 }
 
-// ============================================================
-// Maskierte Eingabefelder ohne type="password" (10.08.2026)
-//
-// Safari und iOS blenden bei JEDEM echten Passwortfeld ungefragt den
-// "Starkes Passwort verwenden"-Vorschlag ein und ignorieren dabei
-// autocomplete="off". Für eine vierstellige Vereins-PIN ist dieses Fenster
-// nur verwirrend - Max' Rückmeldung nach dem Test mit älteren Kollegen.
-//
-// Lösung: Die Felder sind normale Textfelder und werden per CSS
-// ("-webkit-text-security", siehe style.css) maskiert. Das System erkennt
-// sie dadurch nicht als Passwortfelder.
-//
-// Wichtig ist die Rückfallebene: "-webkit-text-security" wird nicht von
-// jedem Browser unterstützt. Kann der Browser es nicht, wären die Zeichen
-// im Klartext zu sehen - dann lieber zurück auf type="password" samt
-// Vorschlagsfenster. Sichtbarkeit der PIN wiegt schwerer als Bequemlichkeit.
-// ============================================================
-const MASKIERUNG_MOEGLICH =
-  typeof CSS !== "undefined" &&
-  typeof CSS.supports === "function" &&
-  (CSS.supports("-webkit-text-security", "disc") || CSS.supports("text-security", "disc"));
-
-if (!MASKIERUNG_MOEGLICH) {
-  document.querySelectorAll("input.maskiert").forEach((feld) => {
-    feld.classList.remove("maskiert");
-    feld.type = "password";
-  });
-}
-
-function istAufgedeckt(feld) {
-  return feld.classList.contains("maskiert") ? feld.classList.contains("sichtbar") : feld.type === "text";
-}
-
-function decke_auf(feld) {
-  if (feld.classList.contains("maskiert")) {
-    feld.classList.add("sichtbar");
-  } else {
-    feld.type = "text";
-  }
-}
-
-function verdecke(feld) {
-  if (feld.classList.contains("maskiert")) {
-    feld.classList.remove("sichtbar");
-  } else {
-    feld.type = "password";
-  }
-}
-
 function zeigeKennungBereich() {
   loginModus = "kennung";
   kennungBereich.hidden = false;
@@ -450,7 +367,7 @@ async function pruefeVereinskennung(kennungWert, options) {
       // zwischenzeitlich geändert) - Session verwerfen, normal von vorn
       // starten, kein Fehler-Hinweis nötig (Person hat ja nichts falsch
       // gemacht).
-      loescheGespeicherteKennungSession();
+      kennungSession.loeschen();
       return;
     }
     kennungHinweis.textContent = "Diese Vereinskennung ist uns nicht bekannt.";
@@ -464,7 +381,7 @@ async function pruefeVereinskennung(kennungWert, options) {
   aktuelleKennung = kennung;
   vereinZeigtNamensliste = zugang.namensliste_anzeigen !== false;
 
-  speichereKennungSession(kennung);
+  kennungSession.speichern(kennung);
   kennungHinweis.textContent = zugang.verein_name
     ? "✓ " + zugang.verein_name
     : "✓ Vereinskennung bestätigt";
@@ -489,31 +406,6 @@ kennungEingabe.addEventListener("keydown", (event) => {
   }
 });
 
-// Augen-Button (13.07.2026, Max' Feedback): Vereinskennung ist "irgendwo
-// trotzdem ein Passwort" - Eingabefeld deshalb standardmäßig verdeckt
-// (siehe type="password" in index.html), per Klick auf das Auge kurz
-// aufdeckbar. Sobald danach weitergetippt wird, verdeckt sich das Feld
-// automatisch wieder ("aufgedeckt" ist bewusst nur ein kurzer Blick, kein
-// dauerhafter Zustand).
-if (kennungAugeButton) {
-  kennungAugeButton.addEventListener("click", () => {
-    const wirdSichtbar = !istAufgedeckt(kennungEingabe);
-    if (wirdSichtbar) { decke_auf(kennungEingabe); } else { verdecke(kennungEingabe); }
-    kennungAugeButton.setAttribute("aria-pressed", String(wirdSichtbar));
-    kennungAugeButton.setAttribute(
-      "aria-label",
-      wirdSichtbar ? "Vereinskennung verbergen" : "Vereinskennung anzeigen"
-    );
-  });
-  kennungEingabe.addEventListener("input", () => {
-    if (istAufgedeckt(kennungEingabe)) {
-      verdecke(kennungEingabe);
-      kennungAugeButton.setAttribute("aria-pressed", "false");
-      kennungAugeButton.setAttribute("aria-label", "Vereinskennung anzeigen");
-    }
-  });
-}
-
 gastWechselButton.addEventListener("click", () => {
   versteckeFehler();
   zeigeGastBereich();
@@ -526,7 +418,7 @@ gastZurueckButton.addEventListener("click", () => {
 
 startButton.addEventListener("click", async () => {
   if (loginModus === "gast") {
-    await starteGastModus();
+    await gastController.starte();
     return;
   }
 
@@ -544,7 +436,7 @@ startButton.addEventListener("click", async () => {
         : "")
     : nameEingabe.value.trim();
   const pin = pinEingabe.value.trim();
-  const kennung = aktuelleKennung || leseGespeicherteKennung();
+  const kennung = aktuelleKennung || kennungSession.lesen();
 
   if (!name || !pin || !kennung) return;
 
@@ -582,305 +474,19 @@ startButton.addEventListener("click", async () => {
   // sonst stünde bei abweichender Groß-/Kleinschreibung die Eingabe in der
   // Begrüßung statt der tatsächlich hinterlegte Name.
   const echterName = treffer.name || name;
-  speichereSession(treffer.schiedsrichter_id, pin, echterName);
+  mitgliedSession.speichern({ id: treffer.schiedsrichter_id, pin, name: echterName });
   zeigeAngemeldetenZustand(echterName);
 
   await ladeFragenUndAntworten();
 });
 
 wechselnButton.addEventListener("click", () => {
-  loescheGespeicherteSession();
+  mitgliedSession.loeschen();
   location.reload();
-});
-
-// ============================================================
-// Gast-Quiz (13.07.2026, Baustein B/C/D) - eigener, schlanker Ablauf statt
-// Wiederverwendung von "ladeFragenUndAntworten": Gast-Fragen sind bewusst
-// nur Multiple-Choice ohne Video/Freitext/KI, und nichts wird serverseitig
-// gespeichert (Fortschritt lebt nur in den Variablen oben, siehe
-// "AskUserQuestion"-Entscheidung im Backlog: "nur im Browser merken"). Baut
-// bewusst auf demselben Options-/Feedback-Markup wie die echten Fragen auf
-// (".option-liste"/".option"/".absenden-button"/".feedback"), damit sich der
-// Gast-Modus optisch nicht wie ein Fremdkörper anfühlt.
-// ============================================================
-
-async function starteGastModus() {
-  versteckeFehler();
-  const name = gastNameEingabe.value.trim();
-  if (!name) return;
-
-  gastName = name;
-  gastBeantwortetAnzahl = 0;
-  gastRichtigAnzahl = 0;
-  gastFrageIndex = 0;
-  gastInteressePopupGezeigt = false;
-
-  nameSchritt.hidden = true;
-  gastQuizSchritt.hidden = false;
-  gastNameAnzeige.textContent = gastName;
-  aktualisiereGastFortschrittAnzeige();
-
-  await ladeGastFragen();
-}
-
-async function ladeGastFragen() {
-  const { data, error } = await sb.rpc("gast_fragen_liste");
-
-  if (error) {
-    zeigeFehler("Fragen konnten nicht geladen werden: " + error.message);
-    return;
-  }
-
-  gastFragenPool = data || [];
-  gastFrageIndex = 0;
-  zeigeNaechsteGastFrage();
-}
-
-function zeigeNaechsteGastFrage() {
-  gastFrageBereich.innerHTML = "";
-
-  if (gastFragenPool.length === 0) {
-    const hinweis = document.createElement("p");
-    hinweis.className = "hinweis card";
-    hinweis.textContent =
-      "Für den Gast-Modus sind momentan noch keine Fragen freigeschaltet. Du kannst später wiederkommen oder den Gast-Modus verlassen.";
-    gastFrageBereich.appendChild(hinweis);
-    return;
-  }
-
-  if (gastFrageIndex >= gastFragenPool.length) {
-    const hinweis = document.createElement("p");
-    hinweis.className = "hinweis card";
-    hinweis.textContent = "Das waren erstmal alle Fragen – danke fürs Ausprobieren! 🎉";
-    gastFrageBereich.appendChild(hinweis);
-    return;
-  }
-
-  gastFrageBereich.appendChild(baueGastFrageElement(gastFragenPool[gastFrageIndex]));
-}
-
-function baueGastFrageElement(frage) {
-  const container = document.createElement("div");
-  container.className = "frage-karte";
-  container.dataset.frageId = frage.frage_id;
-
-  const titel = document.createElement("div");
-  titel.className = "frage-text";
-  titel.textContent = frage.frage_text;
-  const titelZeile = document.createElement("div");
-  titelZeile.className = "frage-text-zeile";
-  titelZeile.appendChild(titel);
-  container.appendChild(titelZeile);
-
-  const optionListe = document.createElement("div");
-  optionListe.className = "option-liste";
-
-  const optionen = [
-    { key: "a", text: frage.option_a },
-    { key: "b", text: frage.option_b },
-    { key: "c", text: frage.option_c },
-  ];
-
-  for (const opt of optionen) {
-    if (!opt.text) continue;
-    const label = document.createElement("label");
-    label.className = "option";
-
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "gast-frage-" + frage.frage_id;
-    radio.value = opt.key;
-    radio.addEventListener("change", () => {
-      optionListe.querySelectorAll(".option").forEach((el) => el.classList.remove("ausgewaehlt"));
-      label.classList.add("ausgewaehlt");
-    });
-
-    label.appendChild(radio);
-    label.append(opt.text);
-    optionListe.appendChild(label);
-  }
-  container.appendChild(optionListe);
-
-  const absendenButton = document.createElement("button");
-  absendenButton.className = "absenden-button";
-  absendenButton.textContent = "Antwort abschicken";
-  absendenButton.addEventListener("click", () => gastAntwortAbschicken(frage.frage_id, container, absendenButton));
-  container.appendChild(absendenButton);
-
-  const feedback = document.createElement("p");
-  feedback.className = "feedback";
-  // "aria-live" sorgt dafür, dass Screenreader die Auflösung ("Richtig!"/
-  // "Leider falsch...") automatisch vorlesen, sobald sie erscheint - ohne
-  // das bliebe sie für blinde Nutzer unbemerkt (07.08.2026, WCAG 4.1.3).
-  feedback.setAttribute("role", "status");
-  feedback.setAttribute("aria-live", "polite");
-  feedback.hidden = true;
-  container.appendChild(feedback);
-
-  return container;
-}
-
-async function gastAntwortAbschicken(frageId, container, button) {
-  const gewaehlt = container.querySelector('input[type="radio"]:checked');
-  if (!gewaehlt) {
-    zeigeFehler("Bitte erst eine Antwort auswählen.");
-    return;
-  }
-  versteckeFehler();
-
-  button.disabled = true;
-  container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
-
-  const { data, error } = await sb.rpc("gast_antwort_pruefen", {
-    p_frage_id: frageId,
-    p_option: gewaehlt.value,
-  });
-
-  const feedback = container.querySelector(".feedback");
-  feedback.hidden = false;
-
-  if (error || !data || !data[0]) {
-    feedback.textContent = "Antwort konnte nicht geprüft werden" + (error ? ": " + error.message : ".");
-    feedback.classList.add("falsch");
-    button.disabled = false;
-    container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = false));
-    return;
-  }
-
-  const ergebnis = data[0];
-
-  // Gleiche farbige Auflösung wie im eingeloggten Quiz (07.08.2026).
-  loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
-  container.classList.add("beantwortet", ergebnis.korrekt ? "richtig-karte" : "falsch-karte");
-
-  gastBeantwortetAnzahl += 1;
-  if (ergebnis.korrekt) {
-    gastRichtigAnzahl += 1;
-    feedback.textContent = "Richtig! ✅";
-    feedback.classList.add("richtig");
-  } else {
-    feedback.textContent = "Leider falsch. Richtig wäre gewesen: " + ergebnis.richtige_option.toUpperCase();
-    feedback.classList.add("falsch");
-  }
-
-  aktualisiereGastFortschrittAnzeige();
-
-  const weiterButton = document.createElement("button");
-  weiterButton.className = "historie-weiter-button";
-  weiterButton.type = "button";
-  weiterButton.textContent = "Nächste Frage →";
-  weiterButton.addEventListener("click", () => {
-    gastFrageIndex += 1;
-    zeigeNaechsteGastFrage();
-  });
-  container.appendChild(weiterButton);
-
-  // Baustein C: Interesse-Popup nach GAST_INTERESSE_TRIGGER_ANZAHL
-  // beantworteten Fragen, nur einmal pro Sitzung.
-  if (gastBeantwortetAnzahl === GAST_INTERESSE_TRIGGER_ANZAHL && !gastInteressePopupGezeigt) {
-    gastInteressePopupGezeigt = true;
-    interesseOverlay.hidden = false;
-  }
-}
-
-function aktualisiereGastFortschrittAnzeige() {
-  gastFortschrittAnzeige.textContent = gastRichtigAnzahl + " von " + gastBeantwortetAnzahl + " richtig";
-}
-
-// Ausstiegsweg aus dem Gast-Modus zurück zur Login-Karte (siehe Kommentar
-// am Button in index.html) - setzt den kompletten Gast-Zustand zurück und
-// zeigt wieder den Bereich, der zur gerade aktiven Vereinskennung passt.
-gastVerlassenButton.addEventListener("click", () => {
-  gastQuizSchritt.hidden = true;
-  gastFrageBereich.innerHTML = "";
-  gastName = null;
-  gastFragenPool = [];
-  gastFrageIndex = 0;
-  gastBeantwortetAnzahl = 0;
-  gastRichtigAnzahl = 0;
-  gastInteressePopupGezeigt = false;
-  gastNameEingabe.value = "";
-
-  nameSchritt.hidden = false;
-  const gemerkteKennung = leseGespeicherteKennung();
-  if (gemerkteKennung) {
-    // Nicht einfach zeigeMitgliedBereich(): erst beim Server nachfragen, ob
-    // dieser Verein eine Namensliste hat - sonst stünde nach dem Gast-Modus
-    // womöglich die falsche Eingabeart da.
-    pruefeVereinskennung(gemerkteKennung, { ausSession: true });
-  } else {
-    zeigeKennungBereich();
-  }
-});
-
-// ---------- Interesse-Popup + Interessenten-Formular (Baustein C/D/E) ----------
-
-function schliesseInteressePopup() {
-  interesseOverlay.hidden = true;
-}
-
-// "Schade"-Popup (13.07.2026, Max' Feedback): auch wer "Nein danke" klickt,
-// soll noch die Möglichkeit bekommen, sich über den SVFD-Link zu
-// informieren - vorher gab es dafür gar keinen erreichbaren Ort mehr.
-function schliesseInteresseNeinOverlay() {
-  interesseNeinOverlay.hidden = true;
-}
-
-interesseNeinButton.addEventListener("click", () => {
-  schliesseInteressePopup();
-  interesseNeinOverlay.hidden = false;
-});
-interesseOverlay.addEventListener("click", (event) => {
-  if (event.target === interesseOverlay) schliesseInteressePopup();
-});
-
-interesseNeinSchliessenButton.addEventListener("click", schliesseInteresseNeinOverlay);
-interesseNeinOverlay.addEventListener("click", (event) => {
-  if (event.target === interesseNeinOverlay) schliesseInteresseNeinOverlay();
-});
-
-interesseJaButton.addEventListener("click", () => {
-  schliesseInteressePopup();
-  interessentenFormularInhalt.hidden = false;
-  interessentenFormularErfolg.hidden = true;
-  interessentEmailEingabe.value = "";
-  interessentenFormularOverlay.hidden = false;
-});
-
-function schliesseInteressentenFormular() {
-  interessentenFormularOverlay.hidden = true;
-}
-
-interessentenFormularSchliessenButton.addEventListener("click", schliesseInteressentenFormular);
-interessentenFormularOverlay.addEventListener("click", (event) => {
-  if (event.target === interessentenFormularOverlay) schliesseInteressentenFormular();
-});
-
-interessentAbsendenButton.addEventListener("click", async () => {
-  interessentAbsendenButton.disabled = true;
-  const email = interessentEmailEingabe.value.trim();
-
-  const { error } = await sb.rpc("gast_interesse_melden", {
-    p_gast_name: gastName || "Gast",
-    p_email: email || null,
-  });
-
-  interessentAbsendenButton.disabled = false;
-
-  if (error) {
-    zeigeFehler("Konnte leider nicht gespeichert werden: " + error.message);
-    return;
-  }
-
-  interessentenFormularInhalt.hidden = true;
-  interessentenFormularErfolg.hidden = false;
 });
 
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  if (interesseOverlay && !interesseOverlay.hidden) schliesseInteressePopup();
-  if (interesseNeinOverlay && !interesseNeinOverlay.hidden) schliesseInteresseNeinOverlay();
-  if (interessentenFormularOverlay && !interessentenFormularOverlay.hidden) schliesseInteressentenFormular();
   if (profilPanel && !profilPanel.hidden) schliesseProfilPanel();
   if (anfrageFormularOverlay && !anfrageFormularOverlay.hidden) schliesseAnfrageFormular();
   if (meineAnfragenOverlay && !meineAnfragenOverlay.hidden) schliesseMeineAnfragen();
@@ -1389,68 +995,6 @@ async function ladeFragenUndAntworten() {
   }
 }
 
-// Vorlese-Option (Text-to-Speech, 10.07.2026, Backlog-Idee "klein, schnell
-// machbar"): nutzt die im Browser eingebaute Web Speech API, kein eigener
-// Server/Dienst nötig. "unterstuetztVorlesen" wird einmal beim Laden geprüft
-// - auf Browsern ohne Unterstützung erscheint der Button gar nicht erst,
-// statt beim Klick wirkungslos zu bleiben.
-const unterstuetztVorlesen = "speechSynthesis" in window;
-
-// Merkt sich den Button, der gerade eine Frage vorliest - so kann ein
-// zweiter Klick auf DENSELBEN Button die Sprachausgabe stoppen (10.07.2026-
-// Feedback: einmal klicken startet, nochmal klicken bricht ab, sonst nervt's).
-let vorlesenAktiverButton = null;
-
-function vorlesenBeendetAnzeigen(button) {
-  button.classList.remove("spricht");
-  button.textContent = "🔊";
-  button.setAttribute("aria-label", "Frage vorlesen");
-  button.title = "Frage vorlesen";
-  if (vorlesenAktiverButton === button) vorlesenAktiverButton = null;
-}
-
-function stoppeVorlesen() {
-  window.speechSynthesis.cancel();
-  if (vorlesenAktiverButton) vorlesenBeendetAnzeigen(vorlesenAktiverButton);
-}
-
-function vorlesen(text, button) {
-  if (!unterstuetztVorlesen) return;
-  stoppeVorlesen(); // falls schon eine andere Frage vorgelesen wird
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "de-DE";
-  utterance.onend = () => vorlesenBeendetAnzeigen(button);
-  utterance.onerror = () => vorlesenBeendetAnzeigen(button);
-
-  vorlesenAktiverButton = button;
-  button.classList.add("spricht");
-  button.textContent = "⏹";
-  button.setAttribute("aria-label", "Vorlesen stoppen");
-  button.title = "Vorlesen stoppen";
-  window.speechSynthesis.speak(utterance);
-}
-
-function baueVorlesenButton(text) {
-  if (!unterstuetztVorlesen) return null;
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "vorlesen-button";
-  button.setAttribute("aria-label", "Frage vorlesen");
-  button.title = "Frage vorlesen";
-  button.textContent = "🔊";
-  button.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (button.classList.contains("spricht")) {
-      stoppeVorlesen();
-    } else {
-      vorlesen(text, button);
-    }
-  });
-  return button;
-}
-
 /// Anzeigename und Farbklasse je Fragetyp (07.08.2026, Max' Wunsch:
 /// "vielleicht sieht man da dann auch deutlicher, dass eine Frage Video oder
 /// Freitext ist, vielleicht mit Farben"). Bewusst mit Symbol UND Text, damit
@@ -1510,582 +1054,9 @@ function baueBadges(frage) {
   return wrap.childElementCount > 0 ? wrap : null;
 }
 
-// ============================================================
-// "Warum ist das richtig?" - Explain-my-answer (KI-Erklärung via Gemini,
-// 12.07.2026). Erscheint als Button unter jeder bereits beantworteten Frage
-// (Multiple-Choice und Freitext, laufende Runde und Üben-Modus) - öffnet ein
-// Popup mit einer live von der KI erzeugten Kurzerklärung. Die eigentliche
-// Berechtigungsprüfung ("wurde diese Frage von mir überhaupt schon
-// beantwortet?") läuft serverseitig in der RPC erklaerung_kontext_laden
-// (Migration v46) - hier im Frontend geht es nur um Anzeige/Bedienung.
-// ============================================================
-const erklaerungOverlay = document.getElementById("erklaerung-overlay");
-const erklaerungInhalt = document.getElementById("erklaerung-inhalt");
-const erklaerungSchliessenButton = document.getElementById("erklaerung-schliessen-button");
-const erklaerungsCache = new Map();
-
-function schliesseErklaerung() {
-  if (erklaerungOverlay) erklaerungOverlay.hidden = true;
-}
-
-if (erklaerungSchliessenButton) {
-  erklaerungSchliessenButton.addEventListener("click", schliesseErklaerung);
-}
-if (erklaerungOverlay) {
-  // Klick auf den abgedunkelten Hintergrund schließt das Popup, ein Klick
-  // auf das Popup selbst (die Karte darin) nicht - deshalb der Vergleich
-  // mit event.target statt eines pauschalen Klick-Listeners.
-  erklaerungOverlay.addEventListener("click", (event) => {
-    if (event.target === erklaerungOverlay) schliesseErklaerung();
-  });
-}
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && erklaerungOverlay && !erklaerungOverlay.hidden) {
-    schliesseErklaerung();
-  }
-});
-
-// Öffnet das Popup und lädt die Erklärung nach. "istHistorie" steuert, ob
-// die erklaerung_kontext_laden-RPC in "antworten" (laufende Runde) oder
-// "historie_antworten" (Üben-Modus) nach der bereits gegebenen Antwort sucht.
-async function oeffneErklaerung(frageId, istHistorie) {
-  if (!erklaerungOverlay || !erklaerungInhalt) return;
-
-  // Im Üben-Modus läuft nach dem Beantworten ein automatischer
-  // Weiterschalt-Timer (siehe "zeigeHistorieWeiterButton") - der würde sonst
-  // mitten im Lesen der Erklärung zur nächsten Frage springen. Gleiches
-  // Verhalten wie beim manuellen Klick auf "Nächste Frage": Timer stoppen.
-  if (historieAutoTimer) {
-    clearTimeout(historieAutoTimer);
-    historieAutoTimer = null;
-  }
-
-  erklaerungOverlay.hidden = false;
-  erklaerungInhalt.innerHTML = "";
-
-  // Aktuelle Fragen können nur einmal beantwortet werden. Ihre Erklärung
-  // bleibt deshalb in derselben Seitensitzung stabil und muss bei erneutem
-  // Öffnen kein weiteres KI-Kontingent verbrauchen. Historische Fragen werden
-  // nicht gecacht, weil sie später mit einer anderen Antwort wiederkommen
-  // können.
-  const cacheSchluessel = istHistorie
-    ? null
-    : `${ausgewaehlteSchiedsrichterId}:${frageId}`;
-  if (cacheSchluessel && erklaerungsCache.has(cacheSchluessel)) {
-    const text = document.createElement("p");
-    text.textContent = erklaerungsCache.get(cacheSchluessel);
-    erklaerungInhalt.appendChild(text);
-    return;
-  }
-
-  const ladeHinweis = document.createElement("p");
-  ladeHinweis.className = "erklaerung-lade-hinweis";
-  const spinner = document.createElement("span");
-  spinner.className = "spinner";
-  ladeHinweis.appendChild(spinner);
-  ladeHinweis.append(" Einen Moment, die Erklärung wird erstellt ...");
-  erklaerungInhalt.appendChild(ladeHinweis);
-
-  try {
-    const antwort = await fetch("/api/erklaerung", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        schiedsrichterId: ausgewaehlteSchiedsrichterId,
-        frageId,
-        pin: eingegebenePin,
-        historie: istHistorie,
-      }),
-    });
-    const daten = await antwort.json();
-    if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
-
-    erklaerungInhalt.innerHTML = "";
-    const text = document.createElement("p");
-    text.textContent = daten.erklaerung;
-    erklaerungInhalt.appendChild(text);
-    if (cacheSchluessel) erklaerungsCache.set(cacheSchluessel, daten.erklaerung);
-  } catch (e) {
-    erklaerungInhalt.innerHTML = "";
-    const fehlerText = document.createElement("p");
-    fehlerText.className = "erklaerung-fehler";
-    fehlerText.textContent = "Erklärung konnte nicht geladen werden: " + e.message;
-    erklaerungInhalt.appendChild(fehlerText);
-  }
-}
-
-// Baut den "Warum?"-Button, der unter einer bereits beantworteten Frage
-// erscheint.
-function baueWarumButton(frageId, istHistorie) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "warum-button";
-  button.append("💡 Warum?");
-  button.addEventListener("click", () => oeffneErklaerung(frageId, istHistorie));
-  return button;
-}
-
-// ============================================================
-// Video-Fragetyp (12.07.2026, Grundgerüst - nachgebessert 12.07.2026):
-// YouTube-Einbettung mit Start-/End-Zeit im datenschutzfreundlichen
-// "Zwei-Klick"-Muster - es wird KEIN Kontakt zu YouTube aufgebaut, bevor
-// aktiv auf den Platzhalter geklickt wird, und die Einbettung läuft über
-// youtube-nocookie.com statt youtube.com (siehe Rechtsrecherche im
-// Backlog, Baustein 1v). Funktioniert für beide Video-Antworttypen
-// (video_mc/video_freitext) gleich - deshalb rein am Vorhandensein von
-// "frage.video_url" festgemacht statt am typ-Feld.
-//
-// Nachbesserung (Max' Live-Test-Feedback, 12.07.2026): die erste Version
-// hat nur eine statische <iframe src="...?start=X&end=Y">-URL gesetzt.
-// Das Problem: start/end sind reine Lade-Parameter, keine dauerhafte
-// Beschränkung - nach dem ersten Ansehen "vergisst" der Player den
-// Ausschnitt, ein erneutes Play spielt vom letzten Stand weiter statt
-// wieder vom Snippet-Anfang. Fix: echte YouTube-IFrame-Player-API
-// (kostenlos, kein API-Key, kein Kontingent - reines JS um denselben
-// Embed-Player) statt einer statischen iframe-URL. Damit bekommen wir das
-// "onStateChange"-Ereignis mit, und sobald der Player den Zustand ENDED
-// meldet (tritt zuverlässig genau beim erreichten End-Timestamp ein),
-// wird der Player komplett zerstört und der graue Platzhalter wieder
-// gezeigt - ein erneuter Klick lädt sauber wieder ab Start-Sekunde.
-// "playsinline: 1" verhindert außerdem, dass iOS beim Abspielen von sich
-// aus in den nativen Vollbildmodus springt (das war vermutlich die
-// eigentliche Ursache für Max' beobachtetes Reload-Verhalten auf dem
-// Handy) - zusammen mit "fs: 0" (YouTubes eigener Vollbild-Button wird
-// entfernt) läuft jede "groß ansehen"-Interaktion jetzt ausschließlich
-// über unser eigenes Overlay (siehe "oeffneVideoGrossansicht" unten),
-// nicht mehr über YouTubes eigenes, browserabhängiges Vollbildverhalten.
-// ============================================================
-let youtubeApiPromise = null;
-function ladeYoutubeApi() {
-  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
-  if (youtubeApiPromise) return youtubeApiPromise;
-  youtubeApiPromise = new Promise((resolve) => {
-    const vorherigerHandler = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      if (typeof vorherigerHandler === "function") vorherigerHandler();
-      resolve(window.YT);
-    };
-    const script = document.createElement("script");
-    script.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(script);
-  });
-  return youtubeApiPromise;
-}
-
-// Gemeinsames "Groß ansehen"-Overlay (ein einziges für die ganze Seite,
-// analog zum Erklärung-Popup) - merkt sich, in welchen Wrapper der Player
-// beim Schließen zurückwandert. Die eigentliche Größenanpassung bei
-// Drehung des Handys passiert rein über CSS (siehe style.css,
-// ".video-gross-spieler-halter": Breite = das Minimum aus 94% der
-// Viewport-Breite UND einer aus 94% der Viewport-Höhe abgeleiteten
-// 16:9-Breite) - dadurch reagiert die Größe automatisch und ohne eigenen
-// JS-Resize-Handler auf jede Drehung/Größenänderung, auch zuverlässiger
-// als ein "orientationchange"-Event-Listener.
-let aktuellerGrossSpielerWrap = null;
-let aktuellerGrossSpielerRueckgabeStelle = null;
-
-function schliesseVideoGrossansicht() {
-  const overlay = document.getElementById("video-gross-overlay");
-  const halter = document.getElementById("video-gross-spieler-halter");
-  if (!overlay || !halter) return;
-  if (aktuellerGrossSpielerWrap && aktuellerGrossSpielerRueckgabeStelle && halter.firstChild) {
-    aktuellerGrossSpielerRueckgabeStelle.appendChild(halter.firstChild);
-  }
-  overlay.hidden = true;
-  aktuellerGrossSpielerWrap = null;
-  aktuellerGrossSpielerRueckgabeStelle = null;
-}
-
-function oeffneVideoGrossansicht(spielerElement, rueckgabeStelle) {
-  const overlay = document.getElementById("video-gross-overlay");
-  const halter = document.getElementById("video-gross-spieler-halter");
-  if (!overlay || !halter) return;
-  halter.innerHTML = "";
-  halter.appendChild(spielerElement);
-  aktuellerGrossSpielerWrap = spielerElement;
-  aktuellerGrossSpielerRueckgabeStelle = rueckgabeStelle;
-  overlay.hidden = false;
-}
-
-(function initVideoGrossansichtOverlay() {
-  const overlay = document.getElementById("video-gross-overlay");
-  if (!overlay) return;
-  const schliessenButton = document.getElementById("video-gross-schliessen-button");
-  if (schliessenButton) schliessenButton.addEventListener("click", schliesseVideoGrossansicht);
-  overlay.addEventListener("click", (ereignis) => {
-    if (ereignis.target === overlay) schliesseVideoGrossansicht();
-  });
-  document.addEventListener("keydown", (ereignis) => {
-    if (ereignis.key === "Escape" && !overlay.hidden) schliesseVideoGrossansicht();
-  });
-})();
-
-function baueVideoEinbettung(videoUrl, startSekunden, endSekunden, stumm) {
-  const videoId = extrahiereYoutubeId(videoUrl);
-  if (!videoId) return null;
-
-  const wrap = document.createElement("div");
-  wrap.className = "video-einbettung";
-
-  // Nachbesserung (13.07.2026, Max' Feedback: bei zwei Video-Fragen
-  // hintereinander sehen beide Platzhalter identisch aus - kombiniert mit
-  // Hoch/Quer-Drehen auf dem Handy wusste er nicht mehr, welches Video er
-  // schon angesehen hatte und zu welcher Frage es gehörte). Der Platzhalter
-  // ist bewusst generisch OHNE YouTube-Vorschaubild (kein Kontakt zu
-  // YouTube vor dem Klick, siehe Hinweistext) - darum braucht er eine
-  // EIGENE, rein lokale Markierung, ob dieses Video schon geöffnet wurde.
-  // "bereitsAngesehen" lebt in diesem Closure, also pro Video-Frage einzeln
-  // (keine Verwechslungsgefahr zwischen mehreren Karten). Wird schon beim
-  // ERSTEN Klick (Start des Ladens) gesetzt, nicht erst nach komplettem
-  // Durchschauen - Max wollte wissen "habe ich mir das überhaupt schon
-  // angeschaut", nicht "habe ich es bis zum Ende geschaut".
-  let bereitsAngesehen = false;
-
-  function baueUndZeigePlatzhalter() {
-    wrap.innerHTML = "";
-
-    const platzhalter = document.createElement("button");
-    platzhalter.type = "button";
-    platzhalter.className = "video-platzhalter" + (bereitsAngesehen ? " video-platzhalter-angesehen" : "");
-
-    if (bereitsAngesehen) {
-      const badge = document.createElement("span");
-      badge.className = "video-platzhalter-badge";
-      badge.textContent = "✓ Angesehen";
-      platzhalter.appendChild(badge);
-    }
-
-    const icon = document.createElement("span");
-    icon.className = "video-platzhalter-icon";
-    icon.textContent = bereitsAngesehen ? "↻" : "▶";
-    platzhalter.appendChild(icon);
-
-    const text = document.createElement("span");
-    text.className = "video-platzhalter-text";
-    text.textContent = bereitsAngesehen ? "Video nochmal ansehen" : "Video laden und ansehen";
-    platzhalter.appendChild(text);
-
-    const hinweis = document.createElement("span");
-    hinweis.className = "video-platzhalter-hinweis";
-    hinweis.textContent = stumm
-      ? "Lädt erst nach Klick von YouTube - ohne Ton, damit kein Kommentator die Antwort verrät."
-      : "Lädt erst nach Klick von YouTube - vorher kein Kontakt zu YouTube.";
-    platzhalter.appendChild(hinweis);
-
-    platzhalter.addEventListener("click", () => {
-      bereitsAngesehen = true;
-      platzhalter.disabled = true;
-      text.textContent = "Wird geladen ...";
-      ladeYoutubeApi().then((YT) => {
-        // Falls der Nutzer während des Ladens schon weitergeklickt/die Frage
-        // verlassen hat, könnte "wrap" inzwischen woanders hinzeigen - hier
-        // bewusst kein zusätzlicher Check nötig, der Platzhalter bleibt Teil
-        // von "wrap" bis er ersetzt wird.
-        const spielerHalter = document.createElement("div");
-        spielerHalter.className = "video-spieler-halter";
-        const spielerZiel = document.createElement("div");
-        spielerHalter.appendChild(spielerZiel);
-
-        // Eigener Pause/Play-Button (12.07.2026, Nachbesserung Runde 2) -
-        // lebt bewusst INNERHALB von "spielerHalter", nicht in "wrap": beim
-        // "Groß ansehen" wandert "spielerHalter" per DOM-Move ins Overlay,
-        // der Button wandert automatisch mit, ohne eigene Verdrahtung dafür.
-        // Klickfänger über dem gesamten Player (07.08.2026, Max' Test mit
-        // seinem Neffen): der hat zum Vergrößern instinktiv auf das
-        // YouTube-Logo im Video geklickt statt auf unseren kleinen
-        // "Groß ansehen"-Knopf darunter - und landete damit auf YouTube.
-        //
-        // Diese transparente Fläche liegt über dem iframe und schluckt JEDEN
-        // Klick aufs Video. Statt YouTubes eigener Bedienelemente (Logo,
-        // "Später ansehen", "Teilen", Titel-Link) öffnet ein Klick jetzt
-        // unsere Großansicht - also genau das, was der Nutzer ohnehin wollte.
-        // Nebeneffekt: die restlichen YouTube-Overlays sind damit gar nicht
-        // mehr erreichbar, auch wenn sie sichtbar bleiben.
-        //
-        // Der eigene Pause/Play-Knopf liegt bewusst DARÜBER (höherer
-        // z-index), sonst würde der Klickfänger auch ihn schlucken.
-        const klickFaenger = document.createElement("button");
-        klickFaenger.type = "button";
-        klickFaenger.className = "video-klickfaenger";
-        klickFaenger.setAttribute("aria-label", "Video groß ansehen");
-        klickFaenger.title = "Groß ansehen";
-        spielerHalter.appendChild(klickFaenger);
-
-        const abspielButton = document.createElement("button");
-        abspielButton.type = "button";
-        abspielButton.className = "video-abspiel-button";
-
-        /// Setzt Zeichen, Vorlesetext und Kurzhinweis des Knopfes in einem
-        /// Rutsch. Vorher wurde das an drei Stellen einzeln gemacht, wodurch
-        /// Zeichen und Beschriftung auseinanderlaufen konnten.
-        function setzeAbspielKnopf(laeuft) {
-          abspielButton.textContent = laeuft ? "❚❚" : "▶";
-          abspielButton.classList.toggle("laeuft", laeuft);
-          const text = laeuft ? "Video anhalten" : "Video abspielen";
-          abspielButton.setAttribute("aria-label", text);
-          abspielButton.title = text;
-        }
-        // Startzustand: WIEDERGABE (10.08.2026, Max' Meldung "der Button
-        // zeigt Pause an, obwohl das Video noch gar nicht gestartet ist").
-        // Der Knopf wurde fest mit dem Pause-Zeichen angelegt, weil der
-        // Player mit "autoplay: 1" gebaut wird - auf dem Handy greift
-        // Autoplay aber häufig nicht (iOS blockiert Wiedergabe ohne
-        // direkte Nutzergeste), sodass der Knopf ohne laufendes Video
-        // Pause anzeigte. Der tatsächliche Zustand wird ohnehin in
-        // "onStateChange" nachgeführt - der Startwert muss also nur den
-        // wahrscheinlicheren Fall treffen, und das ist "läuft noch nicht".
-        setzeAbspielKnopf(false);
-        spielerHalter.appendChild(abspielButton);
-
-        wrap.innerHTML = "";
-        wrap.appendChild(spielerHalter);
-
-        // "Groß ansehen" bleibt bewusst in "wrap" (nicht in "spielerHalter")
-        // - dadurch verschwindet er automatisch mit dem Rest von "wrap"
-        // hinter dem Overlay, sobald schon groß angesehen wird, statt sich
-        // sinnlos "in sich selbst" nochmal anzubieten. Wird EINMALIG hier
-        // angelegt (nicht erst in "onReady", siehe Kommentar dort) - das ist
-        // der eigentliche Fix für den gemeldeten "Button erscheint mehrfach"-
-        // Bug.
-        const grossButton = document.createElement("button");
-        grossButton.type = "button";
-        // "auffaellig" seit 07.08.2026: der Knopf war vorher ein schmaler
-        // Umriss-Button und wurde schlicht übersehen.
-        grossButton.className = "video-gross-button auffaellig";
-        grossButton.textContent = "⤢ Video groß ansehen";
-        grossButton.addEventListener("click", () => {
-          oeffneVideoGrossansicht(spielerHalter, wrap);
-        });
-        wrap.appendChild(grossButton);
-
-        // Klick irgendwo aufs Video öffnet dieselbe Großansicht.
-        klickFaenger.addEventListener("click", () => {
-          oeffneVideoGrossansicht(spielerHalter, wrap);
-        });
-
-        const playerVars = {
-          autoplay: 1,
-          // Nachbesserung (Max' zweite Live-Test-Runde, 12.07.2026):
-          // YouTubes komplette native Steuerleiste ausblenden statt nur den
-          // Vollbild-Button ("fs: 0" reichte allein nicht) - damit ist auch
-          // die Fortschritts-/Zeitleiste weg, über die man sonst zu jedem
-          // beliebigen Zeitpunkt hätte springen können (Max' zweiter
-          // gemeldeter Punkt). Eigene, schlanke Pause/Play- und
-          // "Groß ansehen"-Buttons ersetzen sie (s.o.).
-          controls: 0,
-          disablekb: 1,
-          modestbranding: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          cc_load_policy: 0,
-          fs: 0,
-          playsinline: 1,
-          mute: stumm ? 1 : 0,
-        };
-        // "start"/"end" nur mitgeben, wenn tatsächlich gesetzt - ein
-        // "undefined"-Wert im Objekt würde beim Zusammenbauen der
-        // YouTube-Embed-URL sonst als Literal-String "undefined" landen.
-        if (Number.isFinite(startSekunden)) playerVars.start = Math.max(0, Math.floor(startSekunden));
-        if (Number.isFinite(endSekunden)) playerVars.end = Math.max(0, Math.floor(endSekunden));
-
-        // "bereitsEingerichtet" schützt zusätzlich gegen den Fall, dass die
-        // YouTube-API "onReady" tatsächlich mehrfach für denselben Player
-        // feuert (beobachtetes Verhalten auf dem Handy, vermutlich durch
-        // eine interne Neuinitialisierung beim Verlassen eines nativen
-        // Vollbildmodus ausgelöst) - ohne diese Sperre würden Klick-Handler
-        // mehrfach registriert.
-        let bereitsEingerichtet = false;
-
-        // ============================================================
-        // Nachbesserung Runde 3 (12.07.2026, Max' drittes Live-Test-
-        // Feedback): YouTube zeigt am ECHTEN Ende eines Videos automatisch
-        // einen eigenen "weitere Videos ansehen"-Vorschlagsbildschirm mit
-        // klickbaren Vorschau-Kacheln - das ist Teil der Kern-Wiedergabe-UI,
-        // nicht der "controls"-Leiste, und lässt sich über KEINEN
-        // IFrame-Player-Parameter mehr vollständig abschalten ("rel: 0"
-        // schränkt seit einer YouTube-Änderung von 2018 nur noch auf
-        // Videos DESSELBEN Kanals ein, verhindert die Anzeige aber nicht
-        // mehr komplett). Da wir den Player erst REAGIEREN, nachdem
-        // YouTube den "ENDED"-Zustand meldet, konnte dieser Bildschirm
-        // bisher kurz aufblitzen, bevor unser Code den Platzhalter zeigt -
-        // umso auffälliger, seit die restliche Steuerleiste durch
-        // "controls: 0" schon weg ist.
-        //
-        // Fix: wir warten den echten "ENDED"-Zustand gar nicht erst ab,
-        // sondern beobachten die Wiedergabezeit selbst (alle 200ms) und
-        // lösen unser eigenes "Video zu Ende"-Aufräumen (Platzhalter zeigen,
-        // Player zerstören) schon "VORLAUF_SEKUNDEN" VOR dem eigentlichen
-        // Ende aus - der Vorsprung ist größer als das Abfrage-Intervall,
-        // damit er zuverlässig vor YouTubes eigenem Vorschlagsbildschirm
-        // greift. 0,35s vor Schluss abzuschneiden fällt beim Zuschauen
-        // nicht auf, verhindert aber zuverlässig, dass YouTubes Bildschirm
-        // überhaupt erst zu rendern anfängt. Der echte "ENDED"-Fall bleibt
-        // als Rückfallebene bestehen (z.B. falls "getDuration()" mal nichts
-        // Sinnvolles liefert), "beendetAusgeloest" verhindert ein doppeltes
-        // Aufräumen (zweimaliges "destroy()" würde einen Fehler werfen).
-        // ============================================================
-        const VORLAUF_SEKUNDEN = 0.35;
-        let beendetAusgeloest = false;
-        let endUeberwachungsIntervall = null;
-
-        function stoppeEndUeberwachung() {
-          if (endUeberwachungsIntervall) {
-            clearInterval(endUeberwachungsIntervall);
-            endUeberwachungsIntervall = null;
-          }
-        }
-
-        function beendeVideo() {
-          if (beendetAusgeloest) return;
-          beendetAusgeloest = true;
-          stoppeEndUeberwachung();
-          if (aktuellerGrossSpielerWrap === spielerHalter) schliesseVideoGrossansicht();
-          spieler.destroy();
-          baueUndZeigePlatzhalter();
-        }
-
-        // Nachbesserung Runde 3/4 (12.07.2026): Untertitel sollen IMMER aus
-        // bleiben. "cc_load_policy: 0" oben in "playerVars" verhindert nur,
-        // dass Untertitel automatisch nach Zuschauer-Voreinstellung
-        // eingeschaltet werden - reicht laut Max' Beobachtung in der Praxis
-        // nicht zuverlässig aus. Das komplette Entladen des Untertitel-
-        // Moduls über die (offiziell nicht dokumentierte, aber weithin
-        // genutzte) Player-API-Methode "unloadModule" ist der zuverlässigste
-        // bekannte Weg. Als eigene Funktion, weil sie an mehreren Stellen
-        // aufgerufen wird (siehe Kommentar bei "onStateChange" unten, wieso
-        // einmaliges Aufrufen in "onReady" allein nicht reichte).
-        function unterdrueckeUntertitel() {
-          if (typeof spieler.unloadModule === "function") {
-            spieler.unloadModule("captions");
-          }
-        }
-
-        const spieler = new YT.Player(spielerZiel, {
-          host: "https://www.youtube-nocookie.com",
-          videoId,
-          playerVars,
-          events: {
-            onReady: () => {
-              if (bereitsEingerichtet) return;
-              bereitsEingerichtet = true;
-
-              abspielButton.addEventListener("click", () => {
-                if (spieler.getPlayerState() === YT.PlayerState.PLAYING) {
-                  spieler.pauseVideo();
-                } else {
-                  spieler.playVideo();
-                }
-              });
-
-              // Zusätzliche Absicherung GEGEN natives Vollbild auf
-              // DOM-/Berechtigungs-Ebene, nicht nur über "fs: 0"/
-              // "controls: 0" (die schalten nur YouTubes eigene Bedienung
-              // ab, verhindern aber nicht zwingend jede browser-/
-              // OS-seitige Vollbild-Möglichkeit für das iframe). Ein
-              // iframe ohne "allow=fullscreen" darf laut Fullscreen-API-
-              // Spezifikation gar keine Vollbild-Anfrage mehr stellen -
-              // das ist eine echte Browser-Sperre, keine reine Kosmetik.
-              const iframe = spieler.getIframe();
-              if (iframe) {
-                iframe.removeAttribute("allowfullscreen");
-                if (iframe.allow) {
-                  iframe.allow = iframe.allow
-                    .split(";")
-                    .map((teil) => teil.trim())
-                    .filter((teil) => teil && !teil.startsWith("fullscreen"))
-                    .join("; ");
-                }
-              }
-
-              unterdrueckeUntertitel();
-            },
-            // Nachbesserung Runde 5 (13.07.2026, Max meldet: Untertitel sind
-            // trotz Runde 3/4 offenbar auf einem echten Gerät immer noch
-            // manchmal zu sehen). "onApiChange" ist das offizielle YouTube-
-            // IFrame-API-Event dafür, dass sich verfügbare Player-Module
-            // (u.a. das Untertitel-Modul "captions") ändern oder neu laden -
-            // genau der Moment, in dem sich das Modul laut YouTubes eigener
-            // (unvollständiger) Doku unbemerkt selbst neu initialisieren
-            // kann. Zusätzlich zu den bestehenden Aufrufen bei "onReady" und
-            // "PLAYING" hier nochmal an der offiziellen Quelle abgreifen -
-            // deckt zusammen mit den bisherigen Aufrufen praktisch jeden
-            // bekannten Zeitpunkt ab, zu dem das Modul (wieder) aktiv werden
-            // könnte.
-            //
-            // WICHTIG (siehe Notiz in Backlog/Dashboard): sollte es auf dem
-            // iPhone TROTZDEM noch vorkommen, ist die wahrscheinlichste
-            // Ursache keine Lücke mehr in diesem Code, sondern die iOS-
-            // Systemeinstellung "Einstellungen > Bedienungshilfen >
-            // Untertitel & Untertitelung > Untertitel + SDH". Ist die
-            // eingeschaltet, erzwingt iOS/Safari selbst Untertitel bei JEDER
-            // Videowiedergabe (auch eingebettete YouTube-Player) - das
-            // passiert unterhalb der Web-Player-API und lässt sich von
-            // keiner Website per JavaScript übersteuern. Kurzer Check auf
-            // dem eigenen Handy lohnt sich, bevor hier weiter nachgebessert
-            // wird.
-            onApiChange: () => {
-              unterdrueckeUntertitel();
-            },
-            onStateChange: (ereignis) => {
-              if (ereignis.data === YT.PlayerState.ENDED) {
-                beendeVideo();
-                return;
-              }
-              if (ereignis.data === YT.PlayerState.PLAYING) {
-                setzeAbspielKnopf(true);
-                // Nachbesserung Runde 4 (12.07.2026, Max' Rückmeldung: der
-                // Runde-3-Fix "unloadModule('captions')" EINMALIG in
-                // "onReady" hat in der Praxis nicht gereicht). Bekanntes,
-                // offiziell nicht dokumentiertes Verhalten des Untertitel-
-                // Moduls: es kann sich beim TATSÄCHLICHEN Start der
-                // Wiedergabe (nicht schon bei "onReady", das vor dem
-                // eigentlichen Abspielen feuert) selbst neu laden, auch
-                // nachdem es einmal entladen wurde. Deshalb hier zusätzlich
-                // bei JEDEM "PLAYING" nochmal entladen, plus zwei verzögerte
-                // Nachschläge (300ms/1500ms), um ein eventuell erst leicht
-                // verzögert nachladendes Untertitel-Modul ebenfalls zu
-                // erwischen. Es gibt dafür keinen offiziellen, garantiert
-                // hundertprozentigen Weg von YouTube selbst (bestätigt durch
-                // mehrere offene YouTube-eigene Bugreports zu genau diesem
-                // Verhalten) - das hier ist der robusteste bekannte Ansatz.
-                unterdrueckeUntertitel();
-                setTimeout(unterdrueckeUntertitel, 300);
-                setTimeout(unterdrueckeUntertitel, 1500);
-                // Startet die Endzeit-Überwachung (siehe Kommentar bei
-                // "VORLAUF_SEKUNDEN" oben) - nur, wenn nicht schon eine läuft,
-                // damit mehrfaches Play/Pause nicht mehrere Intervalle parallel
-                // aufmacht.
-                if (!endUeberwachungsIntervall) {
-                  endUeberwachungsIntervall = setInterval(() => {
-                    if (beendetAusgeloest) return;
-                    const aktuelleZeit = typeof spieler.getCurrentTime === "function" ? spieler.getCurrentTime() : 0;
-                    const gesamtDauer = typeof spieler.getDuration === "function" ? spieler.getDuration() : 0;
-                    const zielEnde = Number.isFinite(endSekunden) && endSekunden > 0 ? endSekunden : gesamtDauer;
-                    if (zielEnde && aktuelleZeit >= zielEnde - VORLAUF_SEKUNDEN) {
-                      beendeVideo();
-                    }
-                  }, 200);
-                }
-              } else if (ereignis.data === YT.PlayerState.PAUSED) {
-                setzeAbspielKnopf(false);
-                // Überwachung während der Pause anhalten (spart Ressourcen,
-                // die Wiedergabezeit steht ohnehin still) - startet beim
-                // nächsten "PLAYING" automatisch wieder neu.
-                stoppeEndUeberwachung();
-              }
-            },
-          },
-        });
-      });
-    });
-
-    wrap.appendChild(platzhalter);
-  }
-
-  baueUndZeigePlatzhalter();
-  return wrap;
-}
-
+// Der gemeinsame Modal-first-Player für alle Videofragen liegt gekapselt in
+// src/video-player.js. app.js entscheidet nur noch, an welcher Frage er mit
+// welchen Zeit- und Fallbackdaten eingebunden wird.
 function baueFrageElement(frage) {
   const container = document.createElement("div");
   container.className = "frage-karte";
@@ -2105,7 +1076,13 @@ function baueFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const optionListe = document.createElement("div");
@@ -2181,7 +1158,13 @@ function baueBeantworteteFrageElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const optionTexte = { a: frage.option_a, b: frage.option_b, c: frage.option_c };
@@ -2260,10 +1243,16 @@ function baueFreitextFrageElement(frage) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
-  if (frage.antwort_hinweis) {
+  if (frage.antwort_hinweis && !frage.video_url) {
     const hinweis = document.createElement("p");
     hinweis.className = "freitext-hinweis";
     hinweis.textContent = frage.antwort_hinweis;
@@ -2551,7 +1540,13 @@ function baueBeantworteteFreitextElement(frage, antwort) {
   if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
   container.appendChild(titelZeile);
 
-  const video = baueVideoEinbettung(frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden, frage.video_stumm);
+  const video = baueVideoEinbettungModal(
+    frage.video_url,
+    frage.video_start_sekunden,
+    frage.video_end_sekunden,
+    frage.video_stumm,
+    frage.antwort_hinweis
+  );
   if (video) container.appendChild(video);
 
   const deineAntwort = document.createElement("p");
@@ -2847,20 +1842,6 @@ function aktualisiereFortschritt() {
       "aria-valuetext",
       beantworteFragenAnzahl + " von " + gesamtFragenAnzahl + " Fragen beantwortet"
     );
-  }
-}
-
-function spawnKonfetti() {
-  const symbole = ["🎉", "⚽", "🏆", "✅", "🎊"];
-  for (let i = 0; i < 24; i++) {
-    const teil = document.createElement("span");
-    teil.className = "konfetti-teil";
-    teil.textContent = symbole[Math.floor(Math.random() * symbole.length)];
-    teil.style.left = Math.random() * 100 + "vw";
-    teil.style.animationDelay = Math.random() * 0.6 + "s";
-    teil.style.fontSize = 1 + Math.random() * 0.8 + "rem";
-    konfettiSchicht.appendChild(teil);
-    setTimeout(() => teil.remove(), 3400);
   }
 }
 
@@ -3366,7 +2347,7 @@ async function start() {
   // Die Namensliste wird NICHT mehr blind beim Start geladen - erst wenn
   // eine Vereinskennung bestätigt ist, steht überhaupt fest, wessen Namen
   // gemeint wären (siehe pruefeVereinskennung).
-  const gespeichert = leseGespeicherteSession();
+  const gespeichert = mitgliedSession.lesen();
   if (gespeichert && gespeichert.id && gespeichert.pin) {
     ausgewaehlteSchiedsrichterId = gespeichert.id;
     eingegebenePin = gespeichert.pin;
@@ -3379,7 +2360,7 @@ async function start() {
   // Kennung wird gemerkt, damit man nicht bei jedem Neuladen erneut tippen
   // muss - wird aber sicherheitshalber erneut serverseitig geprüft (falls
   // sie sich zwischenzeitlich geändert hat), nicht blind übernommen.
-  const gespeicherteKennung = leseGespeicherteKennung();
+  const gespeicherteKennung = kennungSession.lesen();
   if (gespeicherteKennung) {
     kennungEingabe.value = gespeicherteKennung;
     await pruefeVereinskennung(gespeicherteKennung, { ausSession: true });
@@ -3387,43 +2368,4 @@ async function start() {
 }
 
 start();
-
-
-// ============================================================
-// Menü rechts oben (07.08.2026, Max' Wunsch)
-//
-// Bewusst ohne Framework als kleines Auf-/Zuklapp-Menü. Barrierefreiheit:
-// "aria-expanded" wird mitgeführt, Escape schließt, ein Klick außerhalb
-// schließt ebenfalls, und beim Schließen per Tastatur wandert der Fokus
-// zurück auf den Knopf (sonst landet man beim nächsten Tab am Seitenanfang).
-// ============================================================
-(function initKopfMenue() {
-  const knopf = document.getElementById("menue-button");
-  const panel = document.getElementById("menue-panel");
-  if (!knopf || !panel) return;
-
-  function setzeOffen(offen) {
-    panel.hidden = !offen;
-    knopf.setAttribute("aria-expanded", offen ? "true" : "false");
-    knopf.setAttribute("aria-label", offen ? "Menü schließen" : "Menü öffnen");
-  }
-
-  knopf.addEventListener("click", (ereignis) => {
-    ereignis.stopPropagation();
-    setzeOffen(panel.hidden);
-  });
-
-  document.addEventListener("click", (ereignis) => {
-    if (panel.hidden) return;
-    if (!panel.contains(ereignis.target) && ereignis.target !== knopf) {
-      setzeOffen(false);
-    }
-  });
-
-  document.addEventListener("keydown", (ereignis) => {
-    if (ereignis.key === "Escape" && !panel.hidden) {
-      setzeOffen(false);
-      knopf.focus();
-    }
-  });
-})();
+initialisiereKopfmenue();
