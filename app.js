@@ -9,8 +9,15 @@ const {
   freitextStatus,
   schwierigkeitSterne,
 } = SchiriQuizUtils;
+const { erstelleSessionSpeicher } = SchiriQuizSessionStore;
+const { baueVideoEinbettungModal } = SchiriQuizVideoPlayer;
 
 const SESSION_KEY = "schiriQuizSession";
+const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
+const mitgliedSession = erstelleSessionSpeicher(SESSION_KEY);
+const kennungSession = erstelleSessionSpeicher(KENNUNG_SESSION_KEY, {
+  altesRohformatLesen: true,
+});
 
 const nameAuswahl = document.getElementById("name-auswahl");
 const nameEingabe = document.getElementById("name-eingabe");
@@ -35,8 +42,6 @@ const fortschrittText = document.getElementById("fortschritt-text");
 const fortschrittProzent = document.getElementById("fortschritt-prozent");
 const fortschrittFill = document.getElementById("fortschritt-fill");
 const fortschrittTrack = fortschrittFill ? fortschrittFill.parentElement : null;
-const konfettiSchicht = document.getElementById("konfetti-schicht");
-
 // Vereinskennung / Gast-Zugang (13.07.2026, Baustein A/B/C/D) - siehe
 // eigener Block weiter unten für die Ablauf-Logik.
 const kennungBereich = document.getElementById("kennung-bereich");
@@ -155,7 +160,6 @@ let historieAktuelleFrageId = null;
 // Vereinskennung / Gast-Zugang (13.07.2026): "loginModus" steuert, welcher
 // der drei Bereiche in der Login-Karte gerade aktiv ist, und wie der
 // gemeinsame "Los geht's"-Button (startButton) reagiert.
-const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
 // Nach wie vielen beantworteten Gast-Fragen das Interesse-Popup erscheint
 // (Baustein C, Max' Vorschlag "z.B. drei") - hier zentral anpassbar.
 const GAST_INTERESSE_TRIGGER_ANZAHL = 3;
@@ -197,61 +201,6 @@ function zeigeFehler(text) {
 
 function versteckeFehler() {
   fehlerHinweis.hidden = true;
-}
-
-function speichereSession(id, pin, name) {
-  try {
-    sessionStorage.setItem(SESSION_KEY, JSON.stringify({ id, pin, name }));
-  } catch (e) {
-    // Falls sessionStorage mal nicht verfügbar ist (z.B. privates Fenster) -
-    // kein Problem, dann bleibt man einfach ohne Session-Merken angemeldet.
-  }
-}
-
-function leseGespeicherteSession() {
-  try {
-    const roh = sessionStorage.getItem(SESSION_KEY);
-    return roh ? JSON.parse(roh) : null;
-  } catch (e) {
-    return null;
-  }
-}
-
-function loescheGespeicherteSession() {
-  try {
-    sessionStorage.removeItem(SESSION_KEY);
-  } catch (e) {
-    // ignorieren
-  }
-}
-
-// Vereinskennung-Session (13.07.2026, Baustein A) - gleiches Muster wie
-// die Schiedsrichter-Session oben, eigener Key, damit ein "Abmelden" (das
-// nur die Schiedsrichter-Session löscht) die bestätigte Kennung nicht
-// mit wegwirft.
-function speichereKennungSession(kennung) {
-  try {
-    sessionStorage.setItem(KENNUNG_SESSION_KEY, kennung);
-  } catch (e) {
-    // Falls sessionStorage nicht verfügbar ist, bleibt man einfach ohne
-    // Merken angemeldet (wie beim bestehenden Schiedsrichter-Login oben).
-  }
-}
-
-function leseGespeicherteKennung() {
-  try {
-    return sessionStorage.getItem(KENNUNG_SESSION_KEY);
-  } catch (e) {
-    return null;
-  }
-}
-
-function loescheGespeicherteKennungSession() {
-  try {
-    sessionStorage.removeItem(KENNUNG_SESSION_KEY);
-  } catch (e) {
-    // ignorieren
-  }
 }
 
 function zeigeAngemeldetenZustand(name) {
@@ -450,7 +399,7 @@ async function pruefeVereinskennung(kennungWert, options) {
       // zwischenzeitlich geändert) - Session verwerfen, normal von vorn
       // starten, kein Fehler-Hinweis nötig (Person hat ja nichts falsch
       // gemacht).
-      loescheGespeicherteKennungSession();
+      kennungSession.loeschen();
       return;
     }
     kennungHinweis.textContent = "Diese Vereinskennung ist uns nicht bekannt.";
@@ -464,7 +413,7 @@ async function pruefeVereinskennung(kennungWert, options) {
   aktuelleKennung = kennung;
   vereinZeigtNamensliste = zugang.namensliste_anzeigen !== false;
 
-  speichereKennungSession(kennung);
+  kennungSession.speichern(kennung);
   kennungHinweis.textContent = zugang.verein_name
     ? "✓ " + zugang.verein_name
     : "✓ Vereinskennung bestätigt";
@@ -544,7 +493,7 @@ startButton.addEventListener("click", async () => {
         : "")
     : nameEingabe.value.trim();
   const pin = pinEingabe.value.trim();
-  const kennung = aktuelleKennung || leseGespeicherteKennung();
+  const kennung = aktuelleKennung || kennungSession.lesen();
 
   if (!name || !pin || !kennung) return;
 
@@ -582,14 +531,14 @@ startButton.addEventListener("click", async () => {
   // sonst stünde bei abweichender Groß-/Kleinschreibung die Eingabe in der
   // Begrüßung statt der tatsächlich hinterlegte Name.
   const echterName = treffer.name || name;
-  speichereSession(treffer.schiedsrichter_id, pin, echterName);
+  mitgliedSession.speichern({ id: treffer.schiedsrichter_id, pin, name: echterName });
   zeigeAngemeldetenZustand(echterName);
 
   await ladeFragenUndAntworten();
 });
 
 wechselnButton.addEventListener("click", () => {
-  loescheGespeicherteSession();
+  mitgliedSession.loeschen();
   location.reload();
 });
 
@@ -802,7 +751,7 @@ gastVerlassenButton.addEventListener("click", () => {
   gastNameEingabe.value = "";
 
   nameSchritt.hidden = false;
-  const gemerkteKennung = leseGespeicherteKennung();
+  const gemerkteKennung = kennungSession.lesen();
   if (gemerkteKennung) {
     // Nicht einfach zeigeMitgliedBereich(): erst beim Server nachfragen, ob
     // dieser Verein eine Namensliste hat - sonst stünde nach dem Gast-Modus
@@ -1625,541 +1574,9 @@ function baueWarumButton(frageId, istHistorie) {
   return button;
 }
 
-// ============================================================
-// Video-Fragetyp (12.07.2026, Grundgerüst - nachgebessert 12.07.2026):
-// YouTube-Einbettung mit Start-/End-Zeit im datenschutzfreundlichen
-// "Zwei-Klick"-Muster - es wird KEIN Kontakt zu YouTube aufgebaut, bevor
-// aktiv auf den Platzhalter geklickt wird, und die Einbettung läuft über
-// youtube-nocookie.com statt youtube.com (siehe Rechtsrecherche im
-// Backlog, Baustein 1v). Funktioniert für beide Video-Antworttypen
-// (video_mc/video_freitext) gleich - deshalb rein am Vorhandensein von
-// "frage.video_url" festgemacht statt am typ-Feld.
-//
-// Nachbesserung (Max' Live-Test-Feedback, 12.07.2026): die erste Version
-// hat nur eine statische <iframe src="...?start=X&end=Y">-URL gesetzt.
-// Das Problem: start/end sind reine Lade-Parameter, keine dauerhafte
-// Beschränkung - nach dem ersten Ansehen "vergisst" der Player den
-// Ausschnitt, ein erneutes Play spielt vom letzten Stand weiter statt
-// wieder vom Snippet-Anfang. Fix: echte YouTube-IFrame-Player-API
-// (kostenlos, kein API-Key, kein Kontingent - reines JS um denselben
-// Embed-Player) statt einer statischen iframe-URL. Damit bekommen wir das
-// "onStateChange"-Ereignis mit, und sobald der Player den Zustand ENDED
-// meldet (tritt zuverlässig genau beim erreichten End-Timestamp ein),
-// wird der Player komplett zerstört und der graue Platzhalter wieder
-// gezeigt - ein erneuter Klick lädt sauber wieder ab Start-Sekunde.
-// "playsinline: 1" verhindert außerdem, dass iOS beim Abspielen von sich
-// aus in den nativen Vollbildmodus springt (das war vermutlich die
-// eigentliche Ursache für Max' beobachtetes Reload-Verhalten auf dem
-// Handy) - zusammen mit "fs: 0" (YouTubes eigener Vollbild-Button wird
-// entfernt) läuft jede "groß ansehen"-Interaktion jetzt ausschließlich
-// über unser eigenes Overlay (siehe "oeffneVideoGrossansicht" unten),
-// nicht mehr über YouTubes eigenes, browserabhängiges Vollbildverhalten.
-// ============================================================
-let youtubeApiPromise = null;
-function ladeYoutubeApi() {
-  if (window.YT && window.YT.Player) return Promise.resolve(window.YT);
-  if (youtubeApiPromise) return youtubeApiPromise;
-  youtubeApiPromise = new Promise((resolve, reject) => {
-    let abgeschlossen = false;
-    const apiZeitlimit = window.setTimeout(() => {
-      if (abgeschlossen) return;
-      abgeschlossen = true;
-      youtubeApiPromise = null;
-      const altesScript = document.getElementById("youtube-iframe-api");
-      if (altesScript) altesScript.remove();
-      reject(new Error("YouTube hat nicht rechtzeitig geantwortet."));
-    }, 12000);
-
-    function erfolgreich() {
-      if (abgeschlossen) return;
-      abgeschlossen = true;
-      window.clearTimeout(apiZeitlimit);
-      resolve(window.YT);
-    }
-
-    function fehlgeschlagen() {
-      if (abgeschlossen) return;
-      abgeschlossen = true;
-      window.clearTimeout(apiZeitlimit);
-      youtubeApiPromise = null;
-      const altesScript = document.getElementById("youtube-iframe-api");
-      if (altesScript) altesScript.remove();
-      reject(new Error("Die YouTube-Schnittstelle konnte nicht geladen werden."));
-    }
-
-    const vorherigerHandler = window.onYouTubeIframeAPIReady;
-    window.onYouTubeIframeAPIReady = () => {
-      if (typeof vorherigerHandler === "function") vorherigerHandler();
-      erfolgreich();
-    };
-
-    let script = document.getElementById("youtube-iframe-api");
-    if (!script) {
-      script = document.createElement("script");
-      script.id = "youtube-iframe-api";
-      script.src = "https://www.youtube.com/iframe_api";
-      document.head.appendChild(script);
-    }
-    script.addEventListener("error", fehlgeschlagen, { once: true });
-  });
-  return youtubeApiPromise;
-}
-
-// Gemeinsame Großansicht für alle Video-Fragen. Der YouTube-Player wird
-// ausschließlich hier aufgebaut; in der kleinen Fragenkarte liegt niemals
-// ein iframe. Das ist auf Mobilgeräten verlässlicher und verhindert die
-// frühere fehleranfällige Verschiebe-Logik zwischen Karte und Dialog.
-let aktuellerVideoGrossController = null;
-let letzterVideoGrossTrigger = null;
-
-function schliesseVideoGrossansicht() {
-  const overlay = document.getElementById("video-gross-overlay");
-  const halter = document.getElementById("video-gross-spieler-halter");
-  if (!overlay || !halter) return;
-  const controller = aktuellerVideoGrossController;
-  aktuellerVideoGrossController = null;
-  if (controller && typeof controller.beimSchliessen === "function") {
-    controller.beimSchliessen();
-  }
-  halter.replaceChildren();
-  overlay.hidden = true;
-  document.body.classList.remove("video-dialog-offen");
-  if (letzterVideoGrossTrigger && document.contains(letzterVideoGrossTrigger)) {
-    letzterVideoGrossTrigger.focus();
-  }
-  letzterVideoGrossTrigger = null;
-}
-
-function oeffneVideoGrossansicht(inhalt, ausloeser, controller) {
-  const overlay = document.getElementById("video-gross-overlay");
-  const halter = document.getElementById("video-gross-spieler-halter");
-  if (!overlay || !halter) return;
-  if (!overlay.hidden) schliesseVideoGrossansicht();
-  halter.replaceChildren(inhalt);
-  aktuellerVideoGrossController = controller || null;
-  letzterVideoGrossTrigger = ausloeser || document.activeElement;
-  overlay.hidden = false;
-  document.body.classList.add("video-dialog-offen");
-  const schliessenButton = document.getElementById("video-gross-schliessen-button");
-  if (schliessenButton) schliessenButton.focus();
-}
-
-(function initVideoGrossansichtOverlay() {
-  const overlay = document.getElementById("video-gross-overlay");
-  if (!overlay) return;
-  const schliessenButton = document.getElementById("video-gross-schliessen-button");
-  if (schliessenButton) schliessenButton.addEventListener("click", schliesseVideoGrossansicht);
-  overlay.addEventListener("click", (ereignis) => {
-    if (ereignis.target === overlay) schliesseVideoGrossansicht();
-  });
-  document.addEventListener("keydown", (ereignis) => {
-    if (ereignis.key === "Escape" && !overlay.hidden) schliesseVideoGrossansicht();
-  });
-})();
-
-let videoInfoZaehler = 0;
-
-// Modal-first-Player (24.08.2026): Der eigentliche YouTube-Player entsteht
-// erst nach dem Klick und direkt in der Großansicht. Die Fragenkarte bleibt
-// eine einfache, robuste Startkarte. Ein optionaler Info-Bereich hält
-// Zeitfenster und Situationsbeschreibung als Fallback bereit, falls die
-// Wiedergabe auf einem Gerät nicht zuverlässig funktioniert.
-function baueVideoEinbettungModal(videoUrl, startSekunden, endSekunden, stumm, fallbackBeschreibung = "") {
-  const videoId = extrahiereYoutubeId(videoUrl);
-  if (!videoId) return null;
-
-  const alsSekunden = (wert) => {
-    if (wert === null || wert === undefined || wert === "") return null;
-    const zahl = Number(wert);
-    return Number.isFinite(zahl) && zahl >= 0 ? zahl : null;
-  };
-  const clipStart = alsSekunden(startSekunden) ?? 0;
-  const rohesClipEnde = alsSekunden(endSekunden);
-  const clipEnde = rohesClipEnde !== null && rohesClipEnde > clipStart ? rohesClipEnde : null;
-  const beschreibung = String(fallbackBeschreibung || "").trim();
-
-  const formatiereZeit = (sekunden) => {
-    const ganz = Math.max(0, Math.floor(sekunden));
-    const minuten = Math.floor(ganz / 60);
-    const rest = String(ganz % 60).padStart(2, "0");
-    return `${minuten}:${rest}`;
-  };
-
-  const wrap = document.createElement("div");
-  wrap.className = "video-einbettung video-einbettung-modal";
-
-  let bereitsAngesehen = false;
-  let fortsetzenSekunden = clipStart;
-  let fehlerNachricht = "";
-
-  const startButton = document.createElement("button");
-  startButton.type = "button";
-  startButton.className = "video-platzhalter";
-
-  const badge = document.createElement("span");
-  badge.className = "video-platzhalter-badge";
-  badge.textContent = "✓ Angesehen";
-  badge.hidden = true;
-  startButton.appendChild(badge);
-
-  const icon = document.createElement("span");
-  icon.className = "video-platzhalter-icon";
-  icon.textContent = "▶";
-  startButton.appendChild(icon);
-
-  const startText = document.createElement("span");
-  startText.className = "video-platzhalter-text";
-  startButton.appendChild(startText);
-
-  const startHinweis = document.createElement("span");
-  startHinweis.className = "video-platzhalter-hinweis";
-  startButton.appendChild(startHinweis);
-  wrap.appendChild(startButton);
-
-  function hatFortsetzungsstand() {
-    return fortsetzenSekunden > clipStart + 0.5 && (!clipEnde || fortsetzenSekunden < clipEnde - 0.5);
-  }
-
-  function aktualisiereStartkarte() {
-    const fortsetzen = hatFortsetzungsstand();
-    startButton.classList.toggle("video-platzhalter-angesehen", bereitsAngesehen);
-    startButton.classList.toggle("video-platzhalter-fehler", Boolean(fehlerNachricht));
-    badge.hidden = !bereitsAngesehen;
-    icon.textContent = fehlerNachricht || bereitsAngesehen ? "↻" : "▶";
-    startText.textContent = fehlerNachricht
-      ? "Video erneut laden"
-      : fortsetzen
-        ? `Video bei ${formatiereZeit(fortsetzenSekunden)} fortsetzen`
-        : bereitsAngesehen
-          ? "Video nochmal ansehen"
-          : "Video ansehen";
-    startHinweis.textContent = fehlerNachricht || (stumm
-      ? "Öffnet direkt in der Großansicht – ohne Ton."
-      : "Öffnet direkt in der Großansicht.");
-  }
-
-  const hatInfo = Boolean(beschreibung) || clipStart > 0 || clipEnde !== null;
-  if (hatInfo) {
-    const aktionen = document.createElement("div");
-    aktionen.className = "video-karten-aktionen";
-
-    const infoButton = document.createElement("button");
-    infoButton.type = "button";
-    infoButton.className = "video-info-button";
-    infoButton.textContent = "ⓘ Ausschnitt & Situation";
-    const infoId = `video-info-${++videoInfoZaehler}`;
-    infoButton.setAttribute("aria-controls", infoId);
-    infoButton.setAttribute("aria-expanded", "false");
-
-    const infoPanel = document.createElement("div");
-    infoPanel.id = infoId;
-    infoPanel.className = "video-info-panel";
-    infoPanel.hidden = true;
-    infoPanel.setAttribute("role", "note");
-
-    const zeit = document.createElement("p");
-    zeit.className = "video-info-zeit";
-    zeit.textContent = clipEnde !== null
-      ? `Vorgesehener Ausschnitt: ${formatiereZeit(clipStart)} bis ${formatiereZeit(clipEnde)}`
-      : `Vorgesehener Start: ${formatiereZeit(clipStart)}`;
-    infoPanel.appendChild(zeit);
-
-    if (beschreibung) {
-      const situation = document.createElement("p");
-      situation.textContent = beschreibung;
-      infoPanel.appendChild(situation);
-    }
-
-    const fallback = document.createElement("p");
-    fallback.className = "video-info-fallback";
-    fallback.textContent = beschreibung
-      ? "Falls das Video auf deinem Gerät nicht funktioniert, kannst du die Frage anhand dieser Beschreibung beantworten."
-      : "Der Zeitbereich hilft dir, den vorgesehenen Ausschnitt gezielt erneut zu starten.";
-    infoPanel.appendChild(fallback);
-
-    infoButton.addEventListener("click", () => {
-      const wirdGeoeffnet = infoPanel.hidden;
-      infoPanel.hidden = !wirdGeoeffnet;
-      infoButton.setAttribute("aria-expanded", String(wirdGeoeffnet));
-      infoButton.textContent = wirdGeoeffnet ? "ⓘ Hilfe schließen" : "ⓘ Ausschnitt & Situation";
-    });
-
-    aktionen.appendChild(infoButton);
-    wrap.appendChild(aktionen);
-    wrap.appendChild(infoPanel);
-  }
-
-  function oeffnePlayerDialog(ausloeser) {
-    bereitsAngesehen = true;
-    fehlerNachricht = "";
-    startButton.disabled = true;
-    aktualisiereStartkarte();
-
-    const dialogInhalt = document.createElement("div");
-    dialogInhalt.className = "video-dialog-sitzung";
-    const sitzung = {
-      aktiv: true,
-      player: null,
-      intervall: null,
-    };
-
-    function stoppeIntervall() {
-      if (sitzung.intervall) {
-        window.clearInterval(sitzung.intervall);
-        sitzung.intervall = null;
-      }
-    }
-
-    function raeumePlayerAuf(speicherePosition) {
-      stoppeIntervall();
-      if (sitzung.player) {
-        if (speicherePosition && typeof sitzung.player.getCurrentTime === "function") {
-          const aktuelleZeit = Number(sitzung.player.getCurrentTime());
-          if (Number.isFinite(aktuelleZeit) && aktuelleZeit > clipStart + 0.5 && (!clipEnde || aktuelleZeit < clipEnde - 0.5)) {
-            fortsetzenSekunden = aktuelleZeit;
-          } else {
-            fortsetzenSekunden = clipStart;
-          }
-        }
-        if (typeof sitzung.player.destroy === "function") sitzung.player.destroy();
-        sitzung.player = null;
-      }
-    }
-
-    const controller = {
-      beimSchliessen() {
-        sitzung.aktiv = false;
-        raeumePlayerAuf(true);
-        startButton.disabled = false;
-        aktualisiereStartkarte();
-      },
-    };
-
-    function youtubeFehlertext(code) {
-      if (code === 100) return "Das Video wurde entfernt oder ist privat.";
-      if (code === 101 || code === 150) return "YouTube erlaubt die Einbettung dieses Videos nicht.";
-      if (code === 153) return "YouTube konnte diese Seite nicht eindeutig zuordnen. Bitte neu laden.";
-      return "Das Video kann momentan nicht abgespielt werden.";
-    }
-
-    function zeigeDialogkarte(titel, text, primaerText, primaerAktion) {
-      const karte = document.createElement("div");
-      karte.className = "video-dialog-karte";
-      const iconElement = document.createElement("span");
-      iconElement.className = "video-dialog-karte-icon";
-      iconElement.textContent = titel === "Ausschnitt beendet" ? "✓" : "!";
-      karte.appendChild(iconElement);
-      const ueberschrift = document.createElement("h3");
-      ueberschrift.textContent = titel;
-      karte.appendChild(ueberschrift);
-      const beschreibungElement = document.createElement("p");
-      beschreibungElement.textContent = text;
-      karte.appendChild(beschreibungElement);
-
-      const aktionen = document.createElement("div");
-      aktionen.className = "video-dialog-karte-aktionen";
-      const primaer = document.createElement("button");
-      primaer.type = "button";
-      primaer.className = "video-dialog-primaer-button";
-      primaer.textContent = primaerText;
-      primaer.addEventListener("click", primaerAktion);
-      aktionen.appendChild(primaer);
-      const zurFrage = document.createElement("button");
-      zurFrage.type = "button";
-      zurFrage.className = "video-dialog-sekundaer-button";
-      zurFrage.textContent = "Zur Frage";
-      zurFrage.addEventListener("click", schliesseVideoGrossansicht);
-      aktionen.appendChild(zurFrage);
-      karte.appendChild(aktionen);
-      dialogInhalt.replaceChildren(karte);
-      window.setTimeout(() => primaer.focus(), 0);
-    }
-
-    function startePlayer(abSekunde) {
-      if (!sitzung.aktiv) return;
-      raeumePlayerAuf(false);
-      fehlerNachricht = "";
-      fortsetzenSekunden = abSekunde;
-
-      const buehne = document.createElement("div");
-      buehne.className = "video-spieler-buehne ist-gross";
-      const spielerHalter = document.createElement("div");
-      spielerHalter.className = "video-spieler-halter";
-      const ladeText = document.createElement("p");
-      ladeText.className = "video-ladeanzeige";
-      ladeText.textContent = "Video wird geladen …";
-      spielerHalter.appendChild(ladeText);
-      buehne.appendChild(spielerHalter);
-
-      const bedienleiste = document.createElement("div");
-      bedienleiste.className = "video-bedienleiste";
-      const abspielButton = document.createElement("button");
-      abspielButton.type = "button";
-      abspielButton.className = "video-abspiel-button";
-      abspielButton.disabled = true;
-      bedienleiste.appendChild(abspielButton);
-
-      const resetButton = document.createElement("button");
-      resetButton.type = "button";
-      resetButton.className = "video-reset-button";
-      resetButton.textContent = "↻ Neu starten";
-      resetButton.disabled = true;
-      bedienleiste.appendChild(resetButton);
-
-      const status = document.createElement("span");
-      status.className = "video-status";
-      status.setAttribute("role", "status");
-      status.setAttribute("aria-live", "polite");
-      status.hidden = true;
-      bedienleiste.appendChild(status);
-      buehne.appendChild(bedienleiste);
-      dialogInhalt.replaceChildren(buehne);
-
-      function zeigeStatus(meldung) {
-        status.textContent = meldung;
-        status.hidden = !meldung;
-      }
-
-      function setzeAbspielKnopf(zustand) {
-        if (zustand === "laedt") {
-          abspielButton.textContent = "… Lädt";
-          abspielButton.disabled = true;
-          abspielButton.classList.remove("laeuft");
-          return;
-        }
-        const laeuft = zustand === "laeuft";
-        abspielButton.disabled = false;
-        abspielButton.textContent = laeuft ? "❚❚ Pausieren" : "▶ Abspielen";
-        abspielButton.classList.toggle("laeuft", laeuft);
-        const zugangstext = laeuft ? "Video anhalten" : "Video abspielen";
-        abspielButton.setAttribute("aria-label", zugangstext);
-        abspielButton.title = zugangstext;
-      }
-      setzeAbspielKnopf("laedt");
-
-      let durchlaufBeendet = false;
-      const VORLAUF_SEKUNDEN = 0.55;
-
-      function zeigeEndkarte() {
-        if (durchlaufBeendet || !sitzung.aktiv) return;
-        durchlaufBeendet = true;
-        raeumePlayerAuf(false);
-        fortsetzenSekunden = clipStart;
-        aktualisiereStartkarte();
-        zeigeDialogkarte(
-          "Ausschnitt beendet",
-          "Du kannst den Ausschnitt erneut ansehen oder direkt zur Frage zurückkehren.",
-          "↻ Erneut ansehen",
-          () => startePlayer(clipStart)
-        );
-      }
-
-      function synchronisiereZustand(YT) {
-        if (!sitzung.player || durchlaufBeendet) return;
-        const zustand = sitzung.player.getPlayerState();
-        if (zustand === YT.PlayerState.ENDED) {
-          zeigeEndkarte();
-          return;
-        }
-        if (zustand === YT.PlayerState.PLAYING) {
-          setzeAbspielKnopf("laeuft");
-          zeigeStatus("");
-        } else if (zustand === YT.PlayerState.BUFFERING) {
-          setzeAbspielKnopf("laedt");
-          zeigeStatus("Video lädt …");
-        } else {
-          setzeAbspielKnopf("pausiert");
-        }
-      }
-
-      ladeYoutubeApi().then((YT) => {
-        if (!sitzung.aktiv || durchlaufBeendet) return;
-        const spielerZiel = document.createElement("div");
-        spielerHalter.replaceChildren(spielerZiel);
-        const playerVars = {
-          autoplay: 0,
-          controls: 0,
-          disablekb: 1,
-          rel: 0,
-          iv_load_policy: 3,
-          fs: 0,
-          playsinline: 1,
-          hl: "de",
-          start: Math.max(0, Math.floor(abSekunde)),
-        };
-        if (clipEnde !== null) playerVars.end = Math.max(0, Math.floor(clipEnde));
-        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
-          playerVars.origin = window.location.origin;
-        }
-
-        sitzung.player = new YT.Player(spielerZiel, {
-          host: "https://www.youtube-nocookie.com",
-          videoId,
-          playerVars,
-          events: {
-            onReady: () => {
-              if (!sitzung.aktiv || !sitzung.player) return;
-              resetButton.disabled = false;
-              setzeAbspielKnopf("pausiert");
-              if (stumm && typeof sitzung.player.mute === "function") sitzung.player.mute();
-
-              abspielButton.addEventListener("click", () => {
-                if (!sitzung.player) return;
-                if (sitzung.player.getPlayerState() === YT.PlayerState.PLAYING) {
-                  sitzung.player.pauseVideo();
-                } else {
-                  sitzung.player.playVideo();
-                }
-                window.setTimeout(() => synchronisiereZustand(YT), 80);
-              });
-              resetButton.addEventListener("click", () => startePlayer(clipStart));
-
-              // Safari liefert Zustandsereignisse bei eingebetteten Videos
-              // nicht immer zuverlässig. Deshalb gleicht ein einziges
-              // Intervall sowohl Play/Pause als auch das Clip-Ende ab.
-              sitzung.intervall = window.setInterval(() => {
-                if (!sitzung.player || durchlaufBeendet) return;
-                synchronisiereZustand(YT);
-                if (!sitzung.player || durchlaufBeendet) return;
-                const aktuelleZeit = Number(sitzung.player.getCurrentTime());
-                const dauer = Number(sitzung.player.getDuration());
-                const zielEnde = clipEnde !== null ? clipEnde : dauer;
-                if (Number.isFinite(zielEnde) && zielEnde > 0 && aktuelleZeit >= zielEnde - VORLAUF_SEKUNDEN) {
-                  zeigeEndkarte();
-                }
-              }, 200);
-              sitzung.player.playVideo();
-            },
-            onAutoplayBlocked: () => {
-              setzeAbspielKnopf("pausiert");
-              zeigeStatus("Automatischer Start blockiert – bitte auf „Abspielen“ tippen.");
-            },
-            onError: (ereignis) => {
-              const meldung = youtubeFehlertext(ereignis.data);
-              fehlerNachricht = meldung;
-              raeumePlayerAuf(false);
-              zeigeDialogkarte("Video nicht verfügbar", meldung, "Erneut versuchen", () => startePlayer(fortsetzenSekunden));
-            },
-            onStateChange: () => synchronisiereZustand(YT),
-          },
-        });
-      }).catch((fehler) => {
-        if (!sitzung.aktiv) return;
-        const meldung = fehler.message || "Video konnte nicht geladen werden.";
-        fehlerNachricht = meldung;
-        zeigeDialogkarte("Video nicht verfügbar", meldung, "Erneut versuchen", () => startePlayer(fortsetzenSekunden));
-      });
-    }
-
-    oeffneVideoGrossansicht(dialogInhalt, ausloeser, controller);
-    startePlayer(fortsetzenSekunden);
-  }
-
-  startButton.addEventListener("click", () => oeffnePlayerDialog(startButton));
-  aktualisiereStartkarte();
-  return wrap;
-}
-
+// Der gemeinsame Modal-first-Player für alle Videofragen liegt gekapselt in
+// src/video-player.js. app.js entscheidet nur noch, an welcher Frage er mit
+// welchen Zeit- und Fallbackdaten eingebunden wird.
 function baueFrageElement(frage) {
   const container = document.createElement("div");
   container.className = "frage-karte";
@@ -2948,20 +2365,6 @@ function aktualisiereFortschritt() {
   }
 }
 
-function spawnKonfetti() {
-  const symbole = ["🎉", "⚽", "🏆", "✅", "🎊"];
-  for (let i = 0; i < 24; i++) {
-    const teil = document.createElement("span");
-    teil.className = "konfetti-teil";
-    teil.textContent = symbole[Math.floor(Math.random() * symbole.length)];
-    teil.style.left = Math.random() * 100 + "vw";
-    teil.style.animationDelay = Math.random() * 0.6 + "s";
-    teil.style.fontSize = 1 + Math.random() * 0.8 + "rem";
-    konfettiSchicht.appendChild(teil);
-    setTimeout(() => teil.remove(), 3400);
-  }
-}
-
 // Zeigt einen Live-Countdown bis zum Start der nächsten Fragen-Runde (aus der
 // echten DB, keine feste Annahme wie "immer Montag"). Wird nur einmal gestartet,
 // egal ob man schon fertig war beim Laden oder gerade eben fertig geworden ist.
@@ -3464,7 +2867,7 @@ async function start() {
   // Die Namensliste wird NICHT mehr blind beim Start geladen - erst wenn
   // eine Vereinskennung bestätigt ist, steht überhaupt fest, wessen Namen
   // gemeint wären (siehe pruefeVereinskennung).
-  const gespeichert = leseGespeicherteSession();
+  const gespeichert = mitgliedSession.lesen();
   if (gespeichert && gespeichert.id && gespeichert.pin) {
     ausgewaehlteSchiedsrichterId = gespeichert.id;
     eingegebenePin = gespeichert.pin;
@@ -3477,7 +2880,7 @@ async function start() {
   // Kennung wird gemerkt, damit man nicht bei jedem Neuladen erneut tippen
   // muss - wird aber sicherheitshalber erneut serverseitig geprüft (falls
   // sie sich zwischenzeitlich geändert hat), nicht blind übernommen.
-  const gespeicherteKennung = leseGespeicherteKennung();
+  const gespeicherteKennung = kennungSession.lesen();
   if (gespeicherteKennung) {
     kennungEingabe.value = gespeicherteKennung;
     await pruefeVereinskennung(gespeicherteKennung, { ausSession: true });

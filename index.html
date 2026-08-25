@@ -403,8 +403,6 @@
     <p id="fehler-hinweis" class="fehler" hidden></p>
   </main>
 
-  <div id="konfetti-schicht" class="konfetti-schicht" aria-hidden="true"></div>
-
   <!-- Footer mit rechtlichen Links (12.07.2026) -->
   <footer class="fuss">
     <div class="fuss-inhalt">
@@ -618,7 +616,10 @@
        ausschließlich nach Nutzerklick und ausschließlich hier geladen. -->
   <div id="video-gross-overlay" class="video-gross-overlay" hidden>
     <div class="video-gross-inhalt" role="dialog" aria-modal="true" aria-label="Video ansehen">
-      <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button">✕ Schließen</button>
+      <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button" aria-label="Video schließen" title="Video schließen">
+        <span class="video-button-symbol" aria-hidden="true">✕</span>
+        <span class="video-button-beschriftung">Schließen</span>
+      </button>
       <div id="video-gross-spieler-halter" class="video-gross-spieler-halter"></div>
     </div>
   </div>
@@ -631,6 +632,8 @@
   ></script>
   <script src="config.js"></script>
   <script src="src/quiz-utils.js"></script>
+  <script src="src/session-store.js"></script>
+  <script src="src/video-player.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

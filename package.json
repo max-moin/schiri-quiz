@@ -4,6 +4,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && node --check src/quiz-utils.js && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"
+    "check": "node --check app.js && node --check src/quiz-utils.js && node --check src/session-store.js && node --check src/video-player.js && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"
   }
 }

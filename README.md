@@ -45,8 +45,10 @@ SwiftUI-App des Obmanns
 
 | Pfad | Zweck |
 |---|---|
-| `index.html`, `style.css`, `app.js` | Teilnehmeroberfläche und Quizablauf |
-| `src/quiz-utils.js` | erste ausgelagerte, unabhängig testbare Browser-Hilfsfunktionen |
+| `index.html`, `style.css`, `app.js` | Grundgerüst, Gestaltung und zentraler Quizablauf |
+| `src/quiz-utils.js` | unabhängig testbare Browser-Hilfsfunktionen |
+| `src/session-store.js` | gekapselter, fehlertoleranter Sitzungsspeicher |
+| `src/video-player.js` | Modal-first-Videoplayer, Bedienung und Video-Fallback |
 | `api/` | serverseitige KI-Bewertung und Erklärungen |
 | `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
 | `tests/` | Vertrags-, Sicherheits- und Logiktests |
@@ -83,7 +85,7 @@ Benötigt wird Node.js 22 oder neuer. Es gibt keine zu installierenden Laufzeita
 npm run check
 ```
 
-Der Befehl prüft die JavaScript-Syntax und führt aktuell 28 automatisierte Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
+Der Befehl prüft die JavaScript-Syntax und führt die automatisierten Tests aus. Dieselbe Prüfung läuft bei jedem Push und Pull Request über GitHub Actions.
 
 ## Konfiguration
 
