@@ -46,9 +46,9 @@ SwiftUI-App des Obmanns
 | Pfad | Zweck |
 |---|---|
 | `index.html`, `style.css`, `app.js` | Grundgerüst, Gestaltung und zentraler Quizablauf |
-| `src/quiz-utils.js` | unabhängig testbare Browser-Hilfsfunktionen |
-| `src/session-store.js` | gekapselter, fehlertoleranter Sitzungsspeicher |
-| `src/video-player.js` | Modal-first-Videoplayer, Bedienung und Video-Fallback |
+| `src/core/` | kleine, featureunabhängige Browser-Helfer und Sitzungsspeicher |
+| `src/ui/` | wiederverwendbare UI-Controller für Maskierung, Vorlesen, Erklärung und Kopfmenü |
+| `src/features/` | abgeschlossene Produktfunktionen wie Videoplayer und Gastmodus |
 | `api/` | serverseitige KI-Bewertung und Erklärungen |
 | `server/api-helpers.js` | gemeinsame Server-, Supabase- und Gemini-Helfer |
 | `tests/` | Vertrags-, Sicherheits- und Logiktests |

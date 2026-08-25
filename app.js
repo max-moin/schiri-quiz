@@ -4,13 +4,21 @@
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const {
-  extrahiereYoutubeId,
   formatiereAnfrageDatum,
   freitextStatus,
   schwierigkeitSterne,
 } = SchiriQuizUtils;
 const { erstelleSessionSpeicher } = SchiriQuizSessionStore;
 const { baueVideoEinbettungModal } = SchiriQuizVideoPlayer;
+const {
+  initialisiereMaskierteFelder,
+  verbindeSichtbarkeit,
+  verdecke,
+} = SchiriQuizMaskedInputs;
+const { baueVorlesenButton, stoppeVorlesen } = SchiriQuizTextToSpeech;
+const { erstelleErklaerungsDialog } = SchiriQuizExplanationDialog;
+const { initialisiereKopfmenue } = SchiriQuizHeaderMenu;
+const { erstelleGastmodus } = SchiriQuizGuestMode;
 
 const SESSION_KEY = "schiriQuizSession";
 const KENNUNG_SESSION_KEY = "schiriQuizVereinskennung";
@@ -54,22 +62,6 @@ const mitgliedBereich = document.getElementById("mitglied-bereich");
 const gastBereich = document.getElementById("gast-bereich");
 const gastNameEingabe = document.getElementById("gast-name-eingabe");
 const gastZurueckButton = document.getElementById("gast-zurueck-button");
-const gastQuizSchritt = document.getElementById("gast-quiz-schritt");
-const gastNameAnzeige = document.getElementById("gast-name-anzeige");
-const gastFortschrittAnzeige = document.getElementById("gast-fortschritt-anzeige");
-const gastFrageBereich = document.getElementById("gast-frage-bereich");
-const gastVerlassenButton = document.getElementById("gast-verlassen-button");
-const interesseOverlay = document.getElementById("interesse-overlay");
-const interesseJaButton = document.getElementById("interesse-ja-button");
-const interesseNeinButton = document.getElementById("interesse-nein-button");
-const interesseNeinOverlay = document.getElementById("interesse-nein-overlay");
-const interesseNeinSchliessenButton = document.getElementById("interesse-nein-schliessen-button");
-const interessentenFormularOverlay = document.getElementById("interessenten-formular-overlay");
-const interessentenFormularInhalt = document.getElementById("interessenten-formular-inhalt");
-const interessentenFormularErfolg = document.getElementById("interessenten-formular-erfolg");
-const interessentEmailEingabe = document.getElementById("interessent-email-eingabe");
-const interessentAbsendenButton = document.getElementById("interessent-absenden-button");
-const interessentenFormularSchliessenButton = document.getElementById("interessenten-formular-schliessen-button");
 
 // Profil-Panel & Anfragen-System (12.07.2026, Baustein 5a) - Nav-Konzept B
 // aus der Brainstorm-Skizze: der Angemeldet-Badge wird zum Menü-Auslöser.
@@ -160,21 +152,12 @@ let historieAktuelleFrageId = null;
 // Vereinskennung / Gast-Zugang (13.07.2026): "loginModus" steuert, welcher
 // der drei Bereiche in der Login-Karte gerade aktiv ist, und wie der
 // gemeinsame "Los geht's"-Button (startButton) reagiert.
-// Nach wie vielen beantworteten Gast-Fragen das Interesse-Popup erscheint
-// (Baustein C, Max' Vorschlag "z.B. drei") - hier zentral anpassbar.
-const GAST_INTERESSE_TRIGGER_ANZAHL = 3;
 let loginModus = "kennung"; // "kennung" | "mitglied" | "gast"
 // Mehr-Vereine-Umbau (11.08.2026): welcher Verein gerade bestätigt ist und
 // ob er eine Namensliste herausgibt. Beides kommt ausschließlich vom Server
 // (RPC "verein_zugang"); der Browser rät hier nichts.
 let aktuelleKennung = null;
 let vereinZeigtNamensliste = true;
-let gastName = null;
-let gastFragenPool = [];
-let gastFrageIndex = 0;
-let gastBeantwortetAnzahl = 0;
-let gastRichtigAnzahl = 0;
-let gastInteressePopupGezeigt = false;
 
 // Historie-Fortschritt (11.07.2026, Update nach Max' Feedback): wird nicht
 // mehr nach jeder Antwort neu vom Server abgefragt (das ließ die Anzeige bei
@@ -193,6 +176,40 @@ let historieAutoTimer = null;
 // animiereScoreboardZiffer weiter unten).
 let historieScoreboardLetzterGesamt = null;
 let historieScoreboardLetzterRichtig = null;
+
+initialisiereMaskierteFelder();
+verbindeSichtbarkeit(kennungEingabe, kennungAugeButton, {
+  anzeigenText: "Vereinskennung anzeigen",
+  verbergenText: "Vereinskennung verbergen",
+});
+
+const erklaerungsDialog = erstelleErklaerungsDialog({
+  getZugang: () => ({
+    schiedsrichterId: ausgewaehlteSchiedsrichterId,
+    pin: eingegebenePin,
+  }),
+  vorHistorieErklaerung: () => {
+    if (!historieAutoTimer) return;
+    clearTimeout(historieAutoTimer);
+    historieAutoTimer = null;
+  },
+});
+const { baueWarumButton } = erklaerungsDialog;
+
+const gastController = erstelleGastmodus({
+  sb,
+  zeigeFehler,
+  versteckeFehler,
+  loeseOptionenAuf,
+  beiVerlassen: () => {
+    const gemerkteKennung = kennungSession.lesen();
+    if (gemerkteKennung) {
+      void pruefeVereinskennung(gemerkteKennung, { ausSession: true });
+    } else {
+      zeigeKennungBereich();
+    }
+  },
+});
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -248,7 +265,7 @@ function pruefeEingabenVollstaendig() {
   // "kennung"-Zustand ist er ohnehin unsichtbar (siehe zeigeMitgliedBereich/
   // zeigeGastBereich), daher hier einfach dauerhaft deaktiviert lassen.
   if (loginModus === "gast") {
-    startButton.disabled = !(gastNameEingabe.value.trim().length > 0);
+    startButton.disabled = !gastController.istStartbereit();
   } else if (loginModus === "mitglied") {
     // Je nach Verein zählt entweder die Auswahlliste oder das Namensfeld.
     const nameDa = vereinZeigtNamensliste
@@ -300,55 +317,6 @@ function zeigeGastBereich() {
   startButton.hidden = false;
   pruefeEingabenVollstaendig();
   gastNameEingabe.focus();
-}
-
-// ============================================================
-// Maskierte Eingabefelder ohne type="password" (10.08.2026)
-//
-// Safari und iOS blenden bei JEDEM echten Passwortfeld ungefragt den
-// "Starkes Passwort verwenden"-Vorschlag ein und ignorieren dabei
-// autocomplete="off". Für eine vierstellige Vereins-PIN ist dieses Fenster
-// nur verwirrend - Max' Rückmeldung nach dem Test mit älteren Kollegen.
-//
-// Lösung: Die Felder sind normale Textfelder und werden per CSS
-// ("-webkit-text-security", siehe style.css) maskiert. Das System erkennt
-// sie dadurch nicht als Passwortfelder.
-//
-// Wichtig ist die Rückfallebene: "-webkit-text-security" wird nicht von
-// jedem Browser unterstützt. Kann der Browser es nicht, wären die Zeichen
-// im Klartext zu sehen - dann lieber zurück auf type="password" samt
-// Vorschlagsfenster. Sichtbarkeit der PIN wiegt schwerer als Bequemlichkeit.
-// ============================================================
-const MASKIERUNG_MOEGLICH =
-  typeof CSS !== "undefined" &&
-  typeof CSS.supports === "function" &&
-  (CSS.supports("-webkit-text-security", "disc") || CSS.supports("text-security", "disc"));
-
-if (!MASKIERUNG_MOEGLICH) {
-  document.querySelectorAll("input.maskiert").forEach((feld) => {
-    feld.classList.remove("maskiert");
-    feld.type = "password";
-  });
-}
-
-function istAufgedeckt(feld) {
-  return feld.classList.contains("maskiert") ? feld.classList.contains("sichtbar") : feld.type === "text";
-}
-
-function decke_auf(feld) {
-  if (feld.classList.contains("maskiert")) {
-    feld.classList.add("sichtbar");
-  } else {
-    feld.type = "text";
-  }
-}
-
-function verdecke(feld) {
-  if (feld.classList.contains("maskiert")) {
-    feld.classList.remove("sichtbar");
-  } else {
-    feld.type = "password";
-  }
 }
 
 function zeigeKennungBereich() {
@@ -438,31 +406,6 @@ kennungEingabe.addEventListener("keydown", (event) => {
   }
 });
 
-// Augen-Button (13.07.2026, Max' Feedback): Vereinskennung ist "irgendwo
-// trotzdem ein Passwort" - Eingabefeld deshalb standardmäßig verdeckt
-// (siehe type="password" in index.html), per Klick auf das Auge kurz
-// aufdeckbar. Sobald danach weitergetippt wird, verdeckt sich das Feld
-// automatisch wieder ("aufgedeckt" ist bewusst nur ein kurzer Blick, kein
-// dauerhafter Zustand).
-if (kennungAugeButton) {
-  kennungAugeButton.addEventListener("click", () => {
-    const wirdSichtbar = !istAufgedeckt(kennungEingabe);
-    if (wirdSichtbar) { decke_auf(kennungEingabe); } else { verdecke(kennungEingabe); }
-    kennungAugeButton.setAttribute("aria-pressed", String(wirdSichtbar));
-    kennungAugeButton.setAttribute(
-      "aria-label",
-      wirdSichtbar ? "Vereinskennung verbergen" : "Vereinskennung anzeigen"
-    );
-  });
-  kennungEingabe.addEventListener("input", () => {
-    if (istAufgedeckt(kennungEingabe)) {
-      verdecke(kennungEingabe);
-      kennungAugeButton.setAttribute("aria-pressed", "false");
-      kennungAugeButton.setAttribute("aria-label", "Vereinskennung anzeigen");
-    }
-  });
-}
-
 gastWechselButton.addEventListener("click", () => {
   versteckeFehler();
   zeigeGastBereich();
@@ -475,7 +418,7 @@ gastZurueckButton.addEventListener("click", () => {
 
 startButton.addEventListener("click", async () => {
   if (loginModus === "gast") {
-    await starteGastModus();
+    await gastController.starte();
     return;
   }
 
@@ -542,294 +485,8 @@ wechselnButton.addEventListener("click", () => {
   location.reload();
 });
 
-// ============================================================
-// Gast-Quiz (13.07.2026, Baustein B/C/D) - eigener, schlanker Ablauf statt
-// Wiederverwendung von "ladeFragenUndAntworten": Gast-Fragen sind bewusst
-// nur Multiple-Choice ohne Video/Freitext/KI, und nichts wird serverseitig
-// gespeichert (Fortschritt lebt nur in den Variablen oben, siehe
-// "AskUserQuestion"-Entscheidung im Backlog: "nur im Browser merken"). Baut
-// bewusst auf demselben Options-/Feedback-Markup wie die echten Fragen auf
-// (".option-liste"/".option"/".absenden-button"/".feedback"), damit sich der
-// Gast-Modus optisch nicht wie ein Fremdkörper anfühlt.
-// ============================================================
-
-async function starteGastModus() {
-  versteckeFehler();
-  const name = gastNameEingabe.value.trim();
-  if (!name) return;
-
-  gastName = name;
-  gastBeantwortetAnzahl = 0;
-  gastRichtigAnzahl = 0;
-  gastFrageIndex = 0;
-  gastInteressePopupGezeigt = false;
-
-  nameSchritt.hidden = true;
-  gastQuizSchritt.hidden = false;
-  gastNameAnzeige.textContent = gastName;
-  aktualisiereGastFortschrittAnzeige();
-
-  await ladeGastFragen();
-}
-
-async function ladeGastFragen() {
-  const { data, error } = await sb.rpc("gast_fragen_liste");
-
-  if (error) {
-    zeigeFehler("Fragen konnten nicht geladen werden: " + error.message);
-    return;
-  }
-
-  gastFragenPool = data || [];
-  gastFrageIndex = 0;
-  zeigeNaechsteGastFrage();
-}
-
-function zeigeNaechsteGastFrage() {
-  gastFrageBereich.innerHTML = "";
-
-  if (gastFragenPool.length === 0) {
-    const hinweis = document.createElement("p");
-    hinweis.className = "hinweis card";
-    hinweis.textContent =
-      "Für den Gast-Modus sind momentan noch keine Fragen freigeschaltet. Du kannst später wiederkommen oder den Gast-Modus verlassen.";
-    gastFrageBereich.appendChild(hinweis);
-    return;
-  }
-
-  if (gastFrageIndex >= gastFragenPool.length) {
-    const hinweis = document.createElement("p");
-    hinweis.className = "hinweis card";
-    hinweis.textContent = "Das waren erstmal alle Fragen – danke fürs Ausprobieren! 🎉";
-    gastFrageBereich.appendChild(hinweis);
-    return;
-  }
-
-  gastFrageBereich.appendChild(baueGastFrageElement(gastFragenPool[gastFrageIndex]));
-}
-
-function baueGastFrageElement(frage) {
-  const container = document.createElement("div");
-  container.className = "frage-karte";
-  container.dataset.frageId = frage.frage_id;
-
-  const titel = document.createElement("div");
-  titel.className = "frage-text";
-  titel.textContent = frage.frage_text;
-  const titelZeile = document.createElement("div");
-  titelZeile.className = "frage-text-zeile";
-  titelZeile.appendChild(titel);
-  container.appendChild(titelZeile);
-
-  const optionListe = document.createElement("div");
-  optionListe.className = "option-liste";
-
-  const optionen = [
-    { key: "a", text: frage.option_a },
-    { key: "b", text: frage.option_b },
-    { key: "c", text: frage.option_c },
-  ];
-
-  for (const opt of optionen) {
-    if (!opt.text) continue;
-    const label = document.createElement("label");
-    label.className = "option";
-
-    const radio = document.createElement("input");
-    radio.type = "radio";
-    radio.name = "gast-frage-" + frage.frage_id;
-    radio.value = opt.key;
-    radio.addEventListener("change", () => {
-      optionListe.querySelectorAll(".option").forEach((el) => el.classList.remove("ausgewaehlt"));
-      label.classList.add("ausgewaehlt");
-    });
-
-    label.appendChild(radio);
-    label.append(opt.text);
-    optionListe.appendChild(label);
-  }
-  container.appendChild(optionListe);
-
-  const absendenButton = document.createElement("button");
-  absendenButton.className = "absenden-button";
-  absendenButton.textContent = "Antwort abschicken";
-  absendenButton.addEventListener("click", () => gastAntwortAbschicken(frage.frage_id, container, absendenButton));
-  container.appendChild(absendenButton);
-
-  const feedback = document.createElement("p");
-  feedback.className = "feedback";
-  // "aria-live" sorgt dafür, dass Screenreader die Auflösung ("Richtig!"/
-  // "Leider falsch...") automatisch vorlesen, sobald sie erscheint - ohne
-  // das bliebe sie für blinde Nutzer unbemerkt (07.08.2026, WCAG 4.1.3).
-  feedback.setAttribute("role", "status");
-  feedback.setAttribute("aria-live", "polite");
-  feedback.hidden = true;
-  container.appendChild(feedback);
-
-  return container;
-}
-
-async function gastAntwortAbschicken(frageId, container, button) {
-  const gewaehlt = container.querySelector('input[type="radio"]:checked');
-  if (!gewaehlt) {
-    zeigeFehler("Bitte erst eine Antwort auswählen.");
-    return;
-  }
-  versteckeFehler();
-
-  button.disabled = true;
-  container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
-
-  const { data, error } = await sb.rpc("gast_antwort_pruefen", {
-    p_frage_id: frageId,
-    p_option: gewaehlt.value,
-  });
-
-  const feedback = container.querySelector(".feedback");
-  feedback.hidden = false;
-
-  if (error || !data || !data[0]) {
-    feedback.textContent = "Antwort konnte nicht geprüft werden" + (error ? ": " + error.message : ".");
-    feedback.classList.add("falsch");
-    button.disabled = false;
-    container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = false));
-    return;
-  }
-
-  const ergebnis = data[0];
-
-  // Gleiche farbige Auflösung wie im eingeloggten Quiz (07.08.2026).
-  loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);
-  container.classList.add("beantwortet", ergebnis.korrekt ? "richtig-karte" : "falsch-karte");
-
-  gastBeantwortetAnzahl += 1;
-  if (ergebnis.korrekt) {
-    gastRichtigAnzahl += 1;
-    feedback.textContent = "Richtig! ✅";
-    feedback.classList.add("richtig");
-  } else {
-    feedback.textContent = "Leider falsch. Richtig wäre gewesen: " + ergebnis.richtige_option.toUpperCase();
-    feedback.classList.add("falsch");
-  }
-
-  aktualisiereGastFortschrittAnzeige();
-
-  const weiterButton = document.createElement("button");
-  weiterButton.className = "historie-weiter-button";
-  weiterButton.type = "button";
-  weiterButton.textContent = "Nächste Frage →";
-  weiterButton.addEventListener("click", () => {
-    gastFrageIndex += 1;
-    zeigeNaechsteGastFrage();
-  });
-  container.appendChild(weiterButton);
-
-  // Baustein C: Interesse-Popup nach GAST_INTERESSE_TRIGGER_ANZAHL
-  // beantworteten Fragen, nur einmal pro Sitzung.
-  if (gastBeantwortetAnzahl === GAST_INTERESSE_TRIGGER_ANZAHL && !gastInteressePopupGezeigt) {
-    gastInteressePopupGezeigt = true;
-    interesseOverlay.hidden = false;
-  }
-}
-
-function aktualisiereGastFortschrittAnzeige() {
-  gastFortschrittAnzeige.textContent = gastRichtigAnzahl + " von " + gastBeantwortetAnzahl + " richtig";
-}
-
-// Ausstiegsweg aus dem Gast-Modus zurück zur Login-Karte (siehe Kommentar
-// am Button in index.html) - setzt den kompletten Gast-Zustand zurück und
-// zeigt wieder den Bereich, der zur gerade aktiven Vereinskennung passt.
-gastVerlassenButton.addEventListener("click", () => {
-  gastQuizSchritt.hidden = true;
-  gastFrageBereich.innerHTML = "";
-  gastName = null;
-  gastFragenPool = [];
-  gastFrageIndex = 0;
-  gastBeantwortetAnzahl = 0;
-  gastRichtigAnzahl = 0;
-  gastInteressePopupGezeigt = false;
-  gastNameEingabe.value = "";
-
-  nameSchritt.hidden = false;
-  const gemerkteKennung = kennungSession.lesen();
-  if (gemerkteKennung) {
-    // Nicht einfach zeigeMitgliedBereich(): erst beim Server nachfragen, ob
-    // dieser Verein eine Namensliste hat - sonst stünde nach dem Gast-Modus
-    // womöglich die falsche Eingabeart da.
-    pruefeVereinskennung(gemerkteKennung, { ausSession: true });
-  } else {
-    zeigeKennungBereich();
-  }
-});
-
-// ---------- Interesse-Popup + Interessenten-Formular (Baustein C/D/E) ----------
-
-function schliesseInteressePopup() {
-  interesseOverlay.hidden = true;
-}
-
-// "Schade"-Popup (13.07.2026, Max' Feedback): auch wer "Nein danke" klickt,
-// soll noch die Möglichkeit bekommen, sich über den SVFD-Link zu
-// informieren - vorher gab es dafür gar keinen erreichbaren Ort mehr.
-function schliesseInteresseNeinOverlay() {
-  interesseNeinOverlay.hidden = true;
-}
-
-interesseNeinButton.addEventListener("click", () => {
-  schliesseInteressePopup();
-  interesseNeinOverlay.hidden = false;
-});
-interesseOverlay.addEventListener("click", (event) => {
-  if (event.target === interesseOverlay) schliesseInteressePopup();
-});
-
-interesseNeinSchliessenButton.addEventListener("click", schliesseInteresseNeinOverlay);
-interesseNeinOverlay.addEventListener("click", (event) => {
-  if (event.target === interesseNeinOverlay) schliesseInteresseNeinOverlay();
-});
-
-interesseJaButton.addEventListener("click", () => {
-  schliesseInteressePopup();
-  interessentenFormularInhalt.hidden = false;
-  interessentenFormularErfolg.hidden = true;
-  interessentEmailEingabe.value = "";
-  interessentenFormularOverlay.hidden = false;
-});
-
-function schliesseInteressentenFormular() {
-  interessentenFormularOverlay.hidden = true;
-}
-
-interessentenFormularSchliessenButton.addEventListener("click", schliesseInteressentenFormular);
-interessentenFormularOverlay.addEventListener("click", (event) => {
-  if (event.target === interessentenFormularOverlay) schliesseInteressentenFormular();
-});
-
-interessentAbsendenButton.addEventListener("click", async () => {
-  interessentAbsendenButton.disabled = true;
-  const email = interessentEmailEingabe.value.trim();
-
-  const { error } = await sb.rpc("gast_interesse_melden", {
-    p_gast_name: gastName || "Gast",
-    p_email: email || null,
-  });
-
-  interessentAbsendenButton.disabled = false;
-
-  if (error) {
-    zeigeFehler("Konnte leider nicht gespeichert werden: " + error.message);
-    return;
-  }
-
-  interessentenFormularInhalt.hidden = true;
-  interessentenFormularErfolg.hidden = false;
-});
-
 document.addEventListener("keydown", (event) => {
   if (event.key !== "Escape") return;
-  if (interesseOverlay && !interesseOverlay.hidden) schliesseInteressePopup();
-  if (interesseNeinOverlay && !interesseNeinOverlay.hidden) schliesseInteresseNeinOverlay();
-  if (interessentenFormularOverlay && !interessentenFormularOverlay.hidden) schliesseInteressentenFormular();
   if (profilPanel && !profilPanel.hidden) schliesseProfilPanel();
   if (anfrageFormularOverlay && !anfrageFormularOverlay.hidden) schliesseAnfrageFormular();
   if (meineAnfragenOverlay && !meineAnfragenOverlay.hidden) schliesseMeineAnfragen();
@@ -1338,68 +995,6 @@ async function ladeFragenUndAntworten() {
   }
 }
 
-// Vorlese-Option (Text-to-Speech, 10.07.2026, Backlog-Idee "klein, schnell
-// machbar"): nutzt die im Browser eingebaute Web Speech API, kein eigener
-// Server/Dienst nötig. "unterstuetztVorlesen" wird einmal beim Laden geprüft
-// - auf Browsern ohne Unterstützung erscheint der Button gar nicht erst,
-// statt beim Klick wirkungslos zu bleiben.
-const unterstuetztVorlesen = "speechSynthesis" in window;
-
-// Merkt sich den Button, der gerade eine Frage vorliest - so kann ein
-// zweiter Klick auf DENSELBEN Button die Sprachausgabe stoppen (10.07.2026-
-// Feedback: einmal klicken startet, nochmal klicken bricht ab, sonst nervt's).
-let vorlesenAktiverButton = null;
-
-function vorlesenBeendetAnzeigen(button) {
-  button.classList.remove("spricht");
-  button.textContent = "🔊";
-  button.setAttribute("aria-label", "Frage vorlesen");
-  button.title = "Frage vorlesen";
-  if (vorlesenAktiverButton === button) vorlesenAktiverButton = null;
-}
-
-function stoppeVorlesen() {
-  window.speechSynthesis.cancel();
-  if (vorlesenAktiverButton) vorlesenBeendetAnzeigen(vorlesenAktiverButton);
-}
-
-function vorlesen(text, button) {
-  if (!unterstuetztVorlesen) return;
-  stoppeVorlesen(); // falls schon eine andere Frage vorgelesen wird
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "de-DE";
-  utterance.onend = () => vorlesenBeendetAnzeigen(button);
-  utterance.onerror = () => vorlesenBeendetAnzeigen(button);
-
-  vorlesenAktiverButton = button;
-  button.classList.add("spricht");
-  button.textContent = "⏹";
-  button.setAttribute("aria-label", "Vorlesen stoppen");
-  button.title = "Vorlesen stoppen";
-  window.speechSynthesis.speak(utterance);
-}
-
-function baueVorlesenButton(text) {
-  if (!unterstuetztVorlesen) return null;
-
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "vorlesen-button";
-  button.setAttribute("aria-label", "Frage vorlesen");
-  button.title = "Frage vorlesen";
-  button.textContent = "🔊";
-  button.addEventListener("click", (e) => {
-    e.preventDefault();
-    if (button.classList.contains("spricht")) {
-      stoppeVorlesen();
-    } else {
-      vorlesen(text, button);
-    }
-  });
-  return button;
-}
-
 /// Anzeigename und Farbklasse je Fragetyp (07.08.2026, Max' Wunsch:
 /// "vielleicht sieht man da dann auch deutlicher, dass eine Frage Video oder
 /// Freitext ist, vielleicht mit Farben"). Bewusst mit Symbol UND Text, damit
@@ -1457,121 +1052,6 @@ function baueBadges(frage) {
   }
 
   return wrap.childElementCount > 0 ? wrap : null;
-}
-
-// ============================================================
-// "Warum ist das richtig?" - Explain-my-answer (KI-Erklärung via Gemini,
-// 12.07.2026). Erscheint als Button unter jeder bereits beantworteten Frage
-// (Multiple-Choice und Freitext, laufende Runde und Üben-Modus) - öffnet ein
-// Popup mit einer live von der KI erzeugten Kurzerklärung. Die eigentliche
-// Berechtigungsprüfung ("wurde diese Frage von mir überhaupt schon
-// beantwortet?") läuft serverseitig in der RPC erklaerung_kontext_laden
-// (Migration v46) - hier im Frontend geht es nur um Anzeige/Bedienung.
-// ============================================================
-const erklaerungOverlay = document.getElementById("erklaerung-overlay");
-const erklaerungInhalt = document.getElementById("erklaerung-inhalt");
-const erklaerungSchliessenButton = document.getElementById("erklaerung-schliessen-button");
-const erklaerungsCache = new Map();
-
-function schliesseErklaerung() {
-  if (erklaerungOverlay) erklaerungOverlay.hidden = true;
-}
-
-if (erklaerungSchliessenButton) {
-  erklaerungSchliessenButton.addEventListener("click", schliesseErklaerung);
-}
-if (erklaerungOverlay) {
-  // Klick auf den abgedunkelten Hintergrund schließt das Popup, ein Klick
-  // auf das Popup selbst (die Karte darin) nicht - deshalb der Vergleich
-  // mit event.target statt eines pauschalen Klick-Listeners.
-  erklaerungOverlay.addEventListener("click", (event) => {
-    if (event.target === erklaerungOverlay) schliesseErklaerung();
-  });
-}
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && erklaerungOverlay && !erklaerungOverlay.hidden) {
-    schliesseErklaerung();
-  }
-});
-
-// Öffnet das Popup und lädt die Erklärung nach. "istHistorie" steuert, ob
-// die erklaerung_kontext_laden-RPC in "antworten" (laufende Runde) oder
-// "historie_antworten" (Üben-Modus) nach der bereits gegebenen Antwort sucht.
-async function oeffneErklaerung(frageId, istHistorie) {
-  if (!erklaerungOverlay || !erklaerungInhalt) return;
-
-  // Im Üben-Modus läuft nach dem Beantworten ein automatischer
-  // Weiterschalt-Timer (siehe "zeigeHistorieWeiterButton") - der würde sonst
-  // mitten im Lesen der Erklärung zur nächsten Frage springen. Gleiches
-  // Verhalten wie beim manuellen Klick auf "Nächste Frage": Timer stoppen.
-  if (historieAutoTimer) {
-    clearTimeout(historieAutoTimer);
-    historieAutoTimer = null;
-  }
-
-  erklaerungOverlay.hidden = false;
-  erklaerungInhalt.innerHTML = "";
-
-  // Aktuelle Fragen können nur einmal beantwortet werden. Ihre Erklärung
-  // bleibt deshalb in derselben Seitensitzung stabil und muss bei erneutem
-  // Öffnen kein weiteres KI-Kontingent verbrauchen. Historische Fragen werden
-  // nicht gecacht, weil sie später mit einer anderen Antwort wiederkommen
-  // können.
-  const cacheSchluessel = istHistorie
-    ? null
-    : `${ausgewaehlteSchiedsrichterId}:${frageId}`;
-  if (cacheSchluessel && erklaerungsCache.has(cacheSchluessel)) {
-    const text = document.createElement("p");
-    text.textContent = erklaerungsCache.get(cacheSchluessel);
-    erklaerungInhalt.appendChild(text);
-    return;
-  }
-
-  const ladeHinweis = document.createElement("p");
-  ladeHinweis.className = "erklaerung-lade-hinweis";
-  const spinner = document.createElement("span");
-  spinner.className = "spinner";
-  ladeHinweis.appendChild(spinner);
-  ladeHinweis.append(" Einen Moment, die Erklärung wird erstellt ...");
-  erklaerungInhalt.appendChild(ladeHinweis);
-
-  try {
-    const antwort = await fetch("/api/erklaerung", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        schiedsrichterId: ausgewaehlteSchiedsrichterId,
-        frageId,
-        pin: eingegebenePin,
-        historie: istHistorie,
-      }),
-    });
-    const daten = await antwort.json();
-    if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
-
-    erklaerungInhalt.innerHTML = "";
-    const text = document.createElement("p");
-    text.textContent = daten.erklaerung;
-    erklaerungInhalt.appendChild(text);
-    if (cacheSchluessel) erklaerungsCache.set(cacheSchluessel, daten.erklaerung);
-  } catch (e) {
-    erklaerungInhalt.innerHTML = "";
-    const fehlerText = document.createElement("p");
-    fehlerText.className = "erklaerung-fehler";
-    fehlerText.textContent = "Erklärung konnte nicht geladen werden: " + e.message;
-    erklaerungInhalt.appendChild(fehlerText);
-  }
-}
-
-// Baut den "Warum?"-Button, der unter einer bereits beantworteten Frage
-// erscheint.
-function baueWarumButton(frageId, istHistorie) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = "warum-button";
-  button.append("💡 Warum?");
-  button.addEventListener("click", () => oeffneErklaerung(frageId, istHistorie));
-  return button;
 }
 
 // Der gemeinsame Modal-first-Player für alle Videofragen liegt gekapselt in
@@ -2888,43 +2368,4 @@ async function start() {
 }
 
 start();
-
-
-// ============================================================
-// Menü rechts oben (07.08.2026, Max' Wunsch)
-//
-// Bewusst ohne Framework als kleines Auf-/Zuklapp-Menü. Barrierefreiheit:
-// "aria-expanded" wird mitgeführt, Escape schließt, ein Klick außerhalb
-// schließt ebenfalls, und beim Schließen per Tastatur wandert der Fokus
-// zurück auf den Knopf (sonst landet man beim nächsten Tab am Seitenanfang).
-// ============================================================
-(function initKopfMenue() {
-  const knopf = document.getElementById("menue-button");
-  const panel = document.getElementById("menue-panel");
-  if (!knopf || !panel) return;
-
-  function setzeOffen(offen) {
-    panel.hidden = !offen;
-    knopf.setAttribute("aria-expanded", offen ? "true" : "false");
-    knopf.setAttribute("aria-label", offen ? "Menü schließen" : "Menü öffnen");
-  }
-
-  knopf.addEventListener("click", (ereignis) => {
-    ereignis.stopPropagation();
-    setzeOffen(panel.hidden);
-  });
-
-  document.addEventListener("click", (ereignis) => {
-    if (panel.hidden) return;
-    if (!panel.contains(ereignis.target) && ereignis.target !== knopf) {
-      setzeOffen(false);
-    }
-  });
-
-  document.addEventListener("keydown", (ereignis) => {
-    if (ereignis.key === "Escape" && !panel.hidden) {
-      setzeOffen(false);
-      knopf.focus();
-    }
-  });
-})();
+initialisiereKopfmenue();

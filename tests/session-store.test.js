@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 
-const quelltext = readFileSync(new URL("../src/session-store.js", import.meta.url), "utf8");
+const quelltext = readFileSync(new URL("../src/core/session-store.js", import.meta.url), "utf8");
 
 function ladeModul({ wirfFehler = false } = {}) {
   const daten = new Map();

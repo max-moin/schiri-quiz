@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-await import("../src/quiz-utils.js");
+await import("../src/core/quiz-utils.js");
 
 const {
   extrahiereYoutubeId,
