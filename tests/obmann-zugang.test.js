@@ -16,6 +16,9 @@ const migration = readFileSync(
 ) + readFileSync(
   new URL("../supabase/migrations/20260825122111_v87_website_rls_initplan_und_index.sql", import.meta.url),
   "utf8",
+) + readFileSync(
+  new URL("../supabase/migrations/20260825143000_v88_website_inhalte_mit_versionen.sql", import.meta.url),
+  "utf8",
 );
 
 test("Obmann-Zugang kombiniert Passwort und TOTP statt einer kurzen PIN", () => {
@@ -33,6 +36,31 @@ test("RLS bindet Schreibrechte an Benutzerzuordnung und AAL2", () => {
   assert.match(migration, /grant select \(seitenschluessel, konfiguration, updated_at\)/);
   assert.doesNotMatch(migration, /grant\s+(?:insert|update|delete)[^;]+to\s+anon/i);
   assert.doesNotMatch(migration, /security definer/i);
+});
+
+test("die drei weiteren Inhaltsbereiche sind versioniert und nur mit AAL2 beschreibbar", () => {
+  assert.match(migration, /website_inhalte_konfiguration/);
+  assert.match(migration, /website_inhalte_versionen/);
+  assert.match(migration, /bereich in \('regeln', 'vorlagen', 'unterlagen'\)/);
+  assert.match(migration, /archiviert_von = \(select auth\.uid\(\)\)/);
+  assert.doesNotMatch(migration, /grant\s+(?:insert|update|delete)[^;]+to\s+anon/i);
+  assert.doesNotMatch(migration, /grant\s+delete/i);
+});
+
+test("die RLS-Prüfung darf die eigene Redakteurszuordnung lesen", () => {
+  const sql = readFileSync(new URL("../supabase/migrations/20260825152000_v89_redakteurszuordnung_fuer_rls_lesbar.sql", import.meta.url), "utf8");
+  assert.match(sql, /grant select \(user_id, seitenschluessel\)[\s\S]*website_redakteure to authenticated/i);
+  assert.doesNotMatch(sql, /to anon/i);
+});
+
+test("der Editor trennt die vier Arbeitsbereiche statt sie als Endlosseite zu zeigen", () => {
+  for (const bereich of ["spesen", "regeln", "vorlagen", "unterlagen"]) {
+    assert.match(html, new RegExp(`data-bereich-knopf="${bereich}"`));
+    assert.match(html, new RegExp(`data-admin-bereich="${bereich}"`));
+  }
+  const spesenEditor = readFileSync(new URL("../src/admin/spesen-editor.js", import.meta.url), "utf8");
+  assert.match(spesenEditor, /admin-liga-gruppe/);
+  assert.match(html, /Neue Liga ergänzen/);
 });
 
 test("Passwortanmeldung verwendet Supabase Auth", async () => {

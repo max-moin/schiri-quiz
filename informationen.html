@@ -125,143 +125,18 @@
   </footer>
 
   <script type="module" src="seite.js"></script>
-  <script>
-    /* ============================================================
-       Die Dokumentenliste als Daten statt als Markup.
+  <script type="module">
+    import { DATENBANK, VEREIN } from "./verein.config.js";
+    import { UNTERLAGEN_STANDARD } from "./src/website/content-defaults.js";
+    import { ladeWebsiteInhalt } from "./src/website/content-config.js";
 
-       Grund: Jeder Eintrag steht in genau einer Anlass-Gruppe, wird von
-       zwei Filtern und einer Suche erfasst und trägt eine Herkunft.
-       Als HTML geschrieben hieße das, dieselbe Information viermal
-       nebeneinander zu pflegen. Ein neues Dokument ist hier eine Zeile.
-
-       SVFD_DOKS zeigt bewusst überall auf dieselbe Sammelseite: der
-       Stadtverband vergibt für die einzelnen PDFs keine stabilen
-       Adressen. Sobald ein Direktlink bekannt ist, wird er hier
-       eingetragen - sonst nirgends.
-       ============================================================ */
-    const SVFD_DOKS = "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/";
-    const SFV = "https://www.sfv-online.de/fileadmin/content/PDFs/";
-
-    /* Herkunft dreistufig statt zweistufig (21.08.2026). Vorher gab es nur
-       "Bei uns" und "Stadtverband". Seit die Landesebene dazugekommen ist,
-       muss man sehen können, WER für eine Angabe geradesteht - der
-       Stadtverband und der Landesverband widersprechen sich an mehreren
-       Stellen, und dann hängt alles daran, welches Dokument gilt. */
-    const HERKUNFT = {
-      /* "hier" steht seit dem 22.08.2026 in keiner Zeile mehr - die eigenen
-         Werkzeuge sind aus dieser Liste heraus. Der Eintrag bleibt trotzdem
-         stehen: sonst faellt ein spaeter ergaenztes q:"hier" stillschweigend
-         auf "Stadtverband" zurueck und traegt ein falsches Schild. */
-      hier:  { text: "Bei uns",       klasse: "abz-hier",   symbol: "hier",   extern: false },
-      svfd:  { text: "Stadtverband",  klasse: "abz-extern", symbol: "extern", extern: true },
-      sfv:   { text: "Landesverband", klasse: "abz-land",   symbol: "land",   extern: true },
-    };
-
-    /* Die Gruppe "Wenn du absagen musst" ist weggefallen: darin standen nur
-       unsere beiden eigenen Vorlagen, und die haben jetzt einen eigenen
-       Punkt in der Navigation. Ein Filterknopf, der auf eine leere Liste
-       fuehrt, waere schlechter als gar keiner. */
-    const GRUPPEN = [
-      { id: "vor",    titel: "Vor dem Spiel",        kurz: "Vor dem Spiel" },
-      { id: "nach",   titel: "Nach dem Spiel",       kurz: "Nach dem Spiel" },
-      { id: "lernen", titel: "Zum Lernen",           kurz: "Lernen" },
-      /* Eigene Gruppe, weil man in genau dieser Lage nicht suchen will
-         (21.08.2026). Grundlage sind die Handlungsempfehlungen des SFV. */
-      { id: "vorfall", titel: "Wenn etwas passiert",  kurz: "Vorfälle" },
-    ];
-
-    const DOKUMENTE = [
-      { g: "vor", titel: "Kurzübersicht Regeln des Stadtverbands",
-        sub: "Das Original zu unserer Tabelle. Weiterhin die Fassung von 2024 – für "
-           + "C- und D-Junioren gilt die Handreichung darüber.",
-        href: "https://www.svf-dresden.de/docs/schiedsrichter/regelwerk/kurzuebersicht-regeln/", q: "svfd" },
-      { g: "vor", titel: "Handreichung des SVFD 2025/2026",
-        sub: "Was in Dresden bei C- und D-Junioren gilt: 9 gegen 9, Viertel statt "
-           + "Halbzeiten, Mittellinienregel in der Feldmitte – und in den D-Junioren "
-           + "gibt es KEINE Gelb-Rote Karte.",
-        href: SVFD_DOKS, q: "svfd" },
-      { g: "vor", titel: "Kapitänsregelung",
-        sub: "Wer mit dem Schiedsrichter sprechen darf und wer nicht.",
-        href: SVFD_DOKS, q: "svfd" },
-      { g: "vor", titel: "Spielberechtigungen prüfen",
-        sub: "Was vor dem Anpfiff kontrolliert wird und was bei Unstimmigkeiten gilt.",
-        href: SVFD_DOKS, q: "svfd" },
-
-      { g: "nach", titel: "Wiedereinwechslungen eintragen",
-        sub: "Klickanleitung für den Spielbericht – wo genau man was einträgt.",
-        href: SVFD_DOKS, q: "svfd" },
-      { g: "nach", titel: "Spesenquittung (Formular)",
-        sub: "Das Originalformular des Stadtverbands zum Ausdrucken.",
-        href: SVFD_DOKS, q: "svfd" },
-
-      /* Max' offene Frage seit dem 18.08.2026 - der Link steht jetzt drin
-         statt eines Verweises auf die Sammelseite. Auf der Seite liegen die
-         Fragen, die Lösungen und die Antwortvorlage als Tabelle. */
-      { g: "lernen", titel: "Hausregeltest",
-        sub: "Fragen, Lösungen und die Antwortvorlage. Antworten kurz halten, "
-           + "persönliche Strafen und Spielstrafen nennen, Regelheft ist erlaubt.",
-        href: "https://www.svf-dresden.de/docs/schiedsrichter/hausregeltest/", q: "svfd" },
-      { g: "lernen", titel: "DFB-Fußballregeln",
-        sub: "Das vollständige Regelwerk der laufenden Saison.",
-        href: SVFD_DOKS, q: "svfd" },
-      { g: "lernen", titel: "Regeländerungen",
-        sub: "Was sich zu dieser Saison geändert hat.",
-        href: SVFD_DOKS, q: "svfd" },
-
-      /* ---------- Landesebene, ergänzt am 21.08.2026 ----------
-         Der Sächsische Fußball-Verband vergibt im Gegensatz zum
-         Stadtverband stabile Direktlinks auf die einzelnen PDFs. Deshalb
-         zeigt hier jeder Eintrag wirklich auf sein Dokument und nicht auf
-         eine Sammelseite, in der man erst suchen muss. */
-      { g: "vor", titel: "Regelungsübersicht Junioren 2026/27",
-        sub: "Spielzeit, Feldmaße, Ball, Abseits und Temperaturgrenzen für Sachsenliga, "
-           + "Sachsenklasse und Landespokal. Stand 01.07.2026 – aktueller als unsere Tabelle.",
-        href: SFV + "Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf", q: "sfv" },
-      { g: "vor", titel: "Kleinfeldbestimmungen",
-        sub: "Maße, Torgrößen und Sonderregeln von G- bis C-Junioren. Achtung: "
-           + "Freistoßabstand 3 bzw. 5 Meter statt 9,15.",
-        href: SFV + "Spielbetrieb/Regelwerk/kleinfeldbestimmungen.pdf", q: "sfv" },
-      { g: "vor", titel: "Altersklassen 2026/27",
-        sub: "Welcher Jahrgang spielt in welcher Altersklasse.",
-        href: SFV + "Spielbetrieb/03062026_altersklassen_neu.pdf", q: "sfv" },
-      { g: "vor", titel: "Spieldurchführung Frauen und Juniorinnen 2026/27",
-        sub: "Das Gegenstück zur Junioren-Übersicht.",
-        href: SFV + "Spielbetrieb/Frauen_Juniorinnen/Saison_2026_2027/08042026_Uebersicht_Spielbetrieb_FMA.pdf", q: "sfv" },
-
-      { g: "nach", titel: "Spielbericht Online – Anleitung für Schiedsrichter",
-        sub: "Arbeiten nach dem Spiel und Freigabe. Nicht die Vereinsanleitung, sondern unsere.",
-        href: SFV + "DFBnet/Spielbericht_Online/Spielbericht_Online_Anleitung_Schiedsrichter.pdf", q: "sfv" },
-      { g: "nach", titel: "Reisekostenabrechnung SFV",
-        sub: "Das Formular für Einsätze auf Landesebene.",
-        href: SFV + "Schiedsrichter/SR-Abrechnung_SFV_formularneu.pdf", q: "sfv" },
-      { g: "nach", titel: "Finanzordnung des SFV",
-        sub: "Entschädigungssätze aller Landesklassen und die Reisekostenregeln (§ 8, § 13). "
-           + "Auch: bei Spielausfall gibt es 50 Prozent.",
-        href: SFV + "Satzung_Ordnungen/07312025_Finanzordnung.pdf", q: "sfv" },
-
-      { g: "vorfall", titel: "Handlungsempfehlungen bei Diskriminierung",
-        sub: "Was zu tun ist, wenn es von Spielern oder von den Zuschauern kommt – und was "
-           + "in den Sonderbericht gehört. Meldeadresse: fairness@sfv-online.de",
-        href: SFV + "Sicherheit/08312021_Handlungsempfehlungen.pdf", q: "sfv" },
-      { g: "vorfall", titel: "Vorlage Sonderbericht",
-        sub: "Wer hat was gegen wen gesagt oder getan, wo stand die Person, was hast du "
-           + "veranlasst. Word-Datei – wird heruntergeladen, nicht angezeigt.",
-        href: SFV + "Schiedsrichter/02202024_vorlage_sonderbericht.docx", q: "sfv" },
-      { g: "vorfall", titel: "Meldeformular Gewalt und Rassismus",
-        sub: "Sofortmeldung an den Verband.",
-        href: SFV + "Sicherheit/sofortinfo_gewalt_rassismus.pdf", q: "sfv" },
-      { g: "vorfall", titel: "Umgang mit Diskriminierung und Gewalt",
-        sub: "Die Handreichung des Stadtverbands dazu.",
-        href: SVFD_DOKS, q: "svfd" },
-
-      { g: "lernen", titel: "Qualifikationsrichtlinie Schiedsrichter 2026/27",
-        sub: "Was für welche Spielklasse verlangt wird.",
-        href: SFV + "Schiedsrichter/Saison_2025_2026/Quali-RL_26_27.pdf", q: "sfv" },
-      { g: "lernen", titel: "Rahmenterminplan Junioren 2026/27",
-        sub: "Spielfreie Wochenenden, Pokalrunden und Staffeltermine.",
-        href: SFV + "Spielbetrieb/Junioren/Saison_2026_2027/04202026_rtp_junioren.pdf", q: "sfv" },
-    ];
-
+    const { konfiguration: UNTERLAGEN } = await ladeWebsiteInhalt({
+      datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
+      bereich: "unterlagen", fallback: UNTERLAGEN_STANDARD,
+    });
+    const HERKUNFT = UNTERLAGEN.herkunft;
+    const GRUPPEN = UNTERLAGEN.gruppen;
+    const DOKUMENTE = UNTERLAGEN.dokumente.filter((dokument) => dokument.aktiv !== false);
     const $ = (id) => document.getElementById(id);
     let anlass = "alle";
 

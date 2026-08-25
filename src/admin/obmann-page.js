@@ -8,6 +8,9 @@ import {
   totpEinrichten,
 } from "./obmann-auth.js";
 import { erstelleSpesenEditor } from "./spesen-editor.js";
+import { erstelleRegelnEditor } from "./regeln-editor.js";
+import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
+import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
 
 const client = window.supabase.createClient(
   DATENBANK.adresse,
@@ -18,6 +21,7 @@ const $ = (id) => document.getElementById(id);
 const ansichten = ["laden", "login", "totpSetup", "totpCode", "keinZugriff", "editor"];
 let aktiverFaktor = null;
 let aktuellerBenutzer = null;
+let editorenGestartet = false;
 
 const fallback = standardSpesenKonfiguration({
   altersklassen: ALTERSKLASSEN,
@@ -54,14 +58,39 @@ async function oeffneEditor() {
   }
   $("editorVerein").textContent = VEREIN.name;
   zeige("editor");
-  erstelleSpesenEditor({
-    wurzel: $("editor"),
-    client,
-    verein: VEREIN,
-    fallback,
-    benutzer: aktuellerBenutzer,
-  });
+  if (!editorenGestartet) {
+    editorenGestartet = true;
+    erstelleSpesenEditor({
+      wurzel: document.querySelector('[data-admin-bereich="spesen"]'),
+      client, verein: VEREIN, fallback, benutzer: aktuellerBenutzer,
+    });
+    erstelleRegelnEditor({
+      wurzel: document.querySelector('[data-admin-bereich="regeln"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    erstelleVorlagenEditor({
+      wurzel: document.querySelector('[data-admin-bereich="vorlagen"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    erstelleUnterlagenEditor({
+      wurzel: document.querySelector('[data-admin-bereich="unterlagen"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+  }
 }
+
+document.querySelectorAll("[data-bereich-knopf]").forEach((knopf) => {
+  knopf.addEventListener("click", () => {
+    const bereich = knopf.dataset.bereichKnopf;
+    document.querySelectorAll("[data-bereich-knopf]").forEach((element) => {
+      element.setAttribute("aria-pressed", String(element === knopf));
+    });
+    document.querySelectorAll("[data-admin-bereich]").forEach((element) => {
+      element.hidden = element.dataset.adminBereich !== bereich;
+    });
+    document.querySelector(".admin-bereich-nav").scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+});
 
 async function route() {
   fehler();
@@ -140,4 +169,3 @@ document.querySelectorAll("[data-abmelden]").forEach((knopf) => {
 });
 
 route();
-

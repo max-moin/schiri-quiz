@@ -19,8 +19,9 @@ Das Projekt befindet sich im **aktiven Pilotbetrieb** in einem kleinen Verein. E
 - Übungsmodus für ältere Fragen und separater Gastzugang
 - Anfragen an den Obmann, etwa für Ausrüstung oder allgemeine Anliegen
 - responsive Oberfläche für Smartphone und Desktop
-- künftige Vereinsseite: geschützter Obmann-Pilot für Spesensätze mit
-  Supabase Auth, TOTP/2FAS und Datenbank-RLS
+- geschützte Website-Redaktion für Spesensätze, Regelübersicht,
+  Absagevorlagen und Unterlagen mit Supabase Auth, TOTP/2FAS,
+  Datenbank-RLS und versionierten vorherigen Ständen
 
 ## Architektur
 
@@ -57,8 +58,8 @@ können.
 | `index.html` | öffentliche Startseite des Vereins |
 | `schiri-werden.html`, `regeluebersicht.html`, `spesenrechner.html`, `vorlagen.html`, `informationen.html` | die übrigen offenen Seiten; `informationen.html` heißt in der Navigation „Unterlagen" |
 | `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
-| `obmann.html`, `src/admin/` | geschützter Redaktionspilot; E-Mail/Passwort plus TOTP, derzeit nur Spesen |
-| `src/website/` | öffentliche Datenlader mit statischem Fallback bei leerer/nicht erreichbarer Datenbank |
+| `obmann.html`, `src/admin/` | geschützte Website-Redaktion; E-Mail/Passwort plus TOTP, getrennte Arbeitsbereiche und explizites Veröffentlichen |
+| `src/website/` | öffentliche Datenlader und kanonische statische Ausgangsstände; Fallback bei leerer/nicht erreichbarer Datenbank |
 | `bilder/` | Wappen und die selbst gezeichneten Motive; `bilder/QUELLEN.md` hält fest, woher welches Bild stammt |
 | `quiz.html`, `style.css` | Teilnehmeroberfläche und Gestaltung des Quiz |
 | `app.js` | kleiner Composition Root: erzeugt den Supabase-Client und verdrahtet ausschließlich die Module |
@@ -87,10 +88,12 @@ Die Anwendung schützt Daten zusätzlich über RLS, eingeschränkte Datenbankrec
 Der neue Obmann-Bereich der Vereinsseite verwendet bewusst ein anderes
 Sicherheitsmodell als die alten Quiz-PINs: Ein Supabase-Auth-Konto meldet sich
 mit E-Mail und starkem Passwort an, danach wird ein TOTP-Code aus einer
-Authenticator-App wie 2FAS verlangt. Schreibzugriffe auf die
-Spesenkonfiguration akzeptiert Postgres nur mit `aal2` und einer expliziten
-Zuordnung des Benutzers zur Vereinsseite. Es gibt keine öffentliche
-Registrierung und keinen Secret Key im Browser.
+Authenticator-App wie 2FAS verlangt. Schreibzugriffe auf Spesen und
+redaktionelle Inhalte akzeptiert Postgres nur mit `aal2` und einer expliziten
+Zuordnung des Benutzers zur Vereinsseite. Die öffentliche Seite lädt nur
+ausdrücklich veröffentlichte Stände. Vor jedem erneuten Veröffentlichen wird
+der bisherige Inhaltsstand archiviert. Es gibt keine öffentliche Registrierung
+und keinen Secret Key im Browser.
 
 Bekannte Grenzen:
 

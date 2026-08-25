@@ -149,155 +149,23 @@
   </footer>
 
   <script type="module" src="seite.js"></script>
-  <script>
-    /* ============================================================
-       ZWEI DATENSÄTZE, ZWEI QUELLEN, ZWEI STÄNDE.
+  <script type="module">
+    import { DATENBANK, VEREIN } from "./verein.config.js";
+    import { REGELN_STANDARD } from "./src/website/content-defaults.js";
+    import { ladeWebsiteInhalt } from "./src/website/content-config.js";
 
-       svfd  = "Kurzübersicht Regeln Stadtverband Fußball Dresden
-               2024/2025", von Max geliefert. VERALTET, siehe Hinweis.
-       sfv   = "Regelungsübersicht Junioren-Spielbetrieb im SFV -
-               Spieljahr 2026/27", Stand 01.07.2026, von der Seite des
-               Sächsischen Fußball-Verbands.
-
-       Beide Quellen führen unterschiedliche Spalten. Statt ein
-       gemeinsames Schema zu erzwingen und dabei die Hälfte mit "—" zu
-       füllen, bringt jede Zeile ihre eigene Werteliste mit. Der Nutzen:
-       man sieht sofort, was die jeweilige Quelle überhaupt festlegt -
-       dass die Dresdner Kurzübersicht z.B. gar keine Höchsttemperatur
-       nennt, ist selbst eine Information.
-       ============================================================ */
-
-    const QUELLEN = {
-      svfd: {
-        titel: "Stadtverband Fußball Dresden",
-        stand: "Kurzübersicht 2024, ergänzt um die Handreichung 2025/2026",
-        warnung: true,
-        hinweis:
-          "Die Kurzübersicht ist weiterhin die veröffentlichte Fassung des " +
-          "Stadtverbands. Für C- und D-Junioren gilt sie aber nicht mehr unverändert: " +
-          "Die Handreichung des Jugendausschusses für 2025/2026 hat sie dort ersetzt, " +
-          "und die Angaben hier sind bereits danach aktualisiert. Was diese Übersicht " +
-          "gar nicht nennt, ist eine Temperatur-Obergrenze – auf Landesebene sind das " +
-          "+35 °C, bei D-Junioren +32 °C, und am Spieltag entscheidet der Schiedsrichter.",
-        link: "https://www.svf-dresden.de/docs/schiedsrichter/regelwerk/kurzuebersicht-regeln/",
-        linkText: "Kurzübersicht beim Stadtverband",
-      },
-      sfv: {
-        titel: "Sächsischer Fußball-Verband",
-        stand: "Regelungsübersicht Junioren 2026/27, Stand 01.07.2026",
-        warnung: false,
-        hinweis:
-          "Gilt für Sachsenliga, Sachsenklasse und Landespokal der A- bis D-Junioren. " +
-          "Frauen und Juniorinnen stehen in einer eigenen Übersicht, die hier noch " +
-          "nicht eingepflegt ist – Link unten.",
-        link: "https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf",
-        linkText: "Original-PDF des SFV",
-      },
-    };
-
-    /* ---------- Stadtebene: Meisterschaft ---------- */
-    const SVFD_MEISTER = [
-      {a:"Herren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Herren",k:"Freizeitliga/-klassen SVFD",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Frauen",k:"Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Frauen",k:"Landesklasse",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:5,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"A-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"A-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"B-Junioren",k:"Landesklassen bis Landesliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"B-Junioren",k:"Stadtklassen bis Stadtoberliga",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"B-Juniorinnen",k:"Landesliga (Großfeld)",zeit:"2×40 min",feld:"Großfeld",max:11,min:8,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
-      {a:"B-Juniorinnen",k:"Landesliga (verkürztes Großfeld)",zeit:"2×40 min",feld:"verkürztes Großfeld",max:9,min:7,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",fuss:"Abhängig von der Mannschaftsstärke, ob mit 9 oder 11 Spielerinnen gespielt wird."},
-      {a:"B-Juniorinnen",k:"Landesklasse",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C"},
-      /* Ersetzt die beiden alten C-Junioren-Zeilen aus der Kurzübersicht 2024
-         (dort noch 2×35 min und wahlweise 11 gegen 11). Quelle: Handreichung
-         für die Schiedsrichter, Saison 2025/2026, Jugendausschuss SVFD -
-         "Es wird ab der Saison 2025/2026 ausschließlich 9gg9 in den
-         C-Junioren auf Ebene des SVFD gespielt!!!" */
-      {a:"C-Junioren",k:"alle Spielklassen (9 gegen 9)",zeit:"2×40 min in vier Vierteln à 20 min",feld:"65×45 bis 75×55 m",max:9,min:null,w:7,wieder:"möglich",gr:"ja",t:"< −6 °C",
-       extra:[["Tore","Kleinfeldtore"],["Strafraum","12 × 29 m"],["Ball","Größe 5 (430 g)"],["Abseits","ja, wie beim 11 gegen 11"],["Rückpass","Rückpassregel gilt"],["Strafstoß","9 m"],["Kader","höchstens 16 (9 Spieler und 7 Wechselspieler)"]],
-       fuss:"Pause 1 und 3 sind Trinkpausen von höchstens 2 Minuten – ohne Seitenwechsel und ohne Nachspielzeit am Ende dieser Viertel. Fortgesetzt wird am Ort der Unterbrechung. Pause 2 ist die klassische Halbzeitpause von 10 Minuten."},
-      {a:"C-Juniorinnen",k:"Landesklasse",zeit:"2×35 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −3 °C"},
-      /* Handreichung SVFD 2025/2026, wörtlich hervorgehoben:
-         "Da es immer wieder falsch gemacht wird, es gibt in den D-Junioren
-         KEINE Gelb-Rote Karte!" - deshalb steht das hier so deutlich. */
-      {a:"D-Junioren",k:"Spielbetrieb des SVFD (7 gegen 7)",zeit:"3×25 min",feld:"50×30 bis 60×40 m",max:7,min:5,w:7,wieder:"möglich",gr:"KEINE Gelb-Rote Karte",t:"< −6 °C",
-       extra:[["Spielform","1 Torhüter und 6 Feldspieler"],["Pausen","je höchstens 10 Minuten"],["Mittellinienregel","in der Mitte des Spielfeldes"]],
-       fuss:"Das DFBnet kann die Drittel nicht abbilden: alle Angaben – Tore, persönliche Strafen, Wechsel – mit der Spielminute eintragen, keinen Halbzeitstand, und die Nachspielzeit aller Drittel summiert am Ende eingeben."},
-      {a:"D-Junioren",k:"Landesklasse (Landesebene)",zeit:"3×25 min",feld:"halbes Großfeld",max:7,min:5,w:7,wieder:"möglich",gr:"5 min",t:"< −6 °C",
-       warnung:"Landesebene, also gilt der SFV. Dort weicht zweierlei ab: die Mittellinienregel liegt am gegenüberliegenden Strafraum statt in der Feldmitte, und es gibt sehr wohl eine Gelb-Rote Karte – nur ohne Sperre für das nächste Spiel. Siehe den Reiter „Landesebene Sachsen“."},
-      {a:"E-Junioren",k:"alle Spielklassen",zeit:"2×25 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen (gültig ab 01.07.2025) sehen für E-Junioren ein Rundensystem vor – bis zu 6 Runden à 10–12 min, ohne Verwarnungen. Vor dem Spiel klären, was in dieser Staffel gilt."},
-      {a:"F-Junioren",k:"alle Spielklassen",zeit:"2×20 min",feld:"verkleinertes Kleinfeld",max:6,min:4,w:6,wieder:"möglich",gr:"5 min",t:"< −3 °C",warnung:"Die SFV-Kleinfeldbestimmungen sehen für F-Junioren 3 gegen 3 oder 5 gegen 5 im Rundensystem vor, mit Minitoren und ohne Strafstoß."},
-      {a:"Altherren",k:"Stadtklassen bis Stadtliga",zeit:"2×45 min",feld:"Großfeld",max:11,min:7,w:7,wieder:"nicht möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Ü40",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Ü50",k:"Breitensport",zeit:"2×40 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-      {a:"Ü60",k:"Breitensport",zeit:"2×30 min",feld:"halbes Großfeld",max:7,min:6,w:7,wieder:"möglich",gr:"ja",t:"< −9 °C"},
-    ];
-
-    /* ---------- Stadtebene: Pokal ---------- */
-    const SVFD_POKAL = [
-      {a:"Herren",k:"Stadtpokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
-      {a:"Frauen",k:"Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
-      {a:"Frauen",k:"Sparkassenliga",zeit:"2×45 min",verl:"keine",elfer:"9 m, 3 Schützen"},
-      {a:"A-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×45 min",verl:"2×15 min",elfer:"11 m, 5 Schützen"},
-      {a:"B-Junioren",k:"Stadtpokal, Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen"},
-      {a:"B-Juniorinnen",k:"Landespokal",zeit:"2×40 min",verl:"2×10 min",elfer:"11 m, 5 Schützen",bes:"siehe Landesliga Großfeld"},
-      {a:"C-Junioren",k:"Stadtpokal",zeit:"2×40 min in vier Vierteln à 20 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
-      {a:"C-Juniorinnen",k:"Landespokal",zeit:"2×35 min",verl:"2×5 min",elfer:"9 m, 5 Schützen",bes:"verkürztes Großfeld, 9 Spielerinnen, mind. 7, 7 Wechsler"},
-      {a:"D-Junioren",k:"Stadtpokal",zeit:"3×25 min",verl:"keine Verlängerung, direkt 9-Meter-Entscheidungsschießen",elfer:"9 m, 5 Schützen"},
-      {a:"D-Juniorinnen",k:"Stadtpokal",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
-      {a:"E-Junioren",k:"Stadtpokal",zeit:"2×25 min",verl:"2×5 min",elfer:"9 m, 5 Schützen"},
-      {a:"Senioren",k:"Stadtpokal",zeit:"2×45 min",verl:"keine",elfer:"11 m, 5 Schützen"},
-      {a:"Ü40",k:"Breitensport",zeit:"2×40 min",verl:"keine",elfer:"9 m, 5 Schützen"},
-      {a:"Ü50",k:"Breitensport",zeit:"2×40 min",verl:"keine",elfer:"9 m, 5 Schützen"},
-      {a:"Ü60",k:"Breitensport",zeit:"2×30 min",verl:"keine",elfer:"9 m, 5 Schützen"},
-    ];
-
-    /* ---------- Landesebene, Junioren, Spieljahr 2026/27 ----------
-       Übernommen aus der Regelungsübersicht des SFV-Jugendausschusses,
-       Stand 01.07.2026. Spalten dort: Spielfeldmaß min/max, Strafraum,
-       Tore, Spielball, Spielerzahl in Startformation, Wechselspieler auf
-       Spielbericht, Rückwechsel, Wechselvorgänge, Spielzeit,
-       Verlängerung, Abseits, Strafstoß, Matchstrafe, Temperatur min/max.
-
-       Alle vier Altersklassen haben dieselben Wechselregeln (7 Spieler
-       auf dem Bericht, Rückwechsel erlaubt, unbegrenzte Wechselvorgänge);
-       das steht deshalb einmal je Zeile und nicht als eigene Spalte. */
-    /* Gilt laut der SFV-Regelungsübersicht für ALLE vier Altersklassen und
-       für Meisterschaft wie Landespokal gleichermaßen - deshalb hier einmal
-       statt zwölfmal in den Datenzeilen. Sobald eine Zeile davon abweicht,
-       muss daraus ein Feld je Zeile werden. */
-    const SFV_WECHSELSPIELER = "7 auf dem Spielbericht";
-    const SFV_RUECKWECHSEL = "möglich, unbegrenzt viele Wechselvorgänge";
-
-    const SFV_MEISTER = [
-      {a:"A-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"A-Junioren",k:"Sachsenklasse",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"B-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"B-Junioren",k:"Sachsenklasse",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"C-Junioren",k:"Sachsenliga",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"4×20 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
-      {a:"C-Junioren",k:"Sachsenklasse",feld:"65×45 bis 75×55 m",sr:"12 × 29 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Normalspielball Größe 5 (430 g)",spieler:"9 in der Startformation",zeit:"4×20 min",abseits:"ja",elfer:"9 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
-      {a:"D-Junioren",k:"Sachsenliga",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
-      {a:"D-Junioren",k:"Sachsenklasse",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
-    ];
-
-    const SFV_POKAL = [
-      {a:"A-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×45 min",verl:"2×15 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"B-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"2×40 min",verl:"2×10 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−9 °C bis +35 °C"},
-      {a:"C-Junioren",k:"Landespokal",feld:"90×45 bis 120×90 m",sr:"16,5 × 40 m",tore:"Großfeldtore",ball:"Normalspielball Größe 5 (430 g)",spieler:"11 in der Startformation",zeit:"4×20 min",verl:"2×5 min",abseits:"ja",elfer:"11 m",match:"ja",temp:"−6 °C bis +35 °C",fuss:"Seitenwechsel nur in der 2. Pause. Die 1. und die 3. Pause sind Trinkpausen von höchstens 2 Minuten."},
-      {a:"D-Junioren",k:"Landespokal",feld:"50×30 bis 60×40 m",sr:"10 × 25 m",tore:"Kleinfeldtore 5 × 2 m",ball:"Leichtspielball Größe 5 (350 g)",spieler:"7 in der Startformation",zeit:"3×25 min",verl:"keine Verlängerung, sofort Entscheidungsschießen",abseits:"nein",elfer:"9 m",match:"ja, aber ohne Sperre für das darauffolgende Spiel",temp:"−6 °C bis +32 °C"},
-    ];
-
-    /* Vier Bereiche statt vieler Einzelknöpfe. Die Zuordnung steht hier
-       ausdrücklich und wird nicht aus dem Namen geraten - sonst landet
-       "Senioren" irgendwann bei den Junioren, weil beides auf -en endet. */
-    const BEREICHE = [
-      { id: "aktive",      titel: "Herren & Frauen", klassen: ["Herren", "Frauen", "Senioren"] },
-      { id: "junioren",    titel: "Junioren",        klassen: ["A-Junioren", "B-Junioren", "C-Junioren", "D-Junioren", "E-Junioren", "F-Junioren"] },
-      { id: "juniorinnen", titel: "Juniorinnen",     klassen: ["B-Juniorinnen", "C-Juniorinnen", "D-Juniorinnen"] },
-      { id: "alt",         titel: "Altherren & Ü",   klassen: ["Altherren", "Ü40", "Ü50", "Ü60"] },
-    ];
-
+    const { konfiguration: REGELN } = await ladeWebsiteInhalt({
+      datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
+      bereich: "regeln", fallback: REGELN_STANDARD,
+    });
+    const QUELLEN = REGELN.quellen;
+    const SVFD_MEISTER = REGELN.svfdMeister;
+    const SVFD_POKAL = REGELN.svfdPokal;
+    const SFV_MEISTER = REGELN.sfvMeister;
+    const SFV_POKAL = REGELN.sfvPokal;
+    const SFV_WECHSELSPIELER = REGELN.sfvWechselspieler;
+    const SFV_RUECKWECHSEL = REGELN.sfvRueckwechsel;
+    const BEREICHE = REGELN.bereiche;
     let ebene = "svfd", art = "meister", bereich = "alle";
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>

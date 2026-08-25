@@ -78,52 +78,73 @@
 
     <section id="editor" hidden>
       <div class="admin-editor-kopf">
-        <div><p class="admin-kicker">Website-Redaktion · Pilot</p><h1>Spesen verwalten</h1><p id="editorVerein"></p></div>
+        <div><p class="admin-kicker">Website-Redaktion</p><h1>Inhalte verwalten</h1><p id="editorVerein"></p></div>
         <button class="knopf" type="button" data-abmelden>Abmelden</button>
       </div>
-      <div class="admin-meldung" data-admin-status role="status"></div>
-      <div class="admin-warnung"><b>Bewusst noch nicht im Pilot:</b> Regeln, Absagevorlagen und Unterlagen bleiben vorerst im Code. Erst der Spesen-Workflow wird praktisch getestet.</div>
+      <nav class="admin-bereich-nav" aria-label="Redaktionsbereiche">
+        <button type="button" data-bereich-knopf="spesen" aria-pressed="true"><span>€</span>Spesen</button>
+        <button type="button" data-bereich-knopf="regeln" aria-pressed="false"><span>§</span>Regeln</button>
+        <button type="button" data-bereich-knopf="vorlagen" aria-pressed="false"><span>✉</span>Absagen</button>
+        <button type="button" data-bereich-knopf="unterlagen" aria-pressed="false"><span>↗</span>Unterlagen</button>
+      </nav>
 
-      <section class="admin-panel">
-        <div class="admin-panel-kopf"><h2>Spielklassen und Sätze</h2><p>Änderungen werden erst mit „Veröffentlichen“ sichtbar.</p></div>
-        <div data-ligen></div>
-      </section>
+      <div data-admin-bereich="spesen">
+        <div class="admin-bereich-einstieg"><div><h2>Spesen</h2><p>Spielklassen, Entschädigungen und Fahrtkosten.</p></div><span class="admin-bereich-status">Öffentlich nach Bestätigung</span></div>
+        <div class="admin-meldung" data-bereich-status="spesen" role="status"></div>
 
-      <section class="admin-panel">
-        <div class="admin-panel-kopf"><h2>Neue Liga</h2><p>Eine bestehende Altersklasse wird über denselben Namen erweitert.</p></div>
-        <form class="admin-neue-liga" data-liga-form>
-          <label>Altersklasse<input name="altersklasse" required /></label>
-          <label>Kurzname<input name="kurz" required /></label>
-          <label>Offizieller Name<input name="voll" required /></label>
-          <label>Ebene<select name="verband"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option></select></label>
-          <label>Stufe<input name="stufe" type="number" min="1" value="1" required /></label>
-          <label>SR (€)<input name="sr" type="number" min="0" step="0.01" required /></label>
-          <label>SRA (€)<input name="sra" type="number" min="0" step="0.01" /></label>
-          <label class="admin-checkbox"><input name="ohneSra" type="checkbox" /> Keine Assistenten vorgesehen</label>
-          <button class="knopf" type="submit">Liga lokal ergänzen</button>
-        </form>
-      </section>
+        <section class="admin-panel">
+          <div class="admin-panel-kopf"><h2>Spielklassen und Sätze</h2><p>Altersklassen lassen sich einzeln aufklappen. So bleibt die Seite kompakt.</p></div>
+          <div class="admin-ligen-liste" data-ligen></div>
+        </section>
 
-      <section class="admin-panel">
-        <div class="admin-panel-kopf"><h2>Weitere Werte</h2></div>
-        <div class="admin-zahlenraster">
-          <label>Turnier-Grundpauschale (€)<input id="turnierGrund" type="number" min="0" step="0.01" /></label>
-          <label>Grundstunden<input id="turnierStunden" type="number" min="1" step="1" /></label>
-          <label>Je weitere Stunde (€)<input id="turnierWeiter" type="number" min="0" step="0.01" /></label>
-          <label>SVFD: Preis je Karte (€)<input id="stadtKarte" type="number" min="0" step="0.01" /></label>
-          <label>SVFD: Karten je Zone<input id="stadtKartenZone" type="number" min="0" step="1" /></label>
-          <label>SFV: Monatskarte (€)<input id="landMonatskarte" type="number" min="0" step="0.01" /></label>
-          <label>SFV: Auto je km (€)<input id="landAuto" type="number" min="0" step="0.01" /></label>
-          <label>SFV: Mitnahme je km (€)<input id="landMitnahme" type="number" min="0" step="0.01" /></label>
-          <label>SFV: Fahrrad je km (€)<input id="landRad" type="number" min="0" step="0.01" /></label>
-          <label>Ausfall-Anteil (0,5 = 50 %)<input id="ausfall" type="number" min="0" max="1" step="0.01" /></label>
+        <details class="admin-panel admin-aufklapper">
+          <summary><span><b>Neue Liga ergänzen</b><small>Bestehende Altersklasse erweitern oder eine neue anlegen</small></span></summary>
+          <form class="admin-neue-liga" data-liga-form>
+            <label>Altersklasse<input name="altersklasse" required /></label>
+            <label>Kurzname<input name="kurz" required /></label>
+            <label>Offizieller Name<input name="voll" required /></label>
+            <label>Ebene<select name="verband"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option></select></label>
+            <label>Stufe<input name="stufe" type="number" min="1" value="1" required /></label>
+            <label>SR (€)<input name="sr" type="number" min="0" step="0.01" required /></label>
+            <label>SRA (€)<input name="sra" type="number" min="0" step="0.01" /></label>
+            <label class="admin-checkbox"><input name="ohneSra" type="checkbox" /> Keine Assistenten vorgesehen</label>
+            <button class="knopf" type="submit">Liga lokal ergänzen</button>
+          </form>
+        </details>
+
+        <section class="admin-panel">
+          <div class="admin-panel-kopf"><h2>Weitere Werte</h2><p>Nach Regelwerk und Anwendungsfall getrennt.</p></div>
+          <div class="admin-werte-gruppen">
+            <fieldset><legend>Turniere</legend><div class="admin-zahlenraster">
+              <label>Grundpauschale (€)<input id="turnierGrund" type="number" min="0" step="0.01" /></label>
+              <label>Grundstunden<input id="turnierStunden" type="number" min="1" step="1" /></label>
+              <label>Weitere Stunde (€)<input id="turnierWeiter" type="number" min="0" step="0.01" /></label>
+            </div></fieldset>
+            <fieldset><legend>Stadtverband · Fahrt</legend><div class="admin-zahlenraster">
+              <label>Preis je Karte (€)<input id="stadtKarte" type="number" min="0" step="0.01" /></label>
+              <label>Karten je Zone<input id="stadtKartenZone" type="number" min="0" step="1" /></label>
+            </div></fieldset>
+            <fieldset><legend>Landesverband · Fahrt</legend><div class="admin-zahlenraster">
+              <label>Monatskarte (€)<input id="landMonatskarte" type="number" min="0" step="0.01" /></label>
+              <label>Auto je km (€)<input id="landAuto" type="number" min="0" step="0.01" /></label>
+              <label>Mitnahme je km (€)<input id="landMitnahme" type="number" min="0" step="0.01" /></label>
+              <label>Fahrrad je km (€)<input id="landRad" type="number" min="0" step="0.01" /></label>
+            </div></fieldset>
+            <fieldset><legend>Spielausfall</legend><div class="admin-zahlenraster">
+              <label>Anteil (0,5 = 50 %)<input id="ausfall" type="number" min="0" max="1" step="0.01" /></label>
+            </div></fieldset>
+          </div>
+        </section>
+
+        <div class="admin-aktionsleiste">
+          <button class="knopf" type="button" data-zuruecksetzen>Änderungen verwerfen</button>
+          <button class="knopf knopf-primaer" type="button" data-speichern>Spesen veröffentlichen</button>
         </div>
-      </section>
-
-      <div class="admin-aktionsleiste">
-        <button class="knopf" type="button" data-zuruecksetzen>Änderungen verwerfen</button>
-        <button class="knopf knopf-primaer" type="button" data-speichern>Im Rechner veröffentlichen</button>
       </div>
+
+      <div data-admin-bereich="regeln" hidden></div>
+      <div data-admin-bereich="vorlagen" hidden></div>
+      <div data-admin-bereich="unterlagen" hidden></div>
     </section>
   </main>
 

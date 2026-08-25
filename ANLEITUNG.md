@@ -158,15 +158,30 @@ Sitzung `aal2`. RLS prüft `auth.uid()`, Vereinszuordnung und `aal2` bei jedem
 Schreibzugriff; das bloße Anzeigen oder Manipulieren der Oberfläche genügt
 nicht.
 
-Die Migrationen v86 und v87 legen nur Tabellen, Rechte, RLS und einen Index
-an. Sie erzeugen absichtlich keinen Benutzer und enthalten weder E-Mail noch
+Die Migrationen v86 bis v89 legen nur Tabellen, Rechte, RLS und Indizes an.
+Sie erzeugen absichtlich keinen Benutzer und enthalten weder E-Mail noch
 Passwort. Benutzer und Zuordnung werden einmalig außerhalb des öffentlichen
-Repositorys eingerichtet.
+Repositorys eingerichtet. V88 ergänzt die drei Inhaltsbereiche und eine nur
+für zugeordnete AAL2-Redakteure lesbare Versionshistorie. V89 gibt der
+RLS-Prüfung den minimal nötigen Zugriff auf die eigene Redakteurszuordnung;
+deren RLS lässt weiterhin weder fremde Konten noch anonyme Zugriffe zu.
+
+Die Redaktion ist in vier getrennte Arbeitsbereiche gegliedert: Spesen,
+Regeln, Absagen und Unterlagen. Änderungen bleiben zunächst nur im geöffneten
+Editor und werden erst nach einer ausdrücklichen Bestätigung öffentlich. Die
+letzten fünf vorherigen Inhaltsstände können in den Editor geladen werden;
+auch eine Wiederherstellung wird erst durch erneutes Veröffentlichen sichtbar.
 
 Der öffentliche Spesenrechner lädt einen veröffentlichten Datenbankstand,
 falls vorhanden. Bei leerer oder nicht erreichbarer Datenbank verwendet er
-weiterhin `verein.config.js`. Regeln, Absagevorlagen und Unterlagen sind noch
-nicht Teil dieses Piloten.
+weiterhin `verein.config.js`. Regelübersicht, Absagevorlagen und Unterlagen
+verwenden entsprechend ihre kanonischen statischen Ausgangsstände unter
+`src/website/content-defaults.js`. Damit bleiben die öffentlichen Seiten auch
+bei einer leeren oder vorübergehend nicht erreichbaren Datenbank vollständig.
+
+Vor dem Veröffentlichen prüft der Browser Pflichtfelder und Weblinks. Das ist
+eine zusätzliche Bedienhilfe; die eigentliche Schreibberechtigung bleibt die
+RLS-Prüfung aus Vereinszuordnung und `aal2`.
 
 ## Noch offene technische Grundlage
 

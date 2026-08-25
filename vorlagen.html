@@ -54,7 +54,7 @@
     <section id="spiel" class="abschnitt">
       <div class="abschnitt-kopf"><h2>Spielabsage</h2></div>
 
-      <div class="hinweisbalken">
+      <div class="hinweisbalken" id="hinweis-spiel">
         <span class="sym-wort">Achtung</span>
         <span>
           Zwei Punkte, die am ehesten übersehen werden:
@@ -66,7 +66,7 @@
 
       <div class="vorlage">
         <div class="vorlage-kopf">
-          <span class="vorlage-titel">E-Mail an den Ansetzer</span>
+          <span class="vorlage-titel" id="titel-spiel">E-Mail an den Ansetzer</span>
           <button class="kopieren" type="button" data-ziel="text-spiel">Text kopieren</button>
         </div>
         <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
@@ -105,7 +105,7 @@ Viele Grüße</pre>
              <strong>Sperrtermine im DFBnet</strong> ein – bis zum 20. des Vormonats.
              Eigene Freundschaftsspiele, Turniere und Feiertage musst du dort selbst
              zusätzlich sperren.</p>
-          <p class="quelle">Anweisung des Stadtverbands Fußball Dresden e. V. an
+          <p class="quelle" id="quelle-spiel">Anweisung des Stadtverbands Fußball Dresden e. V. an
              Schiedsrichter/-innen, Beobachter und Paten, gültig ab 20.08.2026,
              Ergänzung SRO §8 Punkt 7.</p>
         </div>
@@ -120,7 +120,7 @@ Viele Grüße</pre>
 
       <div class="vorlage">
         <div class="vorlage-kopf">
-          <span class="vorlage-titel">E-Mail an den Obmann <span class="entwurf">Entwurf</span></span>
+          <span class="vorlage-titel" id="titel-lehrabend">E-Mail an den Obmann <span class="entwurf">Entwurf</span></span>
           <button class="kopieren" type="button" data-ziel="text-lehrabend">Text kopieren</button>
         </div>
         <pre class="vorlage-text" id="text-lehrabend">An: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
@@ -136,7 +136,7 @@ Viele Grüße
 [Vorname Nachname]</pre>
       </div>
 
-      <p class="abschnitt-hinweis" style="margin-top:12px">
+      <p class="abschnitt-hinweis" id="hinweis-lehrabend" style="margin-top:12px">
         Entwurf – Wortlaut noch nicht abgestimmt. Ob und bis wann eine Absage
         eingereicht werden muss, steht in der Einladung zum jeweiligen Abend.
       </p>
@@ -156,7 +156,25 @@ Viele Grüße
   </footer>
 
   <script type="module" src="seite.js"></script>
-  <script>
+  <script type="module">
+    import { DATENBANK, VEREIN } from "./verein.config.js";
+    import { VORLAGEN_STANDARD } from "./src/website/content-defaults.js";
+    import { ladeWebsiteInhalt } from "./src/website/content-config.js";
+
+    const { konfiguration: VORLAGEN } = await ladeWebsiteInhalt({
+      datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
+      bereich: "vorlagen", fallback: VORLAGEN_STANDARD,
+    });
+    const obmannMail = VEREIN.kontakt.email || "[E-Mail eures Obmanns]";
+    const fuelleMail = (wert) => String(wert || "").replaceAll("[E-Mail eures Obmanns]", obmannMail);
+    document.getElementById("titel-spiel").textContent = VORLAGEN.spiel.titel;
+    document.getElementById("text-spiel").textContent = fuelleMail(VORLAGEN.spiel.text);
+    document.getElementById("hinweis-spiel").lastElementChild.textContent = VORLAGEN.spiel.hinweis;
+    document.getElementById("quelle-spiel").textContent = VORLAGEN.spiel.quelle;
+    document.getElementById("titel-lehrabend").textContent = VORLAGEN.lehrabend.titel + (VORLAGEN.lehrabend.entwurf ? " · Entwurf" : "");
+    document.getElementById("text-lehrabend").textContent = fuelleMail(VORLAGEN.lehrabend.text);
+    document.getElementById("hinweis-lehrabend").textContent = VORLAGEN.lehrabend.hinweis;
+
     /* Kopierknopf. navigator.clipboard gibt es nur in sicheren Kontexten
        (https oder localhost) - deshalb ein Rückfallweg über ein
        unsichtbares Textfeld, sonst passiert auf manchen Geräten

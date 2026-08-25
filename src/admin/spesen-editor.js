@@ -22,7 +22,7 @@ function feld({ titel, wert, schritt = "0.01", onChange }) {
 
 export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutzer }) {
   let zustand = kopie(fallback);
-  const status = wurzel.querySelector("[data-admin-status]");
+  const status = wurzel.querySelector('[data-bereich-status="spesen"]');
   const ligenWurzel = wurzel.querySelector("[data-ligen]");
 
   const melde = (text, art = "info") => {
@@ -33,14 +33,22 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
   function rendereLigen() {
     ligenWurzel.replaceChildren();
     zustand.altersklassen.forEach((gruppe, gruppenIndex) => {
-      const abschnitt = document.createElement("section");
+      const abschnitt = document.createElement("details");
       abschnitt.className = "admin-liga-gruppe";
-      const titel = document.createElement("h3");
-      titel.textContent = gruppe.name;
-      abschnitt.appendChild(titel);
+      if (gruppenIndex === 0) abschnitt.open = true;
+      const titel = document.createElement("summary");
+      const titelText = document.createElement("span");
+      titelText.textContent = gruppe.name;
+      const anzahl = document.createElement("span");
+      anzahl.className = "admin-anzahl";
+      anzahl.textContent = `${gruppe.ligen.length} ${gruppe.ligen.length === 1 ? "Eintrag" : "Einträge"}`;
+      titel.append(titelText, anzahl);
+      const inhalt = document.createElement("div");
+      inhalt.className = "admin-liga-inhalt";
+      abschnitt.append(titel, inhalt);
 
       gruppe.ligen.forEach((liga, ligaIndex) => {
-        const zeile = document.createElement("div");
+        const zeile = document.createElement("article");
         zeile.className = "admin-liga-zeile";
         const name = document.createElement("div");
         name.className = "admin-liga-name";
@@ -61,19 +69,22 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
         const haken = document.createElement("input");
         haken.type = "checkbox";
         haken.checked = liga.sra === null;
+        const aktualisiereSraAnsicht = () => {
+          sra.hidden = haken.checked;
+          werte.classList.toggle("ohne-sra", haken.checked);
+        };
         haken.addEventListener("change", () => {
           liga.sra = haken.checked ? null : Number(sra.querySelector("input").value);
-          sra.hidden = haken.checked;
+          aktualisiereSraAnsicht();
         });
         const hakenText = document.createElement("span");
-        hakenText.textContent = "ohne SRA";
+        hakenText.textContent = "Keine Assistenten vorgesehen";
         keinSra.append(haken, hakenText);
-        sra.hidden = haken.checked;
 
         const loeschen = document.createElement("button");
         loeschen.type = "button";
         loeschen.className = "admin-icon-knopf";
-        loeschen.textContent = "Entfernen";
+        loeschen.innerHTML = '<span aria-hidden="true">×</span> Entfernen';
         loeschen.setAttribute("aria-label", `${liga.kurz} entfernen`);
         loeschen.addEventListener("click", () => {
           if (!window.confirm(`„${liga.kurz}“ wirklich aus dem Rechner entfernen?`)) return;
@@ -81,8 +92,15 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
           if (!gruppe.ligen.length) zustand.altersklassen.splice(gruppenIndex, 1);
           rendereLigen();
         });
-        zeile.append(name, sr, sra, keinSra, loeschen);
-        abschnitt.appendChild(zeile);
+        const werte = document.createElement("div");
+        werte.className = "admin-liga-werte";
+        werte.append(sr, sra);
+        aktualisiereSraAnsicht();
+        const aktionen = document.createElement("div");
+        aktionen.className = "admin-liga-aktionen";
+        aktionen.append(keinSra, loeschen);
+        zeile.append(name, werte, aktionen);
+        inhalt.appendChild(zeile);
       });
       ligenWurzel.appendChild(abschnitt);
     });
@@ -160,12 +178,21 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
     try {
       melde("Werte werden geprüft und veröffentlicht …");
       const sicher = normalisiereSpesenKonfiguration(zustand, fallback);
-      const ergebnis = await client.from("website_spesen_konfiguration").upsert({
-        seitenschluessel: verein.seitenschluessel,
+      const vorhanden = await client.from("website_spesen_konfiguration")
+        .select("seitenschluessel").eq("seitenschluessel", verein.seitenschluessel).maybeSingle();
+      if (vorhanden.error) throw vorhanden.error;
+      const neueWerte = {
         konfiguration: sicher,
         updated_at: new Date().toISOString(),
         updated_by: benutzer.id,
-      }, { onConflict: "seitenschluessel" });
+      };
+      const ergebnis = vorhanden.data
+        ? await client.from("website_spesen_konfiguration").update(neueWerte)
+          .eq("seitenschluessel", verein.seitenschluessel)
+        : await client.from("website_spesen_konfiguration").insert({
+          seitenschluessel: verein.seitenschluessel,
+          ...neueWerte,
+        });
       if (ergebnis.error) throw ergebnis.error;
       zustand = sicher;
       melde("Veröffentlicht. Der öffentliche Rechner lädt die neuen Werte beim nächsten Aufruf.", "erfolg");
@@ -185,4 +212,3 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
     zusammenfassung: () => `${zustand.altersklassen.length} Altersklassen, Turnier ab ${geld(zustand.turnier.grundpauschale)} €`,
   });
 }
-
