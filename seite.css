@@ -637,6 +637,39 @@ select:focus-visible {
 .admin-regel-zeile > summary span { color: var(--muted); font-size: .76rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .admin-regel-felder { padding: 14px; border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
 .admin-regel-zeile > .admin-zeilen-aktionen { padding: 0 14px 14px; }
+
+/* ---------- Regelübersicht-Editor: Gruppierung + Suche (29.08.2026) ----------
+   Max: "müssen wir das vielleicht auch noch ein bisschen besser sortieren,
+   damit man das schneller findet". Untergliedert die bis zu 22 Zeilen pro
+   Datensatz nach Altersklasse und ergänzt eine Suche darüber - siehe
+   regeln-editor.js: nachAltersklasse(), bindeGruppenSuche(). */
+.admin-inhalt-suche { padding: 0 12px 12px; }
+.admin-inhalt-suche input {
+  box-sizing: border-box; width: 100%; min-height: 42px;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 13px; font: inherit; font-size: .84rem; background: #fff;
+}
+.admin-inhalt-suche input:focus { border-color: var(--marke-hell); outline: none; }
+
+.admin-regel-untergruppe { padding: 0 12px; }
+.admin-regel-untergruppe + .admin-regel-untergruppe { margin-top: 6px; }
+.admin-regel-untertitel {
+  margin: 14px 2px 8px; font-family: var(--font-titel); font-size: .78rem;
+  color: var(--muted); text-transform: uppercase; letter-spacing: .05em;
+}
+.admin-regel-untergruppe:first-of-type .admin-regel-untertitel { margin-top: 4px; }
+.admin-regel-untergruppe > .admin-regel-zeile + .admin-regel-zeile { margin-top: 10px; }
+
+/* Wortmarke statt Icon, dieselbe Regel wie .sym-wort auf der Vereinsseite -
+   zeigt im zusammengeklappten Zustand, welche Zeile einen Warnhinweis
+   trägt, ohne dass man jede einzelne aufklappen muss. */
+.admin-warnhinweis-pille {
+  grid-column: 1 / -1;
+  justify-self: start;
+  font-size: .64rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgba(113, 63, 18, .12); color: #713f12;
+}
 .admin-versionen { margin: 18px 0; padding: 17px; border: 1px solid var(--border); border-radius: 12px; background: #fff; }
 .admin-versionen h3 { margin: 0; font-family: var(--font-titel); font-size: 1rem; }
 .admin-versionen > p { margin: 4px 0 12px; color: var(--muted); font-size: .78rem; }
@@ -1042,16 +1075,22 @@ body { overflow-x: hidden; }
 
 /* ---------- Hinweisbalken ---------- */
 
+/* Vom flaechig gelben Alarmkasten auf einen weissen Karten-Look mit
+   Farbakzent umgestellt (29.08.2026, Max: "Hinweisbalken sehen ein
+   bisschen blöd aus"). Die Seite arbeitet sonst durchgehend mit weissen
+   Karten plus Farbakzenten (.rk, .lz, Abzeichen) statt mit flaechigen
+   Farbflaechen - der alte Balken war der einzige Bruch damit. */
 .hinweisbalken {
-  display: flex; gap: 11px; align-items: flex-start;
-  background: var(--karte-gelb-hell);
-  border: 1px solid #fde68a;
+  display: flex; gap: 13px; align-items: flex-start;
+  background: #fffdf6;
+  border: 1px solid var(--border);
+  border-left: 4px solid #f2b90c;
   border-radius: var(--radius-sm);
-  padding: 13px 15px;
-  font-size: .84rem; line-height: 1.6; color: #713f12;
+  padding: 14px 17px;
+  font-size: .84rem; line-height: 1.6; color: var(--text);
   margin-bottom: 20px;
 }
-.hinweisbalken strong { color: #452c0a; }
+.hinweisbalken strong { color: var(--marke-dunkel); }
 .hinweisbalken .sym { flex: none; font-size: 1rem; line-height: 1.4; }
 
 /* ---------- Aufruf am Seitenende ---------- */
@@ -1107,6 +1146,46 @@ body { overflow-x: hidden; }
    Zelle wenig Reserve. .rk hat overflow:hidden, ein Überlauf würde also
    stillschweigend abgeschnitten statt sichtbar zu werden. */
 .wert .v { overflow-wrap: anywhere; }
+
+/* ---------- Regelübersicht: Tabelle ab Desktop-Breite (29.08.2026) ----------
+   Max: für den Desktop soll man mehrere Spielklassen einer Altersgruppe
+   nebeneinander vergleichen können (Regeln-Variante C) - das Kartenraster
+   dafür lässt sich schlecht überfliegen. Unter der bestehenden 760/761-px-
+   Schwelle (siehe Medienabfragen oben) bleiben die Karten die einzige
+   Ansicht: eine Tabelle mit teils zehn Spalten wäre auf dem Handy nur ein
+   Schiebebalken. */
+.rk-tabelle-wrap { display: none; }
+
+@media (min-width: 761px) {
+  .rk-tabelle-wrap {
+    display: block;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    margin-bottom: 12px;
+  }
+  .regelkarten { display: none; }
+
+  .rk-tabelle { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .rk-tabelle th, .rk-tabelle td { padding: 9px 13px; text-align: left; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+  .rk-tabelle td { overflow-wrap: anywhere; white-space: normal; }
+  .rk-tabelle thead th {
+    position: sticky; top: 0;
+    background: var(--marke-lighter);
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .rk-tabelle tbody tr:last-child td, .rk-tabelle tbody tr:last-child th { border-bottom: 0; }
+  .rk-tabelle tbody tr:hover { background: #fafafa; }
+  .rk-tabelle tbody th { font-weight: 700; font-family: var(--font-titel); white-space: normal; }
+  /* Erklärung per Tooltip statt Icon - dieselbe "Wörter statt Symbole"-Regel
+     wie bei .sym-wort. <abbr> bringt die gepunktete Unterstreichung schon
+     mit, nur die Farbe wird an die Palette angepasst. */
+  .rk-tabelle abbr { text-decoration-color: var(--muted); cursor: help; }
+  .rk-tabelle-hinweis { color: #713f12; font-size: .78rem; }
+  .rk-tabelle-hinweis .sym-wort { margin-right: 4px; }
+}
 
 /* ---------- Vorlagen zum Kopieren ---------- */
 
@@ -1198,24 +1277,29 @@ body { overflow-x: hidden; }
    Wer nur schnell die Spielzeit nachschlägt, scrollt nicht bis unten -
    und genau der soll die Warnung sehen. */
 
+/* Bewusst leiser als .hinweisbalken: taucht potenziell mehrfach pro
+   Seitenansicht auf (je eine Karte mit Widerspruch), eine flaechige
+   Gelbfaerbung an mehreren Stellen zugleich wirkte laut statt auffaellig
+   (29.08.2026). Duennerer Farbakzent statt Flaeche traegt dieselbe
+   Bedeutung, ohne die Seite zu uebertoenen. */
 .rk-konflikt {
   margin: 0 12px 12px;
-  padding: 10px 12px;
-  background: var(--karte-gelb-hell);
-  border: 1px solid #fde68a;
-  border-radius: 10px;
+  padding: 9px 12px 9px 13px;
+  background: #fffdf6;
+  border-left: 3px solid #f2b90c;
+  border-radius: 6px;
   font-size: .78rem;
   line-height: 1.55;
-  color: #713f12;
+  color: var(--marke-hell);
 }
-.rk-konflikt strong { color: #452c0a; }
+.rk-konflikt strong { color: var(--marke-dunkel); }
 
 /* Ruhige Variante des Hinweisbalkens: gleiche Form, aber ohne die
    Alarmfarbe. Für Angaben, die stimmen und nur eingeordnet werden. */
 .hinweisbalken.ruhig {
-  background: var(--blau-hell);
-  border-color: #bfdbfe;
-  color: #1e3a5f;
+  background: #f7fafd;
+  border-left-color: var(--blau);
+  color: var(--text);
 }
 .hinweisbalken.ruhig strong { color: #12263f; }
 .hinweisbalken.ruhig a { color: #1e3a5f; }
@@ -1230,6 +1314,7 @@ body { overflow-x: hidden; }
    Kontrast 7,4:1 auf dem hellen Grund, also deutlich über WCAG AA. */
 
 .abz-land { background: #ede9fe; color: #5b21b6; }
+.abz-dfb { background: var(--red-hell); color: #991b1b; }
 .lz-symbol.land { background: #ede9fe; }
 
 /* Gesamtsumme, in der etwas fehlt oder ungeprüft ist. Grün signalisiert
@@ -1328,6 +1413,7 @@ body { overflow-x: hidden; }
 .lz-marke.hier   { background: var(--green); }
 .lz-marke.extern { background: var(--blau); }
 .lz-marke.land   { background: #7c3aed; }
+.lz-marke.dfb    { background: #b91c1c; }
 
 /* ---------- Wortmarke statt Warn-Emoji ----------
    Max, 21.08.2026: "nicht so KI-mäßig mit so Icons und so, sondern mit

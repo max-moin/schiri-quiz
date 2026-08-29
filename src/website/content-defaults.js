@@ -713,6 +713,12 @@ export const UNTERLAGEN_STANDARD = {
       "klasse": "abz-land",
       "symbol": "land",
       "extern": true
+    },
+    "dfb": {
+      "text": "DFB",
+      "klasse": "abz-dfb",
+      "symbol": "dfb",
+      "extern": true
     }
   },
   "gruppen": [
@@ -935,6 +941,15 @@ export const UNTERLAGEN_STANDARD = {
       "sub": "Spielfreie Wochenenden, Pokalrunden und Staffeltermine.",
       "href": "https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/04202026_rtp_junioren.pdf",
       "q": "sfv"
+    },
+    {
+      "id": "dokument-23",
+      "aktiv": true,
+      "g": "lernen",
+      "titel": "DFB-Regelheft 2026/27",
+      "sub": "Die vollständigen Fußball-Regeln, herausgegeben vom DFB – die Quelle hinter unserer Kurzübersicht.",
+      "href": "https://assets.dfb.de/uploads/000/336/376/original_REGELHEFT_SCHIRIS_2026_27_GESAMT_web.pdf?1784206737",
+      "q": "dfb"
     }
   ]
 };

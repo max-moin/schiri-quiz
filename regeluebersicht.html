@@ -144,6 +144,7 @@
       <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
       <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
     </div>
   </footer>
@@ -166,6 +167,22 @@
     const SFV_WECHSELSPIELER = REGELN.sfvWechselspieler;
     const SFV_RUECKWECHSEL = REGELN.sfvRueckwechsel;
     const BEREICHE = REGELN.bereiche;
+
+    /* Erklärungen für Fachbegriffe in den Tabellen-Spaltenköpfen (Desktop
+       ab 761px, siehe Regeln-Variante C). Nur Begriffe, die wirklich
+       Vorwissen brauchen - "Tore" oder "Spielball" erklären sich selbst,
+       "Wiedereinwechslung" oder "Matchstrafe" nicht unbedingt. */
+    const ERKLAERUNGEN = {
+      "Wechsler": "Wie viele Spielerwechsel während des Spiels erlaubt sind.",
+      "Wiedereinwechslung": "Ob ein bereits ausgewechselter Spieler später erneut eingewechselt werden darf.",
+      "Gelb/Rot": "Was bei einer zweiten Gelben oder einer Roten Karte passiert – Zeitstrafe oder Feldverweis.",
+      "Abbruch ab": "Ab welcher Temperatur das Spiel wegen Hitze abgebrochen bzw. nicht angesetzt wird.",
+      "Wechselspieler": "Wie viele Spieler zusätzlich zur Startformation im Kader stehen dürfen.",
+      "Rückwechsel": "Ob ein ausgewechselter Spieler auf derselben Position zurückwechseln darf.",
+      "Matchstrafe (Gelb-Rot)": "Folge einer Gelb-Roten Karte für den Rest des Spiels.",
+      "Strafstoß": "Regelung zum Elfmeter bzw. Neuner-/Siebenmeter je nach Altersklasse.",
+      "Strafstoßschießen": "Wie die Entscheidung fällt, wenn nach Verlängerung kein Sieger feststeht.",
+    };
     let ebene = "svfd", art = "meister", bereich = "alle";
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
@@ -219,6 +236,51 @@
         ["Verlängerung", r.verl],
         ["Strafstoßschießen", r.elfer],
       ];
+    }
+
+    /* ---------- Regelübersicht: Tabelle ab Desktop-Breite (29.08.2026) ----------
+       Max wollte für Desktop eine echte Tabelle statt der Kartenraster, um
+       mehrere Spielklassen einer Altersgruppe nebeneinander vergleichen zu
+       können (Regeln-Variante C). Jede Zeile bringt aber ihre eigene
+       Werteliste mit (siehe werteFuer oben) - die Spalten müssen also pro
+       Altersklasse-Gruppe aus der Vereinigung aller vorkommenden Labels
+       gebildet werden, nicht aus einer festen Liste. */
+    function tabelleFuerGruppe(zeilen) {
+      const spalten = [];
+      zeilen.forEach((r) => werteFuer(r).forEach(([label]) => {
+        if (!spalten.includes(label)) spalten.push(label);
+      }));
+      /* Warnhinweis und Fußnote bekommen eine eigene, immer letzte Spalte -
+         nur wenn in dieser Gruppe überhaupt eine Zeile etwas zu sagen hat.
+         Sonst stünde eine leere "Hinweis"-Spalte in jeder Tabelle. */
+      const hatHinweis = zeilen.some((r) => r.warnung || r.fuss || r.bes);
+
+      const kopf = [
+        '<th scope="col">Spielklasse</th>',
+        ...spalten.map((label) => {
+          const erklaerung = ERKLAERUNGEN[label];
+          return erklaerung
+            ? `<th scope="col"><abbr title="${sicher(erklaerung)}">${sicher(label)}</abbr></th>`
+            : `<th scope="col">${sicher(label)}</th>`;
+        }),
+        ...(hatHinweis ? ['<th scope="col">Hinweis</th>'] : []),
+      ].join("");
+
+      const rumpf = zeilen.map((r) => {
+        const werte = new Map(werteFuer(r));
+        const zellen = spalten.map((label) => {
+          const wert = werte.get(label);
+          return `<td>${wert == null || wert === "" ? "–" : sicher(wert)}</td>`;
+        }).join("");
+        const hinweisZelle = hatHinweis
+          ? `<td class="rk-tabelle-hinweis">${
+              r.warnung ? `<span class="sym-wort">Achtung</span> ${sicher(r.warnung)}` : sicher(r.fuss || r.bes || "–")
+            }</td>`
+          : "";
+        return `<tr><th scope="row">${sicher(r.k)}</th>${zellen}${hinweisZelle}</tr>`;
+      }).join("");
+
+      return `<div class="rk-tabelle-wrap"><table class="rk-tabelle"><thead><tr>${kopf}</tr></thead><tbody>${rumpf}</tbody></table></div>`;
     }
 
     function baueBereichFilter() {
@@ -297,7 +359,9 @@
       treffer.forEach((r) => { if (!reihenfolge.includes(r.a)) reihenfolge.push(r.a); });
 
       $("regelBereich").innerHTML = reihenfolge.map((alter) => {
-        const karten = treffer.filter((r) => r.a === alter).map((r) => {
+        const zeilenGruppe = treffer.filter((r) => r.a === alter);
+        const tabelle = tabelleFuerGruppe(zeilenGruppe);
+        const karten = zeilenGruppe.map((r) => {
           const felder = werteFuer(r).map(([label, wert]) =>
             `<div class="wert"><div class="l">${sicher(label)}</div><div class="v">${sicher(wert)}</div></div>`
           ).join("");
@@ -320,6 +384,7 @@
 
         return `<section class="regelgruppe">
             <h2 class="regelgruppe-titel">${sicher(alter)}</h2>
+            ${tabelle}
             <div class="regelkarten">${karten}</div>
           </section>`;
       }).join("");

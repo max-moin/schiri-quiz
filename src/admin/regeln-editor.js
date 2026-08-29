@@ -61,8 +61,26 @@ export function erstelleRegelnEditor({ wurzel, client, verein, benutzer }) {
     const summary = document.createElement("summary");
     const titel = document.createElement("strong");
     const meta = document.createElement("span");
-    const aktualisiereKopf = () => { titel.textContent = zeile.a || "Neue Altersklasse"; meta.textContent = zeile.k || "Spielklasse fehlt"; };
-    summary.append(titel, meta);
+    /* Wortmarke statt Icon (gleiche Regel wie auf der Vereinsseite selbst,
+       21.08.2026) - zeigt beim Zusammengeklappt-Überfliegen, welche Zeile
+       einen Warnhinweis trägt, ohne jede einzelne aufklappen zu müssen.
+       Max, 29.08.2026: "damit man das schneller findet". */
+    const pille = document.createElement("span");
+    pille.className = "admin-warnhinweis-pille";
+    pille.textContent = "Hinweis hinterlegt";
+    const aktualisiereKopf = () => {
+      titel.textContent = zeile.a || "Neue Altersklasse";
+      meta.textContent = zeile.k || "Spielklasse fehlt";
+      pille.hidden = !zeile.warnung;
+    };
+    /* Durchsuchbarer Text pro Zeile, auf dem aktuellen Stand gehalten -
+       sonst würde die Gruppensuche nach einer Bearbeitung mit veralteten
+       Werten vergleichen. */
+    const aktualisiereSuchtext = () => {
+      const werte = Object.entries(zeile).filter(([key]) => key !== "extra").map(([, wert]) => wert ?? "");
+      details.dataset.suchtext = [...werte, extraAlsText(zeile.extra)].join(" ").toLowerCase();
+    };
+    summary.append(titel, meta, pille);
     const felder = document.createElement("div");
     felder.className = "admin-regel-felder";
     Object.keys(zeile).filter((key) => key !== "extra").forEach((key) => {
@@ -75,6 +93,7 @@ export function erstelleRegelnEditor({ wurzel, client, verein, benutzer }) {
       input.addEventListener("input", () => {
         zeile[key] = ZAHLFELDER.has(key) ? (input.value === "" ? null : Number(input.value)) : input.value;
         aktualisiereKopf();
+        aktualisiereSuchtext();
       });
       label.appendChild(input);
       if (["fuss", "warnung"].includes(key)) label.classList.add("admin-breit");
@@ -86,7 +105,7 @@ export function erstelleRegelnEditor({ wurzel, client, verein, benutzer }) {
       label.textContent = "Zusatzangaben – eine Zeile je „Name: Wert“";
       const input = document.createElement("textarea");
       input.rows = 5; input.value = extraAlsText(zeile.extra);
-      input.addEventListener("input", () => { zeile.extra = textAlsExtra(input.value); });
+      input.addEventListener("input", () => { zeile.extra = textAlsExtra(input.value); aktualisiereSuchtext(); });
       label.appendChild(input); felder.appendChild(label);
     }
     const aktionen = document.createElement("div");
@@ -98,8 +117,45 @@ export function erstelleRegelnEditor({ wurzel, client, verein, benutzer }) {
     const entfernen = document.createElement("button"); entfernen.type = "button"; entfernen.className = "admin-icon-knopf"; entfernen.innerHTML = '<span aria-hidden="true">×</span> Entfernen';
     entfernen.addEventListener("click", () => { if (window.confirm(`„${zeile.a} · ${zeile.k}“ entfernen?`)) { liste.splice(index, 1); rendern(); } });
     aktionen.appendChild(entfernen);
-    details.append(summary, felder, aktionen); aktualisiereKopf();
+    details.append(summary, felder, aktionen); aktualisiereKopf(); aktualisiereSuchtext();
     return details;
+  }
+
+  /* ---------- Gruppierung nach Altersklasse + Suche (29.08.2026) ----------
+     Max: "müssen wir das vielleicht auch noch ein bisschen besser
+     sortieren, damit man das schneller findet". Vorher lag jede
+     Regelzeile flach hintereinander - bei 22 Zeilen in einer einzigen
+     Gruppe (Stadtverband · Meisterschaft) musste man sich durch alle
+     durchklicken. Gruppiert nach Altersklasse in der Reihenfolge, in der
+     sie in der Liste vorkommen - dieselbe Reihenfolge, die verschiebe()
+     ohnehin schon benutzt, es wird also nichts umsortiert, nur anders
+     dargestellt. */
+  function nachAltersklasse(liste) {
+    const eintraege = liste.map((zeile, index) => ({ zeile, index }));
+    const reihenfolge = [];
+    eintraege.forEach(({ zeile }) => {
+      const alter = zeile.a || "Ohne Altersklasse";
+      if (!reihenfolge.includes(alter)) reihenfolge.push(alter);
+    });
+    return reihenfolge.map((alter) => ({
+      alter,
+      eintraege: eintraege.filter(({ zeile }) => (zeile.a || "Ohne Altersklasse") === alter),
+    }));
+  }
+
+  function bindeGruppenSuche(inhalt, eingabe) {
+    eingabe.addEventListener("input", () => {
+      const suche = eingabe.value.trim().toLowerCase();
+      inhalt.querySelectorAll("[data-suchtext]").forEach((karte) => {
+        karte.hidden = suche.length > 0 && !karte.dataset.suchtext.includes(suche);
+      });
+      /* Eine Altersklasse ganz ausblenden, wenn keine ihrer Zeilen mehr zur
+         Suche passt - sonst bliebe eine leere Überschrift stehen. */
+      inhalt.querySelectorAll("[data-untergruppe]").forEach((untergruppe) => {
+        const sichtbar = untergruppe.querySelectorAll("[data-suchtext]:not([hidden])").length;
+        untergruppe.hidden = sichtbar === 0;
+      });
+    });
   }
 
   function quellenPanel() {
@@ -131,7 +187,26 @@ export function erstelleRegelnEditor({ wurzel, client, verein, benutzer }) {
       const details = document.createElement("details"); details.className = "admin-panel admin-inhalt-gruppe"; if (gruppenIndex === 0) details.open = true;
       details.innerHTML = `<summary><span><b>${titel}</b><small>${liste.length} Regelzeilen</small></span></summary><div class="admin-inhalt-liste"></div>`;
       const inhalt = details.querySelector(".admin-inhalt-liste");
-      liste.forEach((zeile, index) => inhalt.appendChild(regelKarte(zeile, liste, index)));
+
+      /* Suchfeld nur, wenn sich das lohnt - bei drei, vier Zeilen in
+         "Stadtverband · Pokal" bräuchte niemand eins. */
+      if (liste.length > 5) {
+        const suchzeile = document.createElement("div");
+        suchzeile.className = "admin-inhalt-suche";
+        suchzeile.innerHTML = `<input type="search" placeholder="Regelzeilen durchsuchen, z. B. „D-Junioren" oder „Kleinfeld" …" aria-label="${titel}: Regelzeilen durchsuchen" />`;
+        bindeGruppenSuche(inhalt, suchzeile.querySelector("input"));
+        inhalt.appendChild(suchzeile);
+      }
+
+      nachAltersklasse(liste).forEach(({ alter, eintraege }) => {
+        const untergruppe = document.createElement("div");
+        untergruppe.className = "admin-regel-untergruppe";
+        untergruppe.dataset.untergruppe = "";
+        untergruppe.innerHTML = `<h4 class="admin-regel-untertitel">${alter}</h4>`;
+        eintraege.forEach(({ zeile, index }) => untergruppe.appendChild(regelKarte(zeile, liste, index)));
+        inhalt.appendChild(untergruppe);
+      });
+
       editor.appendChild(details);
     });
     const gemeinsam = document.createElement("section"); gemeinsam.className = "admin-panel";

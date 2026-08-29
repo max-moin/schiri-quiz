@@ -135,7 +135,7 @@ function normalisiereUnterlagen(roh, fallback) {
       titel: text(dokument?.titel, "Dokument", 220),
       sub: text(dokument?.sub, "", 1200),
       href: link(dokument?.href, ""),
-      q: ["hier", "svfd", "sfv"].includes(dokument?.q) ? dokument.q : "svfd",
+      q: ["hier", "svfd", "sfv", "dfb"].includes(dokument?.q) ? dokument.q : "svfd",
       aktiv: dokument?.aktiv !== false,
     }))
     .filter((dokument) => dokument.id && dokument.g && dokument.titel && dokument.href);

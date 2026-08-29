@@ -27,7 +27,7 @@ export function erstelleUnterlagenEditor({ wurzel, client, verein, benutzer }) {
       <div class="admin-dokument-felder">
         <label>Titel<input data-feld="titel" /></label>
         <label>Anlass<select data-feld="g"></select></label>
-        <label>Herkunft<select data-feld="q"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option><option value="hier">Bei uns</option></select></label>
+        <label>Herkunft<select data-feld="q"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option><option value="hier">Bei uns</option><option value="dfb">DFB</option></select></label>
         <label class="admin-breit">Kurzbeschreibung<textarea data-feld="sub" rows="3"></textarea></label>
         <label class="admin-breit">Link<input data-feld="href" type="url" /></label>
       </div>
@@ -87,7 +87,7 @@ export function erstelleUnterlagenEditor({ wurzel, client, verein, benutzer }) {
       <form class="admin-neue-liga" data-neues-dokument>
         <label>Titel<input name="titel" required /></label>
         <label>Anlass<select name="g"></select></label>
-        <label>Herkunft<select name="q"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option><option value="hier">Bei uns</option></select></label>
+        <label>Herkunft<select name="q"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option><option value="hier">Bei uns</option><option value="dfb">DFB</option></select></label>
         <label class="admin-breit">Kurzbeschreibung<textarea name="sub" rows="3" required></textarea></label>
         <label class="admin-breit">Link<input name="href" type="url" required /></label>
         <button class="knopf" type="submit">Link lokal ergänzen</button>
