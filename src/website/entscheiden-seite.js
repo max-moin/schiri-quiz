@@ -246,6 +246,10 @@ function zeichneErgebnis(e) {
 
   bereich.innerHTML = `
     <div class="ent-ergebnis ${sicher(e.bewertung)}">
+      ${szene.bild_base64 ? `
+        <img class="ent-ergebnis-bild"
+             src="data:${sicher(szene.bild_mime)};base64,${sicher(szene.bild_base64)}"
+             alt="${sicher(szene.beschreibung)}" />` : ""}
       <div class="ent-ergebnis-kopf">
         <h2>${ueberschrift}</h2>
         ${Number(e.serie) > 0

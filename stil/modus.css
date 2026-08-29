@@ -145,6 +145,16 @@
   color: var(--muted);
 }
 
+/* Ohne diese Regel greift der Browser-Standard: blau und unterstrichen.
+   Auf keiner anderen Vereinsseite sieht ein Link so aus. */
+.modus-nachsatz a {
+  color: var(--marke);
+  font-weight: 600;
+  text-decoration: none;
+  border-bottom: 1px solid var(--border);
+}
+.modus-nachsatz a:hover { border-bottom-color: var(--marke); }
+
 /* Ab Tablet nebeneinander. Auf dem Handy bleibt es eine Spalte - Max:
    "Das ist handy." */
 @media (min-width: 720px) {

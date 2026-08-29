@@ -227,6 +227,19 @@
 .ent-ergebnis.teilweise { border-left-color: var(--karte-gelb); }
 .ent-ergebnis.falsch    { border-left-color: var(--red); }
 
+/* Die Szene bleibt im Ergebnis sichtbar, klein. Wer gerade falsch
+   entschieden hat, liest die Erklaerung - und soll dabei noch sehen,
+   worum es ging. Ohne das Bild ist die Erklaerung ein Text ueber etwas,
+   das man nicht mehr vor sich hat. */
+.ent-ergebnis-bild {
+  display: block;
+  width: 100%;
+  max-height: 130px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+}
+
 .ent-ergebnis-kopf {
   display: flex;
   align-items: center;
