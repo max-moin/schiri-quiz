@@ -185,6 +185,13 @@
     </div>
   </footer>
 
+  <!-- Anmeldung fuer die ganze Vereinsseite (29.08.2026). Bewusst als
+       klassische Skripte VOR seite.js: Module werden verzoegert
+       ausgefuehrt, klassische Skripte nicht - so stehen die globalen
+       Bausteine sicher bereit, wenn seite.js sie verdrahtet. -->
+  <script src="src/core/anmeldung.js"></script>
+  <script src="src/ui/masked-input.js"></script>
+  <script src="src/ui/login-dialog.js"></script>
   <script type="module" src="seite.js"></script>
 
   <script type="module">

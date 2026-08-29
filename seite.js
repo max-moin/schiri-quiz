@@ -18,7 +18,7 @@
 //  leeren Fläche.
 // ============================================================
 
-import { VEREIN, BILDER } from "./verein.config.js";
+import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -140,5 +140,136 @@ if (navKnopf && navBereich) {
 
   navBereich.addEventListener("click", (e) => {
     if (e.target.closest("a")) schliessen(false);
+  });
+}
+
+// ============================================================
+//  Anmeldung fuer die ganze Vereinsseite (29.08.2026)
+// ============================================================
+//  Max' Vorgabe an diesem Tag, sinngemaess: der Login soll nicht mehr nur
+//  auf der Quizseite liegen, sondern fuer die ganze Seite gelten - "aber
+//  nicht so, dass, wenn du direkt die Seite besuchst, du dich dann
+//  anmelden musst, sondern so, dass du rechts oben einen Login-Button
+//  siehst". Und beim Quiz: "wenn du dich vorher schon angemeldet hast,
+//  wirst du gleich weitergeleitet ... wenn du dich noch nicht eingeloggt
+//  hast, kommt da dann nochmal das Login-Fenster".
+//
+//  Der Knopf wird hier eingesetzt statt in jede Seite geschrieben - aus
+//  demselben Grund wie beim Menue und beim Vereinsnamen: sonst muesste man
+//  ihn in sechs Dateien nachziehen. Anders als beim Fusszeilen-Link gibt es
+//  hier bewusst KEINEN Vorgabewert im HTML: ein Anmeldeknopf, der ohne
+//  JavaScript sichtbar waere, aber nichts tun kann, waere schlechter als
+//  gar keiner.
+// ============================================================
+
+const kopfInnen = document.querySelector(".seiten-kopf .kopf-innen");
+
+if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
+  const anmeldung = globalThis.SchiriAnmeldung.erstelleAnmeldung({
+    adresse: DATENBANK.adresse,
+    oeffentlicherSchluessel: DATENBANK.oeffentlicherSchluessel,
+  });
+
+  const loginDialog = globalThis.SchiriLoginDialog.erstelleLoginDialog({
+    anmeldung,
+    maskierung: globalThis.SchiriQuizMaskedInputs,
+  });
+
+  // Fuer andere Bausteine derselben Seite bereitgestellt - als naechstes
+  // fuer die Termin-Anmeldung, die wissen muss, WER sich eintraegt, und
+  // dafuer dasselbe Fenster oeffnen soll statt ein zweites zu bauen:
+  //
+  //   const { anmeldung, loginDialog } = globalThis.SchiriSeitenAnmeldung;
+  //   const e = await loginDialog.oeffne({ grund: "..." });
+  //   if (e.status === "angemeldet") { ... }
+  //
+  // oeffne() gibt bei bereits angemeldeten Personen sofort zurueck, ohne
+  // das Fenster zu zeigen. Aufrufer muessen das also nicht selbst pruefen.
+  globalThis.SchiriSeitenAnmeldung = Object.freeze({ anmeldung, loginDialog });
+
+  // ---------- Knopf und Menue in den Kopf setzen ----------
+
+  const bereich = document.createElement("div");
+  bereich.className = "konto-bereich";
+  bereich.innerHTML = `
+    <button class="konto-knopf" type="button" data-konto-knopf aria-expanded="false" aria-haspopup="menu"></button>
+    <div class="konto-menue" data-konto-menue role="menu" hidden>
+      <div class="konto-menue-kopf"><strong data-konto-name></strong><span>Angemeldet in diesem Tab</span></div>
+      <a href="quiz.html" role="menuitem">Zum Quiz</a>
+      <button type="button" class="konto-abmelden" data-abmelden role="menuitem">Abmelden</button>
+    </div>`;
+  // Hinter die Navigation: auf breiten Bildschirmen sitzt er damit ganz
+  // rechts, auf schmalen schiebt ihn die CSS-Regel vor den Menueknopf.
+  kopfInnen.appendChild(bereich);
+
+  const kontoKnopf = bereich.querySelector("[data-konto-knopf]");
+  const kontoMenue = bereich.querySelector("[data-konto-menue]");
+  const kontoName = bereich.querySelector("[data-konto-name]");
+
+  function schliesseKontoMenue() {
+    kontoMenue.hidden = true;
+    kontoKnopf.setAttribute("aria-expanded", "false");
+  }
+
+  // Nur der Vorname im Knopf: "Maximilian Mustermann" sprengt den Kopf auf
+  // dem Handy, der volle Name steht im aufgeklappten Menue.
+  const vorname = (name) => String(name || "").trim().split(/\s+/)[0] || "Mein Konto";
+
+  anmeldung.abonniere((stand) => {
+    if (stand) {
+      kontoKnopf.innerHTML = '<span class="konto-punkt" aria-hidden="true"></span>';
+      kontoKnopf.append(vorname(stand.name));
+      kontoKnopf.setAttribute("aria-label", `Angemeldet als ${stand.name || "Mitglied"} – Kontomenü öffnen`);
+      kontoName.textContent = stand.name || "Angemeldet";
+    } else {
+      kontoKnopf.textContent = "Anmelden";
+      kontoKnopf.removeAttribute("aria-label");
+      schliesseKontoMenue();
+    }
+  });
+
+  kontoKnopf.addEventListener("click", async () => {
+    if (anmeldung.istAngemeldet()) {
+      const offen = kontoMenue.hidden;
+      kontoMenue.hidden = !offen;
+      kontoKnopf.setAttribute("aria-expanded", String(offen));
+      return;
+    }
+    await loginDialog.oeffne({
+      grund: "Melde dich mit deiner Vereinskennung und deiner PIN an.",
+      gastErlaubt: false,
+    });
+  });
+
+  bereich.querySelector("[data-abmelden]").addEventListener("click", () => {
+    anmeldung.abmelden();
+    schliesseKontoMenue();
+  });
+
+  document.addEventListener("click", (e) => {
+    if (kontoMenue.hidden || bereich.contains(e.target)) return;
+    schliesseKontoMenue();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") schliesseKontoMenue();
+  });
+
+  // ---------- "Zum Quiz" prueft zuerst die Anmeldung ----------
+  //
+  // Nur Links, die WIRKLICH ins Quiz fuehren sollen - "quiz.html#gast"
+  // bleibt unangetastet. Diese Verweise sind auf der Startseite die
+  // ausdrueckliche Einladung zum Ausprobieren ohne Anmeldung; ein
+  // Anmeldefenster davor waere genau das Gegenteil davon.
+  document.querySelectorAll('a[href="quiz.html"]').forEach((link) => {
+    link.addEventListener("click", async (e) => {
+      if (anmeldung.istAngemeldet()) return; // direkt durch, wie versprochen
+      e.preventDefault();
+      const ergebnis = await loginDialog.oeffne({
+        grund: "Für dein persönliches Quiz brauchst du deine Anmeldung.",
+        gastErlaubt: true,
+      });
+      if (ergebnis.status === "angemeldet") location.href = "quiz.html";
+      else if (ergebnis.status === "gast") location.href = "quiz.html#gast";
+    });
   });
 }

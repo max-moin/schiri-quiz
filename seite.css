@@ -1491,3 +1491,201 @@ body { overflow-x: hidden; }
 .segment-breit button { flex: 1 1 auto; padding: 9px 14px; }
 .q-eingabe-halter { display: inline-flex; align-items: center; gap: 3px; flex: none; }
 .q-euro { font-weight: 700; font-size: .92rem; }
+
+/* ============================================================
+   Anmeldung auf der ganzen Vereinsseite (29.08.2026)
+   ============================================================
+   Max: "dass der Login ausgelagert wird, nicht mehr nur auf der
+   Quizseite, sondern fuer die generelle Seite" - mit einem Knopf oben
+   im Kopf und einem Fenster, das jede Seite aufrufen kann.
+   Verhalten und Markup: src/core/anmeldung.js, src/ui/login-dialog.js. */
+
+/* ---------- Kontoknopf im Seitenkopf ---------- */
+
+.konto-bereich { position: relative; flex: none; }
+
+.konto-knopf {
+  display: inline-flex; align-items: center; gap: 7px;
+  min-height: 44px; padding: 8px 15px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--marke-hell);
+  font: inherit; font-size: .85rem; font-weight: 600;
+  cursor: pointer; white-space: nowrap;
+}
+.konto-knopf:hover { background: var(--marke-lighter); border-color: var(--marke-hell); }
+
+/* Angemeldet: derselbe Knopf, nur mit gruenem Punkt davor. Bewusst kein
+   Symbol und kein Avatarbild - die Seite arbeitet mit Woertern. */
+.konto-knopf .konto-punkt {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--green); flex: none;
+}
+
+.konto-menue {
+  position: absolute; top: calc(100% + 6px); right: 0;
+  min-width: 220px; z-index: 60;
+  background: var(--card);
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 8px;
+}
+.konto-menue[hidden] { display: none; }
+.konto-menue-kopf {
+  padding: 8px 10px 10px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.konto-menue-kopf strong { display: block; font-size: .9rem; }
+.konto-menue-kopf span { display: block; color: var(--muted); font-size: .74rem; margin-top: 2px; }
+.konto-menue a,
+.konto-menue button {
+  display: block; width: 100%; text-align: left;
+  padding: 10px; min-height: 42px;
+  border: 0; border-radius: 9px; background: transparent;
+  font: inherit; font-size: .84rem; color: var(--marke-hell);
+  text-decoration: none; cursor: pointer;
+}
+.konto-menue a:hover,
+.konto-menue button:hover { background: var(--marke-lighter); }
+.konto-menue .konto-abmelden { color: #b91c1c; font-weight: 600; }
+
+@media (max-width: 760px) {
+  /* Der Kontoknopf bleibt auch auf dem Handy sichtbar und wandert NICHT
+     ins Burgermenue: wer sich anmelden will, soll nicht erst ein Menue
+     aufklappen muessen. Er steht links vom Menueknopf. */
+  .konto-bereich { order: 1; margin-left: auto; }
+  .nav-knopf { order: 2; margin-left: 0; }
+  .konto-knopf { padding: 8px 13px; font-size: .8rem; }
+  .konto-menue { min-width: 200px; }
+}
+
+/* Der Kontoknopf nimmt im Kopf rund 90 px weg. Ohne diese Regel bricht
+   "FV Loebtauer Kickers" auf schmalen Geraeten auf zwei Zeilen (im Test am
+   29.08.2026 bei 390 px gesehen). Statt den Namen zu kuerzen wird enger
+   gesetzt - der volle Vereinsname ist Max' ausdrueckliche Vorgabe. */
+@media (max-width: 430px) {
+  .kopf-innen { gap: 8px; padding: 0 14px; }
+  .marken-knopf { gap: 8px; padding: 4px 4px 4px 2px; }
+  .marken-titel { font-size: .88rem; }
+  .konto-knopf { padding: 8px 11px; font-size: .78rem; gap: 6px; }
+}
+
+/* ---------- Anmeldefenster ---------- */
+
+.anmeldedialog {
+  border: 0; padding: 0; background: transparent;
+  max-width: 420px; width: calc(100% - 32px);
+  color: var(--text);
+}
+.anmeldedialog::backdrop { background: rgba(17, 24, 39, .55); }
+
+.anmelde-karte {
+  position: relative;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 26px 24px 22px;
+  box-shadow: 0 18px 50px rgba(17, 24, 39, .28);
+  font-family: var(--font-text);
+}
+
+.anmelde-schliessen {
+  position: absolute; top: 10px; right: 10px;
+  width: 38px; height: 38px;
+  border: 0; border-radius: 50%; background: transparent;
+  font-size: 1.4rem; line-height: 1; color: var(--muted); cursor: pointer;
+}
+.anmelde-schliessen:hover { background: var(--marke-lighter); color: var(--text); }
+
+.anmelde-titel { font-family: var(--font-titel); font-size: 1.25rem; margin: 0 34px 4px 0; }
+.anmelde-grund { margin: 0 0 4px; color: var(--muted); font-size: .85rem; line-height: 1.5; }
+.anmelde-verein {
+  margin: 0 0 14px; padding: 8px 12px;
+  background: var(--green-light); color: var(--green-dark);
+  border-radius: 9px; font-size: .82rem; font-weight: 600;
+}
+
+.anmelde-schritt { margin-top: 16px; }
+.anmelde-feld { display: block; margin-bottom: 14px; }
+/* Auf die Beschriftung eingegrenzt. Vorher traf diese Regel JEDES
+   direkte span im Feld - also auch die Zeile mit Eingabefeld und
+   "Anzeigen"-Knopf, deren display:flex sie ueberschrieb. Der Knopf
+   rutschte dadurch unter das Feld. Gefunden im Test am 29.08.2026. */
+.anmelde-feld > .anmelde-bezeichnung { display: block; font-size: .8rem; font-weight: 700; color: var(--marke-hell); margin-bottom: 6px; }
+.anmelde-feld input,
+.anmelde-feld select {
+  box-sizing: border-box; width: 100%; min-height: 46px;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 11px 13px; font: inherit; font-size: .92rem; background: #fff;
+}
+.anmelde-feld input:focus,
+.anmelde-feld select:focus { outline: none; border-color: var(--marke-hell); }
+
+/* Eingabefeld plus Wortknopf "Anzeigen"/"Verbergen" in einer Zeile. */
+.anmelde-eingabezeile { display: flex; gap: 8px; align-items: stretch; }
+.anmelde-eingabezeile input { flex: 1; min-width: 0; }
+.anmelde-zeigen {
+  flex: none; min-height: 46px; padding: 0 13px;
+  border: 1px solid var(--border); border-radius: 10px;
+  background: var(--card); color: var(--marke-hell);
+  font: inherit; font-size: .78rem; font-weight: 600; cursor: pointer;
+}
+.anmelde-zeigen:hover { background: var(--marke-lighter); }
+
+.anmelde-haupt {
+  width: 100%; min-height: 48px;
+  border: 0; border-radius: 999px;
+  background: var(--marke); color: #fff;
+  font: inherit; font-size: .92rem; font-weight: 700; cursor: pointer;
+}
+.anmelde-haupt:hover:not(:disabled) { background: var(--marke-dunkel); }
+.anmelde-haupt:disabled { opacity: .45; cursor: not-allowed; }
+
+.anmelde-zurueck {
+  width: 100%; margin-top: 9px; min-height: 40px;
+  border: 0; background: transparent; color: var(--muted);
+  font: inherit; font-size: .8rem; cursor: pointer; text-decoration: underline;
+}
+.anmelde-zurueck:hover { color: var(--text); }
+
+.anmelde-fehler {
+  margin: 12px 0 0; padding: 10px 13px;
+  background: var(--red-hell); color: #991b1b;
+  border-radius: 9px; font-size: .82rem; line-height: 1.5;
+}
+
+/* Der Gastweg ist ein echter Knopf, kein Textlink (Max, 29.08.2026:
+   "nicht so, dass es nur als Textklickfeld ist, sondern wirklich als
+   Button"). Optisch klar zweitrangig, damit die Anmeldung der Hauptweg
+   bleibt - aber gleich gross und gleich gut zu treffen. */
+.anmelde-gast { margin-top: 18px; }
+.anmelde-trenner {
+  display: flex; align-items: center; gap: 12px;
+  margin: 0 0 14px; color: var(--muted); font-size: .74rem;
+  text-transform: uppercase; letter-spacing: .06em;
+}
+.anmelde-trenner::before,
+.anmelde-trenner::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+.anmelde-gastknopf {
+  width: 100%; min-height: 48px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--marke-dunkel);
+  font: inherit; font-size: .9rem; font-weight: 700; cursor: pointer;
+}
+.anmelde-gastknopf:hover { background: var(--marke-lighter); border-color: var(--marke-hell); }
+.anmelde-gasthinweis { margin: 8px 0 0; color: var(--muted); font-size: .76rem; text-align: center; }
+
+.anmelde-hilfe {
+  margin: 16px 0 0; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted); font-size: .76rem; line-height: 1.5;
+}
+
+/* Maskierte Eingabefelder ohne type="password" - dieselbe Begruendung wie
+   in style.css (10.08.2026): Safari und iOS blenden bei echten
+   Passwortfeldern ungefragt den "Starkes Passwort verwenden"-Vorschlag
+   ein und ignorieren autocomplete="off". Fuer eine vierstellige PIN ist
+   das nur verwirrend. Kann der Browser -webkit-text-security nicht,
+   schaltet masked-input.js die Felder doch auf type="password" um. */
+input.maskiert { -webkit-text-security: disc; text-security: disc; }
+input.maskiert.sichtbar { -webkit-text-security: none; text-security: none; }
