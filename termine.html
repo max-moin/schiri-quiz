@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Termine – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Lehrabende, Lehrgänge und Treffen der Schiedsrichter-Abteilung – mit Zu- und Absage für angemeldete Mitglieder." />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="seite.css" />
+</head>
+<body>
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
+        <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
+      </a>
+      <button class="nav-knopf" id="nav-knopf" type="button"
+              aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+      <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
+        <a href="termine.html" aria-current="page">Termine</a>
+        <a href="regeluebersicht.html">Regeln</a>
+        <a href="spesenrechner.html">Spesenrechner</a>
+        <a href="vorlagen.html">Vorlagen</a>
+        <a href="informationen.html">Unterlagen</a>
+        <a href="quiz.html" class="nav-anmelden">Zum Quiz</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="inhalt" id="inhalt" tabindex="-1">
+
+    <!-- ============================================================
+         Zwei Sichten, eine Seite (29.08.2026).
+
+         Ohne "?termin=" die Liste, mit "?termin=" der einzelne Termin.
+         Beide brauchen dieselben Daten und dieselbe Kartendarstellung -
+         zwei Dateien haetten hier nur bedeutet, dieselbe Abfrage und
+         dasselbe Markup zweimal zu pflegen.
+
+         Bewusst KEIN Kalenderraster. Max am 29.08.2026: "Kalender finde
+         ich sehr unnuetzig dafuer. Wir haben zu wenig Termine, die da
+         drinstehen." Bei vier bis acht Terminen im Jahr waeren elf von
+         zwoelf Monatszellen leer.
+         ============================================================ -->
+
+    <div id="terminBereich" aria-live="polite">
+      <p class="seiten-unter">Termine werden geladen …</p>
+    </div>
+
+  </main>
+
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+    </div>
+  </footer>
+
+  <script src="src/core/anmeldung.js"></script>
+  <script src="src/ui/masked-input.js"></script>
+  <script src="src/ui/login-dialog.js"></script>
+  <script type="module" src="seite.js"></script>
+  <script type="module" src="src/website/termine-seite.js"></script>
+</body>
+</html>

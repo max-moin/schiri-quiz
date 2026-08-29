@@ -73,26 +73,54 @@ const migration = (datei) =>
     readFileSync(new URL(`../supabase/migrations/${datei}`, import.meta.url), "utf8")
   );
 
+/* Genau EINEN Funktionsrumpf herausschneiden.
+
+   Warum das noetig ist, hat ein Sabotage-Test am 29.08.2026 gezeigt: Die
+   Pruefung "and t.oeffentlich kommt vor" lief ueber die ganze Datei. Nimmt
+   man den Filter aus "oeffentliche_termine" heraus, steht dieselbe Zeile
+   immer noch in "oeffentliche_termine_alle" - der Test blieb gruen,
+   waehrend interne Termine oeffentlich geworden waeren. Der schwerste
+   denkbare Fehler, und er wurde nicht bemerkt. Seitdem wird jede
+   Bedingung im Rumpf ihrer eigenen Funktion geprueft. */
+function funktionsRumpf(sql, name) {
+  const anfang = sql.indexOf(`function public.${name}(`);
+  if (anfang < 0) throw new Error(`Funktion ${name} steht nicht in der Migration`);
+  const koerperStart = sql.indexOf("$function$", anfang);
+  const koerperEnde = sql.indexOf("$function$", koerperStart + 10);
+  if (koerperStart < 0 || koerperEnde < 0) throw new Error(`Rumpf von ${name} nicht gefunden`);
+  return sql.slice(anfang, koerperEnde);
+}
+
 // Die Funktion selbst ist die eigentliche Absicherung: auf "termine" ist
 // RLS an und es gibt keine Policy, die Tabelle ist von aussen also
 // unlesbar. Alles haengt daran, dass diese eine Funktion nicht mehr
 // herausgibt als sie soll.
+//
+// ACHTUNG BEIM WEITERBAUEN: Diese Pruefung MUSS auf die Migration zeigen,
+// die die Funktion zuletzt angelegt hat - sonst bewacht sie eine Fassung,
+// die es gar nicht mehr gibt. Genau das drohte am 29.08.2026: v90 hat
+// "oeffentliche_termine" geloescht und neu angelegt (ID und Uhrzeit kamen
+// dazu, die Obergrenze ging von 6 auf 4), waehrend der Test noch die
+// v84-Datei las. Er waere gruen geblieben, egal was in der neuen Fassung
+// steht.
 test("die öffentliche Termin-Funktion gibt nur freigegebene Termine heraus", () => {
-  const sql = migration("20260822081500_v84_oeffentlicher_seitenschluessel.sql");
+  const sql = migration("20260829150000_v90_termine_mit_rueckmeldungen.sql");
+  const rumpf = funktionsRumpf(sql, "oeffentliche_termine");
 
-  assert.match(sql, /security definer/i);
-  assert.match(sql, /set search_path to public/i);
+  assert.match(rumpf, /security definer/i);
+  assert.match(rumpf, /set search_path to public/i);
 
   // Die drei Bedingungen, ohne die interne, vergangene oder fremde
-  // Termine nach aussen kaemen.
-  assert.match(sql, /and t\.oeffentlich\b/);
-  assert.match(sql, /and t\.datum >= \(now\(\) at time zone 'Europe\/Berlin'\)::date/);
-  assert.match(sql, /where v\.oeffentliche_kennung = p_seitenschluessel/);
+  // Termine nach aussen kaemen - im Rumpf DIESER Funktion, nicht
+  // irgendwo in der Datei.
+  assert.match(rumpf, /and t\.oeffentlich\b/);
+  assert.match(rumpf, /and t\.datum >= \(now\(\) at time zone 'Europe\/Berlin'\)::date/);
+  assert.match(rumpf, /where v\.oeffentliche_kennung = p_seitenschluessel/);
 
-  // Keine ausufernde Ausgabe und keine internen Spalten.
-  assert.match(sql, /limit 6\s*;/);
-  assert.match(sql, /select t\.titel, t\.datum, t\.beschreibung/);
-  assert.doesNotMatch(sql, /select\s+t\.\*/);
+  // Keine ausufernde Ausgabe und keine internen Spalten. Die Startseite
+  // zeigt vier Termine (Max' Entscheidung vom 29.08.2026).
+  assert.match(rumpf, /limit 4\b/);
+  assert.doesNotMatch(rumpf, /select\s+t\.\*/);
 
   // Rechte: erst wegnehmen, dann gezielt geben - und niemals an public.
   assert.match(
@@ -104,6 +132,80 @@ test("die öffentliche Termin-Funktion gibt nur freigegebene Termine heraus", ()
     /grant execute on function public\.oeffentliche_termine\(text\) to anon, authenticated/
   );
   assert.doesNotMatch(sql, /grant execute[^;]*to public\b/i);
+});
+
+// Die zweite oeffentliche Terminfunktion (vollstaendige Liste fuer
+// termine.html). Sie darf mehr Zeilen liefern als die Startseite, aber
+// unter GENAU denselben Bedingungen - ausser der Vergangenheit, die hier
+// bewusst mitkommt, damit man nachschlagen kann, wann etwas war.
+test("die vollständige Terminliste bleibt auf freigegebene Termine begrenzt", () => {
+  const sql = migration("20260829150000_v90_termine_mit_rueckmeldungen.sql");
+  const rumpf = funktionsRumpf(sql, "oeffentliche_termine_alle");
+
+  assert.match(rumpf, /security definer/i);
+  assert.match(rumpf, /and t\.oeffentlich\b/);
+  assert.match(rumpf, /where v\.oeffentliche_kennung = p_seitenschluessel/);
+  assert.doesNotMatch(rumpf, /select\s+t\.\*/);
+
+  assert.match(
+    sql,
+    /revoke all on function public\.oeffentliche_termine_alle\(text\) from public/
+  );
+  assert.match(
+    sql,
+    /grant execute on function public\.oeffentliche_termine_alle\(text\) to anon, authenticated/
+  );
+});
+
+// Jede Funktion, die persoenliche Termindaten anfasst, muss die PIN
+// pruefen. Ohne diese Pruefung koennte jeder mit einer geratenen
+// Schiedsrichter-ID fremde Zusagen setzen oder Namen abfragen.
+test("die Termin-Funktionen mit Personenbezug prüfen die PIN", () => {
+  const sql = migration("20260829150000_v90_termine_mit_rueckmeldungen.sql");
+
+  for (const name of ["termine_fuer_schiri", "termin_zusagen", "termin_rueckmeldung_setzen"]) {
+    const rumpf = funktionsRumpf(sql, name);
+    assert.match(rumpf, /v_pin <> p_pin/, `${name} vergleicht die PIN nicht`);
+    assert.match(rumpf, /raise exception 'PIN ungueltig'/, `${name} bricht bei falscher PIN nicht ab`);
+    assert.match(rumpf, /security definer/i);
+  }
+});
+
+// Max' Entscheidung vom 29.08.2026: eine Absage braucht einen Grund. Die
+// Regel steht in der Datenbank und nicht nur in der Oberflaeche - sonst
+// koennte ein direkter Aufruf sie umgehen.
+test("eine Absage ohne Grund ist in der Datenbank verboten", () => {
+  const sql = migration("20260829150000_v90_termine_mit_rueckmeldungen.sql");
+
+  assert.match(sql, /constraint absage_braucht_grund/);
+  assert.match(sql, /check \(status = 'zu' or grund is not null\)/);
+
+  // Feste Gruende statt Freitext - sonst ist die Auswertung wertlos.
+  assert.match(sql, /'arbeit', 'eigenes_spiel', 'urlaub', 'krank', 'familie', 'sonstiges'/);
+
+  // RLS an, keine Policy: die Tabelle ist von aussen unlesbar, alles
+  // laeuft ueber die geprueften Funktionen.
+  assert.match(sql, /alter table public\.termin_rueckmeldungen enable row level security/);
+  assert.doesNotMatch(sql, /create policy[^;]*termin_rueckmeldungen/i);
+});
+
+// Absagegruende sind persoenlich. Sie duerfen ausschliesslich ueber die
+// Obmann-Funktion herauskommen, nie ueber die Mitgliedersicht.
+test("Absagegründe kommen nur über den Obmann-Zugang heraus", () => {
+  const sql = migration("20260829150000_v90_termine_mit_rueckmeldungen.sql");
+
+  // Diese Funktion gibt anderen Mitgliedern die Namen. Sie darf nur
+  // Zusagen kennen und keine Gruende ausgeben.
+  const rumpf = funktionsRumpf(sql, "termin_zusagen");
+  assert.match(rumpf, /returns table \(name text\)/);
+  assert.match(rumpf, /r\.status = 'zu'/);
+  assert.doesNotMatch(rumpf, /r\.grund/);
+  assert.doesNotMatch(rumpf, /r\.kommentar/);
+
+  // Der Obmann-Weg dagegen darf beides.
+  const obmann = funktionsRumpf(sql, "obmann_termin_rueckmeldungen");
+  assert.match(obmann, /obmann_verein\(p_passwort\)/);
+  assert.match(obmann, /r\.grund/);
 });
 
 /* ------------------------------------------------------------------

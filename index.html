@@ -27,6 +27,7 @@
 
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html" aria-current="page">Start</a>
+        <a href="termine.html">Termine</a>
         <a href="regeluebersicht.html">Regeln</a>
         <a href="spesenrechner.html">Spesenrechner</a>
         <a href="vorlagen.html">Vorlagen</a>
@@ -167,8 +168,13 @@
     <section class="abschnitt" id="termineAbschnitt" hidden>
       <div class="abschnitt-kopf">
         <h2>Nächste Termine</h2>
+        <a class="mehr" href="termine.html">Alle Termine</a>
       </div>
       <div class="termine" id="termineListe"></div>
+      <!-- Der Verweis steht zusätzlich UNTER der Liste. Auf dem Handy ist
+           der Weg vom letzten Termin zum Kopf der Karte weit, und wer zu
+           Ende gelesen hat, will genau hier weiter. -->
+      <a class="termine-alle" href="termine.html">Alle Termine ansehen</a>
     </section>
 
   </main>
@@ -247,8 +253,13 @@
           const d = new Date(String(t.datum) + "T12:00:00");
           if (Number.isNaN(d.getTime())) return;
 
-          const zeile = document.createElement("div");
+          /* Seit v90 (29.08.2026) liefert die Funktion eine ID mit -
+             erst dadurch laesst sich ein einzelner Termin ueberhaupt
+             ansteuern. Ohne ID bleibt die Zeile wie bisher ein reiner
+             Text, damit ein alter Datenstand nichts kaputt macht. */
+          const zeile = document.createElement(t.id ? "a" : "div");
           zeile.className = "termin";
+          if (t.id) zeile.href = "termine.html?termin=" + encodeURIComponent(t.id);
 
           const datum = document.createElement("div");
           datum.className = "termin-datum";
@@ -265,11 +276,26 @@
           was.className = "termin-was";
           was.textContent = t.titel;
           rechts.appendChild(was);
-          if (t.beschreibung) {
+          /* Uhrzeit und Ort stehen seit v90 in eigenen Spalten. Vorher
+             waren sie Fliesstext in der Beschreibung ("Sportpark Ostra ·
+             19:00 Uhr") und damit weder sortierbar noch fuer ein
+             Kalenderabo verwertbar. Faellt beides weg, bleibt die
+             Beschreibung als Rueckfallebene stehen. */
+          const teile = [];
+          if (typeof t.beginn_zeit === "string") teile.push(t.beginn_zeit.slice(0, 5) + " Uhr");
+          if (t.ort) teile.push(String(t.ort));
+          const untertext = teile.length ? teile.join(" · ") : (t.beschreibung ? String(t.beschreibung) : "");
+          if (untertext) {
             const wo = document.createElement("div");
             wo.className = "termin-wo";
-            wo.textContent = String(t.beschreibung);
+            wo.textContent = untertext;
             rechts.appendChild(wo);
+          }
+          if (t.pflicht) {
+            const marke = document.createElement("span");
+            marke.className = "wortmarke gelb";
+            marke.textContent = "Pflicht";
+            rechts.appendChild(marke);
           }
 
           zeile.append(datum, rechts);

@@ -419,6 +419,25 @@ select:focus-visible {
 .termin-was { font-size: .86rem; font-weight: 600; }
 .termin-wo { font-size: .76rem; color: var(--muted); margin-top: 2px; }
 
+/* Die Terminzeilen der Startseite sind seit dem 29.08.2026 Verweise auf
+   den einzelnen Termin - vorher waren sie reine Textzeilen. Ein <a>
+   bringt Unterstreichung und Linkfarbe mit, beides waere hier falsch:
+   die Zeile soll aussehen wie vorher und sich nur anfassen lassen. */
+a.termin { text-decoration: none; color: inherit; }
+a.termin:hover { background: var(--marke-lighter); }
+.termin .wortmarke { margin-top: 6px; }
+
+/* Zweiter Weg zur Terminseite, unter der Liste. Auf dem Handy ist der
+   Weg vom letzten Termin zurueck zum Kartenkopf weit. */
+.termine-alle {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 48px; margin-top: 12px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--card); color: var(--marke-hell);
+  font-size: .85rem; font-weight: 600; text-decoration: none;
+}
+.termine-alle:hover { border-color: var(--marke-hell); color: var(--text); }
+
 /* ---------- Herkunfts-Abzeichen ----------
    Wird von den Listenzeilen der Informationsseite benutzt. Die frueheren
    Dokumentkacheln daneben sind entfallen. */
@@ -1689,3 +1708,233 @@ body { overflow-x: hidden; }
    schaltet masked-input.js die Felder doch auf type="password" um. */
 input.maskiert { -webkit-text-security: disc; text-security: disc; }
 input.maskiert.sichtbar { -webkit-text-security: none; text-security: none; }
+
+/* ============================================================
+   Termine (29.08.2026)
+   ============================================================
+   Bewusst Listen statt Kalenderraster. Max: "Kalender finde ich sehr
+   unnuetzig dafuer. Wir haben zu wenig Termine, die da drinstehen."
+   Bei vier bis acht Terminen im Jahr waeren elf von zwoelf Monatszellen
+   leer - eine Liste zeigt auf gleicher Flaeche mehr und braucht auf dem
+   Handy kein Gewische.
+   Markup und Verhalten: src/website/termine.js, termine-seite.js */
+
+/* ---------- Wortmarken ----------
+   Woerter statt Icons, dieselbe Hausregel wie bei .sym-wort
+   (Max, 21.08.2026). */
+.wortmarke {
+  display: inline-flex; align-items: center;
+  font-size: .62rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em;
+  padding: 3px 9px; border-radius: 999px;
+  background: var(--marke-lighter); color: var(--marke-hell);
+  white-space: nowrap;
+}
+.wortmarke.gruen { background: var(--green-light); color: var(--green-dark); }
+.wortmarke.rot   { background: var(--red-hell); color: #991b1b; }
+.wortmarke.gelb  { background: var(--karte-gelb-hell); color: #713f12; }
+.wortmarke.offen { background: #fff; border: 1px dashed var(--border); color: var(--muted); }
+.wortmarke.hell  { background: rgba(255, 255, 255, .16); color: #e5e7eb; }
+
+/* ---------- Terminkarte ---------- */
+
+.terminkarte {
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--border);
+  /* Der Farbstreifen links traegt den eigenen Stand: neutral, gruen bei
+     Zusage, rot bei Absage. Dieselbe Sprache wie beim Hinweisbalken und
+     bei .lz - die Seite arbeitet durchgehend mit weissen Karten plus
+     Farbakzent statt mit flaechiger Faerbung. */
+  border-left: 4px solid var(--marke);
+  border-radius: var(--radius-sm);
+  padding: 13px 15px;
+  margin-bottom: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--green); }
+.terminkarte.zugesagt { border-left-color: var(--green); }
+.terminkarte.abgesagt { border-left-color: var(--red); }
+.terminkarte.vergangen { opacity: .62; border-left-color: var(--border); }
+
+.tk-oben { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }
+.tk-wann {
+  font-size: .68rem; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--muted);
+}
+.tk-marken { margin-left: auto; display: flex; gap: 5px; flex-wrap: wrap; justify-content: flex-end; }
+.tk-titel {
+  display: block; font-family: var(--font-titel); font-weight: 700;
+  font-size: 1rem; line-height: 1.25; margin-bottom: 5px;
+}
+.tk-angaben { display: flex; gap: 7px; flex-wrap: wrap; color: var(--muted); font-size: .78rem; }
+.tk-angaben b { color: var(--marke-hell); font-weight: 700; }
+.tk-punkt { color: var(--border); }
+.tk-stand { display: block; margin-top: 8px; }
+
+/* ---------- Monatsgruppen ---------- */
+
+.terminmonat { margin-bottom: 22px; }
+.terminmonat-titel {
+  font-family: var(--font-titel); font-size: .78rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .07em; color: var(--muted);
+  margin: 0 0 10px; display: flex; align-items: center; gap: 10px;
+}
+.terminmonat-titel::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+/* Vergangenes bleibt erreichbar, aber eingeklappt - sonst muesste man
+   beim Oeffnen erst nach unten scrollen, um das Naechste zu finden. */
+.termin-vergangen { margin-top: 26px; }
+.termin-vergangen > summary {
+  cursor: pointer; list-style: none;
+  padding: 12px 15px; min-height: 44px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--card); color: var(--muted);
+  font-size: .82rem; font-weight: 600;
+}
+.termin-vergangen > summary::-webkit-details-marker { display: none; }
+.termin-vergangen > summary:hover { border-color: var(--marke-hell); color: var(--text); }
+.termin-vergangen[open] > summary { margin-bottom: 18px; }
+
+/* ---------- Einzelansicht ---------- */
+
+.zurueck-link {
+  display: inline-flex; align-items: center; min-height: 44px;
+  color: var(--muted); text-decoration: none; font-size: .84rem; font-weight: 600;
+  margin-bottom: 8px;
+}
+.zurueck-link:hover { color: var(--text); }
+
+.termindetail {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.td-kopf { background: var(--marke-dunkel); color: #fff; padding: 20px 22px; }
+.td-wann {
+  margin: 0; font-size: .68rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .07em; color: #9ca3af;
+}
+.td-kopf h1 { font-family: var(--font-titel); font-size: 1.35rem; margin: 6px 0 0; line-height: 1.25; }
+.td-marken { display: flex; gap: 6px; margin-top: 11px; flex-wrap: wrap; }
+.td-body { padding: 18px 22px 22px; }
+
+.td-zeile { display: flex; gap: 14px; padding: 11px 0; border-bottom: 1px solid #f3f4f6; font-size: .88rem; }
+.td-zeile:last-of-type { border-bottom: 0; }
+.td-l {
+  flex: none; width: 92px; padding-top: 2px;
+  color: var(--muted); font-size: .66rem; font-weight: 700;
+  text-transform: uppercase; letter-spacing: .04em; overflow-wrap: anywhere;
+}
+.td-v { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.td-neben { font-weight: 400; color: var(--muted); font-size: .82rem; }
+
+.td-frage { font-family: var(--font-titel); font-weight: 700; font-size: .98rem; margin: 20px 0 12px; }
+
+/* Eigener Knopf statt ".knopf .knopf-primaer": die beiden sind unter
+   ".admin-seite" definiert und greifen auf den oeffentlichen Seiten gar
+   nicht. Im ersten Anlauf am 29.08.2026 stand hier deshalb ein
+   unformatierter Browserknopf - im Screenshot gesehen, nicht beim Lesen. */
+.td-senden {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; min-height: 48px;
+  border: 0; border-radius: 999px;
+  background: var(--marke); color: #fff;
+  font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer;
+}
+.td-senden:hover { background: var(--marke-dunkel); }
+
+.td-knopfpaar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.td-knopf {
+  min-height: 52px; padding: 13px 12px;
+  border: 1px solid var(--border); border-radius: 12px;
+  background: var(--card); color: var(--marke-dunkel);
+  font: inherit; font-size: .88rem; font-weight: 700; cursor: pointer;
+}
+.td-knopf.ja:hover { border-color: var(--green); background: var(--green-light); color: var(--green-dark); }
+.td-knopf.nein:hover { border-color: var(--red); background: var(--red-hell); color: #991b1b; }
+/* Der gewaehlte Zustand ist gefuellt, nicht nur umrandet - man soll auf
+   dem Handy im Vorbeigehen sehen, was man geantwortet hat. */
+.td-knopf.ja.an { background: var(--green); border-color: var(--green); color: #fff; }
+.td-knopf.nein.an { background: var(--red); border-color: var(--red); color: #fff; }
+
+.td-grundbox {
+  margin-top: 14px; padding: 15px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: #fafbfc;
+}
+.td-grundbox[hidden] { display: none; }
+.td-grundtitel {
+  margin: 0 0 10px; font-size: .7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+}
+/* Gruende zum Antippen statt eines leeren Textfelds. Ein freies Feld
+   fuehrt zu "keine Zeit" - damit laesst sich nichts auswerten. Sechs
+   feste Gruende ergeben eine Uebersicht und sind in einer Sekunde
+   getippt (Max' Entscheidung, 29.08.2026). */
+.td-gruende { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 13px; }
+.td-grund {
+  min-height: 40px; padding: 9px 14px;
+  border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--marke-hell);
+  font: inherit; font-size: .8rem; font-weight: 600; cursor: pointer;
+}
+.td-grund:hover { border-color: var(--marke-hell); }
+.td-grund.an { background: var(--marke); border-color: var(--marke); color: #fff; }
+
+.td-kommentar { display: block; margin-bottom: 13px; }
+.td-kommentar > span {
+  display: block; margin-bottom: 6px;
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+}
+.td-kommentar textarea {
+  box-sizing: border-box; width: 100%;
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px 12px; font: inherit; font-size: .85rem; background: #fff; resize: vertical;
+}
+.td-kommentar textarea:focus { outline: none; border-color: var(--marke-hell); }
+
+.td-meldung { margin: 12px 0 0; padding: 10px 13px; border-radius: 9px; font-size: .83rem; }
+.td-meldung[data-art="erfolg"] { background: var(--green-light); color: var(--green-dark); }
+.td-meldung[data-art="fehler"] { background: var(--red-hell); color: #991b1b; }
+.td-meldung[data-art="info"] { background: var(--marke-lighter); color: var(--marke-hell); }
+
+.td-abgelaufen {
+  margin: 20px 0 0; padding: 13px 15px;
+  background: var(--marke-lighter); border-radius: var(--radius-sm);
+  color: var(--muted); font-size: .85rem;
+}
+
+.td-teilnehmer { margin-top: 22px; padding-top: 18px; border-top: 1px solid var(--border); }
+.td-teilnehmer-titel {
+  margin: 0 0 9px; font-size: .7rem; font-weight: 800;
+  text-transform: uppercase; letter-spacing: .05em; color: var(--muted);
+}
+.td-namen { display: flex; flex-wrap: wrap; gap: 6px; }
+.td-name {
+  font-size: .78rem; font-weight: 600;
+  background: var(--marke-lighter); color: var(--marke-hell);
+  border-radius: 999px; padding: 5px 11px;
+}
+
+/* Knopf, der wie ein Verweis aussieht - fuer "Melde dich an" mitten im
+   Fliesstext. Ein <a href="#"> waere hier gelogen: es fuehrt nirgendwo
+   hin, es oeffnet ein Fenster. */
+.verweis-knopf {
+  border: 0; background: none; padding: 0;
+  font: inherit; font-weight: 700; color: inherit;
+  text-decoration: underline; cursor: pointer;
+}
+
+@media (max-width: 560px) {
+  .td-kopf { padding: 17px 17px; }
+  .td-body { padding: 16px 17px 20px; }
+  .td-kopf h1 { font-size: 1.15rem; }
+  /* Untereinander statt nebeneinander: zwei 52-px-Knoepfe nebeneinander
+     werden auf 320 px so schmal, dass die Beschriftung umbricht. */
+  .td-knopfpaar { grid-template-columns: 1fr; }
+  .td-zeile { gap: 10px; }
+  .td-l { width: 78px; }
+}
