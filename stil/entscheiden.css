@@ -1,0 +1,303 @@
+/* ============================================================
+   Entscheidungs-Modus (entscheiden.html)
+   ============================================================
+   Nur von entscheiden.html geladen.
+
+   Zwei Dinge tragen die Gestaltung:
+
+   1. Das Bild ist die Aufgabe. Es steht oben, ueber die volle Breite,
+      und bekommt so viel Platz wie moeglich - Max: "dass du ein Bild
+      hast, das du schnell erkennen musst."
+
+   2. Die Knoepfe muessen mit dem Daumen zu treffen sein. Mindestens
+      44 px hoch, drei Spalten fuer die neun Spielfortsetzungen, vier
+      fuer die Karten. Unter jedem Icon steht ein Wort - Hausregel seit
+      dem 10.07.2026: ein Icon allein ist eine Vermutung.
+
+   Die Klassen heissen alle "ent-" statt ".knopf" oder ".karte" aus
+   fremden Namensraeumen. Zweimal ist mir am 29.08. eine Klasse aus dem
+   Admin-Bereich auf einer oeffentlichen Seite untergekommen und dort
+   ungestylt gelandet. Einzige Ausnahme: .karte in den vier
+   Strafknoepfen - die wird hier vollstaendig definiert.
+   ============================================================ */
+
+.ent-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ent-zurueck {
+  color: var(--muted);
+  font-size: .88rem;
+  text-decoration: none;
+}
+.ent-zurueck:hover { color: var(--text); text-decoration: underline; }
+
+.ent-hinweis-pille {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  color: var(--muted);
+  font-size: .74rem;
+  font-weight: 700;
+}
+
+.ent-laedt { color: var(--muted); }
+
+/* ---------- Die Szene ---------- */
+
+.ent-bild {
+  margin: 0 0 18px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--marke-lighter);
+  box-shadow: var(--shadow);
+}
+
+.ent-bild img {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Ein zu hohes Bild draengt die Knoepfe vom Schirm. Auf dem Handy
+     soll beides zusammen sichtbar bleiben. */
+  max-height: 46vh;
+  object-fit: cover;
+}
+
+.ent-bild-text,
+.ent-szene-text {
+  margin: 0;
+  padding: 10px 14px;
+  font-size: .86rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.ent-szene-text {
+  margin-bottom: 18px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  font-size: 1rem;
+  color: var(--text);
+}
+
+/* ---------- Die Knoepfe ---------- */
+
+.ent-block,
+.ent-richtung {
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+}
+
+.ent-block legend,
+.ent-richtung legend {
+  padding: 0 0 8px;
+  font-family: var(--font-titel);
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.ent-zeile { display: grid; gap: 8px; }
+.ent-zeile.raster { grid-template-columns: repeat(3, 1fr); }
+.ent-zeile.vier   { grid-template-columns: repeat(4, 1fr); }
+.ent-zeile.zwei   { grid-template-columns: repeat(2, 1fr); }
+.ent-zeile.zusatz { grid-template-columns: 1fr; }
+
+.ent-knopf {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 68px;
+  padding: 10px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--marke-hell);
+  font-family: var(--font-text);
+  font-size: .7rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  cursor: pointer;
+  transition: background .12s ease, border-color .12s ease, color .12s ease;
+}
+
+.ent-knopf svg { width: 26px; height: 26px; display: block; }
+
+.ent-knopf:hover { border-color: var(--marke-hell); }
+
+/* Gewaehlt heisst dunkel gefuellt, nicht nur umrandet. Auf dem Platz
+   entscheidet man einmal - die Wahl muss auf einen Blick eindeutig
+   sein, auch schraeg in der Sonne. */
+.ent-knopf.an {
+  background: var(--marke);
+  border-color: var(--marke);
+  color: #fff;
+}
+
+.ent-knopf.text {
+  flex-direction: row;
+  min-height: 48px;
+  font-size: .85rem;
+}
+
+.ent-knopf.mannschaft { min-height: 56px; }
+
+/* ---------- Trikot und Karten ---------- */
+
+.trikot {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--trikot);
+  border: 1px solid rgba(17, 24, 39, .22);
+}
+
+/* Die Karten sind Flaechen in der echten Farbe, keine Strichzeichnung.
+   Eine gelbe Karte erkennt man an Gelb. */
+.karte {
+  width: 17px;
+  height: 24px;
+  border-radius: 3px;
+  border: 1px solid rgba(17, 24, 39, .25);
+}
+.karte.gelb { background: var(--karte-gelb); }
+.karte.rot  { background: var(--red); }
+.karte.gelbrot {
+  background: linear-gradient(135deg, var(--karte-gelb) 0 50%, var(--red) 50% 100%);
+}
+/* "Keine" ist die Abwesenheit einer Karte - deshalb ein leerer Umriss
+   und keine graue Karte, die wie eine vierte Kartenfarbe aussaehe. */
+.karte.keine {
+  background:
+    repeating-linear-gradient(45deg, transparent 0 4px, rgba(17, 24, 39, .12) 4px 5px);
+  border-style: dashed;
+}
+
+.ent-knopf.an .trikot,
+.ent-knopf.an .karte { border-color: rgba(255, 255, 255, .5); }
+
+/* ---------- Abschicken ---------- */
+
+.ent-senden {
+  width: 100%;
+  margin-top: 4px;
+  padding: 15px 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--marke);
+  color: #fff;
+  font-family: var(--font-text);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ent-senden:hover:not(:disabled) { background: var(--marke-dunkel); }
+.ent-senden:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+
+.ent-fusshinweis {
+  margin: 8px 0 0;
+  font-size: .8rem;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ---------- Ergebnis ---------- */
+
+.ent-ergebnis {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-left: 5px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+}
+
+.ent-ergebnis.komplett  { border-left-color: var(--green); }
+.ent-ergebnis.teilweise { border-left-color: var(--karte-gelb); }
+.ent-ergebnis.falsch    { border-left-color: var(--red); }
+
+.ent-ergebnis-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.ent-ergebnis-kopf h2 {
+  margin: 0;
+  font-family: var(--font-titel);
+  font-size: 1.2rem;
+}
+
+.ent-serie {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--karte-gelb-hell);
+  color: #854d0e;
+  font-size: .76rem;
+  font-weight: 700;
+}
+
+.ent-ergebnis-liste {
+  margin: 0 0 14px;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.ent-zeile-ergebnis {
+  display: grid;
+  grid-template-columns: 20px 1fr;
+  gap: 4px 8px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--marke-lighter);
+  font-size: .9rem;
+}
+
+.ent-zeile-ergebnis.gut     { background: var(--green-light); }
+.ent-zeile-ergebnis.schlecht { background: var(--red-hell); }
+
+.ent-marke { font-weight: 700; }
+.ent-zeile-ergebnis.gut .ent-marke     { color: var(--green-dark); }
+.ent-zeile-ergebnis.schlecht .ent-marke { color: var(--red); }
+
+.ent-was { font-weight: 700; }
+.ent-wert { grid-column: 2; color: var(--marke-hell); }
+.ent-wert em { display: block; font-style: normal; font-weight: 700; color: var(--text); }
+
+.ent-erklaerung {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--marke-lighter);
+  font-size: .92rem;
+  line-height: 1.5;
+}
+
+.ent-weiter { display: grid; gap: 10px; justify-items: center; }
+
+.ent-meldung { padding: 8px 0; }
+.ent-meldung .ent-senden { max-width: 280px; margin-top: 14px; }
+
+/* Ab Tablet: die Icons duerfen groesser werden, es ist Platz da. */
+@media (min-width: 720px) {
+  .ent-knopf { min-height: 78px; font-size: .78rem; }
+  .ent-knopf svg { width: 30px; height: 30px; }
+  .ent-zeile.zusatz { grid-template-columns: repeat(2, 1fr); }
+  .ent-weiter { grid-template-columns: auto auto; justify-content: center; align-items: center; }
+  .ent-weiter .ent-senden { width: auto; }
+}

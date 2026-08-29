@@ -1,0 +1,154 @@
+/* ============================================================
+   Modus-Auswahl (modus.html)
+   ============================================================
+   Nur von modus.html geladen. Die Kacheln sind absichtlich groesser
+   und farbiger als der Rest der Vereinsseiten: Max wollte, "dass das
+   auch mehr aussieht wie ein Game". Der Kontrast zur sachlichen
+   Termin- und Regelseite ist der Punkt, nicht ein Ausrutscher.
+   ============================================================ */
+
+.modus-liste {
+  display: grid;
+  gap: 14px;
+  margin: 22px 0 8px;
+}
+
+.modus-kachel {
+  display: block;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.modus-kachel:hover,
+.modus-kachel:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+/* Die hervorgehobene Kachel ist die einzige dunkle Flaeche der Seite.
+   Genau eine - zwei Hervorhebungen sind keine. */
+.modus-kachel.hervorgehoben {
+  background: linear-gradient(135deg, var(--marke) 0%, var(--marke-dunkel) 100%);
+  border-color: var(--marke-dunkel);
+  color: #fff;
+}
+
+.modus-kachel.gesperrt {
+  opacity: .92;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.modus-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.modus-name {
+  font-family: var(--font-titel);
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.modus-pille {
+  flex: none;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .02em;
+}
+
+.hervorgehoben .modus-pille {
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+}
+
+.modus-pille.erledigt { background: var(--green-light); color: var(--green-dark); }
+.modus-pille.neu      { background: var(--blau-hell);   color: var(--blau); }
+.modus-pille.serie    { background: var(--karte-gelb-hell); color: #854d0e; }
+
+.hervorgehoben .modus-pille.erledigt,
+.hervorgehoben .modus-pille.neu,
+.hervorgehoben .modus-pille.serie {
+  background: rgba(255, 255, 255, .16);
+  color: #fff;
+}
+
+.modus-text {
+  margin: 0;
+  font-size: .93rem;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.hervorgehoben .modus-text { color: rgba(255, 255, 255, .82); }
+
+.modus-balken {
+  height: 6px;
+  margin-top: 14px;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  overflow: hidden;
+}
+
+.hervorgehoben .modus-balken { background: rgba(255, 255, 255, .2); }
+
+.modus-balken > span {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+  transition: width .3s ease;
+}
+
+.hervorgehoben .modus-balken > span { background: #fff; }
+
+.modus-fuss {
+  display: block;
+  margin-top: 8px;
+  font-size: .8rem;
+  color: var(--muted);
+}
+
+.hervorgehoben .modus-fuss { color: rgba(255, 255, 255, .75); }
+
+.modus-anmelden {
+  margin-top: 14px;
+  padding: 11px 18px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--marke);
+  color: #fff;
+  font-family: var(--font-text);
+  font-size: .95rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.modus-anmelden:hover { background: var(--marke-dunkel); }
+
+.modus-nachsatz {
+  margin-top: 18px;
+  font-size: .85rem;
+  color: var(--muted);
+}
+
+/* Ab Tablet nebeneinander. Auf dem Handy bleibt es eine Spalte - Max:
+   "Das ist handy." */
+@media (min-width: 720px) {
+  .modus-liste { grid-template-columns: 1fr 1fr; }
+  .modus-kachel { display: flex; flex-direction: column; }
+  .modus-text { flex: 1; }
+}

@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Termine – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Lehrabende, Lehrgänge und Treffen der Schiedsrichter-Abteilung – mit Zu- und Absage für angemeldete Mitglieder." />
+  <title>Entscheiden – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?" />
+  <meta name="robots" content="noindex" />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,6 +24,7 @@
   <link rel="stylesheet" href="stil/hinweise.css" />
   <link rel="stylesheet" href="stil/vorlagen.css" />
   <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/entscheiden.css" />
 </head>
 <body>
 
@@ -37,12 +39,12 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="index.html">Start</a>
-        <a href="termine.html" aria-current="page">Termine</a>
+        <a href="termine.html">Termine</a>
         <a href="regeluebersicht.html">Regeln</a>
         <a href="spesenrechner.html">Spesenrechner</a>
         <a href="vorlagen.html">Vorlagen</a>
         <a href="informationen.html">Unterlagen</a>
-        <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
+        <a href="modus.html" class="nav-anmelden" aria-current="page">Zum Quiz</a>
       </nav>
     </div>
   </header>
@@ -50,21 +52,19 @@
   <main class="inhalt" id="inhalt" tabindex="-1">
 
     <!-- ============================================================
-         Zwei Sichten, eine Seite (29.08.2026).
+         Der Entscheidungs-Modus (29.08.2026).
 
-         Ohne "?termin=" die Liste, mit "?termin=" der einzelne Termin.
-         Beide brauchen dieselben Daten und dieselbe Kartendarstellung -
-         zwei Dateien haetten hier nur bedeutet, dieselbe Abfrage und
-         dasselbe Markup zweimal zu pflegen.
+         Variante A: alles auf einem Bild, ein Klick je Achse, ein
+         Abschicken. Das Bild ist die Aufgabe - Max ausdruecklich: "Ich
+         wollte ja eigentlich gerade nicht, dass das geschrieben ist,
+         sondern dass du ein Bild hast, das du schnell erkennen musst."
 
-         Bewusst KEIN Kalenderraster. Max am 29.08.2026: "Kalender finde
-         ich sehr unnuetzig dafuer. Wir haben zu wenig Termine, die da
-         drinstehen." Bei vier bis acht Terminen im Jahr waeren elf von
-         zwoelf Monatszellen leer.
+         Die richtige Antwort steht NICHT in dieser Seite. Sie kommt
+         erst mit dem Ergebnis aus szenario_antwort_pruefen zurueck.
          ============================================================ -->
 
-    <div id="terminBereich" aria-live="polite">
-      <p class="seiten-unter">Termine werden geladen …</p>
+    <div id="entscheidenBereich" aria-live="polite">
+      <p class="seiten-unter">Szene wird geladen …</p>
     </div>
 
   </main>
@@ -85,6 +85,6 @@
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/login-dialog.js"></script>
   <script type="module" src="seite.js"></script>
-  <script type="module" src="src/website/termine-seite.js"></script>
+  <script type="module" src="src/website/entscheiden-seite.js"></script>
 </body>
 </html>

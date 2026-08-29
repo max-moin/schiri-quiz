@@ -6,7 +6,10 @@ const startseite = readFileSync(new URL("../index.html", import.meta.url), "utf8
 const quiz = readFileSync(new URL("../quiz.html", import.meta.url), "utf8");
 
 test("die Vereinsstartseite bleibt vom Quiz-Einstieg getrennt", () => {
-  assert.match(startseite, /href="quiz\.html"/);
+  // Seit dem 29.08.2026 zeigt der Hauptweg auf modus.html, die Auswahl
+  // zwischen Wochenfragen und Entscheidungs-Modus. Der Gastweg fuehrt
+  // weiterhin unmittelbar ins Quiz.
+  assert.match(startseite, /href="modus\.html"/);
   assert.match(startseite, /href="quiz\.html#gast"/);
   assert.match(startseite, /src="seite\.js"/);
   assert.doesNotMatch(startseite, /src="app\.js"/);

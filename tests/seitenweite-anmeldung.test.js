@@ -120,13 +120,22 @@ test("die Anmeldung liegt in sessionStorage, nicht in localStorage", () => {
 test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
   // "quiz.html#gast" ist auf der Startseite die ausdrueckliche Einladung
   // zum Ausprobieren. seite.js faengt deshalb nur Verweise ohne Anker ab.
+  //
+  // Seit dem 29.08.2026 fuehrt "Zum Quiz" auf modus.html (die Auswahl
+  // zwischen Wochenfragen und Entscheidungs-Modus); abgefangen wird
+  // seither dieser Verweis. Am Gastweg aendert das nichts, und genau
+  // das prueft dieser Test: er darf NICHT auf modus.html umgebogen
+  // werden, sonst faellt der Gasteinstieg still weg.
   const seiteJs = lies("seite.js");
-  assert.match(seiteJs, /querySelectorAll\('a\[href="quiz\.html"\]'\)/);
+  assert.match(seiteJs, /querySelectorAll\('a\[href="modus\.html"\]'\)/);
   assert.ok(
-    !seiteJs.includes('a[href^="quiz.html"]'),
+    !seiteJs.includes('a[href^="quiz.html"]') && !seiteJs.includes('a[href^="modus.html"]'),
     "seite.js faengt auch quiz.html#gast ab - der Gastweg waere damit zu"
   );
   assert.match(lies("index.html"), /href="quiz\.html#gast"/);
+  // Der Gast landet direkt im Quiz und nicht in der Auswahl - dort waere
+  // nur eine der beiden Kacheln fuer ihn benutzbar.
+  assert.match(seiteJs, /=== "gast"\) location\.href = "quiz\.html#gast"/);
 });
 
 test("andere Bausteine koennen dasselbe Anmeldefenster benutzen", () => {

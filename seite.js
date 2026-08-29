@@ -195,7 +195,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     <button class="konto-knopf" type="button" data-konto-knopf aria-expanded="false" aria-haspopup="menu"></button>
     <div class="konto-menue" data-konto-menue role="menu" hidden>
       <div class="konto-menue-kopf"><strong data-konto-name></strong><span>Angemeldet in diesem Tab</span></div>
-      <a href="quiz.html" role="menuitem">Zum Quiz</a>
+      <a href="modus.html" role="menuitem">Zum Quiz</a>
       <button type="button" class="konto-abmelden" data-abmelden role="menuitem">Abmelden</button>
     </div>`;
   // Hinter die Navigation: auf breiten Bildschirmen sitzt er damit ganz
@@ -256,11 +256,20 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
 
   // ---------- "Zum Quiz" prueft zuerst die Anmeldung ----------
   //
-  // Nur Links, die WIRKLICH ins Quiz fuehren sollen - "quiz.html#gast"
-  // bleibt unangetastet. Diese Verweise sind auf der Startseite die
-  // ausdrueckliche Einladung zum Ausprobieren ohne Anmeldung; ein
-  // Anmeldefenster davor waere genau das Gegenteil davon.
-  document.querySelectorAll('a[href="quiz.html"]').forEach((link) => {
+  // Seit dem 29.08.2026 fuehrt "Zum Quiz" auf modus.html, die Auswahl
+  // zwischen Wochenfragen und Entscheidungs-Modus. Der Weg davor bleibt
+  // derselbe: wer angemeldet ist, geht durch; wer nicht, bekommt das
+  // Anmeldefenster.
+  //
+  // Nur Links, die WIRKLICH in die Auswahl fuehren sollen -
+  // "quiz.html#gast" bleibt unangetastet. Diese Verweise sind auf der
+  // Startseite die ausdrueckliche Einladung zum Ausprobieren ohne
+  // Anmeldung; ein Anmeldefenster davor waere genau das Gegenteil davon.
+  //
+  // Gaeste landen bewusst direkt im Quiz und nicht in der Auswahl: der
+  // Entscheidungs-Modus braucht eine Anmeldung, eine Auswahl mit genau
+  // einer waehlbaren Kachel waere eine Sackgasse mit Zwischenschritt.
+  document.querySelectorAll('a[href="modus.html"]').forEach((link) => {
     link.addEventListener("click", async (e) => {
       if (anmeldung.istAngemeldet()) return; // direkt durch, wie versprochen
       e.preventDefault();
@@ -268,7 +277,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
         grund: "Für dein persönliches Quiz brauchst du deine Anmeldung.",
         gastErlaubt: true,
       });
-      if (ergebnis.status === "angemeldet") location.href = "quiz.html";
+      if (ergebnis.status === "angemeldet") location.href = "modus.html";
       else if (ergebnis.status === "gast") location.href = "quiz.html#gast";
     });
   });

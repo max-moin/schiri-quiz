@@ -60,6 +60,7 @@ const stildateien = readdirSync(STIL_ORDNER).filter((n) => n.endsWith(".css"));
 const OEFFENTLICHE_SEITEN = [
   "index.html", "termine.html", "regeluebersicht.html", "informationen.html",
   "spesenrechner.html", "vorlagen.html", "schiri-werden.html",
+  "modus.html", "entscheiden.html",
 ];
 
 // Die verbindliche Einbindereihenfolge. An ihr haengt die Kaskade: wird
@@ -72,9 +73,15 @@ const OEFFENTLICHE_SEITEN = [
 // obmann.css laedt nur obmann.html, spesen.css nur spesenrechner.html
 // und obmann.html. spesen.css MUSS zuletzt kommen, weil seine Regeln
 // vorher als <style>-Block am Ende des Kopfes standen.
+//
+// modus.css und entscheiden.css sind seitenspezifisch wie obmann.css und
+// stehen deshalb ebenfalls hinten - sie duerfen die gemeinsamen Regeln
+// ueberschreiben, aber nichts von ihnen darf auf eine andere Seite
+// durchschlagen.
 const REIHENFOLGE = [
   "basis", "kopf-fuss", "startseite", "termine", "regeln",
   "bausteine", "hinweise", "vorlagen", "anmeldung", "obmann", "spesen",
+  "modus", "entscheiden",
 ];
 
 test("es gibt keine gesammelte seite.css mehr", () => {
