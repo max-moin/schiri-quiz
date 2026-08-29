@@ -128,6 +128,19 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
         p_schiedsrichter_id: person.id, p_pin: person.pin, p_termin_id: terminId,
         p_status: status, p_grund: grund || null, p_kommentar: kommentar || null,
       }),
+
+    // Terminsuche unter mehreren Vorschlaegen (v91). Immer intern -
+    // es gibt bewusst keine Fassung ohne Anmeldung.
+    terminfindungen: (person) =>
+      rufe("terminfindungen_fuer_schiri", {
+        p_schiedsrichter_id: person.id, p_pin: person.pin,
+      }),
+
+    stimmen: (person, vorschlagId, antwort) =>
+      rufe("terminfindung_stimme_setzen", {
+        p_schiedsrichter_id: person.id, p_pin: person.pin,
+        p_vorschlag_id: vorschlagId, p_antwort: antwort,
+      }),
   });
 }
 
@@ -169,6 +182,67 @@ export function terminKarte(termin, { alsLink = true } = {}) {
 
   if (!alsLink) return `<div class="terminkarte${streifen}${vergangen}">${innen}</div>`;
   return `<a class="terminkarte${streifen}${vergangen}" href="termine.html?termin=${encodeURIComponent(termin.id)}">${innen}</a>`;
+}
+
+export const STIMMEN = [
+  ["ja", "Ja"],
+  ["vielleicht", "Vielleicht"],
+  ["nein", "Nein"],
+];
+
+// Eine Terminsuche als Karte. Anders als beim festen Termin gibt es hier
+// drei Antworten statt zwei: "vielleicht" trennt "geht knapp" von "geht
+// gar nicht" und ist bei der Terminsuche die eigentlich wichtige Angabe.
+export function findungKarte(findung) {
+  const vorschlaege = Array.isArray(findung.vorschlaege) ? findung.vorschlaege : [];
+  const entschieden = findung.status === "entschieden";
+
+  const zeilen = vorschlaege.map((v) => {
+    const gewaehlt = entschieden && v.id === findung.gewaehlter_vorschlag;
+    const angaben = [
+      uhrzeit(v.beginn_zeit) ? `${sicher(uhrzeit(v.beginn_zeit))} Uhr` : "",
+      v.ort ? sicher(v.ort) : "",
+    ].filter(Boolean).join(" · ");
+
+    // Nach der Entscheidung sind die Knoepfe sinnlos - dann zaehlt nur
+    // noch, welcher Vorschlag es geworden ist.
+    const knoepfe = entschieden ? "" : `
+      <div class="tf-stimmen">
+        ${STIMMEN.map(([wert, text]) => `
+          <button type="button" class="tf-stimme ${wert}${v.meine_antwort === wert ? " an" : ""}"
+                  data-vorschlag="${sicher(v.id)}" data-antwort="${wert}">${text}</button>`).join("")}
+      </div>`;
+
+    const stand = [
+      Number(v.ja) ? `${v.ja} ja` : "",
+      Number(v.vielleicht) ? `${v.vielleicht} vielleicht` : "",
+      Number(v.nein) ? `${v.nein} nein` : "",
+    ].filter(Boolean).join(" · ");
+
+    return `<div class="tf-vorschlag${gewaehlt ? " gewaehlt" : ""}">
+        <div class="tf-kopfzeile">
+          <span class="tf-datum">${sicher(datumKurz(v.datum))}</span>
+          ${angaben ? `<span class="tf-angaben">${angaben}</span>` : ""}
+          ${gewaehlt ? '<span class="wortmarke gruen">Es wird dieser</span>' : ""}
+        </div>
+        ${knoepfe}
+        ${stand ? `<p class="tf-stand">${sicher(stand)}</p>` : ""}
+      </div>`;
+  }).join("");
+
+  const frist = findung.antwort_bis && !entschieden
+    ? `<p class="tf-frist">Antwort bis ${sicher(datumLang(findung.antwort_bis))}</p>` : "";
+
+  return `<article class="terminfindung${entschieden ? " entschieden" : ""}" data-findung="${sicher(findung.id)}">
+      <div class="tf-kopf">
+        <span class="wortmarke${entschieden ? "" : " blau"}">${entschieden ? "Entschieden" : "Terminsuche"}</span>
+        <h3>${sicher(findung.titel)}</h3>
+        ${findung.beschreibung ? `<p class="tf-text">${sicher(findung.beschreibung)}</p>` : ""}
+        ${frist}
+      </div>
+      <div class="tf-liste">${zeilen}</div>
+      <p class="tf-meldung" data-tf-meldung hidden role="status"></p>
+    </article>`;
 }
 
 // Nach Monat gruppieren. Die Liste kommt absteigend vom Server; kuenftige

@@ -9,7 +9,20 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="seite.css" />
+  <!-- Gestaltung nach Funktion getrennt (29.08.2026).
+       Die Reihenfolge entspricht der Reihenfolge, in der die Bloecke
+       vorher in seite.css standen - daran haengt die Kaskade. Neue
+       Regeln kommen in die Datei ihrer Funktion, nicht ans Ende der
+       naechstbesten. tests/frontend-architecture.test.js prueft beides. -->
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/startseite.css" />
+  <link rel="stylesheet" href="stil/termine.css" />
+  <link rel="stylesheet" href="stil/regeln.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/hinweise.css" />
+  <link rel="stylesheet" href="stil/vorlagen.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
 </head>
 <body>
 

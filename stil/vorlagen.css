@@ -1,0 +1,61 @@
+/* ============================================================
+   Vorlagen zum Kopieren
+   ============================================================
+   Teil der nach Funktion aufgeteilten Gestaltung (29.08.2026).
+
+   Vorher lag alles in einer seite.css mit 1.940 Zeilen, und jede neue
+   Funktion wurde hinten drangehaengt. Max am 29.08.2026: "dass nicht
+   alles in App.js reinkommt und in CSS, sondern dass das nach Funktion
+   getrennt wird." Beim JavaScript war das laengst so, beim CSS nicht.
+
+   Neue Regeln gehoeren in die Datei ihrer Funktion, nicht ans Ende der
+   naechstbesten. Die Einbindereihenfolge in den HTML-Dateien entspricht
+   der Reihenfolge, in der die Bloecke vorher in seite.css standen -
+   daran haengt die Kaskade. tests/frontend-architecture.test.js prueft
+   beides.
+   ============================================================ */
+
+/* ---------- Vorlagen zum Kopieren ---------- */
+
+.vorlage { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+.vorlage-kopf {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 11px 15px;
+  background: var(--marke-lighter);
+  border-bottom: 1px solid var(--border);
+}
+.vorlage-titel { font-family: var(--font-titel); font-weight: 700; font-size: .85rem; display: flex; align-items: center; gap: 9px; }
+.entwurf {
+  font-size: .65rem; font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+  background: var(--karte-gelb-hell); color: #713f12;
+  border: 1px solid #fde68a; border-radius: 999px; padding: 3px 8px;
+}
+.kopieren {
+  margin-left: auto;
+  font: inherit; font-size: .8rem; font-weight: 600;
+  padding: 9px 16px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card); color: var(--marke-hell);
+  cursor: pointer; min-height: 40px;
+}
+.kopieren:hover { border-color: var(--marke-hell); }
+.kopieren.fertig { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
+
+/* Der Vorlagentext selbst. Monospace, damit man beim Ausfüllen sieht, wo
+   die eckigen Klammern anfangen und aufhören. Umbruch erlaubt, sonst
+   entsteht auf dem Handy ein waagerechter Schieber. */
+.vorlage-text {
+  margin: 0;
+  padding: 16px 17px;
+  font-family: "SF Mono", ui-monospace, "Cascadia Mono", Menlo, Consolas, monospace;
+  font-size: .82rem;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+}
+
+.quelle { font-size: .78rem; font-style: italic; }
+
+/* Verweise innerhalb des Hinweisbalkens: gleiche Farbfamilie, damit der
+   Balken nicht durch ein blaues Link-Blau auseinanderfällt. */
+.hinweisbalken a { color: #713f12; font-weight: 700; }

@@ -1,0 +1,235 @@
+/* ============================================================
+   Grundlagen: Farben, Schrift, Layout, Bildflaechen
+   ============================================================
+   Teil der nach Funktion aufgeteilten Gestaltung (29.08.2026).
+
+   Vorher lag alles in einer seite.css mit 1.940 Zeilen, und jede neue
+   Funktion wurde hinten drangehaengt. Max am 29.08.2026: "dass nicht
+   alles in App.js reinkommt und in CSS, sondern dass das nach Funktion
+   getrennt wird." Beim JavaScript war das laengst so, beim CSS nicht.
+
+   Neue Regeln gehoeren in die Datei ihrer Funktion, nicht ans Ende der
+   naechstbesten. Die Einbindereihenfolge in den HTML-Dateien entspricht
+   der Reihenfolge, in der die Bloecke vorher in seite.css standen -
+   daran haengt die Kaskade. tests/frontend-architecture.test.js prueft
+   beides.
+   ============================================================ */
+
+/* ============================================================
+   Styles für die Vereinsseiten: Startseite, Schiri werden, Regeln,
+   Spesenrechner, Vorlagen und Unterlagen.
+
+   BEWUSST GETRENNT von style.css: Das Quiz läuft seit Wochen und wird
+   von echten Schiedsrichtern benutzt. Eine gemeinsame Datei hieße, dass
+   jede Änderung an der neuen Seite das Quiz kaputtmachen könnte. Diese
+   Datei wird vom Quiz nirgends eingebunden.
+
+   Die Farbrollen sind aus style.css übernommen, damit beide Bereiche
+   zusammen aussehen: Anthrazit ist die Marke, Grün und Rot bleiben
+   ausschließlich Rückmeldung und werden hier nicht dekorativ verwendet.
+   ============================================================ */
+
+:root {
+  --marke: #1f2937;
+  --marke-dunkel: #111827;
+  --marke-hell: #374151;
+  --marke-lighter: #f3f4f6;
+  --green: #16a34a;
+  --green-dark: #15803d;
+  --green-light: #dcfce7;
+  --blau: #2563eb;
+  --blau-hell: #dbeafe;
+  --karte-gelb: #facc15;
+  --karte-gelb-hell: #fef9c3;
+  --red: #dc2626;
+  --red-hell: #fee2e2;
+  --bg-start: #f6f7f9;
+  --bg-end: #eef0f4;
+  --card: #ffffff;
+  --text: #111827;
+  /* von #6b7280 abgedunkelt: auf hellgrauem Grund (--marke-lighter) lag der
+     alte Wert bei 4,39:1 und damit knapp unter WCAG AA. */
+  --muted: #5b6371;
+  --border: #e5e7eb;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 2px 10px rgba(16, 24, 40, .06), 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow-hover: 0 12px 28px rgba(16, 24, 40, .12);
+  --font-titel: "Poppins", "Segoe UI", sans-serif;
+  --font-text: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-text);
+  background: linear-gradient(160deg, var(--bg-start), var(--bg-end));
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+[hidden] { display: none !important; }
+
+/* Sichtbarer Fokus überall - Tastaturbedienung muss nachvollziehbar sein. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+/* Nur für Screenreader. */
+.nur-vorlesen {
+  position: absolute;
+  width: 1px; height: 1px;
+  padding: 0; margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---------- Inhaltsbereich ---------- */
+
+.inhalt { max-width: 1140px; margin: 0 auto; padding: 30px 20px 50px; }
+
+.abschnitt { margin-bottom: 36px; }
+
+.abschnitt-kopf {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.abschnitt-kopf h2 {
+  font-family: var(--font-titel);
+  font-size: clamp(1.45rem, 2.6vw, 2.1rem);
+  font-weight: 800;
+  letter-spacing: -.02em;
+  line-height: 1.1;
+  margin: 0;
+}
+.abschnitt-kopf .mehr {
+  margin-left: auto;
+  font-size: .81rem;
+  color: var(--marke-hell);
+  text-decoration: none;
+  font-weight: 600;
+}
+.abschnitt-kopf .mehr:hover { text-decoration: underline; }
+
+.abschnitt-hinweis { color: var(--muted); font-size: .85rem; margin: -10px 0 16px; line-height: 1.55; }
+
+/* Seitenüberschriften - standen vorher als Inline-Style in jeder Datei. */
+.seiten-titel {
+  font-family: var(--font-titel);
+  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.05;
+  margin: 6px 0 8px;
+}
+.seiten-unter { color: var(--muted); font-size: 1rem; margin: 0 0 30px; max-width: 60ch; line-height: 1.6; }
+/* Links im Vorspann sahen als blaue Standardlinks aus wie ein Fremdkoerper
+   im Layout (im Rendering am 22.08.2026 gesehen). Gleiche Sprache wie die
+   Links in der Probefrage: Markenfarbe, gruene Unterkante statt
+   Unterstreichung. */
+.seiten-unter a {
+  color: var(--marke-dunkel); font-weight: 600; text-decoration: none;
+  border-bottom: 2px solid var(--green); padding-bottom: 1px;
+}
+.seiten-unter a:hover { border-bottom-color: var(--marke-dunkel); }
+
+/* ---------- Bildflächen ----------
+   Solange keine echten Fotos vorliegen, zeigen diese Flächen einen
+   Platzhalter mit Beschreibung dessen, was dorthin gehört. Sobald ein
+   Bild da ist, wird der Inhalt einfach durch ein <img> ersetzt. */
+
+.bildflaeche {
+  position: relative;
+  background: linear-gradient(135deg, var(--marke-hell), var(--marke-dunkel));
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+/* Das Bild liegt ABSOLUT in der Fläche, nicht als Rasterkind darin.
+   Vorher konnte es die Fläche auseinanderdrücken: "place-items: center"
+   streckt Rasterkinder nicht, und "min-height: auto" ließ das Bild seine
+   natürliche Höhe behalten. Ein hochformatiges Foto machte aus einer
+   262×180-Kachel eine 262×349 - genau das "die Bilder sind verschoben und
+   passen nicht so ganz rein" (Max, 21.08.2026). Am gerenderten Screenshot
+   nachgemessen, nicht geraten. */
+.bildflaeche > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.bildflaeche::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(45deg, rgba(255,255,255,.028) 0 12px, transparent 12px 24px);
+}
+
+.bild-platzhalter {
+  position: relative; z-index: 2;
+  color: rgba(255,255,255,.62);
+  font-size: .72rem; text-align: center;
+  padding: 12px 16px; line-height: 1.5; font-weight: 500;
+}
+.bild-platzhalter strong { display: block; font-size: 1.5rem; margin-bottom: 5px; opacity: .5; }
+
+/* ---------- Kleinteile ---------- */
+
+.fliesstext { max-width: 64ch; line-height: 1.75; font-size: .95rem; margin: 0; }
+.knopfreihe { display: flex; gap: 10px; flex-wrap: wrap; }
+
+/* ---------- Sprungmarke ----------
+   Bei einem klebenden Kopf mit fünf Navigationslinks muss sich sonst
+   jeder Tastaturnutzer auf JEDER Seite erneut durch die Navigation
+   tabben, bevor er im Inhalt ankommt. Sichtbar nur bei Tastaturfokus. */
+
+.sprungmarke {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  background: var(--marke-dunkel);
+  color: #fff;
+  padding: 12px 20px;
+  border-radius: 0 0 var(--radius-sm) 0;
+  font-size: .88rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.sprungmarke:focus { left: 0; }
+
+/* Der Sprung setzt den Fokus auf <main>, das dafür tabindex="-1" trägt.
+   Ohne diese Regel malt der Browser dort einen Rahmen um die halbe
+   Seite. */
+.inhalt:focus { outline: none; }
+
+/* Ergänzt aria-current="page": Unterseiten eines Bereichs (Regelübersicht,
+   Vorlagen) markieren den Bereichseintrag mit aria-current="true" -
+   derselbe Balken, aber semantisch korrekt, weil der Link woanders
+   hinführt. */
+.haupt-nav a[aria-current="true"] {
+  color: var(--marke-dunkel);
+  font-weight: 700;
+  /* Vorher var(--border) - das ist #e5e7eb auf Weiß und damit ein Balken,
+     den niemand sieht. Jetzt derselbe Balken wie beim aktiven Eintrag, nur
+     gedämpft, damit der Unterschied zwischen "diese Seite" und "dieser
+     Bereich" erkennbar bleibt. Review 21.08.2026. */
+  box-shadow: inset 0 -2px 0 var(--marke-hell);
+  opacity: .85;
+}

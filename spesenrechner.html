@@ -9,69 +9,21 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="seite.css" />
-  <style>
-    .rechner { display: grid; grid-template-columns: 1.15fr .85fr; gap: 26px; align-items: start; }
-    @media (max-width: 880px) { .rechner { grid-template-columns: 1fr; } }
-
-    /* ---------- Schrittweise statt Formularwüste ----------
-       Max' Kritik: "Die Bedienoberfläche sieht noch nicht wirklich geil
-       aus." Vorher waren es drei graue Kästen mit zwölf Feldern
-       untereinander. Jetzt nummerierte Schritte - man sieht, wo man
-       steht, und jeder Schritt stellt genau eine Frage. */
-    .schritt { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 14px; overflow: hidden; }
-    .schritt-kopf { display: flex; align-items: center; gap: 11px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
-    .schritt-nr { width: 26px; height: 26px; border-radius: 50%; background: var(--marke); color: #fff; display: grid; place-items: center; font-size: .78rem; font-weight: 700; flex: none; }
-    .schritt-kopf h2 { font-family: var(--font-titel); font-size: .97rem; margin: 0; }
-    .schritt-koerper { padding: 16px 18px 18px; }
-
-    label { display: block; font-size: .79rem; font-weight: 600; margin-bottom: 6px; color: var(--marke-hell); }
-    /* Erklaerender Nachsatz am Etikett: leiser als das Etikett selbst,
-       damit er das Feld nicht ueberschreit (22.08.2026). */
-    .etikett-zusatz { font-weight: 500; color: var(--muted); }
-    .feld { width: 100%; padding: 12px 13px; border: 1px solid var(--border); border-radius: 11px; font: inherit; font-size: .9rem; background: #fff; min-height: 46px; }
-    .feld:disabled { background: #f9fafb; color: #9ca3af; }
-    .hinweis-klein { font-size: .75rem; color: var(--muted); line-height: 1.5; margin: 7px 0 0; }
-
-    /* ---------- Ligen als Leiter statt Auswahlliste ----------
-       Max' Vorgabe: Reihenfolge nach Spielstärke von unten nach oben,
-       ohne Sponsorennamen. Als Knopfreihe sieht man die Rangfolge auf
-       einen Blick - in einer Auswahlliste sieht man immer nur eine. */
-    /* Absteigend im DOM (stärkste Liga zuerst) statt per "column-reverse"
-       gedreht. Vorher liefen Tastaturfokus und Screenreader genau
-       entgegengesetzt zur Anzeige. */
-    .vb-svfd { background: var(--green-light); color: var(--green-dark); }
-    .vb-sfv { background: var(--blau-hell); color: #1d4ed8; }
-
-    .haken-reihe { display: flex; flex-wrap: wrap; gap: 8px; }
-    .haken { display: flex; align-items: center; gap: 9px; border: 1.5px solid var(--border); border-radius: 999px; padding: 10px 16px 10px 13px; cursor: pointer; font-size: .85rem; font-weight: 500; background: #fff; user-select: none; min-height: 46px; }
-    .haken input { margin: 0; width: 16px; height: 16px; accent-color: var(--marke); }
-    .haken.an { border-color: var(--marke); background: var(--marke-lighter); font-weight: 600; }
-    .haken.gesperrt { opacity: .55; cursor: not-allowed; }
-
-    /* ---------- Quittung ---------- */
-    .quittung { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; position: sticky; top: 80px; background: var(--card); box-shadow: var(--shadow); }
-    .q-kopf { background: var(--marke); color: #fff; padding: 15px 18px; }
-    .q-kopf h2 { margin: 0; font-size: .95rem; font-family: var(--font-titel); font-weight: 600; }
-    .q-kopf .sub { font-size: .74rem; opacity: .7; margin-top: 3px; }
-    .person { border-bottom: 1px solid var(--border); }
-    .person-kopf { background: #fafafa; padding: 9px 18px; font-size: .74rem; font-weight: 700; text-transform: uppercase; letter-spacing: .04em; color: var(--marke-hell); }
-    .q-zeile { display: flex; justify-content: space-between; font-size: .86rem; padding: 10px 18px; gap: 14px; border-bottom: 1px solid #f7f7f8; }
-    .q-zeile:last-child { border-bottom: 0; }
-    .q-zeile b { white-space: nowrap; }
-    .q-zeile .klein { display: block; font-size: .72rem; color: var(--muted); margin-top: 2px; font-weight: 400; }
-    .q-zeile.person-summe { background: #fcfcfd; font-weight: 600; }
-    .q-zeile.unsicher { background: #fffbeb; }
-    .q-zeile.unsicher b { color: #854d0e; }
-    .q-gesamt { display: flex; justify-content: space-between; padding: 17px 18px; background: var(--green-light); font-size: 1.15rem; align-items: center; font-family: var(--font-titel); }
-    .q-gesamt b:last-child { color: var(--green-dark); }
-    .q-haftung { font-size: .74rem; color: #713f12; padding: 13px 18px; background: #fffbeb; border-top: 1px solid #fde68a; line-height: 1.55; margin: 0; }
-
-    .lage-marker { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 6px; }
-    .lm-dd { background: var(--green-light); color: var(--green-dark); }
-    .lm-aus { background: var(--karte-gelb-hell); color: #854d0e; }
-    .lm-frag { background: var(--red-hell); color: #991b1b; }
-  </style>
+  <!-- Gestaltung nach Funktion getrennt (29.08.2026).
+       Die Reihenfolge entspricht der Reihenfolge, in der die Bloecke
+       vorher in seite.css standen - daran haengt die Kaskade. Neue
+       Regeln kommen in die Datei ihrer Funktion, nicht ans Ende der
+       naechstbesten. tests/frontend-architecture.test.js prueft beides. -->
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/startseite.css" />
+  <link rel="stylesheet" href="stil/termine.css" />
+  <link rel="stylesheet" href="stil/regeln.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/hinweise.css" />
+  <link rel="stylesheet" href="stil/vorlagen.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/spesen.css" />
 </head>
 <body>
 

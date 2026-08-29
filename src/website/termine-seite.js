@@ -9,8 +9,8 @@
 
 import { DATENBANK, VEREIN } from "../../verein.config.js";
 import {
-  erstelleTerminZugriff, terminKarte, nachMonatenGruppiert, teileVergangenheitAb,
-  datumLang, zeitspanne, sicher, GRUENDE, ARTEN,
+  erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
+  teileVergangenheitAb, datumLang, zeitspanne, sicher, GRUENDE, ARTEN,
 } from "./termine.js";
 
 const bereich = document.getElementById("terminBereich");
@@ -47,7 +47,7 @@ async function ladeTermine() {
 
 // ---------- Liste ----------
 
-function zeichneListe(termine) {
+function zeichneListe(termine, findungen) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
 
@@ -92,9 +92,47 @@ function zeichneListe(termine) {
         </section>`).join("")}
     </details>` : "";
 
+  // Terminsuchen stehen UEBER den Terminen: dort ist noch etwas zu
+  // entscheiden, bei den Terminen nur noch zur Kenntnis zu nehmen.
+  const offeneFindungen = (findungen || []).filter((f) => f.status === "offen");
+  const findungHtml = offeneFindungen.length ? `
+    <section class="terminmonat">
+      <h2 class="terminmonat-titel">Zur Abstimmung</h2>
+      ${offeneFindungen.map((f) => findungKarte(f)).join("")}
+    </section>` : "";
+
   bereich.innerHTML = `${kopf}
+    ${findungHtml}
     ${kuenftig.length ? kuenftigHtml : '<p class="keine">Zurzeit steht kein Termin an.</p>'}
     ${vergangenHtml}`;
+
+  if (offeneFindungen.length) bindeStimmen();
+}
+
+// Die drei Knoepfe je Vorschlag. Der Stand wird nach dem Klick nicht neu
+// vom Server geholt: das waere ein zweiter Rundlauf fuer eine Zahl, die
+// sich um genau eins aendert.
+function bindeStimmen() {
+  bereich.querySelectorAll("[data-antwort]").forEach((knopf) => {
+    knopf.addEventListener("click", async () => {
+      const karte = knopf.closest(".terminfindung");
+      const meldung = karte.querySelector("[data-tf-meldung]");
+      const vorschlag = knopf.dataset.vorschlag;
+      try {
+        await zugriff.stimmen(person(), vorschlag, knopf.dataset.antwort);
+      } catch (fehler) {
+        meldung.textContent = `Konnte nicht gespeichert werden: ${fehler.message}`;
+        meldung.dataset.art = "fehler";
+        meldung.hidden = false;
+        return;
+      }
+      karte.querySelectorAll(`[data-vorschlag="${CSS.escape(vorschlag)}"]`).forEach((k) =>
+        k.classList.toggle("an", k === knopf));
+      meldung.textContent = "Antwort gespeichert.";
+      meldung.dataset.art = "erfolg";
+      meldung.hidden = false;
+    });
+  });
 }
 
 // ---------- Einzelansicht ----------
@@ -288,6 +326,13 @@ async function start() {
     return;
   }
 
+  // Terminsuchen gibt es nur fuer Angemeldete. Scheitert der Abruf,
+  // bleibt die Terminliste trotzdem stehen.
+  let findungen = [];
+  if (person() && !gewaehlteId) {
+    try { findungen = await zugriff.terminfindungen(person()); } catch { findungen = []; }
+  }
+
   if (gewaehlteId) {
     const termin = termine.find((t) => t.id === gewaehlteId);
     if (!termin) {
@@ -314,7 +359,7 @@ async function start() {
     return;
   }
 
-  zeichneListe(termine);
+  zeichneListe(termine, findungen);
   bindeAnmeldeKnoepfe();
 }
 

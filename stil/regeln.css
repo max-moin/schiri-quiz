@@ -1,0 +1,213 @@
+/* ============================================================
+   Regeluebersicht: Filter, Karten, Tabelle, Abzeichen
+   ============================================================
+   Teil der nach Funktion aufgeteilten Gestaltung (29.08.2026).
+
+   Vorher lag alles in einer seite.css mit 1.940 Zeilen, und jede neue
+   Funktion wurde hinten drangehaengt. Max am 29.08.2026: "dass nicht
+   alles in App.js reinkommt und in CSS, sondern dass das nach Funktion
+   getrennt wird." Beim JavaScript war das laengst so, beim CSS nicht.
+
+   Neue Regeln gehoeren in die Datei ihrer Funktion, nicht ans Ende der
+   naechstbesten. Die Einbindereihenfolge in den HTML-Dateien entspricht
+   der Reihenfolge, in der die Bloecke vorher in seite.css standen -
+   daran haengt die Kaskade. tests/frontend-architecture.test.js prueft
+   beides.
+   ============================================================ */
+
+/* ---------- Herkunfts-Abzeichen ----------
+   Wird von den Listenzeilen der Informationsseite benutzt. Die frueheren
+   Dokumentkacheln daneben sind entfallen. */
+
+.abzeichen {
+  font-size: .68rem; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+  text-transform: uppercase; letter-spacing: .03em;
+}
+.abz-hier { background: var(--green-light); color: var(--green-dark); }
+.abz-extern { background: var(--blau-hell); color: #1d4ed8; }
+
+/* ---------- Regelübersicht ----------
+   Das Original des Stadtverbands ist eine Tabelle mit zehn Spalten. Auf
+   dem Handy ist die praktisch unlesbar, und man muss jedes Mal die
+   richtige Zeile suchen. Deshalb hier Karten statt Tabelle: eine Karte
+   je Spielklasse, Werte beschriftet, Filter und Suche darüber. */
+
+.filterleiste { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 9px; }
+.filterleiste button {
+  font: inherit; font-size: .81rem; font-weight: 600;
+  padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--card);
+  cursor: pointer; color: var(--marke-hell);
+  min-height: 44px;
+}
+.filterleiste button:hover { border-color: var(--marke-hell); }
+.filterleiste button.an { background: var(--marke); color: #fff; border-color: var(--marke); }
+
+
+.regelkarten { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
+
+.rk { border: 1px solid var(--border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card); }
+.rk-kopf { padding: 11px 14px; background: var(--marke-lighter); border-bottom: 1px solid var(--border); }
+.rk-kopf .klasse { font-size: .9rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.3; margin-top: 2px; }
+.rk-werte { display: grid; grid-template-columns: 1fr 1fr; }
+.wert { padding: 9px 14px; border-bottom: 1px solid #f3f4f6; border-right: 1px solid #f3f4f6; }
+.wert:nth-child(2n) { border-right: 0; }
+.wert .l { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600; }
+.wert .v { font-size: .87rem; font-weight: 600; margin-top: 1px; }
+/* Die gelbe Hervorhebung ist entfallen. Sie stammte aus dem Original des
+   Stadtverbands und markierte dort die Änderungen zur Saison 2024/25 -
+   Max, 18.08.2026: "dadurch, dass das ja auch Stand 24/25 ist, sind die
+   Erneuerungen ja auch schon wieder veraltet". Eine Markierung, die etwas
+   Falsches behauptet, ist schlechter als gar keine. */
+
+.rk-fuss { padding: 9px 14px; font-size: .76rem; color: var(--muted); line-height: 1.5; }
+.keine { padding: 26px; text-align: center; color: var(--muted); font-size: .88rem; }
+
+/* ---------- Ausklappbare Frage/Antwort ---------- */
+
+.faltung {
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--card); margin-bottom: 9px; overflow: hidden;
+}
+.faltung > summary {
+  padding: 15px 17px;
+  font-weight: 600; font-size: .92rem; font-family: var(--font-titel);
+  cursor: pointer; list-style: none;
+  display: flex; align-items: center; gap: 11px;
+  min-height: 44px;
+}
+.faltung > summary::-webkit-details-marker { display: none; }
+.faltung > summary::after {
+  content: "+"; margin-left: auto;
+  font-size: 1.25rem; color: var(--muted); line-height: 1;
+  transition: transform .18s;
+}
+.faltung[open] > summary::after { content: "−"; }
+.faltung > summary:hover { background: #f9fafb; }
+/* .faltung hat overflow:hidden (fuer die runden Ecken). Der Fokusrahmen
+   liegt mit outline-offset:2px ausserhalb und wurde dadurch komplett
+   weggeschnitten - Tastaturbedienung ohne jede Rueckmeldung. Rahmen nach
+   innen zeichnen loest das, ohne die Ecken aufzugeben. */
+.faltung > summary:focus-visible { outline-offset: -3px; }
+.faltung .antwort { padding: 0 17px 16px; font-size: .87rem; color: var(--muted); line-height: 1.65; }
+.faltung .antwort p { margin: 0 0 9px; }
+.faltung .antwort p:last-child { margin-bottom: 0; }
+
+/* ---------- Regelübersicht: Gruppierung nach Altersklasse ---------- */
+
+.regelgruppe { margin-bottom: 30px; }
+.regelgruppe-titel {
+  font-family: var(--font-titel); font-size: 1.02rem; margin: 0 0 12px;
+  display: flex; align-items: center; gap: 13px;
+}
+/* Linie hinter der Überschrift statt eines weiteren Kastens - trennt die
+   Gruppen, ohne dass noch ein Rahmen dazukommt. */
+.regelgruppe-titel::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+/* Ungerade Anzahl Werte: der letzte nimmt beide Spalten ein, statt dass
+   eine leere Zelle danebensteht. Vorher wurde dafür ein leerer
+   Platzhalter mitgerendert. */
+.wert:last-child:nth-child(odd) { grid-column: 1 / -1; border-right: 0; }
+.rk-werte .wert:last-child { border-bottom: 0; }
+/* Bei GERADER Anzahl steht in der letzten Rasterzeile noch ein zweites Feld
+   links daneben - das behielt seinen Unterstrich und hinterließ einen halben
+   Strich unter der Karte. Trat erst mit der Landesebene auf, weil die als
+   einzige Ansicht eine gerade Anzahl Werte hat (12). Review 21.08.2026. */
+.rk-werte .wert:nth-last-child(2):nth-child(odd) { border-bottom: 0; }
+
+/* Lange Werte wie "Normalspielball Größe 5 (430 g)" haben in der schmalen
+   Zelle wenig Reserve. .rk hat overflow:hidden, ein Überlauf würde also
+   stillschweigend abgeschnitten statt sichtbar zu werden. */
+.wert .v { overflow-wrap: anywhere; }
+
+/* ---------- Regelübersicht: Tabelle ab Desktop-Breite (29.08.2026) ----------
+   Max: für den Desktop soll man mehrere Spielklassen einer Altersgruppe
+   nebeneinander vergleichen können (Regeln-Variante C) - das Kartenraster
+   dafür lässt sich schlecht überfliegen. Unter der bestehenden 760/761-px-
+   Schwelle (siehe Medienabfragen oben) bleiben die Karten die einzige
+   Ansicht: eine Tabelle mit teils zehn Spalten wäre auf dem Handy nur ein
+   Schiebebalken. */
+.rk-tabelle-wrap { display: none; }
+
+@media (min-width: 761px) {
+  .rk-tabelle-wrap {
+    display: block;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--card);
+    margin-bottom: 12px;
+  }
+  .regelkarten { display: none; }
+
+  .rk-tabelle { width: 100%; border-collapse: collapse; font-size: .82rem; }
+  .rk-tabelle th, .rk-tabelle td { padding: 9px 13px; text-align: left; border-bottom: 1px solid #f3f4f6; white-space: nowrap; }
+  .rk-tabelle td { overflow-wrap: anywhere; white-space: normal; }
+  .rk-tabelle thead th {
+    position: sticky; top: 0;
+    background: var(--marke-lighter);
+    font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); font-weight: 600;
+    border-bottom: 1px solid var(--border);
+  }
+  .rk-tabelle tbody tr:last-child td, .rk-tabelle tbody tr:last-child th { border-bottom: 0; }
+  .rk-tabelle tbody tr:hover { background: #fafafa; }
+  .rk-tabelle tbody th { font-weight: 700; font-family: var(--font-titel); white-space: normal; }
+  /* Erklärung per Tooltip statt Icon - dieselbe "Wörter statt Symbole"-Regel
+     wie bei .sym-wort. <abbr> bringt die gepunktete Unterstreichung schon
+     mit, nur die Farbe wird an die Palette angepasst. */
+  .rk-tabelle abbr { text-decoration-color: var(--muted); cursor: help; }
+  .rk-tabelle-hinweis { color: #713f12; font-size: .78rem; }
+  .rk-tabelle-hinweis .sym-wort { margin-right: 4px; }
+}
+
+/* ---------- Widerspruch zwischen zwei Quellen ----------
+   Steht an der einzelnen Regelkarte, nicht als Fußnote am Seitenende.
+   Wer nur schnell die Spielzeit nachschlägt, scrollt nicht bis unten -
+   und genau der soll die Warnung sehen. */
+
+/* Bewusst leiser als .hinweisbalken: taucht potenziell mehrfach pro
+   Seitenansicht auf (je eine Karte mit Widerspruch), eine flaechige
+   Gelbfaerbung an mehreren Stellen zugleich wirkte laut statt auffaellig
+   (29.08.2026). Duennerer Farbakzent statt Flaeche traegt dieselbe
+   Bedeutung, ohne die Seite zu uebertoenen. */
+.rk-konflikt {
+  margin: 0 12px 12px;
+  padding: 9px 12px 9px 13px;
+  background: #fffdf6;
+  border-left: 3px solid #f2b90c;
+  border-radius: 6px;
+  font-size: .78rem;
+  line-height: 1.55;
+  color: var(--marke-hell);
+}
+.rk-konflikt strong { color: var(--marke-dunkel); }
+
+/* Ruhige Variante des Hinweisbalkens: gleiche Form, aber ohne die
+   Alarmfarbe. Für Angaben, die stimmen und nur eingeordnet werden. */
+.hinweisbalken.ruhig {
+  background: #f7fafd;
+  border-left-color: var(--blau);
+  color: var(--text);
+}
+.hinweisbalken.ruhig strong { color: #12263f; }
+.hinweisbalken.ruhig a { color: #1e3a5f; }
+
+/* Zwei Segmentschalter untereinander brauchen etwas Luft dazwischen. */
+#ebeneFilter { margin-bottom: 16px; }
+
+/* ---------- Herkunft: Landesverband ----------
+   Dritte Stufe neben "Bei uns" (grün) und "Stadtverband" (blau). Violett,
+   weil es sich von beiden deutlich unterscheiden muss - die Frage, WER für
+   eine Angabe geradesteht, entscheidet bei widersprüchlichen Quellen alles.
+   Kontrast 7,4:1 auf dem hellen Grund, also deutlich über WCAG AA. */
+
+.abz-land { background: #ede9fe; color: #5b21b6; }
+.abz-dfb { background: var(--red-hell); color: #991b1b; }
+.lz-symbol.land { background: #ede9fe; }
+
+/* Gesamtsumme, in der etwas fehlt oder ungeprüft ist. Grün signalisiert
+   "fertig" - genau das darf hier nicht stehen, wenn z.B. die Fahrtkosten
+   der Assistenten noch fehlen. Kontrast 8,07:1. */
+.q-gesamt.unvollstaendig { background: var(--karte-gelb-hell); }
+.q-gesamt.unvollstaendig b:last-child { color: #713f12; }

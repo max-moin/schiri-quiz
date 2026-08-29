@@ -1,0 +1,343 @@
+/* ============================================================
+   Startseite: Aufmacher, Bildkacheln, Probefrage, bildgefuehrte Abschnitte
+   ============================================================
+   Teil der nach Funktion aufgeteilten Gestaltung (29.08.2026).
+
+   Vorher lag alles in einer seite.css mit 1.940 Zeilen, und jede neue
+   Funktion wurde hinten drangehaengt. Max am 29.08.2026: "dass nicht
+   alles in App.js reinkommt und in CSS, sondern dass das nach Funktion
+   getrennt wird." Beim JavaScript war das laengst so, beim CSS nicht.
+
+   Neue Regeln gehoeren in die Datei ihrer Funktion, nicht ans Ende der
+   naechstbesten. Die Einbindereihenfolge in den HTML-Dateien entspricht
+   der Reihenfolge, in der die Bloecke vorher in seite.css standen -
+   daran haengt die Kaskade. tests/frontend-architecture.test.js prueft
+   beides.
+   ============================================================ */
+
+/* ---------- Aufmacher ---------- */
+
+.aufmacher {
+  position: relative;
+  /* Vorher feste 300px. Max, 21.08.2026: mit großen Bildern und großen
+     Überschriften arbeiten - dafür braucht der Aufmacher echte Höhe. */
+  height: clamp(380px, 56vh, 540px);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 44px;
+}
+.aufmacher .bildflaeche { position: absolute; inset: 0; }
+/* Der Verlauf war vorher fast bis oben dunkel und drückte das Bild weg.
+   Jetzt nur noch unten so viel Abdunklung, wie die Schrift zum Lesen
+   braucht - der obere Teil des Fotos bleibt hell (Max, 18.08.2026:
+   "ein bisschen ansprechender, freundlicher, heller"). */
+.aufmacher-text {
+  /* Der Verlauf muss unten kräftig genug sein, damit auch der Kicker und
+     der Fließtext auf hellen Fotos stehen bleiben - nicht nur die fette
+     Überschrift. */
+  background: linear-gradient(to top,
+              rgba(9,13,22,.94) 0%, rgba(9,13,22,.80) 34%,
+              rgba(9,13,22,.38) 66%, rgba(9,13,22,.05) 100%);
+  position: absolute; inset: 0; z-index: 3;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: clamp(28px, 4vw, 48px);
+}
+.aufmacher h1 {
+  font-size: clamp(2.1rem, 5.4vw, 4rem);
+  letter-spacing: -.03em;
+  font-weight: 800;
+  line-height: 1.02;
+  font-family: var(--font-titel);
+  color: #fff;
+  margin: 0 0 10px;
+  max-width: 16ch;
+}
+.aufmacher p { color: #e5e7eb; margin: 0 0 22px; font-size: 1.02rem; max-width: 44ch; line-height: 1.5; }
+.aufmacher-knoepfe { display: flex; gap: 9px; flex-wrap: wrap; }
+
+@media (max-width: 560px) {
+  .aufmacher { height: clamp(340px, 62vh, 460px); }
+}
+
+.knopf-haupt, /* Der weisse Hauptknopf ist fuer den dunklen Aufmacher gebaut. Auf dem
+   hellen Seitengrund lag seine Flaeche bei 1,07:1 gegen den Hintergrund -
+   der Knopf war als Knopf nicht zu erkennen. Fuer die Bildzeilen deshalb
+   eine dunkle Fassung. */
+.knopf-dunkel {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--marke-dunkel); color: #fff;
+  border: 0; border-radius: 999px;
+  padding: 14px 26px; min-height: 48px;
+  font: inherit; font-weight: 700; font-size: .92rem;
+  text-decoration: none; cursor: pointer;
+}
+.knopf-dunkel:hover { background: #000; }
+
+.knopf-rand {
+  border-radius: 999px;
+  padding: 12px 21px;
+  font: inherit; font-weight: 700; font-size: .87rem;
+  cursor: pointer; text-decoration: none;
+  min-height: 44px;
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.knopf-haupt { background: #fff; color: var(--marke-dunkel); border: 0; }
+.knopf-haupt:hover { background: #f3f4f6; }
+.knopf-rand { background: transparent; color: #fff; border: 1.5px solid rgba(255,255,255,.55); font-weight: 600; }
+.knopf-rand:hover { background: rgba(255,255,255,.13); }
+
+/* ---------- Bildkacheln ---------- */
+
+.kachelraster {
+  display: grid;
+  gap: 15px;
+  grid-template-columns: repeat(auto-fit, minmax(212px, 1fr));
+}
+
+.bildkachel {
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--card);
+  text-decoration: none;
+  color: inherit;
+  transition: box-shadow .18s, transform .18s, border-color .18s;
+  display: flex; flex-direction: column;
+}
+.bildkachel:hover { box-shadow: var(--shadow-hover); transform: translateY(-3px); border-color: #d1d5db; }
+/* Festes Seitenverhältnis statt eines 118px-Streifens. Vorher richtete sich
+   die Höhe nach dem Bild: ein hochformatiges Foto sprengte die Kachel, ein
+   breites wurde zum Balken - genau das "verschoben, passt nicht rein", das
+   Max am 21.08.2026 gemeldet hat. Jetzt bekommt jede Kachel dieselbe Fläche,
+   und object-fit:cover schneidet mittig zu. */
+.bildkachel .bildflaeche { height: auto; aspect-ratio: 16 / 11; }
+.bildkachel-text { padding: 18px 18px 20px; }
+.bildkachel h3 {
+  margin: 0 0 6px;
+  font-size: 1.12rem;
+  font-family: var(--font-titel);
+  font-weight: 700;
+  letter-spacing: -.01em;
+}
+.bildkachel p { margin: 0; font-size: .87rem; color: var(--muted); line-height: 1.55; }
+
+/* ---------- Probefrage auf der Startseite ----------
+   Ersetzt den Knopf "Fragen ausprobieren", den Max nicht mochte. Ein
+   Knopf verspricht etwas; eine echte Frage, die man sofort anklicken
+   kann, zeigt es. Die Antwort wird erst nach dem Klick aufgedeckt -
+   danach führt der Weg ins richtige Quiz. */
+
+.probe {
+  /* Die Karte liegt IM dunklen Band, erbt also dessen weiße Schrift - auf
+     weißem Grund. Deshalb hier die Textfarbe ausdrücklich zurücksetzen.
+     Zweimal in Folge im Review übersehen, im gerenderten Screenshot am
+     21.08.2026 sofort zu sehen: die Frage stand gar nicht da. */
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+  max-width: 560px;
+}
+.probe .marke {
+  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
+  color: var(--green-dark); margin-bottom: 9px;
+}
+.probe .frage { color: var(--text); font-family: var(--font-titel); font-size: 1.02rem; line-height: 1.45; margin: 0 0 15px; }
+.probe-optionen { display: grid; gap: 8px; }
+.probe-optionen button {
+  text-align: left; font: inherit; font-size: .88rem;
+  padding: 13px 15px; border-radius: 11px;
+  border: 1px solid var(--border); background: var(--card);
+  cursor: pointer; color: var(--text);
+  min-height: 44px;
+  transition: border-color .15s, background .15s;
+  display: flex; align-items: center; gap: 11px;
+}
+/* :not([disabled]) griff nie, weil die Knoepfe aria-disabled bekommen und
+   nicht disabled. Der Hover ueberschrieb dadurch genau die gruene bzw. rote
+   Auswertung, sobald der Zeiger noch auf dem geklickten Knopf lag. */
+.probe-optionen button:hover:not([aria-disabled="true"]) { border-color: var(--marke-hell); background: #f9fafb; }
+.probe-optionen button .buchstabe {
+  flex: none; width: 24px; height: 24px; border-radius: 7px;
+  background: var(--marke-lighter); color: var(--marke-hell);
+  display: grid; place-items: center;
+  font-size: .74rem; font-weight: 800;
+}
+.probe-optionen button.richtig {
+  border-color: var(--green); background: var(--green-light); color: #052e16; font-weight: 600;
+}
+.probe-optionen button.richtig .buchstabe { background: var(--green); color: #fff; }
+.probe-optionen button.falsch {
+  border-color: var(--red); background: var(--red-hell); color: #7f1d1d;
+}
+.probe-optionen button.falsch .buchstabe { background: var(--red); color: #fff; }
+.probe-optionen button[aria-disabled="true"] { cursor: default; }
+/* aria-disabled statt disabled: ein deaktivierter Knopf verliert den
+   Fokus und faellt aus der Tabreihenfolge - man landet nach dem Klick
+   unvermittelt am Seitenanfang. Der Klick wird stattdessen im Skript
+   abgefangen. */
+.probe-optionen button[aria-disabled="true"]:not(.richtig):not(.falsch) { opacity: .6; }
+
+/* Ergebnis nicht nur ueber Farbe (WCAG 1.4.1): jede bewertete Antwort
+   bekommt zusaetzlich ein Wort. */
+.probe-marker {
+  margin-left: auto; flex: none;
+  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+}
+.richtig .probe-marker { color: var(--green-dark); }
+.falsch .probe-marker { color: #991b1b; }
+
+.probe-aufloesung {
+  margin-top: 14px; padding-top: 14px;
+  border-top: 1px solid var(--border);
+  font-size: .85rem; color: var(--muted); line-height: 1.6;
+}
+.probe-aufloesung a {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 11px; font-weight: 700; font-size: .86rem;
+  color: var(--marke-dunkel); text-decoration: none;
+  border-bottom: 2px solid var(--green);
+  padding-bottom: 2px;
+}
+.probe-aufloesung a:hover { border-bottom-color: var(--marke-dunkel); }
+
+/* Zweispaltiges Band: Text links, Probefrage rechts. */
+.band-zwei {
+  display: grid; gap: 34px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: center;
+}
+@media (max-width: 860px) { .band-zwei { grid-template-columns: 1fr; gap: 24px; } }
+
+/* ---------- Aufmacher der Unterseiten ----------
+   Flacher als der Startseiten-Aufmacher: Bildstreifen mit Titel darauf,
+   damit die Unterseiten nicht mit einer nackten h1 anfangen, aber auch
+   nicht so viel Platz fressen wie die Startseite. */
+
+.kopfbild {
+  position: relative;
+  height: clamp(300px, 42vh, 420px);
+  border-radius: var(--radius);
+  overflow: hidden;
+  margin-bottom: 30px;
+  display: flex; align-items: flex-end;
+}
+.kopfbild .bildflaeche { position: absolute; inset: 0; }
+/* Der Verlauf gehoert auf eine eigene, bildfuellende Flaeche - nicht auf
+   den Textkasten. Vorher war er nur so hoch wie der Text, und der Kicker
+   ganz oben stand faktisch ohne Abdunklung auf dem Foto (1,09:1).
+   Review 21.08.2026. */
+.kopfbild::after {
+  content: "";
+  position: absolute; inset: 0; z-index: 2;
+  background: linear-gradient(to top,
+              rgba(9,13,22,.94) 0%, rgba(9,13,22,.80) 38%,
+              rgba(9,13,22,.42) 68%, rgba(9,13,22,.08) 100%);
+}
+.kopfbild-text {
+  position: relative; z-index: 3;
+  padding: clamp(24px, 3.5vw, 44px);
+  width: 100%;
+}
+.kopfbild-text h1 {
+  font-family: var(--font-titel); color: #fff;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800; letter-spacing: -.03em;
+  margin: 0 0 8px; line-height: 1.03;
+}
+.kopfbild-text p { color: #e5e7eb; font-size: 1rem; margin: 0; max-width: 52ch; line-height: 1.5; }
+@media (max-width: 560px) { .kopfbild { height: clamp(280px, 46vh, 340px); } }
+
+/* ============================================================
+   BILDGEFÜHRTE ABSCHNITTE (21.08.2026)
+
+   Max: "mit richtigen Bildern und auch nicht so Emojis, sondern mit
+   Bildern, mit großen Überschriften, mit großen Schlagwörtern arbeiten."
+
+   Der Baustein dafür ist die Wechselzeile: großes Bild auf der einen,
+   Text auf der anderen Seite, im Wechsel. Das ist der Grund, warum
+   Vereinsseiten wie die des BFV nicht nach Baukasten aussehen - sie
+   führen mit Fotos und lassen dem Text daneben Luft, statt beides in
+   gleich große Kästchen zu sperren.
+   ============================================================ */
+
+.wechsel {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 4vw, 56px);
+  align-items: center;
+  margin-bottom: clamp(40px, 6vw, 72px);
+}
+/* Jede zweite Zeile dreht die Seiten. Über die Reihenfolge im Raster,
+   nicht über direction - die Vorlesereihenfolge bleibt dadurch die
+   geschriebene. */
+.wechsel.gedreht .wechsel-bild { order: 2; }
+
+.wechsel-bild {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  overflow: hidden;
+  position: relative;
+}
+.wechsel-bild .bildflaeche { position: absolute; inset: 0; }
+
+.wechsel-text .kicker { margin-bottom: 12px; }
+.wechsel-text h2 {
+  font-family: var(--font-titel);
+  font-size: clamp(1.7rem, 3.6vw, 2.7rem);
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.04;
+  margin: 0 0 16px;
+}
+.wechsel-text p { font-size: 1rem; line-height: 1.7; color: var(--text); margin: 0 0 18px; max-width: 46ch; }
+.wechsel-text p:last-of-type { margin-bottom: 22px; }
+
+@media (max-width: 780px) {
+  .wechsel { grid-template-columns: 1fr; gap: 20px; }
+  .wechsel.gedreht .wechsel-bild { order: 0; }
+  .wechsel-bild { aspect-ratio: 3 / 2; }
+}
+
+/* ---------- Kicker: kleine Auszeichnung über der Überschrift ----------
+   Ersetzt die Emoji-Symbole als Orientierungshilfe. Ein Wort in
+   Versalien sagt mehr über den Abschnitt als ein Piktogramm - und sieht
+   nicht nach Baukasten aus. */
+
+.kicker {
+  display: inline-block;
+  font-size: .74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: .14em;
+  color: #14672f;
+}
+.band-dunkel .kicker { color: #6ee7a0; }
+.kopfbild-text .kicker,
+.aufmacher-text .kicker {
+  color: #86efac;
+  display: block;
+  margin-bottom: 12px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.6);
+}
+
+
+
+/* ---------- Listenzeilen ohne Emoji ----------
+   Statt eines Piktogramms eine schmale Farbmarke plus das
+   Herkunfts-Abzeichen. Trägt dieselbe Information, ohne dass die Seite
+   wie ein Icon-Set aussieht. */
+
+.lz-marke {
+  flex: none;
+  width: 4px;
+  align-self: stretch;
+  border-radius: 999px;
+  background: var(--border);
+}
+.lz-marke.hier   { background: var(--green); }
+.lz-marke.extern { background: var(--blau); }
+.lz-marke.land   { background: #7c3aed; }
+.lz-marke.dfb    { background: #b91c1c; }

@@ -113,7 +113,13 @@ test("die sechs Absagegründe stimmen mit der Datenbank überein", () => {
   const js = lies("src/website/termine.js");
   const sql = lies("supabase/migrations/20260829150000_v90_termine_mit_rueckmeldungen.sql");
 
-  const ausJs = [...js.matchAll(/\["([a-z_]+)", "[^"]+"\]/g)].map((t) => t[1]);
+  // Nur die GRUENDE-Liste lesen, nicht irgendein Paar-Array in der Datei.
+  // Beim Ergaenzen der Terminfindung am 29.08.2026 hat dieser Test sonst
+  // die neue STIMMEN-Liste mitgezaehlt und ist zu Recht rot geworden.
+  const gruendeBlock = js.match(/export const GRUENDE = \[([\s\S]*?)\];/);
+  assert.ok(gruendeBlock, "GRUENDE-Liste nicht gefunden");
+  const ausJs = [...gruendeBlock[1].matchAll(/\["([a-z_]+)",/g)].map((t) => t[1]);
+
   const zeile = sql.match(/grund in\s*\n?\s*\('([^)]+)\)/);
   assert.ok(zeile, "Gruendeliste in der Migration nicht gefunden");
   const ausSql = zeile[1].split(",").map((t) => t.trim().replace(/'/g, ""));
@@ -128,4 +134,61 @@ test("kein Kalenderraster", () => {
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.doesNotMatch(js, /kalender/i);
   assert.match(js, /nachMonatenGruppiert/);
+});
+
+/* ---------- Terminfindung (v91) ---------- */
+
+test("Terminsuchen sind immer intern", () => {
+  // Es gibt bewusst keine Fassung ohne PIN: Vorschlaege gehoeren nie auf
+  // die oeffentliche Seite. Wer nicht angemeldet ist, sieht sie gar nicht.
+  const sql = lies("supabase/migrations/20260829173000_v91_terminfindung.sql");
+  assert.doesNotMatch(sql, /oeffentliche?_terminfindung/);
+  for (const tabelle of ["terminfindungen", "terminfindung_vorschlaege", "terminfindung_stimmen"]) {
+    assert.match(sql, new RegExp(`alter table public\\.${tabelle}\\s+enable row level security`),
+      tabelle + " hat kein RLS");
+  }
+
+  const js = ohneKommentare(lies("src/website/termine-seite.js"));
+  assert.match(js, /if \(person\(\) && !gewaehlteId\)/,
+    "Terminsuchen werden auch ohne Anmeldung geladen");
+});
+
+test("eine Abstimmung braucht mindestens zwei Vorschläge", () => {
+  // Mit einem Vorschlag ist es keine Abstimmung, sondern ein Termin -
+  // dafuer gibt es v90.
+  const sql = lies("supabase/migrations/20260829173000_v91_terminfindung.sql");
+  assert.match(sql, /if v_anzahl < 2 then/);
+  assert.match(sql, /Mindestens zwei Vorschlaege noetig/);
+});
+
+test("die drei Antworten stimmen zwischen Oberfläche und Datenbank überein", () => {
+  const js = lies("src/website/termine.js");
+  const sql = lies("supabase/migrations/20260829173000_v91_terminfindung.sql");
+
+  const treffer = js.match(/export const STIMMEN = \[([\s\S]*?)\];/);
+  assert.ok(treffer, "STIMMEN-Liste nicht gefunden");
+  const ausJs = [...treffer[1].matchAll(/\["([a-z]+)",/g)].map((t) => t[1]);
+
+  const zeile = sql.match(/check \(antwort in \(([^)]+)\)\)/);
+  assert.ok(zeile, "Antwortpruefung in der Migration nicht gefunden");
+  const ausSql = zeile[1].split(",").map((t) => t.trim().replace(/'/g, ""));
+
+  assert.deepEqual(ausJs.sort(), ausSql.sort());
+});
+
+test("aus der Entscheidung entsteht ein echter Termin", () => {
+  // Kein zweiter Ablauf neben den Terminen: das Ergebnis landet in
+  // "termine" und durchlaeuft danach Freigabe, Zu-/Absage und alles
+  // Weitere wie jeder andere Termin auch.
+  const sql = lies("supabase/migrations/20260829173000_v91_terminfindung.sql");
+  const anfang = sql.indexOf("function public.obmann_terminfindung_entscheiden");
+  const block = sql.slice(anfang, sql.indexOf("$function$;", anfang));
+
+  assert.match(block, /insert into termine/);
+  assert.match(block, /status = 'entschieden'/);
+  // Ja-Stimmen werden zu Zusagen, "vielleicht" ausdruecklich nicht -
+  // das waere eine Behauptung, die niemand aufgestellt hat.
+  assert.match(block, /insert into termin_rueckmeldungen/);
+  assert.match(block, /st\.antwort = 'ja'/);
+  assert.doesNotMatch(block, /st\.antwort = 'vielleicht'/);
 });
