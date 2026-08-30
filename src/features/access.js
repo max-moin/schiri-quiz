@@ -24,7 +24,6 @@
     const nameSchritt = document.getElementById("name-schritt");
     const angemeldetLeiste = document.getElementById("angemeldet-leiste");
     const angemeldetName = document.getElementById("angemeldet-name");
-    const wechselnButton = document.getElementById("wechseln-button");
     const fragenSchritt = document.getElementById("fragen-schritt");
     const fortschrittWrap = document.getElementById("fortschritt-wrap");
     const kennungBereich = document.getElementById("kennung-bereich");
@@ -307,10 +306,15 @@
       await beiAngemeldet(echterName);
     });
 
-    wechselnButton.addEventListener("click", () => {
-      mitgliedSession.loeschen();
-      location.reload();
-    });
+    // Hier stand bis zum 30.08.2026 der "Abmelden"-Knopf der Quizseite. Er
+    // loeschte die Sitzung und lud die Seite neu - und landete damit
+    // zwangslaeufig wieder in der quiz-eigenen Anmeldemaske. Max: "Das soll
+    // halt nicht passieren."
+    //
+    // Abgemeldet wird jetzt ausschliesslich im Kontomenue der Kopfleiste
+    // (seite.js). Das ist dieselbe Sitzung - beide Welten teilen sich die
+    // Schluessel "schiriQuizSession" und "schiriQuizVereinskennung" - und es
+    // gibt danach keine zweite Anmeldemaske mehr, in die man fallen kann.
 
     async function behandleGastVerlassen() {
       const gemerkteKennung = kennungSession.lesen();

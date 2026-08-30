@@ -98,6 +98,15 @@
   box-shadow: inset 0 -2px 0 var(--green);
 }
 
+/* Der Aufruf zum Quiz steht im HTML in der Navigation, wird von
+   src/ui/kopf-navigation.js aber in die Kopfzeile gehaengt - sonst
+   verschwindet er auf dem Handy im Burgermenue (Max am 30.08.2026: "Dass
+   man zum Quiz nur ueber dieses Dropdown-Menue kommt, finde ich auch noch
+   irgendwie ein bisschen bloed").
+
+   Deshalb bringt er seit dem 30.08.2026 alles selbst mit, was er vorher
+   von ".haupt-nav a" geerbt hat - ausserhalb der Navigation greift die
+   Regel nicht mehr. */
 .nav-anmelden {
   background: var(--marke);
   color: #fff !important;
@@ -105,6 +114,14 @@
   border-radius: 999px !important;
   font-weight: 600 !important;
   margin-left: 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  flex: none;
+  white-space: nowrap;
+  text-decoration: none;
+  font-size: .85rem;
 }
 .nav-anmelden:hover { background: var(--marke-dunkel) !important; }
 
@@ -136,8 +153,42 @@
     gap: 2px;
   }
   .haupt-nav.offen { display: flex; }
-  .nav-anmelden { margin: 6px 0 0; text-align: center; justify-content: center; }
+  /* Der Quiz-Knopf steht neben dem Kontoknopf, nicht im Burgermenue.
+     "margin-left: auto" sitzt hier und nicht am Kontobereich: er ist von
+     den beiden der linkere, und nur der vorderste Auto-Rand darf den
+     freien Platz schlucken - sonst reisst er die Gruppe auseinander.
+     obmann.html hat keinen Quiz-Knopf; dort springt der Kontobereich ein
+     (siehe stil/anmeldung.css). */
+  .nav-anmelden { order: 0; margin-left: auto; padding: 8px 13px !important; }
 }
+
+/* ---------- Zurueck-Knopf ---------- */
+
+/* Max am 30.08.2026: "Dann brauchst du auf der Website auch irgendwie
+   einen Zurueck-Button, weil sonst muss ich die von Safari selber
+   nutzen."
+
+   Er steht UEBER dem Inhalt und nicht im Kopf: dort draengeln sich auf
+   dem Handy schon Wappen, Vereinsname, Quiz-Knopf, Kontoknopf und
+   Burgermenue. Eingesetzt wird er von src/ui/kopf-navigation.js und nur
+   dann, wenn es auch wirklich etwas gibt, wohin er zurueckfuehrt. */
+.zurueck-knopf {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  margin: 0 0 14px;
+  padding: 8px 15px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--marke-hell);
+  font: inherit;
+  font-size: .84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.zurueck-knopf:hover { background: var(--marke-lighter); border-color: var(--marke-hell); }
 
 /* ---------- Fußbereich ---------- */
 

@@ -47,6 +47,12 @@
 .konto-menue {
   position: absolute; top: calc(100% + 6px); right: 0;
   min-width: 220px; z-index: 60;
+  /* Das Menue traegt seit dem 30.08.2026 auch die Profil-Eintraege. Auf
+     einem kleinen Geraet im Querformat waere es sonst laenger als der
+     Bildschirm und die unteren Punkte waeren nicht erreichbar. */
+  max-height: calc(100vh - 90px);
+  max-height: calc(100dvh - 90px);
+  overflow-y: auto; overscroll-behavior: contain;
   background: var(--card);
   border: 1px solid var(--border); border-radius: var(--radius-sm);
   box-shadow: var(--shadow);
@@ -77,6 +83,10 @@
      ins Burgermenue: wer sich anmelden will, soll nicht erst ein Menue
      aufklappen muessen. Er steht links vom Menueknopf. */
   .konto-bereich { order: 1; margin-left: auto; }
+  /* Steht der Quiz-Knopf davor, hat DER den Auto-Rand (siehe
+     stil/kopf-fuss.css). Zwei Auto-Raender wuerden sich den freien Platz
+     teilen und eine Luecke mitten in die Gruppe reissen. */
+  .nav-anmelden ~ .konto-bereich { margin-left: 0; }
   .nav-knopf { order: 2; margin-left: 0; }
   .konto-knopf { padding: 8px 13px; font-size: .8rem; }
   .konto-menue { min-width: 200px; }
@@ -87,18 +97,55 @@
    29.08.2026 bei 390 px gesehen). Statt den Namen zu kuerzen wird enger
    gesetzt - der volle Vereinsname ist Max' ausdrueckliche Vorgabe. */
 @media (max-width: 430px) {
-  .kopf-innen { gap: 8px; padding: 0 14px; }
+  .kopf-innen { gap: 6px; padding: 0 12px; }
   .marken-knopf { gap: 8px; padding: 4px 4px 4px 2px; }
   .marken-titel { font-size: .88rem; }
-  .konto-knopf { padding: 8px 11px; font-size: .78rem; gap: 6px; }
+  .konto-knopf { padding: 8px 10px; font-size: .78rem; gap: 6px; }
+  /* Seit dem 30.08.2026 steht auch der Quiz-Knopf in dieser Zeile. Bei
+     390 px (iPhone 12-15) gehen sich Wappen, Vereinsname, Quiz, Konto und
+     Burgermenue nur mit diesen engeren Massen aus - nachgemessen an
+     derselben Breite, an der am 29.08.2026 der Vereinsname umbrach. */
+  .nav-anmelden { padding: 8px 11px !important; font-size: .78rem; }
+  .nav-knopf { width: 40px; height: 40px; }
 }
 
 /* ---------- Anmeldefenster ---------- */
+
+/* ============================================================
+   iPhone-Korrekturen (30.08.2026)
+   ============================================================
+   Max: "Der Anmeldebutton, das Fenster sieht halt irgendwie verschoben
+   aus ... Allgemein ist irgendwie sehr rangezoomt."
+
+   Drei Ursachen, alle hier behoben:
+
+   1. Das Fenster war senkrecht zentriert und hatte keine Hoehengrenze.
+      Sobald die iOS-Tastatur aufgeht, schrumpft nur der sichtbare
+      Bereich (visual viewport), nicht der Layout-Bereich - das zentrierte
+      Fenster bleibt auf der alten Mitte stehen und rutscht damit unter
+      die Tastatur. Es haengt jetzt oben fest und scrollt in sich selbst.
+   2. 100vh haette dasselbe Problem: iOS rechnet vh gegen die AUSGEKLAPPTE
+      Seitenleiste. Deshalb 100dvh mit vh als Rueckfall fuer aeltere
+      Browser.
+   3. Die Eingabefelder standen auf .92rem (rund 14.7 px). Unter 16 px
+      zoomt iOS Safari beim Antippen ungefragt in die ganze Seite - und
+      zoomt danach nicht wieder heraus. Genau das ist das "rangezoomt".
+      Die Felder stehen deshalb fest auf 16 px.
+
+   env(safe-area-inset-*) faellt ohne "viewport-fit=cover" auf 0 zurueck;
+   das max() haelt den Abstand dann bei 16 px. So bleibt die Regel auch
+   dann richtig, wenn das Meta-Tag spaeter erweitert wird. */
 
 .anmeldedialog {
   border: 0; padding: 0; background: transparent;
   max-width: 420px; width: calc(100% - 32px);
   color: var(--text);
+  /* Oben verankert statt zentriert - siehe Punkt 1. */
+  margin: max(16px, env(safe-area-inset-top)) auto max(16px, env(safe-area-inset-bottom));
+  max-height: calc(100vh - 32px);
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .anmeldedialog::backdrop { background: rgba(17, 24, 39, .55); }
 
@@ -138,7 +185,12 @@
 .anmelde-feld select {
   box-sizing: border-box; width: 100%; min-height: 46px;
   border: 1px solid var(--border); border-radius: 10px;
-  padding: 11px 13px; font: inherit; font-size: .92rem; background: #fff;
+  padding: 11px 13px; font: inherit; background: #fff;
+  /* 16px ist keine Geschmacksfrage: alles darunter loest auf iOS Safari
+     beim Antippen den Auto-Zoom aus (siehe Kopf dieses Abschnitts).
+     Feste Pixel statt rem, damit eine geaenderte Grundschriftgroesse den
+     Wert nicht unbemerkt wieder unter die Schwelle druecken kann. */
+  font-size: 16px;
 }
 .anmelde-feld input:focus,
 .anmelde-feld select:focus { outline: none; border-color: var(--marke-hell); }

@@ -19,6 +19,8 @@
 // ============================================================
 
 import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
+import { montiereKontoBereich } from "./src/ui/konto-bereich.js";
+import { montiereZurueckKnopf, zeigeQuizKnopfImmer } from "./src/ui/kopf-navigation.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -187,72 +189,93 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   // das Fenster zu zeigen. Aufrufer muessen das also nicht selbst pruefen.
   globalThis.SchiriSeitenAnmeldung = Object.freeze({ anmeldung, loginDialog });
 
-  // ---------- Knopf und Menue in den Kopf setzen ----------
+  // ---------- Profil-Punkte: dieselbe Logik wie im Quiz ----------
+  //
+  // Max am 30.08.2026: "Dieses 'Ausruestung anfragen / Anliegen melden /
+  // Meine Anfragen' - das muessen halt alles auch mit auf die
+  // Hauptwebseite. Das hat ja mit dem Quiz gar nichts mehr zu tun."
+  //
+  // Bewusst KEIN Nachbau: es laeuft dasselbe Modul wie im Quiz
+  // (src/features/profile-requests.js) mit demselben Markup
+  // (src/ui/profil-fenster.js). Nur der Weg zum Server ist ein anderer -
+  // die Vereinsseiten laden supabase-js nicht, deshalb der schlanke
+  // Ersatz aus src/core/rpc.js mit derselben rpc()-Form.
+  //
+  // Erst beim Anmelden gebaut: fuer jemanden, der nur die Startseite
+  // liest, haetten vier verborgene Fenster im Dokument keinen Zweck.
+  let profil = null;
 
-  const bereich = document.createElement("div");
-  bereich.className = "konto-bereich";
-  bereich.innerHTML = `
-    <button class="konto-knopf" type="button" data-konto-knopf aria-expanded="false" aria-haspopup="menu"></button>
-    <div class="konto-menue" data-konto-menue role="menu" hidden>
-      <div class="konto-menue-kopf"><strong data-konto-name></strong><span>Angemeldet in diesem Tab</span></div>
-      <a href="modus.html" role="menuitem">Zum Quiz</a>
-      <button type="button" class="konto-abmelden" data-abmelden role="menuitem">Abmelden</button>
-    </div>`;
-  // Hinter die Navigation: auf breiten Bildschirmen sitzt er damit ganz
-  // rechts, auf schmalen schiebt ihn die CSS-Regel vor den Menueknopf.
-  kopfInnen.appendChild(bereich);
+  // Seiten, die diese vier Bausteine nicht laden, bekommen die Punkte gar
+  // nicht erst ins Menue. Ein Eintrag "Ausruestung anfragen", der beim
+  // Klick nichts tut, waere schlechter als keiner - und obmann.html ist
+  // genau so eine Seite.
+  const profilVerfuegbar = !!(
+    globalThis.SchiriQuizProfileRequests &&
+    globalThis.SchiriProfilFenster &&
+    globalThis.SchiriQuizUtils &&
+    globalThis.SchiriRpc
+  );
 
-  const kontoKnopf = bereich.querySelector("[data-konto-knopf]");
-  const kontoMenue = bereich.querySelector("[data-konto-menue]");
-  const kontoName = bereich.querySelector("[data-konto-name]");
+  function holeProfil() {
+    if (profil) return profil;
+    if (!profilVerfuegbar) return null;
+    const bausteine = globalThis.SchiriQuizProfileRequests;
+    const fenster = globalThis.SchiriProfilFenster;
+    const werkzeuge = globalThis.SchiriQuizUtils;
+    const rpcModul = globalThis.SchiriRpc;
 
-  function schliesseKontoMenue() {
-    kontoMenue.hidden = true;
-    kontoKnopf.setAttribute("aria-expanded", "false");
+    fenster.sorgeFuerFenster();
+    profil = bausteine.erstelleProfilAnfragen({
+      sb: rpcModul.erstelleRpc({
+        adresse: DATENBANK.adresse,
+        oeffentlicherSchluessel: DATENBANK.oeffentlicherSchluessel,
+      }),
+      getZugang: () => {
+        const stand = anmeldung.lesen();
+        return { schiedsrichterId: stand ? stand.id : null, pin: stand ? stand.pin : null };
+      },
+      // Auf der Quizseite gibt es einen Fehlerbalken ueber der ganzen
+      // Seite. Hier waere er hinter dem geoeffneten Fenster unsichtbar -
+      // die Meldung gehoert deshalb dorthin, wo die Liste stehen wuerde.
+      zeigeFehler: (text) => {
+        const stelle = document.getElementById("meine-anfragen-leer-hinweis");
+        if (!stelle) return;
+        stelle.textContent = text;
+        stelle.hidden = false;
+      },
+      formatiereAnfrageDatum: werkzeuge.formatiereAnfrageDatum,
+      beiStatusPunkt: (gibtNeuigkeiten) => kontoBereich.setzePunkt(gibtNeuigkeiten),
+    });
+    return profil;
   }
 
-  // Nur der Vorname im Knopf: "Maximilian Mustermann" sprengt den Kopf auf
-  // dem Handy, der volle Name steht im aufgeklappten Menue.
-  const vorname = (name) => String(name || "").trim().split(/\s+/)[0] || "Mein Konto";
+  // ---------- Knopf und Menue in den Kopf setzen ----------
 
+  // Erst den Aufruf-zum-Quiz aus dem Burgermenue holen, dann den
+  // Kontoknopf dahinter haengen - so steht auf breiten Bildschirmen
+  // wieder "Zum Quiz" und rechts daneben das Konto.
+  zeigeQuizKnopfImmer(kopfInnen);
+
+  const kontoBereich = montiereKontoBereich({
+    kopfInnen,
+    anmeldung,
+    loginDialog,
+    profilAktionen: profilVerfuegbar ? [
+      { text: "Ausrüstung anfragen", tun: () => { const p = holeProfil(); if (p) p.oeffneAusruestungsAnfrage(); } },
+      { text: "Anliegen melden", tun: () => { const p = holeProfil(); if (p) p.oeffneAnliegen(); } },
+      { text: "Meine Anfragen", punkt: true, tun: () => { const p = holeProfil(); if (p) void p.oeffneMeineAnfragen(); } },
+    ] : [],
+  });
+
+  // Beim Anmelden einmal nachsehen, ob es unerledigte Neuigkeiten gibt -
+  // dasselbe, was das Quiz beim Login tut. Ohne das wuesste man erst beim
+  // Oeffnen der Liste, dass sich etwas getan hat.
   anmeldung.abonniere((stand) => {
-    if (stand) {
-      kontoKnopf.innerHTML = '<span class="konto-punkt" aria-hidden="true"></span>';
-      kontoKnopf.append(vorname(stand.name));
-      kontoKnopf.setAttribute("aria-label", `Angemeldet als ${stand.name || "Mitglied"} – Kontomenü öffnen`);
-      kontoName.textContent = stand.name || "Angemeldet";
-    } else {
-      kontoKnopf.textContent = "Anmelden";
-      kontoKnopf.removeAttribute("aria-label");
-      schliesseKontoMenue();
-    }
+    if (!stand) return;
+    const p = holeProfil();
+    if (p) void p.aktualisiereAnfragenStatusPunkt();
   });
 
-  kontoKnopf.addEventListener("click", async () => {
-    if (anmeldung.istAngemeldet()) {
-      const offen = kontoMenue.hidden;
-      kontoMenue.hidden = !offen;
-      kontoKnopf.setAttribute("aria-expanded", String(offen));
-      return;
-    }
-    await loginDialog.oeffne({
-      grund: "Melde dich mit deiner Vereinskennung und deiner PIN an.",
-      gastErlaubt: false,
-    });
-  });
-
-  bereich.querySelector("[data-abmelden]").addEventListener("click", () => {
-    anmeldung.abmelden();
-    schliesseKontoMenue();
-  });
-
-  document.addEventListener("click", (e) => {
-    if (kontoMenue.hidden || bereich.contains(e.target)) return;
-    schliesseKontoMenue();
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape") schliesseKontoMenue();
-  });
 
   // ---------- "Zum Quiz" prueft zuerst die Anmeldung ----------
   //
@@ -282,3 +305,15 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     });
   });
 }
+
+// ---------- Zurueck-Knopf ----------
+//
+// Max am 30.08.2026: "Dann brauchst du auf der Website auch irgendwie
+// einen Zurueck-Button, weil sonst muss ich die von Safari selber nutzen."
+//
+// Bewusst UNTER der Kopfleiste und nicht darin: im Kopf stehen auf dem
+// Handy schon Wappen, Vereinsname, "Zum Quiz", der Kontoknopf und das
+// Burgermenue. Ein sechstes Bedienelement haette dort bei 390 px keinen
+// Platz mehr. Ueber dem Inhalt ist er ausserdem genau da, wo der Daumen
+// nach dem Scrollen nach oben ohnehin hinwandert.
+montiereZurueckKnopf(document.querySelector("main.inhalt"));

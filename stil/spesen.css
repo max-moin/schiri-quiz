@@ -57,13 +57,73 @@
 .schritt.gedaempft { opacity: .55; }
 .schritt-still { background: transparent; border-style: dashed; }
 
+/* ---------- Eine Bauform fuer alle Auswahlgruppen (30.08.2026) ----------
+   Max ueber "Art des Spiels": "das ist irgendwie bisschen mismatched mit
+   den Buttons und so." Er hat recht, und es war nicht eine Sache,
+   sondern vier - jede fuer sich klein, zusammen sah der Abschnitt
+   angeklebt aus:
+
+   1. Die Ueberschrift war ein <span class="feldname"> mit .82rem und
+      7 px Abstand, die Etiketten direkt darueber und darunter ein
+      <label> mit .79rem und 6 px. Zwei Zeilen mit derselben Aufgabe,
+      die verschieden aussahen.
+   2. Die Knoepfe kamen aus dem allgemeinen .segment: 40 px hoch,
+      .85rem, Pillenform mit 999px Radius - unmittelbar neben
+      Auswahlfeldern mit 46 px, .9rem und 11 px Radius.
+   3. Ihre Breiten liefen ueber "flex: 1 1 auto", also nach Textlaenge:
+      "Meisterschaft" wurde mehr als doppelt so breit wie "Pokal", und
+      die Reihe brach je nach Fenster woanders um.
+   4. Die Blockabstaende standen als style="margin-top:16px|14px|12px|
+      10px" im Markup - vier Werte fuer dieselbe Luecke.
+
+   Statt jede Stelle einzeln zu flicken, gibt es jetzt EINE Bauform:
+   .feldname sieht aus wie label, .wahl-block ist der eine Blockabstand,
+   .wahl-gruppe ein Raster gleich breiter Felder, und Hoehe, Radius und
+   Schriftgrad kommen fuer Felder, Knoepfe und Haken aus einer Regel. */
+
 .feldname {
   display: block;
-  font-size: .82rem; font-weight: 600;
-  color: var(--marke-hell); margin-bottom: 7px;
+  font-size: .79rem; font-weight: 600;
+  color: var(--marke-hell); margin-bottom: 6px;
 }
-.segment-breit { display: flex; flex-wrap: wrap; width: 100%; }
-.segment-breit button { flex: 1 1 auto; padding: 9px 14px; }
+
+.wahl-block { margin-top: 16px; }
+.wahl-block:first-child { margin-top: 0; }
+
+/* Zwei gleich breite Spalten in jeder Fensterbreite. Das haelt die
+   Umbrueche vorhersagbar - vier Spielarten sind zwei Reihen, die
+   Schnellauswahl eine Reihe je Frage - und macht den eigenen
+   Umbruchpunkt bei 520 px ueberfluessig, den es dafuer vorher gab. */
+.wahl-gruppe { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.wahl-knopf {
+  display: inline-flex; align-items: center; justify-content: center;
+  font: inherit; font-weight: 600;
+  padding: 9px 12px; text-align: center;
+  border: 1px solid var(--border);
+  background: #fff; color: var(--marke-hell);
+  cursor: pointer;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.wahl-knopf[aria-pressed="true"] {
+  border-color: var(--marke);
+  background: var(--marke-lighter);
+  color: var(--marke-dunkel);
+  font-weight: 700;
+}
+
+/* Die eine Stelle fuer Hoehe, Radius und Schriftgrad aller
+   Bedienelemente des Rechners. Mit ".rechner" eingegrenzt, weil
+   spesen.css auch obmann.html laedt - und weil die hoehere Spezifitaet
+   die Einzelregeln weiter unten schlaegt, unabhaengig davon, in welcher
+   Reihenfolge sie in dieser Datei stehen. */
+.rechner .feld,
+.rechner .wahl-knopf,
+.rechner .haken {
+  min-height: 46px;
+  font-size: .9rem;
+  border-radius: 11px;
+  border-width: 1px;
+}
 .q-eingabe-halter { display: inline-flex; align-items: center; gap: 3px; flex: none; }
 .q-euro { font-weight: 700; font-size: .92rem; }
 
@@ -168,7 +228,9 @@
       Feldes in die Seite hineinzoomen. Danach steht sie verschoben, und
       man muss sie von Hand zurueckziehen.
    4. Die vier Spielarten passten nebeneinander nicht in eine
-      390-px-Zeile, ohne dass die Beschriftungen brechen.
+      390-px-Zeile, ohne dass die Beschriftungen brechen. Das erledigt
+      seit dem 30.08.2026 das Zweispalten-Raster von .wahl-gruppe, das
+      in jeder Breite gilt - hier steht dafuer nichts mehr.
 
    ACHTUNG, dieselbe Auflage wie oben: keine nackten Elementselektoren.
    Alles hier haengt an Klassen, die es nur auf dem Spesenrechner gibt -
@@ -223,7 +285,7 @@
   .rechner .q-eingabe { font-size: 16px; }
   .rechner .feld { min-height: 48px; }
   .rechner .haken { min-height: 48px; }
-  .rechner .segment-breit button { min-height: 44px; }
+  .rechner .wahl-knopf { min-height: 48px; font-size: 16px; }
 
   /* Betragsfeld: als Feld erkennbar und mit dem Daumen treffbar. */
   .rechner .q-eingabe {
@@ -239,15 +301,4 @@
   .q-zeile > span:first-child { min-width: 0; overflow-wrap: anywhere; }
   .q-gesamt { padding: 16px; }
   .q-haftung .linkknopf { display: inline-block; padding: 8px 0; }
-}
-
-@media (max-width: 520px) {
-  /* Zwei mal zwei statt vier nebeneinander: "Meisterschaft" und
-     "Freundschaft" brauchen zusammen mehr als eine 390-px-Zeile. */
-  .segment-breit {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-  }
-  .segment-breit button { flex: none; padding: 9px 8px; }
 }

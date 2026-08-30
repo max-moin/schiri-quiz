@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="stil/hinweise.css" />
   <link rel="stylesheet" href="stil/vorlagen.css" />
   <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
 </head>
 <body>
 
@@ -69,7 +70,7 @@
       Unsere eigenen Sachen – <a href="regeluebersicht.html">Regeln auf einen Blick</a>,
       <a href="spesenrechner.html">Spesenrechner</a>,
       <a href="vorlagen.html">Vorlagen</a> und das
-      <a href="modus.html">Regelquiz</a> – findest du oben in der Leiste.
+      <a href="modus.html">Quiz</a> – findest du oben in der Leiste.
     </p>
 
     <!-- ============================================================
@@ -146,6 +147,13 @@
   <script src="src/core/anmeldung.js"></script>
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/login-dialog.js"></script>
+  <!-- Profil-Punkte im Kontomenue (30.08.2026). Dieselben Bausteine wie
+       im Quiz - siehe Kopf von src/ui/profil-fenster.js. Ebenfalls
+       klassische Skripte VOR seite.js, aus demselben Grund wie oben. -->
+  <script src="src/core/quiz-utils.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
+  <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
   <script type="module">
     import { DATENBANK, VEREIN } from "./verein.config.js";

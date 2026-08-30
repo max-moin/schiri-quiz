@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Schiri-Quiz der Woche</title>
+  <title>Quiz – Schiedsrichter FV Löbtauer Kickers</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%9A%BD%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,7 +16,7 @@
       <div class="kopf-titelzeile">
         <span class="ball" aria-hidden="true">⚽</span>
         <div>
-          <h1>Schiri-Quiz der Woche</h1>
+          <h1>Quiz</h1>
           <p class="subtitle" id="kopf-untertitel">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
         </div>
 
@@ -236,7 +236,13 @@
       <div class="angemeldet-badge-wrapper">
         <button id="angemeldet-badge-button" class="angemeldet-badge" type="button" aria-haspopup="true" aria-expanded="false">
           <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
-          <span>Angemeldet als <strong id="angemeldet-name"></strong></span>
+          <!-- "Angemeldet als" ist am 30.08.2026 weggefallen. Max: "dieses
+               'Angemeldet als' kann da eigentlich auch raus, beziehungsweise
+               das Dropdown-Menü kann an sich bleiben." Der Name allein sagt
+               dasselbe, und der Badge liest sich damit wie der Kontoknopf in
+               der Kopfleiste jeder Vereinsseite - beides derselbe Weg zu
+               denselben Punkten. -->
+          <span><strong id="angemeldet-name"></strong></span>
           <span class="angemeldet-pfeil" aria-hidden="true">▾</span>
           <span id="profil-status-punkt" class="profil-status-punkt" hidden title="Es gibt Neuigkeiten zu deinen Anfragen"></span>
         </button>
@@ -256,7 +262,22 @@
           </button>
         </div>
       </div>
-      <button id="wechseln-button" class="sekundaer-button" type="button">Abmelden</button>
+      <!-- Der "Abmelden"-Knopf stand bis zum 30.08.2026 hier.
+           Max: "Wenn du dich angemeldet hast, dann ins Quiz gehst, Fragen
+           dieser Woche, und dann auf den Button Abmelden klickst, kommst du
+           auf das Login-Menü von der Quizseite. Das soll halt nicht
+           passieren. Ich weiß auch gar nicht mehr, ob es den Abmeldebutton
+           braucht. Den braucht es glaube ich gar nicht mehr. Aber irgendwie
+           müssen wir halt die beiden Seiten auch ein bisschen mehr
+           verschmelzen lassen." Und: "Vielleicht wenn dann in die Oberleiste
+           mit reinnehmen."
+
+           Er lud die Seite neu und landete damit zwangsläufig in der
+           quiz-eigenen Anmeldemaske - einer zweiten Anmeldung neben der
+           seitenweiten, genau der Bruch zwischen den beiden Welten.
+           Abgemeldet wird jetzt an einer einzigen Stelle: im Kontomenü der
+           Kopfleiste jeder Vereinsseite (seite.js). Von hier führt der
+           Hausknopf oben dorthin zurück. -->
     </div>
 
     <!-- Schritt 2: Fragen -->
@@ -442,126 +463,6 @@
     </div>
   </div>
 
-  <!-- Anfrage-Formular (12.07.2026, Baustein 5a: Anfragen-System, Baustein A
-       der Backlog-Spec) - Ausrüstungs-Anfrage stellen, erreichbar über das
-       neue Profil-Panel. -->
-  <div id="anfrage-formular-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anfrage-formular-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="anfrage-formular-titel">Ausrüstung anfragen 📋</h3>
-        <button id="anfrage-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="anfrage-formular-inhalt">
-        <label for="anfrage-kategorie-auswahl">Was brauchst du?</label>
-        <select id="anfrage-kategorie-auswahl">
-          <option value="">– bitte auswählen –</option>
-          <option value="trikot">Trikot</option>
-          <option value="hose">Hose</option>
-          <option value="stutzen">Stutzen</option>
-          <option value="schuhe">Schuhe</option>
-        </select>
-
-        <label for="anfrage-farbe-eingabe">Farbe (optional)</label>
-        <input id="anfrage-farbe-eingabe" type="text" autocomplete="off" placeholder="z.B. Grün" />
-
-        <label for="anfrage-groesse-eingabe">Größe (optional)</label>
-        <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z.B. L" />
-
-        <div id="anfrage-aermellaenge-bereich" hidden>
-          <label for="anfrage-aermellaenge-auswahl">Ärmellänge</label>
-          <select id="anfrage-aermellaenge-auswahl">
-            <option value="">– bitte auswählen –</option>
-            <option value="kurz">Kurzarm</option>
-            <option value="lang">Langarm</option>
-          </select>
-        </div>
-
-        <label for="anfrage-anmerkung-eingabe">Anmerkung (optional)</label>
-        <textarea id="anfrage-anmerkung-eingabe" rows="3" placeholder="Sonstiges, was wir wissen sollten ..."></textarea>
-
-        <p id="anfrage-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anfrage-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="anfrage-formular-erfolg" hidden>
-        <p>Danke, deine Anfrage ist raus! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
-        <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Anliegen-Formular (12.07.2026, Baustein 5c: Baustein E der
-       Backlog-Spec, dort "Sorgenkasten" genannt - hier bewusst "Anliegen",
-       Max' eigene Wortwahl beim Anfordern dieses Bausteins) - freier Text
-       statt eines Formulars mit festen Feldern, damit die Hürde niedrig
-       bleibt (jedes Anliegen, nicht nur Ausrüstung). -->
-  <div id="anliegen-formular-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anliegen-formular-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="anliegen-formular-titel">Anliegen melden 💬</h3>
-        <button id="anliegen-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="anliegen-formular-inhalt">
-        <p class="hinweis">Egal ob große oder kleine Sache - schreib einfach, was los ist. Nur der Schiri-Obmann sieht das hier.</p>
-        <label for="anliegen-text-eingabe">Was möchtest du uns wissen lassen?</label>
-        <textarea id="anliegen-text-eingabe" rows="5" placeholder="Schreib hier, was dich beschäftigt ..."></textarea>
-
-        <p id="anliegen-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anliegen-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="anliegen-formular-erfolg" hidden>
-        <p>Danke, deine Nachricht ist angekommen! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
-        <button id="anliegen-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a; erweitert 5c um
-       Anliegen + Rechnungs-Upload) - eigene gestellte Anfragen/Anliegen mit
-       Status, erreichbar über das Profil-Panel. -->
-  <div id="meine-anfragen-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="meine-anfragen-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="meine-anfragen-titel">Meine Anfragen 📦</h3>
-        <button id="meine-anfragen-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="meine-anfragen-liste"></div>
-      <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
-    </div>
-  </div>
-
-  <!-- Rechnungs-Upload (12.07.2026, Baustein 5c: Baustein D, Weg 2) - nur
-       erreichbar über eine Zeile in "Meine Anfragen", die angenommen ist
-       UND wo der Obmann "Schiri besorgt es selbst" gewählt hat. Foto wird
-       vor dem Hochladen im Browser verkleinert (siehe app.js
-       "komprimiereBildAufBase64"), damit auch normale Handyfotos
-       problemlos als Base64 übertragen werden können. -->
-  <div id="rechnung-upload-overlay" class="erklaerung-overlay" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="rechnung-upload-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="rechnung-upload-titel">Rechnung hochladen 🧾</h3>
-        <button id="rechnung-upload-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="rechnung-upload-inhalt">
-        <p class="hinweis">Mach ein Foto von der Rechnung oder wähle eins aus deiner Galerie - der Schiri-Obmann sieht es dann in seinem Dashboard und überweist dir das Geld.</p>
-        <input id="rechnung-datei-eingabe" type="file" accept="image/*" />
-        <img id="rechnung-vorschau-bild" alt="Vorschau der Rechnung" hidden />
-        <p id="rechnung-upload-hinweis" class="hinweis" hidden></p>
-        <button id="rechnung-hochladen-button" type="button" disabled>Hochladen</button>
-      </div>
-
-      <div id="rechnung-upload-erfolg" hidden>
-        <p>Danke, die Rechnung ist beim Schiri-Obmann angekommen!</p>
-        <button id="rechnung-upload-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
   <!-- Modal-first-Großansicht für Video-Fragen. Der YouTube-Player wird
        ausschließlich nach Nutzerklick und ausschließlich hier geladen. -->
   <div id="video-gross-overlay" class="video-gross-overlay" hidden>
@@ -590,6 +491,7 @@
   <script src="src/ui/question-elements.js"></script>
   <script src="src/features/video-player.js"></script>
   <script src="src/features/guest-mode.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
   <script src="src/features/profile-requests.js"></script>
   <script src="src/features/freetext-answers.js"></script>
   <script src="src/features/history-mode.js"></script>

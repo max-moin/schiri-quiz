@@ -1,7 +1,19 @@
 (function stelleProfilAnfragenBereit(global) {
   "use strict";
 
-  function erstelleProfilAnfragen({ sb, getZugang, zeigeFehler, formatiereAnfrageDatum }) {
+  // Seit dem 30.08.2026 laeuft dieses Modul in zwei Welten: im Quiz (mit
+  // dem Supabase-Client als "sb") und auf den Vereinsseiten (mit dem
+  // schlanken fetch-Ersatz aus src/core/rpc.js). Das Markup der Fenster
+  // kommt in beiden Faellen aus src/ui/profil-fenster.js.
+  //
+  // Der Ausloeser ist NICHT mehr Teil dieses Moduls: im Quiz ist es der
+  // "Angemeldet als"-Badge, auf den Vereinsseiten das Kontomenue in der
+  // Kopfleiste. Beide rufen dieselben oeffne*-Funktionen von unten auf.
+  // Die Badge-Elemente sind deshalb ab hier optional.
+  //
+  // "beiStatusPunkt" meldet, ob es ungesehene Neuigkeiten gibt - damit ein
+  // Ausloeser ausserhalb dieses Moduls seinen eigenen Punkt setzen kann.
+  function erstelleProfilAnfragen({ sb, getZugang, zeigeFehler, formatiereAnfrageDatum, beiStatusPunkt }) {
     const angemeldetBadgeButton = document.getElementById("angemeldet-badge-button");
     const profilPanel = document.getElementById("profil-panel");
     const profilStatusPunkt = document.getElementById("profil-status-punkt");
@@ -57,27 +69,30 @@
     // die Angemeldet-Leiste ohnehin nie eingeblendet.
 
     function schliesseProfilPanel() {
+      if (!profilPanel) return;
       profilPanel.hidden = true;
-      angemeldetBadgeButton.setAttribute("aria-expanded", "false");
+      if (angemeldetBadgeButton) angemeldetBadgeButton.setAttribute("aria-expanded", "false");
     }
 
-    angemeldetBadgeButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const istOffen = !profilPanel.hidden;
-      if (istOffen) {
-        schliesseProfilPanel();
-      } else {
-        profilPanel.hidden = false;
-        angemeldetBadgeButton.setAttribute("aria-expanded", "true");
-      }
-    });
+    if (angemeldetBadgeButton && profilPanel) {
+      angemeldetBadgeButton.addEventListener("click", (event) => {
+        event.stopPropagation();
+        const istOffen = !profilPanel.hidden;
+        if (istOffen) {
+          schliesseProfilPanel();
+        } else {
+          profilPanel.hidden = false;
+          angemeldetBadgeButton.setAttribute("aria-expanded", "true");
+        }
+      });
+    }
 
     // Klick außerhalb des Panels schließt es wieder (übliches Dropdown-
     // Verhalten) - auf dem "document", damit auch Klicks außerhalb der
     // Leiste erfasst werden.
     document.addEventListener("click", (event) => {
-      if (profilPanel.hidden) return;
-      if (event.target === angemeldetBadgeButton || angemeldetBadgeButton.contains(event.target)) return;
+      if (!profilPanel || profilPanel.hidden) return;
+      if (angemeldetBadgeButton && (event.target === angemeldetBadgeButton || angemeldetBadgeButton.contains(event.target))) return;
       if (event.target === profilPanel || profilPanel.contains(event.target)) return;
       schliesseProfilPanel();
     });
@@ -99,11 +114,15 @@
       anfrageAermellaengeBereich.hidden = anfrageKategorieAuswahl.value !== "trikot";
     });
 
-    panelAnfrageStellenButton.addEventListener("click", () => {
+    function oeffneAusruestungsAnfrage() {
       schliesseProfilPanel();
       setzeAnfrageFormularZurueck();
       anfrageFormularOverlay.hidden = false;
-    });
+    }
+
+    if (panelAnfrageStellenButton) {
+      panelAnfrageStellenButton.addEventListener("click", oeffneAusruestungsAnfrage);
+    }
 
     function schliesseAnfrageFormular() {
       anfrageFormularOverlay.hidden = true;
@@ -263,19 +282,24 @@
       if (event.target === meineAnfragenOverlay) schliesseMeineAnfragen();
     });
 
-    panelMeineAnfragenButton.addEventListener("click", async () => {
+    async function oeffneMeineAnfragen() {
       schliesseProfilPanel();
       meineAnfragenOverlay.hidden = false;
       await ladeMeineAnfragen();
 
       // Status-Punkt verschwindet, sobald die Liste einmal geöffnet wurde.
-      profilStatusPunkt.hidden = true;
-      panelAnfragenStatusPunkt.hidden = true;
+      if (profilStatusPunkt) profilStatusPunkt.hidden = true;
+      if (panelAnfragenStatusPunkt) panelAnfragenStatusPunkt.hidden = true;
+      if (beiStatusPunkt) beiStatusPunkt(false);
       await sb.rpc("schiri_anfragen_als_gesehen_markieren", {
         p_schiedsrichter_id: getZugang().schiedsrichterId,
         p_pin: getZugang().pin,
       });
-    });
+    }
+
+    if (panelMeineAnfragenButton) {
+      panelMeineAnfragenButton.addEventListener("click", () => void oeffneMeineAnfragen());
+    }
 
     // ---------- Anliegen-Formular (Baustein 5c, Baustein E) ----------
 
@@ -286,11 +310,15 @@
       anliegenFormularErfolg.hidden = true;
     }
 
-    panelAnliegenMeldenButton.addEventListener("click", () => {
+    function oeffneAnliegen() {
       schliesseProfilPanel();
       setzeAnliegenFormularZurueck();
       anliegenFormularOverlay.hidden = false;
-    });
+    }
+
+    if (panelAnliegenMeldenButton) {
+      panelAnliegenMeldenButton.addEventListener("click", oeffneAnliegen);
+    }
 
     function schliesseAnliegenFormular() {
       anliegenFormularOverlay.hidden = true;
@@ -468,11 +496,17 @@
       if (error || !data) return;
 
       const gibtUngeseheneUpdates = data.some((anfrage) => !anfrage.schiri_gesehen);
-      profilStatusPunkt.hidden = !gibtUngeseheneUpdates;
-      panelAnfragenStatusPunkt.hidden = !gibtUngeseheneUpdates;
+      if (profilStatusPunkt) profilStatusPunkt.hidden = !gibtUngeseheneUpdates;
+      if (panelAnfragenStatusPunkt) panelAnfragenStatusPunkt.hidden = !gibtUngeseheneUpdates;
+      if (beiStatusPunkt) beiStatusPunkt(gibtUngeseheneUpdates);
     }
 
-    return Object.freeze({ aktualisiereAnfragenStatusPunkt });
+    return Object.freeze({
+      aktualisiereAnfragenStatusPunkt,
+      oeffneAusruestungsAnfrage,
+      oeffneAnliegen,
+      oeffneMeineAnfragen,
+    });
   }
 
   global.SchiriQuizProfileRequests = Object.freeze({ erstelleProfilAnfragen });

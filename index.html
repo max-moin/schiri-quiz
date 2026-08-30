@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Schiedsrichter – FV Löbtauer Kickers</title>
-  <meta name="description" content="Alles für die Schiedsrichter des FV Löbtauer Kickers: Regelquiz, Spesenrechner, Regeln zum Nachschlagen und Vorlagen." />
+  <meta name="description" content="Alles für die Schiedsrichter des FV Löbtauer Kickers: Quiz, Spesenrechner, Regeln zum Nachschlagen und Vorlagen." />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="stil/hinweise.css" />
   <link rel="stylesheet" href="stil/vorlagen.css" />
   <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
 </head>
 <body>
 
@@ -53,8 +54,24 @@
   <main class="inhalt" id="inhalt" tabindex="-1">
 
     <!-- ============================================================
-         Reihenfolge nach Max' Entscheidung vom 21.08.2026:
-         Aufmacher · Schiri werden · Probefrage · Werkzeugkasten · Termine.
+         Reihenfolge nach Max' Entscheidung vom 21.08.2026, angepasst am
+         30.08.2026:
+         Aufmacher · Probefrage · Werkzeugkasten · Termine.
+
+         Die Bildzeile "Steh mitten im Spiel, statt danebenzustehen" stand
+         bis zum 30.08.2026 hier. Max: "Ich finde es gut, dass 'Schiri
+         werden' das erste ist. Dann kommt 'Steh mitten im Spiel, statt
+         daneben zu stehen'. Das wuerde ich eher machen, wenn du auf
+         'Schiri werden' klickst. Da koennen die ganzen Informationen ja
+         dann kommen."
+
+         Entfernt statt verschoben: schiri-werden.html traegt denselben
+         Satz schon als Ueberschrift, und jede einzelne Zahl aus dem
+         Absatz (ab 12, 7-8 Abende, rund 25 EUR, Kleidung 0 EUR, freier
+         Eintritt, Pate beim ersten Spiel) steht dort im Zahlenband bzw.
+         im "Weg zur Pfeife". Ein zweites Mal haette nur bedeutet, dass
+         beide Stellen auseinanderlaufen. Der Weg dorthin bleibt der
+         erste Knopf im Aufmacher.
 
          Die Termine stehen bewusst GANZ UNTEN und nicht in der Mitte.
          Max: "so dass man einmal bis nach ganz unten durchscrollen kann und
@@ -82,26 +99,6 @@
       </div>
     </section>
 
-    <!-- "Schiri werden" ist aus der Navigationsleiste verschwunden (die ist
-         für unsere eigenen Schiedsrichter). Damit es trotzdem gefunden wird,
-         steht es hier gleich als erste Bildzeile. -->
-    <section class="wechsel">
-      <div class="wechsel-bild">
-        <div class="bildflaeche"><img data-bild="schiriWerden" src="bilder/motiv-regeln.svg" alt="" loading="lazy" /></div>
-      </div>
-      <div class="wechsel-text">
-        <span class="kicker">Ab 12 Jahren</span>
-        <h2>Steh mitten im Spiel, statt danebenzustehen</h2>
-        <p>
-          Sieben Abende Lehrgang, danach pfeifst du dein erstes Spiel – mit einem
-          erfahrenen Schiedsrichter als Paten an der Seite. Rund 25 € je Spiel,
-          Fahrtkosten dazu, die Kleidung übernimmt der Verein. Und mit dem Ausweis
-          kommst du zu jedem Spiel im DFB-Gebiet frei rein.
-        </p>
-        <a class="knopf-dunkel" href="schiri-werden.html">So läuft der Einstieg</a>
-      </div>
-    </section>
-
     <!-- Probefrage: eine echte Frage aus dem eigenen Katalog. Siehe Skript
          am Seitenende. -->
     <section class="band band-dunkel">
@@ -110,7 +107,7 @@
           <span class="kicker">Ohne Anmeldung</span>
           <h2>Hättest du richtig entschieden?</h2>
           <p>
-            Eine echte Frage aus unserem Regelquiz – dieselben, mit denen sich
+            Eine echte Frage aus unserem Quiz – dieselben, mit denen sich
             unsere Schiedsrichter jede Woche vorbereiten.
           </p>
         </div>
@@ -136,7 +133,7 @@
         <a class="bildkachel" href="modus.html">
           <div class="bildflaeche"><img data-bild="quiz" src="bilder/motiv-quiz.svg" alt="" loading="lazy" /></div>
           <div class="bildkachel-text">
-            <h3>Regelquiz</h3>
+            <h3>Quiz</h3>
             <p>Jede Woche neue Fragen.</p>
           </div>
         </a>
@@ -211,6 +208,13 @@
   <script src="src/core/anmeldung.js"></script>
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/login-dialog.js"></script>
+  <!-- Profil-Punkte im Kontomenue (30.08.2026). Dieselben Bausteine wie
+       im Quiz - siehe Kopf von src/ui/profil-fenster.js. Ebenfalls
+       klassische Skripte VOR seite.js, aus demselben Grund wie oben. -->
+  <script src="src/core/quiz-utils.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
+  <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
 
   <script type="module">

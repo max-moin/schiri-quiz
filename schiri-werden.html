@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="stil/hinweise.css" />
   <link rel="stylesheet" href="stil/vorlagen.css" />
   <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
 </head>
 <body>
 
@@ -58,7 +59,7 @@
       </div>
       <div class="kopfbild-text">
         <span class="kicker">Ab 12 Jahren</span>
-        <h1>Steh mitten<br />im Spiel</h1>
+        <h1>Steh mitten im Spiel,<br />statt danebenzustehen</h1>
         <p>Sieben Abende Lehrgang – danach gehörst du zu denen, ohne die kein Spiel stattfindet.</p>
       </div>
     </div>
@@ -165,7 +166,7 @@
           <h3>Sieben Abende lernen</h3>
           <p>
             Regelkunde, typische Spielsituationen, Auftreten auf dem Platz. Die Abende
-            liegen an Werktagen von 17 bis 20 Uhr. Parallel kannst du hier im Regelquiz
+            liegen an Werktagen von 17 bis 20 Uhr. Parallel kannst du hier im Quiz
             schon Fragen üben – die kommen aus demselben Regelwerk.
           </p>
           <span class="dauer">7–8 Abende</span>
@@ -320,6 +321,13 @@
   <script src="src/core/anmeldung.js"></script>
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/login-dialog.js"></script>
+  <!-- Profil-Punkte im Kontomenue (30.08.2026). Dieselben Bausteine wie
+       im Quiz - siehe Kopf von src/ui/profil-fenster.js. Ebenfalls
+       klassische Skripte VOR seite.js, aus demselben Grund wie oben. -->
+  <script src="src/core/quiz-utils.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
+  <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
 </body>
 </html>

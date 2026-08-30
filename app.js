@@ -15,6 +15,7 @@ const { initialisiereKopfmenue } = SchiriQuizHeaderMenu;
 const { erstelleFragenElemente } = SchiriQuizQuestionElements;
 const { erstelleGastmodus } = SchiriQuizGuestMode;
 const { erstelleProfilAnfragen } = SchiriQuizProfileRequests;
+const { sorgeFuerFenster } = SchiriProfilFenster;
 const { erstelleFreitextAntworten } = SchiriQuizFreetextAnswers;
 const { erstelleHistorienModus } = SchiriQuizHistoryMode;
 const { erstelleWochenQuiz } = SchiriQuizWeeklyQuiz;
@@ -85,6 +86,11 @@ wochenQuiz = erstelleWochenQuiz({
   baueWarumButton,
   beiQuizFertig: () => historieController.zeigeStartButton(),
 });
+
+// Die Profil-Fenster liegen seit dem 30.08.2026 in src/ui/profil-fenster.js
+// und nicht mehr fest in quiz.html - sie gehoeren auf jede Seite, nicht nur
+// hierher. Muss vor erstelleProfilAnfragen laufen, das sie verdrahtet.
+sorgeFuerFenster();
 
 const profilAnfragen = erstelleProfilAnfragen({
   sb,

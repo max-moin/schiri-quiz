@@ -78,9 +78,14 @@ const OEFFENTLICHE_SEITEN = [
 // stehen deshalb ebenfalls hinten - sie duerfen die gemeinsamen Regeln
 // ueberschreiben, aber nichts von ihnen darf auf eine andere Seite
 // durchschlagen.
+//
+// "profil" ist am 30.08.2026 dazugekommen und steht direkt hinter
+// "anmeldung": beide kleiden Fenster ein, die src/ui/ in jede Seite
+// haengt, und beide duerfen von den seitenspezifischen Teilen dahinter
+// noch ueberschrieben werden.
 const REIHENFOLGE = [
   "basis", "kopf-fuss", "startseite", "termine", "regeln",
-  "bausteine", "hinweise", "vorlagen", "anmeldung", "obmann", "spesen",
+  "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "obmann", "spesen",
   "modus", "entscheiden",
 ];
 

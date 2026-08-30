@@ -1,0 +1,221 @@
+/* ============================================================
+   Profil-Fenster: Ausruestung anfragen, Anliegen melden, Meine Anfragen
+   ============================================================
+   Neu am 30.08.2026. Max: "Dieses 'Angemeldet als Max Mueller' und dieses
+   'Ausruestung anfragen / Anliegen melden / Meine Anfragen' - das muessen
+   halt alles auch mit auf die Hauptwebseite. Das hat ja mit dem Quiz gar
+   nichts mehr zu tun."
+
+   Das Markup dieser Fenster steht in src/ui/profil-fenster.js und wird in
+   jede Seite gehaengt, die es braucht. Auf der Quizseite kleidet style.css
+   es ein, hier diese Datei.
+
+   Warum zwei Dateien und nicht eine: aus demselben Grund, aus dem basis.css
+   und style.css getrennt sind (siehe Kopf von stil/basis.css) - das Quiz
+   laeuft seit Wochen und wird benutzt; eine gemeinsame Datei hiesse, dass
+   jede Aenderung an der Vereinsseite es kaputtmachen kann. Die Farbrollen
+   sind dieselben, deshalb sieht es trotzdem gleich aus.
+
+   ALLE Elementselektoren stehen unter ".profil-fenster". Sonst faerbt
+   diese Datei jedes Formular jeder Vereinsseite mit ein - genau die Falle,
+   die tests/frontend-architecture.test.js fuer spesen.css beschreibt.
+   ============================================================ */
+
+/* ---------- Ueberdeckung und Fenster ---------- */
+
+.profil-fenster {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, .55);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  /* Oben verankert statt zentriert - dieselbe iPhone-Begruendung wie beim
+     Anmeldefenster (siehe Kopf des iPhone-Abschnitts in anmeldung.css):
+     sobald die Tastatur aufgeht, schrumpft nur der sichtbare Bereich, und
+     ein senkrecht zentriertes Fenster rutscht darunter. */
+  padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+}
+
+/* Ohne diese Zeile wuerde das display:flex oben das hidden-Attribut
+   ueberschreiben und die Fenster staenden dauerhaft offen. Bekannte Falle
+   in diesem Projekt, siehe dieselbe Regel in style.css. */
+.profil-fenster[hidden] { display: none; }
+
+.profil-fenster .erklaerung-popup {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  max-width: 460px;
+  width: 100%;
+  height: fit-content;
+  padding: 20px 22px 22px;
+  font-family: var(--font-text);
+  color: var(--text);
+}
+
+.profil-fenster .erklaerung-kopf {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.profil-fenster .erklaerung-kopf h3 {
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+  margin: 0;
+}
+
+.profil-fenster .erklaerung-schliessen-button {
+  flex: none;
+  width: 38px;
+  height: 38px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--marke-lighter);
+  color: var(--muted);
+  font-size: .95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+.profil-fenster .erklaerung-schliessen-button:hover { background: var(--red-hell); color: var(--red); }
+
+/* ---------- Formularfelder ---------- */
+
+.profil-fenster label {
+  display: block;
+  font-weight: 600;
+  font-size: .85rem;
+  color: var(--marke-hell);
+  margin-bottom: 6px;
+}
+
+.profil-fenster select,
+.profil-fenster input[type="text"],
+.profil-fenster input[type="file"],
+.profil-fenster textarea {
+  box-sizing: border-box;
+  width: 100%;
+  font-family: inherit;
+  /* 16px, nicht weniger: alles darunter loest auf iOS Safari beim Antippen
+     den Auto-Zoom aus, aus dem die Seite nicht wieder herauszoomt (Max am
+     30.08.2026: "Allgemein ist irgendwie sehr rangezoomt"). */
+  font-size: 16px;
+  padding: 11px 13px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: #fff;
+  margin-bottom: 14px;
+}
+
+.profil-fenster textarea { resize: vertical; min-height: 76px; line-height: 1.5; }
+
+.profil-fenster select:focus,
+.profil-fenster input:focus,
+.profil-fenster textarea:focus { outline: none; border-color: var(--marke-hell); }
+
+.profil-fenster button {
+  font-family: inherit;
+  font-size: .92rem;
+  font-weight: 700;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.profil-fenster #anfrage-absenden-button,
+.profil-fenster #anliegen-absenden-button,
+.profil-fenster #rechnung-hochladen-button {
+  width: 100%;
+  min-height: 48px;
+  background: var(--marke);
+  color: #fff;
+}
+.profil-fenster #anfrage-absenden-button:not(:disabled):hover,
+.profil-fenster #anliegen-absenden-button:not(:disabled):hover,
+.profil-fenster #rechnung-hochladen-button:not(:disabled):hover { background: var(--marke-dunkel); }
+.profil-fenster button:disabled { opacity: .45; cursor: not-allowed; }
+
+.profil-fenster .sekundaer-button {
+  min-height: 44px;
+  padding: 8px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.profil-fenster .sekundaer-button:hover { background: var(--marke-lighter); }
+
+.profil-fenster .hinweis { color: var(--muted); font-size: .84rem; line-height: 1.55; margin: 10px 0 0; }
+.profil-fenster p { line-height: 1.6; font-size: .92rem; }
+
+.profil-fenster #anfrage-aermellaenge-bereich[hidden] { display: none; }
+.profil-fenster #rechnung-vorschau-bild {
+  width: 100%; max-height: 240px; object-fit: contain;
+  border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--bg-end); margin-bottom: 14px;
+}
+.profil-fenster #rechnung-vorschau-bild[hidden] { display: none; }
+
+/* ---------- Liste "Meine Anfragen" ---------- */
+
+.profil-fenster .anfrage-zeile {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.profil-fenster .anfrage-zeile:last-child { margin-bottom: 0; }
+
+.profil-fenster .anfrage-zeile-kopf {
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 8px; margin-bottom: 4px;
+}
+.profil-fenster .anfrage-zeile-titel { font-weight: 600; font-size: .92rem; }
+
+.profil-fenster .anfrage-status-badge {
+  font-size: .72rem; font-weight: 700;
+  padding: 3px 9px; border-radius: 999px;
+  white-space: nowrap; flex: none;
+}
+.profil-fenster .anfrage-status-badge.offen { background: var(--karte-gelb-hell); color: #92400e; }
+.profil-fenster .anfrage-status-badge.angenommen { background: var(--green-light); color: var(--green-dark); }
+.profil-fenster .anfrage-status-badge.abgelehnt { background: var(--red-hell); color: var(--red); }
+.profil-fenster .anfrage-status-badge.erledigt { background: #e0e7ff; color: #3730a3; }
+
+.profil-fenster .anfrage-zeile-detail { font-size: .82rem; color: var(--muted); margin: 0; }
+
+.profil-fenster .anfrage-zeile-rechnung-button {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; min-height: 38px;
+  background: var(--karte-gelb-hell); color: #92400e;
+  padding: 7px 13px; font-size: .8rem;
+}
+.profil-fenster .anfrage-zeile-rechnung-status {
+  display: inline-flex; align-items: center; gap: 6px;
+  margin-top: 8px; font-size: .78rem; color: var(--green-dark); font-weight: 600;
+}
+
+/* ---------- Punkt "es gibt Neuigkeiten" im Kontomenue ---------- */
+
+.konto-menue .konto-neu {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--karte-gelb); flex: none; margin-left: auto;
+}
+/* Zwei Klassen, nicht eine: ".konto-menue button" in anmeldung.css hat
+   eine Klasse UND einen Typ und wuerde eine einklassige Regel hier
+   schlagen - das display:block von dort haette den Punkt rechts aussen
+   wieder an den Text geklebt. */
+.konto-menue .konto-menue-punkt {
+  display: flex; align-items: center; gap: 8px;
+}
+.konto-knopf .konto-punkt.neu { background: var(--karte-gelb); }

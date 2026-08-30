@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="stil/hinweise.css" />
   <link rel="stylesheet" href="stil/vorlagen.css" />
   <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
   <link rel="stylesheet" href="stil/spesen.css" />
 </head>
 <body>
@@ -61,23 +62,53 @@
              Liga vor der Spielart - man wählte also eine Klasse, ohne zu
              wissen, ob die Pokalsätze überhaupt anders sind. -->
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Wer spielt, und was für ein Spiel?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Was für ein Spiel, und wer spielt?</h2></div>
           <div class="schritt-koerper">
-            <label for="alter">Altersklasse</label>
-            <select class="feld" id="alter"></select>
-
-            <div style="margin-top:16px">
+            <div class="wahl-block">
               <span class="feldname" id="artLabel">Art des Spiels</span>
-              <div class="segment segment-breit" id="artFilter" role="group" aria-labelledby="artLabel">
-                <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
-                <button type="button" data-art="pokal" aria-pressed="false">Pokal</button>
-                <button type="button" data-art="freund" aria-pressed="false">Freundschaft</button>
-                <button type="button" data-art="turnier" aria-pressed="false">Turnier</button>
+              <div class="wahl-gruppe" id="artFilter" role="group" aria-labelledby="artLabel">
+                <button type="button" class="wahl-knopf" data-art="meister" aria-pressed="true">Meisterschaft</button>
+                <button type="button" class="wahl-knopf" data-art="pokal" aria-pressed="false">Pokal</button>
+                <button type="button" class="wahl-knopf" data-art="freund" aria-pressed="false">Freundschaft</button>
+                <button type="button" class="wahl-knopf" data-art="turnier" aria-pressed="false">Turnier</button>
               </div>
               <p class="hinweis-klein" id="artHinweis"></p>
             </div>
 
-            <div id="turnierBlock" hidden style="margin-top:14px">
+            <!-- Schnellauswahl statt Durchscrollen (30.08.2026).
+                 Max: "Wenn man zur F-Jugend muss, ist halt bisschen bloed."
+                 Die Altersklassen-Liste hat elf Eintraege; auf dem Handy
+                 scrollt man sie zweimal durch. Diese vier Knoepfe kuerzen
+                 sie auf die zwei bis vier, die passen - erst
+                 Meisterschaft/Pokal oben, dann maennlich/weiblich und
+                 erwachsen/Jugend hier, und danach erst die Klasse.
+
+                 Bewusst eine ABKUERZUNG und kein Pflichtweg. Ohne
+                 Antippen steht die volle Liste da, wer seine Klasse
+                 kennt, waehlt sie also weiterhin in einem einzigen
+                 Schritt - Max selbst: "wenn man direkt zugefahren ist,
+                 ist auch halt besser." Nochmal auf denselben Knopf nimmt
+                 den Filter wieder zurueck. Wie die Namen eingeordnet
+                 werden und warum Unbekanntes nie weggefiltert wird:
+                 src/website/spesen-klassenfilter.js. -->
+            <div class="wahl-block">
+              <span class="feldname" id="schnellLabel">Schnellauswahl
+                <span class="etikett-zusatz">grenzt die Liste darunter ein – oder überspring sie</span></span>
+              <div class="wahl-gruppe" id="schnellFilter" role="group" aria-labelledby="schnellLabel">
+                <button type="button" class="wahl-knopf" data-filter="geschlecht" data-wert="m" aria-pressed="false">Männlich</button>
+                <button type="button" class="wahl-knopf" data-filter="geschlecht" data-wert="w" aria-pressed="false">Weiblich</button>
+                <button type="button" class="wahl-knopf" data-filter="stufe" data-wert="erwachsen" aria-pressed="false">Erwachsene</button>
+                <button type="button" class="wahl-knopf" data-filter="stufe" data-wert="jugend" aria-pressed="false">Jugend</button>
+              </div>
+            </div>
+
+            <div class="wahl-block">
+              <label for="alter">Altersklasse</label>
+              <select class="feld" id="alter"></select>
+              <p class="hinweis-klein" id="alterHinweis"></p>
+            </div>
+
+            <div id="turnierBlock" class="wahl-block" hidden>
               <label for="stunden">Dauer in Stunden</label>
               <input class="feld" id="stunden" type="number" inputmode="numeric"
                    min="1" step="1" value="4" />
@@ -103,7 +134,7 @@
               <option value="sr">Schiedsrichter</option>
               <option value="sra">Assistent</option>
             </select>
-            <div class="haken-reihe" style="margin-top:14px" role="group" aria-label="Besetzung">
+            <div class="haken-reihe wahl-block" role="group" aria-label="Besetzung">
               <label class="haken" id="lblAss"><input type="checkbox" id="cbAss" /> Mit Assistenten</label>
             </div>
             <p class="hinweis-klein" id="assHinweis"></p>
@@ -120,7 +151,7 @@
 
             <!-- Nur auf Landesebene sichtbar. Auf Stadtebene gilt weiter die
                  Zonenregel des Stadtverbands, dort gibt es nichts zu wählen. -->
-            <div id="anreiseBlock" hidden style="margin-top:14px">
+            <div id="anreiseBlock" class="wahl-block" hidden>
               <label for="anreise">Wie bist du angereist?</label>
               <select class="feld" id="anreise">
                 <option value="karte">Öffis mit Monats- oder Jahreskarte</option>
@@ -129,7 +160,7 @@
                 <option value="rad">Fahrrad</option>
               </select>
 
-              <div id="ticketFeld" hidden style="margin-top:12px">
+              <div id="ticketFeld" class="wahl-block" hidden>
                 <label for="ticketBetrag">Betrag laut Fahrausweis (Hin- und Rückfahrt)</label>
                 <input class="feld" id="ticketBetrag" type="text" inputmode="decimal"
                      placeholder="z. B. 12,40" />
@@ -137,10 +168,10 @@
                    die 2. Klasse.</p>
               </div>
 
-              <div id="kmFeld" hidden style="margin-top:12px">
+              <div id="kmFeld" class="wahl-block" hidden>
                 <label for="km">Gefahrene Kilometer insgesamt (hin und zurück)</label>
                 <input class="feld" id="km" type="text" inputmode="decimal" placeholder="z. B. 48" />
-                <label class="haken" id="lblMitnahme" style="margin-top:10px">
+                <label class="haken wahl-block" id="lblMitnahme">
                   <input type="checkbox" id="cbMitnahme" /> Ich habe weitere Personen mitgenommen
                 </label>
                 <p class="hinweis-klein">Die wirtschaftlichste Strecke ist zu nehmen, Fahrgemeinschaften
@@ -154,7 +185,7 @@
                  verein.config.js und ist die Postleitzahl des Vereins - eine
                  Startannahme, kein Messwert. Der Zusatz im Etikett sagt das
                  jetzt, statt dass die Zahl unerklaert im Feld steht. -->
-            <div style="margin-top:14px">
+            <div class="wahl-block">
               <label for="plz">Deine Postleitzahl <span class="etikett-zusatz">Vorbelegung: unser Vereinssitz – überschreib sie</span></label>
               <input class="feld" id="plz" type="text" inputmode="numeric" autocomplete="postal-code"
                      maxlength="5" placeholder="Postleitzahl" />
@@ -162,11 +193,11 @@
             </div>
 
             <div id="assFelder" hidden>
-              <div style="margin-top:14px">
+              <div class="wahl-block">
                 <label for="plzA1" id="lblPlzA1">Postleitzahl Assistent 1</label>
                 <input class="feld" id="plzA1" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
               </div>
-              <div style="margin-top:14px">
+              <div class="wahl-block">
                 <label for="plzA2" id="lblPlzA2">Postleitzahl Assistent 2</label>
                 <input class="feld" id="plzA2" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
               </div>
@@ -261,6 +292,13 @@
   <script src="src/core/anmeldung.js"></script>
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/login-dialog.js"></script>
+  <!-- Profil-Punkte im Kontomenue (30.08.2026). Dieselben Bausteine wie
+       im Quiz - siehe Kopf von src/ui/profil-fenster.js. Ebenfalls
+       klassische Skripte VOR seite.js, aus demselben Grund wie oben. -->
+  <script src="src/core/quiz-utils.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
+  <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
 
   <script type="module">
@@ -278,6 +316,10 @@
       ladeSpesenKonfiguration,
       standardSpesenKonfiguration,
     } from "./src/website/spesen-config.js";
+    /* Der Grobfilter fuer die Altersklassen-Liste liegt in einer eigenen
+       Datei: Er ist reine Namenslogik und laesst sich nur dort einzeln
+       pruefen - tests/spesen-klassenfilter.test.js. */
+    import { gefilterteKlassen } from "./src/website/spesen-klassenfilter.js";
     /* Die reinen Rechenregeln liegen seit dem 29.08.2026 in einer
        eigenen Datei. Sie standen vorher hier unten im Modulskript -
        dorthin kommt kein Test, und genau dort sind die drei
@@ -345,11 +387,46 @@
        Tastendruck für ein echtes Verlassen des Feldes. */
     let imNeuaufbau = false;
 
-    ALTERSKLASSEN.forEach((a, i) => {
-      const o = document.createElement("option");
-      o.value = i; o.textContent = a.name;
-      $("alter").appendChild(o);
-    });
+    /* Stand des Grobfilters. null heisst "nicht gesetzt" - und das ist
+       die Vorbelegung, damit die volle Liste dasteht, solange niemand
+       filtert. Begruendung siehe Kommentar an der Schnellauswahl im
+       Markup und im Kopf von spesen-klassenfilter.js. */
+    const schnellFilter = { geschlecht: null, stufe: null };
+
+    /**
+     * Fuellt die Altersklassen-Liste - gefiltert, wenn gefiltert wurde,
+     * sonst vollstaendig.
+     *
+     * Der Wert einer Option ist der Index in der UNGEFILTERTEN Liste
+     * ALTERSKLASSEN, nicht die Position in der angezeigten. Sonst zeigte
+     * dieselbe Zahl nach jedem Filterwechsel auf eine andere Klasse -
+     * und baueLigen() liest genau diesen Wert.
+     *
+     * Rueckgabe: ob die vorher gewaehlte Klasse stehen geblieben ist.
+     */
+    function baueAltersklassen() {
+      const feld = $("alter");
+      const vorher = feld.value;
+      const { eintraege, ausweich } = gefilterteKlassen(ALTERSKLASSEN, schnellFilter);
+      feld.innerHTML = "";
+      eintraege.forEach(({ index, gruppe }) => {
+        const o = document.createElement("option");
+        o.value = String(index);
+        o.textContent = gruppe.name;
+        feld.appendChild(o);
+      });
+      /* Die bisherige Klasse behalten, wenn der Filter sie stehen laesst.
+         Sonst spraenge die Auswahl weg, waehrend man nur die Liste
+         kuerzen wollte. */
+      const bleibt = eintraege.some((e) => String(e.index) === vorher);
+      feld.value = bleibt ? vorher : String(eintraege[0].index);
+      $("alterHinweis").textContent = ausweich
+        ? "Zu dieser Auswahl gibt es keine Klasse – deshalb stehen wieder alle in der Liste."
+        : "";
+      return bleibt;
+    }
+
+    baueAltersklassen();
     /* Vorbelegung der Postleitzahlen aus der Konfiguration. Stand vorher
        fest im HTML, ohne dass ersichtlich war warum. */
     if (VEREIN.standortPlz) {
@@ -856,6 +933,31 @@
            bleiben. Deshalb hier zurücksetzen. */
         handEingaben.clear();
         rechne();
+      })
+    );
+
+    /* ------------------------------------------------------------------
+       Schnellauswahl: kuerzt die Altersklassen-Liste, ersetzt sie nicht.
+
+       Jeder Knopf ist ein Umschalter. Nochmal auf denselben nimmt den
+       Filter zurueck - ohne das waere die Vorauswahl eine Einbahnstrasse:
+       einmal "Jugend" getippt, kaeme man ohne Neuladen der Seite nicht
+       mehr an die Herren.
+       ------------------------------------------------------------------ */
+    $("schnellFilter").querySelectorAll("button").forEach((b) =>
+      b.addEventListener("click", () => {
+        const gruppe = b.dataset.filter;
+        if (!gruppe) return;
+        const wert = schnellFilter[gruppe] === b.dataset.wert ? null : b.dataset.wert;
+        schnellFilter[gruppe] = wert;
+        $("schnellFilter").querySelectorAll(`button[data-filter="${gruppe}"]`)
+          .forEach((x) => x.setAttribute("aria-pressed", String(x.dataset.wert === wert)));
+
+        /* Nur wenn der Filter die Altersklasse wirklich gewechselt hat,
+           beziehen sich von Hand eingetragene Betraege auf etwas anderes.
+           Beim blossen Kuerzen der Liste bleiben sie stehen. */
+        if (!baueAltersklassen()) handEingaben.clear();
+        baueLigen();
       })
     );
 
