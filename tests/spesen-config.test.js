@@ -43,6 +43,43 @@ test("der oeffentliche Rechner faellt bei Datenbankfehler auf den statischen Sta
   assert.deepEqual(ergebnis.konfiguration, fallback);
 });
 
+test("kaputte Vereinseintraege bringen den Rechner nicht mehr zum Absturz", () => {
+  // Die Liste wurde bisher ungeprueft uebernommen. Ein Eintrag ohne
+  // "name" liess den Rechner bei der ersten Eingabe im Vereinsfeld
+  // abstuerzen (v.name.toLowerCase()), und eine unbekannte "lage" wurde
+  // wie "auswaerts" behandelt - also mit doppelten Fahrtkosten.
+  const ergebnis = normalisiereSpesenKonfiguration({
+    vereine: [
+      { name: "  SG Test  ", lage: "quatsch" },
+      { lage: "dd" },
+      null,
+      "kein Objekt",
+      { name: "Radeberger SV", lage: "aus", ort: "Radeberg" },
+    ],
+  }, fallback);
+
+  assert.deepEqual(ergebnis.vereine, [
+    { name: "SG Test", ort: "", lage: "frag" },
+    { name: "Radeberger SV", ort: "Radeberg", lage: "aus" },
+  ]);
+});
+
+test("bleibt kein brauchbarer Verein uebrig, gilt wieder die statische Liste", () => {
+  const ergebnis = normalisiereSpesenKonfiguration({ vereine: [{}, null] }, fallback);
+  assert.deepEqual(ergebnis.vereine, fallback.vereine);
+});
+
+test("gezaehlte Werte bleiben ganze Zahlen", () => {
+  // Ein veroeffentlichtes 2,5 ergab in der Quittung "32,00 € + 1.5 x
+  // 8,00 €" - eine halbe angefangene Stunde gibt es nicht.
+  const ergebnis = normalisiereSpesenKonfiguration({
+    turnier: { grundstunden: 2.5 },
+    fahrtkosten: { svfd: { kartenJeZone: 1.4 } },
+  }, fallback);
+  assert.equal(ergebnis.turnier.grundstunden, 3);
+  assert.equal(ergebnis.fahrtkosten.svfd.kartenJeZone, 1);
+});
+
 test("ein veroeffentlichter Datenbankstand ersetzt den Fallback", async () => {
   const ergebnis = await ladeSpesenKonfiguration({
     datenbank: { adresse: "https://example.supabase.co", oeffentlicherSchluessel: "sb_publishable_test" },

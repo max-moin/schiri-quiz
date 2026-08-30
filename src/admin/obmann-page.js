@@ -11,6 +11,7 @@ import { erstelleSpesenEditor } from "./spesen-editor.js";
 import { erstelleRegelnEditor } from "./regeln-editor.js";
 import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
 import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
+import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
 
 const client = window.supabase.createClient(
   DATENBANK.adresse,
@@ -75,6 +76,13 @@ async function oeffneEditor() {
     erstelleUnterlagenEditor({
       wurzel: document.querySelector('[data-admin-bereich="unterlagen"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    // Die Terminsuche braucht weder verein noch benutzer: sie arbeitet
+    // nicht auf den website_-Tabellen mit RLS-Policies, sondern auf den
+    // gemeinsamen Vereinstabellen hinter den geprueften Obmann-Funktionen.
+    erstelleTerminfindungEditor({
+      wurzel: document.querySelector('[data-admin-bereich="terminsuche"]'),
+      client,
     });
   }
 }

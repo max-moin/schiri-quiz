@@ -14,6 +14,44 @@ function positiveZahl(wert, fallback, { nullErlaubt = false, minimum = 0, maximu
   return Number.isFinite(zahl) && zahl >= minimum && zahl <= maximum ? zahl : fallback;
 }
 
+/**
+ * Wie positiveZahl, nur fuer Werte, die es nur ganz gibt.
+ *
+ * Grund: "grundstunden" und "kartenJeZone" werden gezaehlt, nicht
+ * gemessen. Ein veroeffentlichtes 2,5 fuehrte in der Quittung zu
+ * "32,00 € + 1.5 × 8,00 €" - eine halbe angefangene Stunde gibt es
+ * nicht (gefunden 29.08.2026).
+ */
+function ganzeZahl(wert, fallback, { minimum = 1 } = {}) {
+  const zahl = Math.round(Number(wert));
+  return Number.isFinite(zahl) && zahl >= minimum ? zahl : fallback;
+}
+
+const LAGEN = new Set(["dd", "aus", "frag"]);
+
+/**
+ * Vereinsliste aus der Datenbank haerten.
+ *
+ * Bisher wurde sie ungeprueft uebernommen. Zwei Folgen: Ein Eintrag
+ * ohne "name" liess den Rechner bei der ersten Eingabe im Vereinsfeld
+ * abstuerzen (v.name.toLowerCase()), und eine unbekannte "lage" wurde
+ * wie "auswaerts" behandelt - also mit doppelten Fahrtkosten, ohne dass
+ * jemand es sah. Unbekanntes gilt jetzt als "frag", und das faerbt die
+ * Zeile sichtbar als ungeprueft.
+ */
+function normalisiereVereine(rohListe, fallback) {
+  if (!Array.isArray(rohListe)) return kopie(fallback);
+  const sauber = rohListe
+    .filter((verein) => verein && typeof verein === "object")
+    .map((verein) => ({
+      name: String(verein.name ?? "").trim(),
+      ort: String(verein.ort ?? "").trim(),
+      lage: LAGEN.has(verein.lage) ? verein.lage : "frag",
+    }))
+    .filter((verein) => verein.name);
+  return sauber.length ? sauber : kopie(fallback);
+}
+
 function normalisiereLiga(liga, fallback) {
   if (!liga || typeof liga !== "object") return kopie(fallback);
   return {
@@ -83,13 +121,13 @@ export function normalisiereSpesenKonfiguration(roh, fallback) {
     altersklassen,
     turnier: {
       grundpauschale: positiveZahl(turnierRoh.grundpauschale, fallback.turnier.grundpauschale),
-      grundstunden: positiveZahl(turnierRoh.grundstunden, fallback.turnier.grundstunden, { minimum: 1 }),
+      grundstunden: ganzeZahl(turnierRoh.grundstunden, fallback.turnier.grundstunden),
       jeWeitereStunde: positiveZahl(turnierRoh.jeWeitereStunde, fallback.turnier.jeWeitereStunde),
     },
     fahrtkosten: {
       svfd: {
         preisJeKarte: positiveZahl(stadtRoh.preisJeKarte, fallback.fahrtkosten.svfd.preisJeKarte),
-        kartenJeZone: positiveZahl(stadtRoh.kartenJeZone, fallback.fahrtkosten.svfd.kartenJeZone),
+        kartenJeZone: ganzeZahl(stadtRoh.kartenJeZone, fallback.fahrtkosten.svfd.kartenJeZone),
       },
       sfv: {
         monatskartePauschale: positiveZahl(landRoh.monatskartePauschale, fallback.fahrtkosten.sfv.monatskartePauschale),
@@ -98,9 +136,7 @@ export function normalisiereSpesenKonfiguration(roh, fallback) {
         kmFahrrad: positiveZahl(landRoh.kmFahrrad, fallback.fahrtkosten.sfv.kmFahrrad),
       },
     },
-    vereine: Array.isArray(roh.vereine) && roh.vereine.length
-      ? kopie(roh.vereine)
-      : kopie(fallback.vereine),
+    vereine: normalisiereVereine(roh.vereine, fallback.vereine),
     ausfallAnteil: positiveZahl(roh.ausfallAnteil, fallback.ausfallAnteil, { maximum: 1 }),
   };
 }

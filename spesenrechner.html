@@ -79,7 +79,8 @@
 
             <div id="turnierBlock" hidden style="margin-top:14px">
               <label for="stunden">Dauer in Stunden</label>
-              <input class="feld" id="stunden" type="number" min="1" step="1" value="4" />
+              <input class="feld" id="stunden" type="number" inputmode="numeric"
+                   min="1" step="1" value="4" />
               <p class="hinweis-klein">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
             </div>
           </div>
@@ -130,14 +131,15 @@
 
               <div id="ticketFeld" hidden style="margin-top:12px">
                 <label for="ticketBetrag">Betrag laut Fahrausweis (Hin- und Rückfahrt)</label>
-                <input class="feld" id="ticketBetrag" inputmode="decimal" placeholder="z. B. 12,40" />
+                <input class="feld" id="ticketBetrag" type="text" inputmode="decimal"
+                     placeholder="z. B. 12,40" />
                 <p class="hinweis-klein">Wird gegen Vorlage der Fahrausweise erstattet, bei der Bahn
                    die 2. Klasse.</p>
               </div>
 
               <div id="kmFeld" hidden style="margin-top:12px">
                 <label for="km">Gefahrene Kilometer insgesamt (hin und zurück)</label>
-                <input class="feld" id="km" inputmode="decimal" placeholder="z. B. 48" />
+                <input class="feld" id="km" type="text" inputmode="decimal" placeholder="z. B. 48" />
                 <label class="haken" id="lblMitnahme" style="margin-top:10px">
                   <input type="checkbox" id="cbMitnahme" /> Ich habe weitere Personen mitgenommen
                 </label>
@@ -154,7 +156,8 @@
                  jetzt, statt dass die Zahl unerklaert im Feld steht. -->
             <div style="margin-top:14px">
               <label for="plz">Deine Postleitzahl <span class="etikett-zusatz">Vorbelegung: unser Vereinssitz – überschreib sie</span></label>
-              <input class="feld" id="plz" inputmode="numeric" maxlength="5" placeholder="Postleitzahl" />
+              <input class="feld" id="plz" type="text" inputmode="numeric" autocomplete="postal-code"
+                     maxlength="5" placeholder="Postleitzahl" />
               <p class="hinweis-klein" id="plzHinweis"></p>
             </div>
 
@@ -184,7 +187,7 @@
         </section>
       </div>
 
-      <div class="quittung">
+      <div class="quittung" id="quittung">
         <div class="q-kopf">
           <h2>Spesenquittung</h2>
           <div class="sub" id="qSub">–</div>
@@ -215,6 +218,23 @@
           Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.
         </p>
       </div>
+    </div>
+
+    <!-- Ergebniszeile fürs Handy (29.08.2026).
+         Unter 880 px wird das Raster einspaltig, die Quittung steht dann
+         ganz unten. Man tippt oben im Formular und sieht das Ergebnis
+         erst nach dem Durchscrollen - genau die Zahl, wegen der man die
+         Seite geöffnet hat. Diese Zeile klebt am unteren Rand.
+
+         "sticky" statt "fixed", und bewusst als letztes Kind des
+         Inhaltsbereichs: so schiebt sie sich am Ende des Inhalts von
+         selbst weg, statt sich dauerhaft über die Fußzeile zu legen. Auf breiten
+         Bildschirmen ist sie ausgeblendet - dort klebt die Quittung
+         selbst. -->
+    <div class="ergebnis-leiste">
+      <span class="el-titel" id="elTitel">Gesamt</span>
+      <b class="el-betrag" id="elBetrag">–</b>
+      <a class="el-sprung" href="#quittung">Zur Quittung</a>
     </div>
   </main>
 
@@ -258,6 +278,21 @@
       ladeSpesenKonfiguration,
       standardSpesenKonfiguration,
     } from "./src/website/spesen-config.js";
+    /* Die reinen Rechenregeln liegen seit dem 29.08.2026 in einer
+       eigenen Datei. Sie standen vorher hier unten im Modulskript -
+       dorthin kommt kein Test, und genau dort sind die drei
+       Rechenfehler vom 22.08.2026 tagelang unbemerkt geblieben.
+       tests/spesen-rechnung.test.js prueft sie jetzt einzeln. */
+    import {
+      aufCent,
+      euroText,
+      landFahrtkosten,
+      leseZahl,
+      plzZustand,
+      spielEntschaedigung,
+      stadtFahrtkosten,
+      turnierEntschaedigung,
+    } from "./src/website/spesen-rechnung.js";
 
     const fallback = standardSpesenKonfiguration({
       altersklassen: STANDARD_ALTERSKLASSEN,
@@ -280,14 +315,12 @@
     } = geladen.konfiguration;
 
     const $ = (id) => document.getElementById(id);
-    const euro = (n) => n.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
-    /* Dresdner Zustell-Postleitzahlen laufen von 01067 bis 01329.
-       Der frühere Ausdruck begann schon bei 01060 und wich damit vom
-       eigenen Kommentar ab (Review 22.08.2026). Folgenlos war das nicht
-       gedacht: Wer hier fälschlich als "Dresden" gilt, bekommt eine
-       Tarifzone statt zwei - also die Hälfte der Fahrtkosten. */
-    const istDresden = (plz) =>
-      /^(0106[7-9]|010[7-9]\d|01[12]\d{2}|013[0-2]\d)$/.test((plz || "").trim());
+    const euro = euroText;
+    /* Die Postleitzahl-Pruefung heisst jetzt plzZustand und unterscheidet
+       vier Faelle statt zwei: Dresden, auswaerts, leer, unvollstaendig.
+       Die letzten beiden fehlten - eine halb eingetippte Postleitzahl
+       galt stillschweigend als auswaerts und verdoppelte damit die
+       Fahrtkosten (gefunden 29.08.2026). */
 
     let gewaehlteLiga = null;
 
@@ -395,18 +428,12 @@
      */
     function fahrtkostenStadt(plz) {
       const verein = gewaehlterVerein();
-      const wohntInDD = istDresden(plz);
-      const zielInDD = verein ? verein.lage === "dd" : true;
-      const zoneUnklar = verein ? verein.lage === "frag" : false;
-
-      const zonen = (zielInDD && wohntInDD) ? 1 : 2;
-      const karten = zonen * FAHRTKOSTEN.svfd.kartenJeZone;
-      const betrag = karten * FAHRTKOSTEN.svfd.preisJeKarte;
-
-      let text = `${zonen} ${zonen === 1 ? "Tarifzone" : "Tarifzonen"} · ${karten} Einzelkarten à ${euro(FAHRTKOSTEN.svfd.preisJeKarte)}`;
-      if (zoneUnklar) text += " – Zone ungeprüft";
-
-      return { betrag, text, unsicher: zoneUnklar };
+      return stadtFahrtkosten({
+        plz,
+        lage: verein ? verein.lage : null,
+        vereinEingetippt: !!$("verein").value.trim(),
+        saetze: FAHRTKOSTEN.svfd,
+      });
     }
 
     /**
@@ -427,65 +454,21 @@
      * Rückgabe: null, wenn nichts Lesbares dasteht - dann kann der Aufrufer
      * "noch eintragen" von "nicht lesbar" unterscheiden.
      */
-    function zahl(rohtext) {
-      const roh = String(rohtext || "").trim();
-      if (!roh) return null;
-      const bereinigt = roh
-        .replace(/[€\s]/g, "")
-        .replace(/\.(?=\d{3}(\D|$))/g, "")   // Tausenderpunkt
-        .replace(/,/g, ".");
-      const wert = Number(bereinigt);
-      if (!Number.isFinite(wert) || wert < 0) return null;
-      return wert;
-    }
+    const zahl = leseZahl;
 
-    /** Zahl deutsch schreiben - "48.5 km" sah neben "0,39 €" falsch aus. */
-    const zahlText = (n) => n.toLocaleString("de-DE", { maximumFractionDigits: 2 });
-
-    /** Auf Cent runden. Muss VOR dem Summieren passieren, sonst zeigt die
-        Quittung gerundete Zeilen und darunter eine Summe, die um einen
-        Cent danebenliegt (0,35 €/km × 48,5 km = 16,975). */
-    const cent = (n) => Math.round(n * 100) / 100;
+    /* Auf Cent runden. Muss VOR dem Summieren passieren, sonst zeigt die
+       Quittung gerundete Zeilen und darunter eine Summe, die um einen
+       Cent danebenliegt (0,35 €/km × 48,5 km = 16,975). */
+    const cent = aufCent;
 
     function fahrtkostenLand() {
-      const art = $("anreise").value;
-      const s = FAHRTKOSTEN.sfv;
-
-      if (art === "karte") {
-        return { betrag: s.monatskartePauschale,
-                 text: `Pauschale bei Monats- oder Jahreskarte, einmal je Einsatz`,
-                 unsicher: false };
-      }
-      if (art === "ticket") {
-        const roh = $("ticketBetrag").value;
-        const betrag = zahl(roh);
-        if (betrag == null) {
-          return { betrag: 0,
-                   text: roh.trim() ? "Betrag nicht lesbar" : "Betrag laut Fahrausweis noch eintragen",
-                   unsicher: true };
-        }
-        return { betrag, text: "Einzelfahrscheine, Belege beilegen", unsicher: false };
-      }
-
-      const rohKm = $("km").value;
-      const km = zahl(rohKm);
-      if (km == null || km === 0) {
-        return { betrag: 0,
-                 text: rohKm.trim() ? "Kilometer nicht lesbar" : "Kilometer noch eintragen",
-                 unsicher: true };
-      }
-      if (art === "rad") {
-        return { betrag: km * s.kmFahrrad,
-                 text: `${zahlText(km)} km à ${euro(s.kmFahrrad)}`,
-                 unsicher: false };
-      }
-      const satzProKm = s.kmAuto + ($("cbMitnahme").checked ? s.kmZuschlagMitnahme : 0);
-      return {
-        betrag: km * satzProKm,
-        text: `${zahlText(km)} km à ${euro(satzProKm)}`
-              + ($("cbMitnahme").checked ? " (mit Mitnahmezuschlag)" : ""),
-        unsicher: false,
-      };
+      return landFahrtkosten({
+        art: $("anreise").value,
+        ticketRoh: $("ticketBetrag").value,
+        kmRoh: $("km").value,
+        mitnahme: $("cbMitnahme").checked,
+        saetze: FAHRTKOSTEN.sfv,
+      });
     }
 
     /**
@@ -603,61 +586,57 @@
         ? "Für die Turnierpauschale spielt die Liga keine Rolle."
         : liga.voll;
 
+      /* Vier Zustände statt zwei. Vorher lief "leer" und "halb getippt"
+         beides in "Außerhalb Dresdens" - und das verdoppelt die
+         Fahrtkosten, ohne dass es jemand sieht. */
+      const PLZ_TEXTE = {
+        dresden: "Tarifzone Dresden.",
+        auswaerts: "Außerhalb Dresdens – es wird mehrzonig gerechnet.",
+        leer: "Ohne Postleitzahl wird vorsichtshalber mit zwei Zonen gerechnet.",
+        ungueltig: "Postleitzahl unvollständig – bitte alle fünf Ziffern eintragen.",
+      };
       $("plzHinweis").textContent = aufLandesebene
         ? "Auf Landesebene spielt die Tarifzone keine Rolle – dort gilt § 8 der "
           + "Finanzordnung des Landesverbands."
-        : istDresden($("plz").value)
-          ? "Tarifzone Dresden."
-          : "Außerhalb Dresdens – es wird mehrzonig gerechnet.";
+        : PLZ_TEXTE[plzZustand($("plz").value)];
 
+      /* Kein innerHTML mehr. Vereinsname und Ort kommen aus der vom
+         Obmann veröffentlichten Konfiguration, also aus der Datenbank -
+         ein Ortsname mit spitzen Klammern wurde hier vorher als Markup
+         ausgeführt (gefunden 29.08.2026). */
       const verein = gewaehlterVerein();
+      const ortHinweis = $("ortHinweis");
+      ortHinweis.textContent = "";
       if (!verein) {
-        $("ortHinweis").textContent = $("verein").value
+        ortHinweis.textContent = $("verein").value
           ? "Verein nicht in der Liste – bitte aus den Vorschlägen wählen."
           : "Ohne Auswahl wird mit einem Spielort in Dresden gerechnet.";
-      } else if (verein.lage === "dd") {
-        $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-dd">in Dresden</span>`;
-      } else if (verein.lage === "aus") {
-        $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-aus">außerhalb · ${verein.ort}</span>`;
       } else {
-        $("ortHinweis").innerHTML = `Spielort <span class="lage-marker lm-frag">Zone noch offen</span>`;
+        const marker = document.createElement("span");
+        marker.className = "lage-marker " + (verein.lage === "dd" ? "lm-dd"
+          : verein.lage === "aus" ? "lm-aus" : "lm-frag");
+        marker.textContent = verein.lage === "dd" ? "in Dresden"
+          : verein.lage === "aus" ? `außerhalb · ${verein.ort || "Ort noch offen"}`
+            : "Zone noch offen";
+        ortHinweis.append("Spielort ", marker);
       }
 
+      /* Nur noch Ablesen der Oberfläche - die Sätze selbst stehen in
+         src/website/spesen-rechnung.js und werden dort geprüft. */
       function satz(alsAssistent) {
         if (turnier) {
-          const h = Math.max(1, Number($("stunden").value) || TURNIER.grundstunden);
-          const extra = Math.max(0, Math.ceil(h) - TURNIER.grundstunden);
-          /* Die Turniersätze stammen aus dem Blatt des Stadtverbands. Für
-             eine Landesklasse sind sie nicht belegt - der Landesverband
-             führt eigene Turniersätze. Deshalb dort als unsicher markiert
-             statt stillschweigend übernommen. */
-          return {
-            betrag: TURNIER.grundpauschale + extra * TURNIER.jeWeitereStunde,
-            text: (extra > 0
-              ? `${euro(TURNIER.grundpauschale)} + ${extra} × ${euro(TURNIER.jeWeitereStunde)}`
-              : `${euro(TURNIER.grundpauschale)} für die ersten ${TURNIER.grundstunden} Stunden`)
-              + (liga.verband === "sfv" ? " · Satz des Stadtverbands, für Landesturniere ungeprüft" : ""),
-            unsicher: liga.verband === "sfv",
-          };
+          return turnierEntschaedigung({
+            stundenRoh: $("stunden").value,
+            turnier: TURNIER,
+            aufLandesverband: liga.verband === "sfv",
+          });
         }
-        const voll = alsAssistent ? liga.sra : liga.sr;
-        /* Absicherung: Ligen ohne Assistenten haben sra === null. Erreichbar
-           ist das hier nicht, weil die Checkbox vorher gesperrt wird - aber
-           euro(null) würde die ganze Quittung mitten im Aufbau abbrechen. */
-        if (voll == null) {
-          return { betrag: 0, text: "Für diese Klasse ist kein Satz hinterlegt", unsicher: true };
-        }
-        if ($("cbAusfall").checked) {
-          /* Anlage 1 der SFV-Finanzordnung: bei Spielausfall 50 % der
-             Entschädigungspauschale, gleich aus welchem Grund. Für reine
-             Stadtspiele ist dieselbe Regel nicht belegt - dort deshalb als
-             unsicher gekennzeichnet statt als feste Zahl. */
-          return { betrag: voll * AUSFALL_ANTEIL,
-                   text: `${liga.voll} · Spielausfall, 50 % von ${euro(voll)}`
-                         + (liga.verband === "svfd" ? " · Regel des Landesverbands, für Stadtspiele ungeprüft" : ""),
-                   unsicher: liga.verband === "svfd" };
-        }
-        return { betrag: voll, text: liga.voll, unsicher: false };
+        return spielEntschaedigung({
+          liga,
+          alsAssistent,
+          ausgefallen: $("cbAusfall").checked,
+          ausfallAnteil: AUSFALL_ANTEIL,
+        });
       }
 
       const ichBinAssistent = funktion.value === "sra";
@@ -822,9 +801,15 @@
       });
       imNeuaufbau = false;
 
-      $("qSpesen").textContent = euro(sumSpesen);
-      $("qFahrt").textContent = euro(sumFahrt);
-      const gesamt = cent(sumSpesen + sumFahrt);
+      /* Auch die beiden Teilsummen auf Cent bringen, bevor sie angezeigt
+         werden. Sie sind Restsummen aus Gleitkommazahlen (0,1 + 0,2 =
+         0,30000000000000004); ungerundet kann die Anzeige anders runden
+         als der Gesamtbetrag darunter. */
+      const spesenGesamt = cent(sumSpesen);
+      const fahrtGesamt = cent(sumFahrt);
+      $("qSpesen").textContent = euro(spesenGesamt);
+      $("qFahrt").textContent = euro(fahrtGesamt);
+      const gesamt = cent(spesenGesamt + fahrtGesamt);
       $("qGesamt").textContent = euro(gesamt);
       /* Nur zeigen, wenn wirklich eine SICHTBARE Zeile geändert ist.
          Sonst blieb der Hinweis nach einem Rollenwechsel stehen und
@@ -842,6 +827,14 @@
         (p.satz.unsicher && !handEingaben.has(`${p.sitz}-spesen`)));
       $("qGesamtLabel").textContent = luecken ? "Gesamt, unvollständig" : "Gesamt";
       $("qGesamt").closest(".q-gesamt")?.classList.toggle("unvollstaendig", luecken);
+
+      /* Dieselbe Zahl noch einmal in der klebenden Zeile am unteren
+         Rand. Auf dem Handy wird das Raster einspaltig, die Quittung
+         steht also ganz unten - man tippt oben und sieht das Ergebnis
+         sonst erst nach dem Durchscrollen. */
+      $("elBetrag").textContent = euro(gesamt);
+      $("elBetrag").classList.toggle("unvollstaendig", luecken);
+      $("elTitel").textContent = luecken ? "Gesamt, unvollständig" : "Gesamt";
 
       const ort = $("verein").value ? ` · ${$("verein").value}` : "";
       const artName = { meister: "Meisterschaft", pokal: "Pokal",

@@ -146,3 +146,108 @@
     .lm-dd { background: var(--green-light); color: var(--green-dark); }
     .lm-aus { background: var(--karte-gelb-hell); color: #854d0e; }
     .lm-frag { background: var(--red-hell); color: #991b1b; }
+
+
+/* ============================================================
+   Handy (29.08.2026)
+   ============================================================
+   Max: "vor allem auch fuer die mobile Version auf dem Handy besser."
+   Geprueft gegen 390 px Breite - damit kommen die meisten unserer
+   Schiedsrichter auf die Seite, naemlich zwischen zwei Spielen.
+
+   Vier Dinge waren dort echte Huerden:
+
+   1. Die Quittung klebte an "top: 80px". Einspaltig steht sie aber
+      hinter dem Formular - man tippt oben und sieht das Ergebnis erst
+      nach dem Durchscrollen. Dafuer gibt es jetzt die klebende
+      Ergebniszeile am unteren Rand.
+   2. Die Betragsfelder waren rund 28 px hoch und rahmenlos. Unter
+      44 px trifft man sie mit dem Daumen nicht zuverlaessig - und dass
+      sie ueberhaupt Eingabefelder sind, sah man nicht.
+   3. Schriftgroessen unter 16 px lassen iOS Safari beim Antippen eines
+      Feldes in die Seite hineinzoomen. Danach steht sie verschoben, und
+      man muss sie von Hand zurueckziehen.
+   4. Die vier Spielarten passten nebeneinander nicht in eine
+      390-px-Zeile, ohne dass die Beschriftungen brechen.
+
+   ACHTUNG, dieselbe Auflage wie oben: keine nackten Elementselektoren.
+   Alles hier haengt an Klassen, die es nur auf dem Spesenrechner gibt -
+   spesen.css laedt auch obmann.html.
+   ============================================================ */
+
+/* Auf breiten Bildschirmen klebt die Quittung selbst, dort waere die
+   Zeile doppelt gemoppelt. */
+.ergebnis-leiste { display: none; }
+
+@media (max-width: 880px) {
+  .ergebnis-leiste {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    /* Bis an den Rand der Polsterung von .inhalt (20 px), damit die
+       Zeile wie eine Leiste wirkt und nicht wie eine Karte. */
+    margin: 16px -20px 0;
+    padding: 12px 20px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+    min-height: 60px;
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -6px 18px rgba(16, 24, 40, .10);
+  }
+  .el-titel { font-size: .8rem; font-weight: 600; color: var(--muted); }
+  .el-betrag {
+    margin-left: auto;
+    font-family: var(--font-titel);
+    font-size: 1.2rem;
+    color: var(--green-dark);
+  }
+  .el-betrag.unvollstaendig { color: #854d0e; }
+  .el-sprung {
+    display: inline-flex; align-items: center;
+    min-height: 44px; padding: 0 14px;
+    border: 1px solid var(--border); border-radius: 999px;
+    font-size: .8rem; font-weight: 600;
+    text-decoration: none; color: var(--marke-hell);
+    white-space: nowrap;
+  }
+
+  /* Einspaltig steht die Quittung hinter dem Formular. Dort gibt es
+     nichts mehr zu ueberholen, also auch nichts zu kleben. */
+  .quittung { position: static; }
+
+  /* 16 px ist die Grenze, unter der iOS Safari beim Fokus hineinzoomt. */
+  .rechner .feld,
+  .rechner .q-eingabe { font-size: 16px; }
+  .rechner .feld { min-height: 48px; }
+  .rechner .haken { min-height: 48px; }
+  .rechner .segment-breit button { min-height: 44px; }
+
+  /* Betragsfeld: als Feld erkennbar und mit dem Daumen treffbar. */
+  .rechner .q-eingabe {
+    width: 106px;
+    min-height: 44px;
+    padding: 8px 10px;
+    border-color: var(--border);
+    background: #fff;
+  }
+  .q-zeile { align-items: center; padding: 12px 16px; }
+  /* Ohne min-width: 0 schiebt die lange Erklaerzeile links das Feld aus
+     der Karte heraus - und die Seite bekommt einen Querbalken. */
+  .q-zeile > span:first-child { min-width: 0; overflow-wrap: anywhere; }
+  .q-gesamt { padding: 16px; }
+  .q-haftung .linkknopf { display: inline-block; padding: 8px 0; }
+}
+
+@media (max-width: 520px) {
+  /* Zwei mal zwei statt vier nebeneinander: "Meisterschaft" und
+     "Freundschaft" brauchen zusammen mehr als eine 390-px-Zeile. */
+  .segment-breit {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+  }
+  .segment-breit button { flex: none; padding: 9px 8px; }
+}
