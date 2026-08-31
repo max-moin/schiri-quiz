@@ -28,7 +28,12 @@
 
       // Fragetyp danach - die Information, die beim Überfliegen am meisten
       // hilft ("muss ich hier ein Video ansehen oder etwas schreiben?").
-      const typInfo = FRAGETYP_BADGE[frage.typ];
+      const typInfo = frage.antworttyp === "entscheidung" || frage.typ === "szenario"
+        ? {
+            text: frage.medium === "video" ? "▶ Video + Icon-Antwort" : "⚖ Icon-Antwort",
+            klasse: "typ-entscheidung",
+          }
+        : FRAGETYP_BADGE[frage.typ];
       if (typInfo) {
         const typBadge = document.createElement("span");
         typBadge.className = "badge " + typInfo.klasse;

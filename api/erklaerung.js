@@ -55,7 +55,7 @@ function alsSatz(text) {
 export function baueStatischeErklaerung(kontext) {
   const zusatz = alsSatz(kontext.erklaerung_zusatzhinweis);
 
-  if (kontext.typ === "freitext" || kontext.typ === "video_freitext") {
+  if (kontext.typ === "freitext" || kontext.typ === "video_freitext" || kontext.typ === "entscheidung") {
     const kern = alsSatz(kontext.musterantwort || "Die hinterlegte Musterantwort enthält die maßgebliche Regelentscheidung");
     const bezug = kontext.korrekt
       ? "Deine Antwort trifft diesen entscheidenden Kern."
@@ -144,7 +144,7 @@ WICHTIG zum Umgang mit diesem Hinweis (07.08.2026, nach Rückmeldung aus dem Ver
 Schreibe außerdem sachlich und auf Augenhöhe. Vermeide anbiedernde Einleitungen ("Super Frage!", "Das ist ein spannender Fall!") und das Wir-Wir-Gerede über die Beteiligten - komm direkt zur Sache.`;
 
   let frageBlock;
-  if (kontext.typ === "freitext" || kontext.typ === "video_freitext") {
+  if (kontext.typ === "freitext" || kontext.typ === "video_freitext" || kontext.typ === "entscheidung") {
     frageBlock = `Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort || "(keine Musterantwort hinterlegt)"}
 Bewertungshinweise: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}

@@ -1,0 +1,39 @@
+.frage-karte-entscheidung { --entscheidung-akzent: #2563eb; }
+.entscheidung-form { display: grid; gap: 18px; margin-top: 18px; }
+.entscheidung-block { border: 0; padding: 0; margin: 0; min-width: 0; }
+.entscheidung-block legend { font-weight: 750; margin-bottom: 10px; }
+.entscheidung-raster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
+.entscheidung-raster.zwei { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.entscheidung-raster.strafen { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.entscheidung-knopf { min-height: 54px; padding: 9px 8px; border: 1.5px solid #d8dee8; border-radius: 12px; background: #fff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-weight: 650; cursor: pointer; }
+.entscheidung-knopf:hover { border-color: #93a4bb; background: #f8fafc; }
+.entscheidung-knopf.aktiv { border-color: var(--entscheidung-akzent); background: #eff6ff; box-shadow: 0 0 0 2px rgb(37 99 235 / 12%); }
+.entscheidung-symbol { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; }
+.entscheidung-symbol svg { width: 28px; height: 28px; }
+.entscheidung-trikot { width: 25px; height: 27px; background: var(--trikot); clip-path: polygon(18% 0, 36% 0, 42% 10%, 58% 10%, 64% 0, 82% 0, 100% 18%, 84% 36%, 76% 29%, 76% 100%, 24% 100%, 24% 29%, 16% 36%, 0 18%); border: 1px solid rgb(0 0 0 / 20%); }
+.entscheidung-karte { display: block; width: 18px; height: 26px; border-radius: 2px; box-shadow: 0 1px 2px rgb(0 0 0 / 20%); }
+.entscheidung-karte.keine { border: 2px dashed #94a3b8; background: transparent; }
+.entscheidung-karte.gelb { background: #facc15; }
+.entscheidung-karte.rot { background: #ef4444; }
+.entscheidung-karte.gelbrot { background: linear-gradient(90deg, #facc15 0 46%, #ef4444 54% 100%); }
+.entscheidung-orte { display: flex; flex-wrap: wrap; gap: 8px; }
+.entscheidung-knopf.ort-chip { min-height: 44px; width: auto; padding-inline: 12px; }
+.entscheidung-anderer-ort, .entscheidung-person label { display: grid; gap: 6px; margin-top: 11px; font-size: .9rem; font-weight: 650; }
+.entscheidung-anderer-ort input, .entscheidung-person input, .entscheidung-person select { width: 100%; min-height: 44px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 9px 11px; font: inherit; background: #fff; }
+.entscheidung-person { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, .45fr); gap: 10px; }
+.entscheidung-ergebnis { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 9px; }
+.entscheidung-ergebnis-zeile { display: grid; grid-template-columns: 28px 1fr; gap: 9px; align-items: start; border: 1px solid; border-radius: 11px; padding: 10px 12px; }
+.entscheidung-ergebnis-zeile.gut { border-color: #86c59b; background: #f0fdf4; }
+.entscheidung-ergebnis-zeile.schlecht { border-color: #efa4a4; background: #fff1f2; }
+.entscheidung-ergebnis-marke { font-size: 1.2rem; font-weight: 800; }
+.entscheidung-ergebnis-zeile small { display: block; margin-top: 3px; }
+.entscheidung-ort-feedback { font-size: .9rem; color: #7f1d1d; }
+@media (max-width: 720px) {
+  .entscheidung-raster, .entscheidung-raster.strafen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .entscheidung-knopf { justify-content: flex-start; text-align: left; }
+}
+@media (max-width: 430px) {
+  .entscheidung-person { grid-template-columns: 1fr; }
+  .entscheidung-raster.fortsetzungen { grid-template-columns: 1fr 1fr; }
+  .entscheidung-knopf { min-height: 50px; font-size: .86rem; }
+}

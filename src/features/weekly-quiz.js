@@ -8,6 +8,7 @@
     versteckeFehler,
     frageAnsicht,
     freitext,
+    entscheidung,
     baueVideoEinbettungModal,
     baueVorlesenButton,
     baueWarumButton,
@@ -81,6 +82,19 @@
       gesamtFragenAnzahl = fragen.length;
       beantworteFragenAnzahl = 0;
 
+      // Die Icon-/Textlabel-Liste ist dieselbe wie im separaten
+      // Entscheidungs-Modus und wird als ES-Modul nur dann geladen, wenn
+      // diese Woche wirklich eine strukturierte Entscheidung enthält.
+      if (fragen.some((frage) => frage.antworttyp === "entscheidung" || frage.typ === "szenario")) {
+        try {
+          await entscheidung.bereiteVor();
+        } catch (fehler) {
+          zeigeFehler("Die Icon-Antworten konnten nicht geladen werden. Bitte lade die Seite neu.");
+          console.error("Entscheidungsoptionen konnten nicht geladen werden", fehler);
+          return;
+        }
+      }
+
       for (const [index, frage] of fragen.entries()) {
         // Feste Anzeigenummer je Frage (07.08.2026, Max' Wunsch "jede Frage
         // bekommt so eine eigene Rangnummer ... F1 ist überall die gleiche
@@ -99,15 +113,24 @@
         // gleiche Bau-Funktionen) - der Video-Player wird zusätzlich innerhalb
         // dieser Funktionen gerendert, siehe "baueVideoEinbettung".
         const istFreitext = frage.typ === "freitext" || frage.typ === "video_freitext";
+        const istEntscheidung = frage.antworttyp === "entscheidung" || frage.typ === "szenario";
         if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
           beantworteFragenAnzahl += 1;
           fragenListe.appendChild(
-            istFreitext
+            istEntscheidung
+              ? entscheidung.baueBeantworteteFrageElement(frage, bisherigeAntwort)
+              : istFreitext
               ? freitext.baueBeantworteteFreitextElement(frage, bisherigeAntwort)
               : baueBeantworteteFrageElement(frage, bisherigeAntwort)
           );
         } else {
-          fragenListe.appendChild(istFreitext ? freitext.baueFreitextFrageElement(frage) : baueFrageElement(frage));
+          fragenListe.appendChild(
+            istEntscheidung
+              ? entscheidung.baueFrageElement(frage)
+              : istFreitext
+              ? freitext.baueFreitextFrageElement(frage)
+              : baueFrageElement(frage)
+          );
         }
       }
 
@@ -349,7 +372,7 @@
       // mit erfasst (eigener "Antwort abschicken"-Button je Karte, wegen der
       // KI-Wartezeit lieber einzeln als im Sammel-Rutsch).
       const offeneMitAuswahl = Array.from(
-        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext)")
+        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung)")
       ).filter((karte) => {
         const button = karte.querySelector(".absenden-button");
         return karte.querySelector('input[type="radio"]:checked') && button && !button.disabled;
@@ -378,7 +401,7 @@
       // erkannt) NOCH schon in dieser Sitzung abgeschickt (Button dann disabled) -
       // eine Karte, die man gerade eben abgeschickt hat, zählt also nicht mehr mit.
       const offeneAnzahl = Array.from(
-        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext)")
+        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung)")
       ).filter((karte) => {
         const button = karte.querySelector(".absenden-button");
         return button && !button.disabled;

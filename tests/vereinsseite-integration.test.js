@@ -35,6 +35,7 @@ test("alle Quizmodule existieren und werden vor app.js geladen", () => {
     "src/features/guest-mode.js",
     "src/features/profile-requests.js",
     "src/features/freetext-answers.js",
+    "src/features/decision-answers.js",
     "src/features/history-mode.js",
     "src/features/weekly-quiz.js",
     "src/features/access.js",

@@ -64,6 +64,7 @@ test("app.js bindet die ausgelagerten Browsermodule ein", () => {
   assert.match(app, /SchiriQuizGuestMode/);
   assert.match(app, /SchiriQuizProfileRequests/);
   assert.match(app, /SchiriQuizFreetextAnswers/);
+  assert.match(app, /SchiriQuizDecisionAnswers/);
   assert.match(app, /SchiriQuizHistoryMode/);
   assert.match(app, /SchiriQuizWeeklyQuiz/);
   assert.match(app, /SchiriQuizAccess/);

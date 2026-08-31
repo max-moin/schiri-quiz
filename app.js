@@ -17,6 +17,7 @@ const { erstelleGastmodus } = SchiriQuizGuestMode;
 const { erstelleProfilAnfragen } = SchiriQuizProfileRequests;
 const { sorgeFuerFenster } = SchiriProfilFenster;
 const { erstelleFreitextAntworten } = SchiriQuizFreetextAnswers;
+const { erstelleEntscheidungsAntworten } = SchiriQuizDecisionAnswers;
 const { erstelleHistorienModus } = SchiriQuizHistoryMode;
 const { erstelleWochenQuiz } = SchiriQuizWeeklyQuiz;
 const { erstelleZugang } = SchiriQuizAccess;
@@ -62,6 +63,17 @@ const freitext = erstelleFreitextAntworten({
   beiWochenfrageBeantwortet: () => wochenQuiz.registriereBeantwortung(),
 });
 
+const entscheidung = erstelleEntscheidungsAntworten({
+  getZugang,
+  zeigeFehler,
+  versteckeFehler,
+  frageAnsicht,
+  baueVideoEinbettungModal,
+  baueVorlesenButton,
+  baueWarumButton,
+  beiWochenfrageBeantwortet: () => wochenQuiz.registriereBeantwortung(),
+});
+
 historieController = erstelleHistorienModus({
   sb,
   getZugang,
@@ -81,6 +93,7 @@ wochenQuiz = erstelleWochenQuiz({
   versteckeFehler,
   frageAnsicht,
   freitext,
+  entscheidung,
   baueVideoEinbettungModal,
   baueVorlesenButton,
   baueWarumButton,

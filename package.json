@@ -4,6 +4,6 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "check": "node --check app.js && find src -name '*.js' -print0 | xargs -0 -n1 node --check && node --check api/erklaerung.js && node --check api/freitext-bewerten.js && node --check server/api-helpers.js && node --test"
+    "check": "node --check app.js && find src api server -name '*.js' -print0 | xargs -0 -n1 node --check && node --test"
   }
 }
