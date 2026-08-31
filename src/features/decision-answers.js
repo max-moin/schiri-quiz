@@ -22,6 +22,27 @@
       return optionen;
     }
 
+    // ============================================================
+    //  Was verlangt diese Frage ueberhaupt? (v101/v102)
+    // ============================================================
+    //  Max am 31.08.2026: "Dass man das alles selektieren kann und sagen
+    //  kann: die Antwortoptionen, die musst du nicht mit angeben."
+    //
+    //  Die Schalter kommen mit wochen_fragen aus der Datenbank. Fehlen
+    //  sie (aeltere Datenbank oder eine Frage ohne Icon-Loesung), gilt
+    //  der alte Zustand: alles verlangt. Lieber zu streng als
+    //  stillschweigend nachlaessig - eine zu strenge Oberflaeche faellt
+    //  sofort auf, eine zu lasche erst bei der Auswertung.
+    function verlangt(frage, name) {
+      return frage?.[name] !== false;
+    }
+
+    // Die Trikotfarben sind Darstellung, keine Antwort. Aus, wenn die
+    // Frage keine Farben nennt - dann steht dort nur "Heim" und "Gast".
+    function zeigtTrikotfarben(frage) {
+      return frage?.zeigt_trikotfarben !== false;
+    }
+
     function neueWahl() {
       return {
         spielfortsetzung: null,
@@ -82,10 +103,16 @@
     }
 
     function trikotButton(frage, seite, aktiv, beiKlick) {
-      const farbe = frage.entscheidung_darstellung?.[`trikot_${seite}`] || (seite === "heim" ? "#e4032e" : "#1d4ed8");
       const button = auswahlButton({
         text: optionen.mannschaftLabel(seite), wert: seite, aktiv, klasse: "mannschaft",
       }, beiKlick);
+      // Ohne Farbangabe in der Frage waere eine Farbflaeche eine
+      // Information, die die Frage nie gegeben hat.
+      if (!zeigtTrikotfarben(frage)) return button;
+      const farbe = frage.trikot_heim && seite === "heim" ? frage.trikot_heim
+        : frage.trikot_gast && seite === "gast" ? frage.trikot_gast
+        : frage.entscheidung_darstellung?.[`trikot_${seite}`]
+          || (seite === "heim" ? "#e4032e" : "#1d4ed8");
       const trikot = document.createElement("span");
       trikot.className = "entscheidung-trikot";
       trikot.style.setProperty("--trikot", farbe);
@@ -98,6 +125,7 @@
       const form = document.createElement("div");
       form.className = "entscheidung-form";
 
+      if (verlangt(frage, "fordert_fortsetzung")) {
       const fortsetzung = feldset("Wie geht es weiter?");
       const fortRaster = document.createElement("div");
       fortRaster.className = "entscheidung-raster fortsetzungen";
@@ -117,7 +145,8 @@
       fortsetzung.appendChild(fortRaster);
       form.appendChild(fortsetzung);
 
-      if (optionen.brauchtRichtung(wahl.spielfortsetzung)) {
+      if (optionen.brauchtRichtung(wahl.spielfortsetzung)
+          && verlangt(frage, "fordert_fortsetzung_fuer")) {
         const richtung = feldset("Für welche Mannschaft?");
         const reihe = document.createElement("div");
         reihe.className = "entscheidung-raster zwei";
@@ -129,7 +158,8 @@
         form.appendChild(richtung);
       }
 
-      if (wahl.spielfortsetzung && wahl.spielfortsetzung !== "weiterspielen") {
+      if (wahl.spielfortsetzung && wahl.spielfortsetzung !== "weiterspielen"
+          && verlangt(frage, "fordert_fortsetzung_ort")) {
         const ort = feldset("Wo wird fortgesetzt?");
         const chips = document.createElement("div");
         chips.className = "entscheidung-orte";
@@ -151,13 +181,16 @@
             knopf.classList.remove("aktiv");
             knopf.setAttribute("aria-pressed", "false");
           });
-          aktualisiereSenden(form, wahl);
+          aktualisiereSenden(form, wahl, frage);
         });
         label.appendChild(input);
         ort.appendChild(label);
         form.appendChild(ort);
       }
 
+      }   // Ende: fordert_fortsetzung
+
+      if (verlangt(frage, "fordert_strafe")) {
       const strafe = feldset("Persönliche Strafe?");
       const strafRaster = document.createElement("div");
       strafRaster.className = "entscheidung-raster strafen";
@@ -182,7 +215,8 @@
       strafe.appendChild(strafRaster);
       form.appendChild(strafe);
 
-      if (wahl.persoenliche_strafe && wahl.persoenliche_strafe !== "keine") {
+      if (wahl.persoenliche_strafe && wahl.persoenliche_strafe !== "keine"
+          && verlangt(frage, "fordert_strafe_mannschaft")) {
         const ziel = feldset("Wen trifft die Strafe?");
         const teams = document.createElement("div");
         teams.className = "entscheidung-raster zwei";
@@ -202,7 +236,7 @@
           opt.value = wert; opt.textContent = text; opt.selected = wahl.strafe_fuer_rolle === wert;
           select.appendChild(opt);
         });
-        select.addEventListener("change", () => { wahl.strafe_fuer_rolle = select.value; aktualisiereSenden(form, wahl); });
+        select.addEventListener("change", () => { wahl.strafe_fuer_rolle = select.value; aktualisiereSenden(form, wahl, frage); });
         rollenLabel.appendChild(select);
         details.appendChild(rollenLabel);
         const nummerLabel = document.createElement("label");
@@ -212,13 +246,14 @@
         nummer.value = wahl.strafe_rueckennummer || "";
         nummer.addEventListener("input", () => {
           wahl.strafe_rueckennummer = nummer.value ? Number(nummer.value) : null;
-          aktualisiereSenden(form, wahl);
+          aktualisiereSenden(form, wahl, frage);
         });
         nummerLabel.appendChild(nummer);
         details.appendChild(nummerLabel);
         ziel.appendChild(details);
         form.appendChild(ziel);
       }
+      }   // Ende: fordert_strafe
 
       const senden = document.createElement("button");
       senden.type = "button";
@@ -233,15 +268,25 @@
       feedback.hidden = true;
       form.appendChild(feedback);
       if (alt) alt.replaceWith(form); else container.appendChild(form);
-      aktualisiereSenden(form, wahl);
+      aktualisiereSenden(form, wahl, frage);
     }
 
-    function istVollstaendig(wahl) {
-      if (!wahl.spielfortsetzung || !wahl.persoenliche_strafe) return false;
-      if (optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) return false;
-      if (wahl.spielfortsetzung !== "weiterspielen" && !String(wahl.fortsetzung_ort || "").trim()) return false;
-      if (wahl.persoenliche_strafe !== "keine"
-          && (!wahl.strafe_fuer_mannschaft || !wahl.strafe_fuer_rolle)) return false;
+    // Prueft nur, was die Frage verlangt. Der Server prueft dasselbe noch
+    // einmal (v101) - diese Fassung sorgt bloss dafuer, dass der
+    // Absenden-Knopf grau bleibt, statt eine Fehlermeldung zu ernten.
+    function istVollstaendig(wahl, frage) {
+      if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) return false;
+      if (verlangt(frage, "fordert_strafe") && !wahl.persoenliche_strafe) return false;
+      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_fuer")
+          && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) return false;
+      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_ort")
+          && wahl.spielfortsetzung !== "weiterspielen"
+          && !String(wahl.fortsetzung_ort || "").trim()) return false;
+      if (verlangt(frage, "fordert_strafe") && wahl.persoenliche_strafe !== "keine") {
+        if (verlangt(frage, "fordert_strafe_mannschaft") && !wahl.strafe_fuer_mannschaft) return false;
+        if (verlangt(frage, "fordert_strafe_rolle") && !wahl.strafe_fuer_rolle) return false;
+        if (frage?.fordert_strafe_nummer === true && wahl.strafe_rueckennummer == null) return false;
+      }
       if (wahl.strafe_rueckennummer != null
           && (!Number.isInteger(wahl.strafe_rueckennummer)
             || wahl.strafe_rueckennummer < 1
@@ -249,13 +294,13 @@
       return true;
     }
 
-    function aktualisiereSenden(form, wahl) {
+    function aktualisiereSenden(form, wahl, frage) {
       const button = form.querySelector(".entscheidung-absenden");
-      if (button) button.disabled = !istVollstaendig(wahl);
+      if (button) button.disabled = !istVollstaendig(wahl, frage);
     }
 
     async function abschicken(frage, container, wahl, button) {
-      if (!istVollstaendig(wahl)) return;
+      if (!istVollstaendig(wahl, frage)) return;
       versteckeFehler();
       button.disabled = true;
       button.textContent = "Wird geprüft …";

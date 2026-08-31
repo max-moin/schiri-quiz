@@ -61,24 +61,73 @@ export function vergleicheOrtLokal(gegeben, erwartet) {
   return null;
 }
 
-function pruefeAntwort(antwort) {
+// Seit v101 legt jede Frage selbst fest, welche Bestandteile sie
+// verlangt. Deshalb zwei getrennte Pruefungen statt einer:
+//
+//   pruefeForm          - ist das, was da steht, ueberhaupt gueltig?
+//                         Geht ohne Kenntnis der Frage.
+//   pruefeVollstaendig  - fehlt etwas, das DIESE Frage verlangt?
+//                         Geht erst, wenn der Kontext geladen ist.
+//
+// Vorher war beides eins und verlangte pauschal alles. Bei einer reinen
+// Strafenfrage haette der Browser also eine Spielfortsetzung mitschicken
+// muessen, nach der nie gefragt wurde.
+function pruefeForm(antwort) {
   if (!antwort || typeof antwort !== "object" || Array.isArray(antwort)) return "Antwort fehlt.";
-  if (!FORTSETZUNGEN.has(antwort.spielfortsetzung)) return "Spielfortsetzung fehlt oder ist ungültig.";
-  if (!STRAFEN.has(antwort.persoenliche_strafe)) return "Persönliche Strafe fehlt oder ist ungültig.";
 
-  const ohneRichtung = ["weiterspielen", "sr_ball"].includes(antwort.spielfortsetzung);
-  if (!ohneRichtung && !MANNSCHAFTEN.has(antwort.fortsetzung_fuer)) return "Mannschaft der Spielfortsetzung fehlt.";
-  if (antwort.spielfortsetzung !== "weiterspielen") {
-    const ort = String(antwort.fortsetzung_ort || "").trim();
-    if (!ort || ort.length > 180) return "Ort der Spielfortsetzung fehlt oder ist zu lang.";
+  if (antwort.spielfortsetzung != null && antwort.spielfortsetzung !== ""
+      && !FORTSETZUNGEN.has(antwort.spielfortsetzung)) return "Spielfortsetzung ist ungültig.";
+  if (antwort.persoenliche_strafe != null && antwort.persoenliche_strafe !== ""
+      && !STRAFEN.has(antwort.persoenliche_strafe)) return "Persönliche Strafe ist ungültig.";
+  if (antwort.fortsetzung_fuer != null && antwort.fortsetzung_fuer !== ""
+      && !MANNSCHAFTEN.has(antwort.fortsetzung_fuer)) return "Mannschaft der Spielfortsetzung ist ungültig.";
+  if (antwort.strafe_fuer_mannschaft != null && antwort.strafe_fuer_mannschaft !== ""
+      && !MANNSCHAFTEN.has(antwort.strafe_fuer_mannschaft)) return "Mannschaft der persönlichen Strafe ist ungültig.";
+  if (antwort.strafe_fuer_rolle != null && antwort.strafe_fuer_rolle !== ""
+      && !ROLLEN.has(antwort.strafe_fuer_rolle)) return "Rolle der bestraften Person ist ungültig.";
+
+  if (String(antwort.fortsetzung_ort || "").trim().length > 180) {
+    return "Ort der Spielfortsetzung ist zu lang.";
   }
+  if (antwort.strafe_rueckennummer != null && antwort.strafe_rueckennummer !== "") {
+    const nummer = Number(antwort.strafe_rueckennummer);
+    if (!Number.isInteger(nummer) || nummer < 1 || nummer > 99) return "Rückennummer muss zwischen 1 und 99 liegen.";
+  }
+  return null;
+}
 
-  if (antwort.persoenliche_strafe !== "keine") {
-    if (!MANNSCHAFTEN.has(antwort.strafe_fuer_mannschaft)) return "Mannschaft der persönlichen Strafe fehlt.";
-    if (!ROLLEN.has(antwort.strafe_fuer_rolle)) return "Rolle der bestraften Person fehlt.";
-    if (antwort.strafe_rueckennummer != null && antwort.strafe_rueckennummer !== "") {
-      const nummer = Number(antwort.strafe_rueckennummer);
-      if (!Number.isInteger(nummer) || nummer < 1 || nummer > 99) return "Rückennummer muss zwischen 1 und 99 liegen.";
+function pruefeVollstaendig(antwort, kontext) {
+  // Fehlt ein Schalter (aeltere Datenbank), gilt der alte Zustand:
+  // verlangt. So bleibt eine nicht nachgezogene Umgebung streng statt
+  // stillschweigend nachlaessig.
+  const verlangt = (name) => kontext[name] !== false;
+  const ohneRichtung = ["weiterspielen", "sr_ball"].includes(antwort.spielfortsetzung);
+
+  if (verlangt("fordert_fortsetzung") && !FORTSETZUNGEN.has(antwort.spielfortsetzung)) {
+    return "Spielfortsetzung fehlt.";
+  }
+  if (verlangt("fordert_fortsetzung") && verlangt("fordert_fortsetzung_fuer")
+      && !ohneRichtung && !MANNSCHAFTEN.has(antwort.fortsetzung_fuer)) {
+    return "Mannschaft der Spielfortsetzung fehlt.";
+  }
+  if (verlangt("fordert_fortsetzung") && verlangt("fordert_fortsetzung_ort")
+      && antwort.spielfortsetzung !== "weiterspielen"
+      && !String(antwort.fortsetzung_ort || "").trim()) {
+    return "Ort der Spielfortsetzung fehlt.";
+  }
+  if (verlangt("fordert_strafe") && !STRAFEN.has(antwort.persoenliche_strafe)) {
+    return "Persönliche Strafe fehlt.";
+  }
+  if (verlangt("fordert_strafe") && antwort.persoenliche_strafe !== "keine") {
+    if (verlangt("fordert_strafe_mannschaft") && !MANNSCHAFTEN.has(antwort.strafe_fuer_mannschaft)) {
+      return "Mannschaft der persönlichen Strafe fehlt.";
+    }
+    if (verlangt("fordert_strafe_rolle") && !ROLLEN.has(antwort.strafe_fuer_rolle)) {
+      return "Rolle der bestraften Person fehlt.";
+    }
+    if (kontext.fordert_strafe_nummer === true
+        && (antwort.strafe_rueckennummer == null || antwort.strafe_rueckennummer === "")) {
+      return "Rückennummer fehlt.";
     }
   }
   return null;
@@ -126,7 +175,7 @@ export default async function handler(req, res) {
     res.status(400).json({ fehler: "Fehlende oder ungültige Zugangsdaten." });
     return;
   }
-  const eingabefehler = pruefeAntwort(antwort);
+  const eingabefehler = pruefeForm(antwort);
   if (eingabefehler) {
     res.status(400).json({ fehler: eingabefehler });
     return;
@@ -155,8 +204,22 @@ export default async function handler(req, res) {
     return;
   }
 
+  const fehlendes = pruefeVollstaendig(antwort, kontext);
+  if (fehlendes) {
+    antworteMitSicheremFehler(res, 400, fehlendes, new Error(fehlendes));
+    return;
+  }
+
+  // Der Ort wird nur geprueft, wenn die Frage ihn ueberhaupt verlangt.
+  // Sonst liefe die KI-Bewertung gegen eine leere Musterantwort - und
+  // wuerde die Antwort als falsch abstempeln, obwohl nie gefragt wurde.
+  // Vorbelegung true, nicht null: wenn der Ort gar nicht geprueft wird
+  // (Frage verlangt ihn nicht, oder die Antwort ist "weiterspielen"),
+  // darf er das Ergebnis nicht nach unten ziehen. Die Datenbank ignoriert
+  // den Wert ohnehin, sobald fordert_fortsetzung_ort false ist.
   let ortPruefung = { gleichwertig: true, feedback: null };
-  if (antwort.spielfortsetzung !== "weiterspielen") {
+  if (kontext.fordert_fortsetzung_ort !== false
+      && antwort.spielfortsetzung !== "weiterspielen") {
     const lokal = vergleicheOrtLokal(antwort.fortsetzung_ort, kontext.fortsetzung_ort);
     if (lokal !== null) {
       ortPruefung = {
