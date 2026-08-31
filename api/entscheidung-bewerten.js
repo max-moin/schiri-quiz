@@ -21,6 +21,13 @@ const FORTSETZUNGEN = new Set([
   "strafstoss", "sr_ball", "eckstoss", "abstoss", "einwurf", "anstoss",
 ]);
 const STRAFEN = new Set(["keine", "gelb", "gelb_rot", "rot"]);
+// In der Strafenliste (v104) gibt es kein "keine": keine persoenliche
+// Strafe ist die leere Liste. Stuende "keine" als Eintrag darin, zaehlte
+// die Datenbank sie als eine Strafe zu viel - die Antwort waere falsch,
+// ohne dass am Bildschirm zu sehen ist, warum.
+const KARTEN = new Set(["gelb", "gelb_rot", "rot"]);
+// Die Datenbank laesst position 1..4.
+const HOECHSTENS_STRAFEN = 4;
 const MANNSCHAFTEN = new Set(["heim", "gast"]);
 const ROLLEN = new Set(["feldspieler", "torwart", "auswechselspieler", "trainer"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -72,7 +79,39 @@ export function vergleicheOrtLokal(gegeben, erwartet) {
 // Vorher war beides eins und verlangte pauschal alles. Bei einer reinen
 // Strafenfrage haette der Browser also eine Spielfortsetzung mitschicken
 // muessen, nach der nie gefragt wurde.
-function pruefeForm(antwort) {
+// Jede Strafe traegt seit v104 ihre eigene Person: Mannschaft, Rolle und
+// Rueckennummer gehoeren zum einzelnen Eintrag, nicht zur Frage. Der
+// Einwechselspieler sieht erst Gelb fuers Betreten und danach Gelb-Rot;
+// in einer anderen Szene trifft die zweite Karte jemand anderen.
+function pruefeStrafenForm(strafen) {
+  if (!Array.isArray(strafen)) return "Liste der persönlichen Strafen ist ungültig.";
+  if (strafen.length > HOECHSTENS_STRAFEN) {
+    return `Höchstens ${HOECHSTENS_STRAFEN} persönliche Strafen sind möglich.`;
+  }
+  for (const eintrag of strafen) {
+    if (!eintrag || typeof eintrag !== "object" || Array.isArray(eintrag)) {
+      return "Eine persönliche Strafe ist ungültig.";
+    }
+    if (!KARTEN.has(eintrag.strafe)) return "Persönliche Strafe ist ungültig.";
+    if (eintrag.fuer_mannschaft != null && eintrag.fuer_mannschaft !== ""
+        && !MANNSCHAFTEN.has(eintrag.fuer_mannschaft)) {
+      return "Mannschaft der persönlichen Strafe ist ungültig.";
+    }
+    if (eintrag.strafe_fuer_rolle != null && eintrag.strafe_fuer_rolle !== ""
+        && !ROLLEN.has(eintrag.strafe_fuer_rolle)) {
+      return "Rolle der bestraften Person ist ungültig.";
+    }
+    if (eintrag.rueckennummer != null && eintrag.rueckennummer !== "") {
+      const nummer = Number(eintrag.rueckennummer);
+      if (!Number.isInteger(nummer) || nummer < 1 || nummer > 99) {
+        return "Rückennummer muss zwischen 1 und 99 liegen.";
+      }
+    }
+  }
+  return null;
+}
+
+export function pruefeForm(antwort) {
   if (!antwort || typeof antwort !== "object" || Array.isArray(antwort)) return "Antwort fehlt.";
 
   if (antwort.spielfortsetzung != null && antwort.spielfortsetzung !== ""
@@ -93,10 +132,16 @@ function pruefeForm(antwort) {
     const nummer = Number(antwort.strafe_rueckennummer);
     if (!Number.isInteger(nummer) || nummer < 1 || nummer > 99) return "Rückennummer muss zwischen 1 und 99 liegen.";
   }
+  // Die Liste wird nur auf Form geprueft, nicht auf Pflicht: welche
+  // Felder eine Strafe braucht, weiss erst pruefeVollstaendig.
+  if (antwort.strafen != null) {
+    const listenfehler = pruefeStrafenForm(antwort.strafen);
+    if (listenfehler) return listenfehler;
+  }
   return null;
 }
 
-function pruefeVollstaendig(antwort, kontext) {
+export function pruefeVollstaendig(antwort, kontext) {
   // Fehlt ein Schalter (aeltere Datenbank), gilt der alte Zustand:
   // verlangt. So bleibt eine nicht nachgezogene Umgebung streng statt
   // stillschweigend nachlaessig.
@@ -115,20 +160,47 @@ function pruefeVollstaendig(antwort, kontext) {
       && !String(antwort.fortsetzung_ort || "").trim()) {
     return "Ort der Spielfortsetzung fehlt.";
   }
-  if (verlangt("fordert_strafe") && !STRAFEN.has(antwort.persoenliche_strafe)) {
-    return "Persönliche Strafe fehlt.";
+  if (verlangt("fordert_strafe")) {
+    const strafenfehler = pruefeStrafenVollstaendig(antwort, verlangt, kontext);
+    if (strafenfehler) return strafenfehler;
   }
-  if (verlangt("fordert_strafe") && antwort.persoenliche_strafe !== "keine") {
-    if (verlangt("fordert_strafe_mannschaft") && !MANNSCHAFTEN.has(antwort.strafe_fuer_mannschaft)) {
-      return "Mannschaft der persönlichen Strafe fehlt.";
-    }
-    if (verlangt("fordert_strafe_rolle") && !ROLLEN.has(antwort.strafe_fuer_rolle)) {
-      return "Rolle der bestraften Person fehlt.";
-    }
-    if (kontext.fordert_strafe_nummer === true
-        && (antwort.strafe_rueckennummer == null || antwort.strafe_rueckennummer === "")) {
-      return "Rückennummer fehlt.";
-    }
+  return null;
+}
+
+// Getrennt von der Formpruefung, weil erst hier bekannt ist, welche
+// Felder diese Frage ueberhaupt verlangt.
+function pruefeStrafenVollstaendig(antwort, verlangt, kontext) {
+  // Ohne Liste gilt die alte Fassung mit den vier Einzelfeldern. Eine
+  // noch nicht nachgezogene Seite darf nicht ploetzlich abgewiesen
+  // werden - sie schickt weiter persoenliche_strafe.
+  if (!Array.isArray(antwort.strafen)) {
+    if (!STRAFEN.has(antwort.persoenliche_strafe)) return "Persönliche Strafe fehlt.";
+    if (antwort.persoenliche_strafe === "keine") return null;
+    return pruefeStrafePerson({
+      fuer_mannschaft: antwort.strafe_fuer_mannschaft,
+      strafe_fuer_rolle: antwort.strafe_fuer_rolle,
+      rueckennummer: antwort.strafe_rueckennummer,
+    }, verlangt, kontext);
+  }
+  // Die leere Liste ist eine vollstaendige Antwort - sie heisst "keine
+  // persoenliche Strafe". Nur die Eintraege muessen vollstaendig sein.
+  for (const eintrag of antwort.strafen) {
+    const fehler = pruefeStrafePerson(eintrag, verlangt, kontext);
+    if (fehler) return fehler;
+  }
+  return null;
+}
+
+function pruefeStrafePerson(eintrag, verlangt, kontext) {
+  if (verlangt("fordert_strafe_mannschaft") && !MANNSCHAFTEN.has(eintrag.fuer_mannschaft)) {
+    return "Mannschaft der persönlichen Strafe fehlt.";
+  }
+  if (verlangt("fordert_strafe_rolle") && !ROLLEN.has(eintrag.strafe_fuer_rolle)) {
+    return "Rolle der bestraften Person fehlt.";
+  }
+  if (kontext.fordert_strafe_nummer === true
+      && (eintrag.rueckennummer == null || eintrag.rueckennummer === "")) {
+    return "Rückennummer fehlt.";
   }
   return null;
 }
