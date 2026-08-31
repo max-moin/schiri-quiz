@@ -42,6 +42,7 @@ export const FORTSETZUNGEN = [
   {
     schluessel: "weiterspielen",
     label: "Weiterspielen",
+    kurz: "Weiterspielen",
     ohneRichtung: true,
     icon: svg('<path d="M7 8l7 8-7 8"/><path d="M18 8l7 8-7 8"/>'),
   },
@@ -49,55 +50,86 @@ export const FORTSETZUNGEN = [
     // Ein Ball, ein Pfeil: der Ball darf direkt ins Tor.
     schluessel: "direkter_freistoss",
     label: "Direkter Freistoß",
+    kurz: "Dir. Freistoß",
     icon: svg('<circle cx="8" cy="16" r="5"/><path d="M16 16h12"/><path d="M24 12l4 4-4 4"/>'),
   },
   {
-    // Max' Einfall: der zweite Ball ist die zweite Beruehrung. Genau
-    // das ist der Unterschied - indirekt heisst, jemand muss vorher ran.
+    // Derselbe Ball und derselbe Pfeil wie beim direkten Freistoss -
+    // nur ist der Pfeil UNTERBROCHEN. Damit lesen sich die beiden als
+    // Paar: durchgezogen heisst direkt, unterbrochen heisst, jemand muss
+    // vorher ran. Die Fassung mit zwei Baellen war nicht falsch, aber
+    // sie war ein eigenes Bild statt der Gegenprobe zum direkten.
     schluessel: "indirekter_freistoss",
     label: "Indirekter Freistoß",
-    icon: svg('<circle cx="5" cy="16" r="3.4"/><path d="M10 16h3"/>' +
-              '<circle cx="16" cy="16" r="3.4"/><path d="M21 16h5"/><path d="M23 13l3 3-3 3"/>'),
+    kurz: "Indir. Freistoß",
+    icon: svg('<circle cx="7" cy="16" r="4.4"/><path d="M13 16h2.5M18 16h2.5"/>' +
+              '<path d="M23 16h3"/><path d="M23.5 13l3 3-3 3"/>'),
   },
   {
-    // Strafraumbogen mit Punkt. Der Bogen ist die einzige Form, die es
-    // sonst nirgends auf dem Platz gibt - deshalb kein Rechteck mehr,
-    // das mit dem Tor beim Abstoss verwechselt wurde.
+    // Aus der Sicht des Schuetzen: Tor voraus, Strafstossmarke davor,
+    // der Ball geht AUFS Tor. Max am 31.08.2026: "Beim Strafstoss aus
+    // der Perspektive, dass du Tor, Ball und dann erst Spieler hast,
+    // also dass du aufs Tor guckst."
+    //
+    // Der Unterschied zum Abstoss ist damit die Richtung: hier zum Tor
+    // hin, dort vom Tor weg. Das ist der einzige Unterschied, der auch
+    // bei 22 px noch traegt.
     schluessel: "strafstoss",
     label: "Strafstoß",
-    icon: svg('<path d="M3 20h6"/><path d="M9 20a7 7 0 0 0 14 0"/><path d="M23 20h6"/>' +
-              '<circle cx="16" cy="12" r="2.6" fill="currentColor" stroke="none"/>'),
+    kurz: "Strafstoß",
+    icon: svg('<path d="M5 14V5h22v9"/><path d="M11 5v9M16 5v9M21 5v9" opacity=".3"/>' +
+              '<circle cx="16" cy="26" r="2.4" fill="currentColor" stroke="none"/>' +
+              '<path d="M16 22v-4"/><path d="M13 21l3-3 3 3"/>'),
   },
   {
     schluessel: "sr_ball",
     label: "Schiedsrichter-Ball",
+    kurz: "SR-Ball",
     ohneRichtung: true,
     icon: svg('<path d="M16 3v7"/><path d="M12 7l4 4 4-4"/>' +
               '<circle cx="16" cy="18" r="6"/><path d="M5 28h22"/>'),
   },
   {
+    // Die Fahne steht jetzt WIRKLICH auf der Ecke und ist geneigt.
+    // Vorher stand der Mast bei x=20, also mitten im Feld - das Icon
+    // zeigte eine Fahne irgendwo, nicht die Eckfahne. Max am 31.08.2026:
+    // "Dass die Ecke so angewinkelt ist, damit die Fahne dann auch
+    // wirklich auf der Ecke stehen kann und man die Fahne trotzdem
+    // deutlich erkennt."
     schluessel: "eckstoss",
     label: "Eckstoß",
-    icon: svg('<path d="M4 28h24"/><path d="M4 28V6"/><path d="M4 20a8 8 0 0 0 8 8"/>' +
-              '<path d="M20 28V5"/><path d="M20 6l8 3-8 3z" fill="currentColor"/>'),
+    kurz: "Eckstoß",
+    icon: svg('<path d="M3 27h26"/><path d="M3 27V7"/><path d="M3 19a8 8 0 0 0 8 8"/>' +
+              '<path d="M6 27L10 6"/><path d="M10 6l9 3.5-10 3z" fill="currentColor"/>'),
   },
   {
-    // Echtes Tor mit Pfosten und Latte, Ball davor, Pfeil weg vom Tor.
+    // Tor an der Seite, Ball davor, Pfeil VOM Tor weg. Bewusst die
+    // Seitenansicht und nicht dieselbe Frontalsicht wie beim Strafstoss:
+    // zwei frontale Tore untereinander sind bei 22 px nicht mehr
+    // auseinanderzuhalten, die Blickrichtung dagegen schon.
     schluessel: "abstoss",
     label: "Abstoß",
-    icon: svg('<path d="M5 17V6h22v11"/><path d="M10 6v11M16 6v11M22 6v11" opacity=".3"/>' +
-              '<circle cx="10" cy="24" r="3.4"/><path d="M16 24h11"/><path d="M23 21l4 3-4 3"/>'),
+    kurz: "Abstoß",
+    icon: svg('<path d="M4 14V5h13v9"/><path d="M9 5v9M13 5v9" opacity=".3"/>' +
+              '<circle cx="10.5" cy="21" r="3.2"/><path d="M15 24h9"/><path d="M21 21l3 3-3 3"/>'),
   },
   {
-    // Seitenlinie senkrecht, Ball ausserhalb, Bogen darueber ins Feld.
+    // Ball ueber dem Kopf in beiden Haenden - die Haltung, die den
+    // Einwurf ausmacht. Max am 31.08.2026 zum alten Icon: "Das gefaellt
+    // mir gar nicht, dass alles so ineinandergequetscht ist mit
+    // irgendwie so einem halben Pfeil. Da hatten wir eigentlich mit der
+    // Hand, das war eigentlich ganz gut."
     schluessel: "einwurf",
     label: "Einwurf",
-    icon: svg('<path d="M9 3v26"/><circle cx="5" cy="21" r="3"/>' +
-              '<path d="M6 17C8 7 20 6 25 13"/><path d="M21 12l4 1-1 4"/>'),
+    kurz: "Einwurf",
+    icon: svg('<circle cx="16" cy="9" r="5.5"/>' +
+              '<path d="M8 17c1.6 3.4 4.6 5.2 8 5.2s6.4-1.8 8-5.2"/>' +
+              '<path d="M11 22v6M16 23.5v5M21 22v6"/>'),
   },
   {
     schluessel: "anstoss",
     label: "Anstoß",
+    kurz: "Anstoß",
     icon: svg('<path d="M16 3v26"/><circle cx="16" cy="16" r="9"/>' +
               '<circle cx="16" cy="16" r="2.2" fill="currentColor" stroke="none"/>'),
   },
@@ -129,6 +161,19 @@ export const OHNE_RICHTUNG = FORTSETZUNGEN
 
 export function fortsetzungLabel(schluessel) {
   return FORTSETZUNGEN.find((f) => f.schluessel === schluessel)?.label || "—";
+}
+
+// Kurzform fuer die Knopfraster. Max am 31.08.2026: "Schiedsrichterball
+// kann auch mit SR-Ball abgekuerzt werden, direkter und indirekter
+// Freistoss koennte zur Not auch abgekuerzt werden, damit das besser in
+// die Boxen passt."
+//
+// Der lange Name bleibt trotzdem erhalten und wird als title und
+// aria-label gesetzt: abgekuerzt wird nur, was man sieht, nicht das, was
+// ein Vorleseprogramm sagt.
+export function fortsetzungKurz(schluessel) {
+  const eintrag = FORTSETZUNGEN.find((f) => f.schluessel === schluessel);
+  return eintrag?.kurz || eintrag?.label || "—";
 }
 
 export function strafeLabel(schluessel) {

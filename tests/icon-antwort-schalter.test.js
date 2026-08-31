@@ -257,3 +257,86 @@ test("die Serverroute prueft Form und Vollstaendigkeit getrennt", () => {
             > js.indexOf("entscheidung_kontext_laden"),
     "pruefeVollstaendig laeuft vor dem Laden des Kontexts");
 });
+
+// ============================================================
+//  5. Mehrere gueltige Rollen (v103, 31.08.2026)
+// ============================================================
+
+test("mehrere Rollen koennen gleichzeitig richtig sein", () => {
+  // Max an einem echten Fall: der Spielertrainer auf der Bank ist
+  // Trainer UND Auswechselspieler. Vorher bekam ein Kreuz, wer die
+  // andere - ebenso richtige - Rolle waehlte.
+  const v103 = ohneSqlKommentare(migration("v103_mehrere_gueltige_rollen"));
+  assert.match(v103, /add column if not exists strafe_rollen_gueltig text\[\]/);
+
+  // Die Bewertung muss die Liste auch BENUTZEN. Die Spalte anzulegen und
+  // sie dann nicht zu lesen war beim ersten Anlauf genau der Fehler.
+  const rumpf = funktionsRumpf(v103, "entscheidung_antwort_speichern");
+  const zuweisung = rumpf.slice(rumpf.indexOf("v_rolle_ok := case when"));
+  assert.match(zuweisung.slice(0, zuweisung.indexOf(";")),
+    /entscheidung_teilnote_rolle\(\s*p_antwort->>'strafe_fuer_rolle',\s*v_loesung\.strafe_rollen_gueltig\)/,
+    "die Bewertung vergleicht weiter nur mit der einen angezeigten Rolle");
+});
+
+test("die angezeigte Rolle muss unter den gueltigen sein", () => {
+  // Sonst zeigte die Aufloesung eine Antwort, die die Bewertung selbst
+  // als falsch wertet.
+  const v103 = ohneSqlKommentare(migration("v103_mehrere_gueltige_rollen"));
+  assert.match(v103, /constraint frage_entscheidung_rolle_ist_gueltig/);
+  assert.match(v103, /strafe_fuer_rolle = any\(strafe_rollen_gueltig\)/);
+});
+
+test("die Rollenliste steht im Schnappschuss der Antwort", () => {
+  const rumpf = funktionsRumpf(
+    ohneSqlKommentare(migration("v103_mehrere_gueltige_rollen")),
+    "entscheidung_antwort_speichern");
+  const schnappschuss = rumpf.slice(rumpf.indexOf("v_loesung_json :="),
+                                    rumpf.indexOf("v_fortsetzung_ok :="));
+  assert.match(schnappschuss, /'strafe_rollen_gueltig'/,
+    "ohne die Liste zeigt die Historie spaeter ein Kreuz bei einer Rolle, die damals richtig war");
+});
+
+// ============================================================
+//  6. Die Icons (31.08.2026, Max' Rueckmeldung zum Screenshot)
+// ============================================================
+
+test("jede Spielfortsetzung hat Icon, vollen Namen und Kurzform", () => {
+  return import("../src/website/entscheidungs-optionen.js").then((modul) => {
+    for (const f of modul.FORTSETZUNGEN) {
+      assert.ok(f.icon.startsWith("<svg"), `${f.schluessel} hat kein Icon`);
+      assert.ok(f.label && f.label.length > 2, `${f.schluessel} hat kein Textlabel`);
+      assert.ok(f.kurz && f.kurz.length > 2, `${f.schluessel} hat keine Kurzform`);
+      // Die Kurzform darf nie laenger sein als der volle Name.
+      assert.ok(f.kurz.length <= f.label.length, `${f.schluessel}: Kurzform ist laenger`);
+    }
+    assert.equal(modul.fortsetzungKurz("sr_ball"), "SR-Ball");
+    assert.equal(modul.fortsetzungLabel("sr_ball"), "Schiedsrichter-Ball");
+  });
+});
+
+test("der Knopf zeigt kurz und spricht lang", () => {
+  // Abgekuerzt wird nur, was man sieht. Wer vorlesen laesst, hoert
+  // weiterhin den vollen Namen.
+  const js = ohneJsKommentare(lies("src/features/decision-answers.js"));
+  assert.match(js, /langtext: eintrag\.label/);
+  assert.match(js, /setAttribute\("aria-label", langtext\)/);
+});
+
+test("ein zu langes Wort schiebt das Icon nicht mehr aus dem Knopf", () => {
+  // Max' Screenshot vom 31.08.2026: bei "Schiedsrichter Ball" stand das
+  // Icon zwischen zwei Knoepfen im Nichts. Ursache: das Symbol steht auf
+  // flex:0 0 auto und kann nicht schrumpfen, der Text hatte kein
+  // min-width:0 - also lief er ueber und schob bei zentriertem Inhalt
+  // das Icon nach links hinaus.
+  const css = lies("stil/wochen-entscheidung.css");
+  assert.match(css, /\.entscheidung-knopf \{[^}]*overflow: hidden/);
+  assert.match(css, /\.entscheidung-knopf > span:last-child \{[^}]*min-width: 0/);
+});
+
+test("das Feld fuer den eigenen Ort ist wirklich versteckt", () => {
+  // display:grid schlaegt das display:none, das der Browser fuer [hidden]
+  // mitbringt - ohne die eigene Regel bleibt das Feld sichtbar, obwohl
+  // im JavaScript korrekt "label.hidden = true" steht.
+  const css = lies("stil/wochen-entscheidung.css");
+  assert.match(css, /\.entscheidung-anderer-ort\[hidden\] \{ display: none; \}/);
+});

@@ -5,20 +5,44 @@
 .entscheidung-raster { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 9px; }
 .entscheidung-raster.zwei { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .entscheidung-raster.strafen { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.entscheidung-knopf { min-height: 54px; padding: 9px 8px; border: 1.5px solid #d8dee8; border-radius: 12px; background: #fff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-weight: 650; cursor: pointer; }
+/* overflow:hidden und das min-width:0 am Text beheben einen sichtbaren
+   Fehler (Max' Screenshot vom 31.08.2026): "Schiedsrichter Ball" ist ein
+   Wort, das breiter ist als der Knopf. Das Symbol steht auf
+   flex:0 0 auto, kann also nicht schrumpfen - stattdessen lief der Text
+   ueber, und weil der Inhalt zentriert ist, schob es das Icon links aus
+   dem Knopf heraus. Es stand dann zwischen zwei Knoepfen im Nichts. */
+.entscheidung-knopf { min-height: 54px; padding: 9px 8px; border: 1.5px solid #d8dee8; border-radius: 12px; background: #fff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-weight: 650; cursor: pointer; overflow: hidden; }
+.entscheidung-knopf > span:last-child { min-width: 0; overflow-wrap: anywhere; line-height: 1.15; }
 .entscheidung-knopf:hover { border-color: #93a4bb; background: #f8fafc; }
 .entscheidung-knopf.aktiv { border-color: var(--entscheidung-akzent); background: #eff6ff; box-shadow: 0 0 0 2px rgb(37 99 235 / 12%); }
 .entscheidung-symbol { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; }
 .entscheidung-symbol svg { width: 28px; height: 28px; }
 .entscheidung-trikot { width: 25px; height: 27px; background: var(--trikot); clip-path: polygon(18% 0, 36% 0, 42% 10%, 58% 10%, 64% 0, 82% 0, 100% 18%, 84% 36%, 76% 29%, 76% 100%, 24% 100%, 24% 29%, 16% 36%, 0 18%); border: 1px solid rgb(0 0 0 / 20%); }
-.entscheidung-karte { display: block; width: 18px; height: 26px; border-radius: 2px; box-shadow: 0 1px 2px rgb(0 0 0 / 20%); }
-.entscheidung-karte.keine { border: 2px dashed #94a3b8; background: transparent; }
+/* Groesser und mit deutlicherem Rand: eine Karte erkennt man an der
+   Flaeche, nicht an einem Strich. Max am 31.08.2026: "Die persoenliche
+   Strafe sieht auch noch ein bisschen bloed aus, das muss deutlicher
+   gemacht werden als so ein paar Striche."
+
+   Gelb-Rot ist jetzt ein diagonaler Schnitt statt einer senkrechten
+   Teilung. Damit bleibt die Karte in voller Groesse sichtbar, statt in
+   zwei schmale Haelften zu zerfallen, die bei 20 px beide nach nichts
+   aussehen - ebenfalls Max' Vorschlag. */
+.entscheidung-karte { display: block; width: 20px; height: 28px; border-radius: 3px; border: 1px solid rgb(17 24 39 / 22%); box-shadow: 0 1px 3px rgb(0 0 0 / 25%); }
+.entscheidung-karte.keine { border: 2px dashed #94a3b8; background: transparent; box-shadow: none; }
 .entscheidung-karte.gelb { background: #facc15; }
 .entscheidung-karte.rot { background: #ef4444; }
-.entscheidung-karte.gelbrot { background: linear-gradient(90deg, #facc15 0 46%, #ef4444 54% 100%); }
+.entscheidung-karte.gelbrot { background: linear-gradient(135deg, #facc15 0 50%, #ef4444 50% 100%); }
 .entscheidung-orte { display: flex; flex-wrap: wrap; gap: 8px; }
+/* 16px, damit iOS Safari beim Antippen nicht in die Seite hineinzoomt -
+   unter 16px tut es das und zoomt nicht von allein zurueck. */
+.entscheidung-ort-auswahl { width: 100%; min-height: 46px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 9px 11px; font: inherit; font-size: 16px; background: #fff; }
 .entscheidung-knopf.ort-chip { min-height: 44px; width: auto; padding-inline: 12px; }
 .entscheidung-anderer-ort, .entscheidung-person label { display: grid; gap: 6px; margin-top: 11px; font-size: .9rem; font-weight: 650; }
+/* Ohne diese Zeile bleibt das Feld trotz hidden sichtbar: die
+   display:grid-Regel oben ist staerker als das display:none, das der
+   Browser fuer [hidden] mitbringt. Faellt beim Lesen des JavaScript
+   nicht auf, weil dort korrekt "label.hidden = true" steht. */
+.entscheidung-anderer-ort[hidden] { display: none; }
 .entscheidung-anderer-ort input, .entscheidung-person input, .entscheidung-person select { width: 100%; min-height: 44px; border: 1px solid #cbd5e1; border-radius: 10px; padding: 9px 11px; font: inherit; background: #fff; }
 .entscheidung-person { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, .45fr); gap: 10px; }
 .entscheidung-ergebnis { list-style: none; padding: 0; margin: 16px 0; display: grid; gap: 9px; }

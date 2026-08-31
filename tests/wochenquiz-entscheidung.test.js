@@ -53,7 +53,14 @@ test("das Wochenquiz lädt die Icon-Antwort als eigenen Antwortweg", () => {
   assert.match(app, /SchiriQuizDecisionAnswers/);
   assert.match(quiz, /frage\.antworttyp === "entscheidung"/);
   assert.match(modul, /\/api\/entscheidung-bewerten/);
-  assert.match(modul, /Anderer Ort oder eigene Formulierung/);
+  // Der freie Ort bleibt moeglich - seit dem 31.08.2026 aber hinter der
+  // Auswahlliste ("Anderer Ort - selbst formulieren") statt als sechs
+  // Knopfreihen plus Textfeld untereinander. Auf dem iPhone war die
+  // Frage dadurch ewig lang. Geprueft wird deshalb, dass es die Auswahl
+  // UND weiterhin das Freitextfeld gibt.
+  assert.match(modul, /Anderer Ort – selbst formulieren/);
+  assert.match(modul, /entscheidung-ort-auswahl/);
+  assert.match(modul, /class = "entscheidung-anderer-ort"|entscheidung-anderer-ort/);
 });
 
 test("die Icon-Bewertungs-API akzeptiert nur POST", async () => {

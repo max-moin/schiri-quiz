@@ -83,11 +83,17 @@
       return feld;
     }
 
-    function auswahlButton({ text, wert, aktiv, icon, klasse = "" }, beiKlick) {
+    function auswahlButton({ text, wert, aktiv, icon, klasse = "", langtext }, beiKlick) {
       const button = document.createElement("button");
       button.type = "button";
       button.className = `entscheidung-knopf ${klasse}${aktiv ? " aktiv" : ""}`;
       button.setAttribute("aria-pressed", aktiv ? "true" : "false");
+      // Abgekuerzt wird nur, was man sieht. Wer vorlesen laesst, hoert
+      // weiterhin "Schiedsrichter-Ball" statt "SR-Ball".
+      if (langtext && langtext !== text) {
+        button.title = langtext;
+        button.setAttribute("aria-label", langtext);
+      }
       if (icon) {
         const symbol = document.createElement("span");
         symbol.className = "entscheidung-symbol";
@@ -131,7 +137,9 @@
       fortRaster.className = "entscheidung-raster fortsetzungen";
       for (const eintrag of optionen.FORTSETZUNGEN) {
         fortRaster.appendChild(auswahlButton({
-          text: eintrag.label,
+          // Kurzform auf dem Knopf, voller Name fuer Vorleseprogramme.
+          text: optionen.fortsetzungKurz(eintrag.schluessel),
+          langtext: eintrag.label,
           wert: eintrag.schluessel,
           aktiv: wahl.spielfortsetzung === eintrag.schluessel,
           icon: eintrag.icon,
@@ -160,31 +168,69 @@
 
       if (wahl.spielfortsetzung && wahl.spielfortsetzung !== "weiterspielen"
           && verlangt(frage, "fordert_fortsetzung_ort")) {
+        // Sechs Knopfreihen plus Textfeld haben die Frage auf dem iPhone
+        // ewig lang gemacht - Max am 31.08.2026: "Das mit 'Wo wird
+        // fortgesetzt' wuerde ich eher als Drop-down-Menue machen, weil
+        // sonst die Liste zu lang wird. Stell dir mal vor, das ist auf
+        // dem iPhone, und das zieht sich ja dann alles ewig lang."
+        //
+        // Das Freitextfeld bleibt und erscheint nur, wenn "Anderer Ort"
+        // gewaehlt ist. Es ersatzlos zu streichen waere falsch: der Ort
+        // ist eine freie Antwort, die die KI bewertet, und sechs
+        // Vorgaben decken nicht jede Szene ab.
         const ort = feldset("Wo wird fortgesetzt?");
-        const chips = document.createElement("div");
-        chips.className = "entscheidung-orte";
-        ORTE.forEach((text) => chips.appendChild(auswahlButton({
-          text, wert: text, aktiv: wahl.fortsetzung_ort === text, klasse: "ort-chip",
-        }, () => { wahl.fortsetzung_ort = text; zeichneForm(frage, container, wahl); })));
-        ort.appendChild(chips);
+        const eigenerOrt = wahl.fortsetzung_ort !== "" && !ORTE.includes(wahl.fortsetzung_ort);
+
+        const auswahl = document.createElement("select");
+        auswahl.className = "entscheidung-ort-auswahl";
+        auswahl.setAttribute("aria-label", "Wo wird fortgesetzt?");
+        const leer = document.createElement("option");
+        leer.value = "";
+        leer.textContent = "Bitte wählen …";
+        auswahl.appendChild(leer);
+        for (const text of ORTE) {
+          const option = document.createElement("option");
+          option.value = text;
+          option.textContent = text;
+          option.selected = wahl.fortsetzung_ort === text;
+          auswahl.appendChild(option);
+        }
+        const anderer = document.createElement("option");
+        anderer.value = "__anderer__";
+        anderer.textContent = "Anderer Ort – selbst formulieren";
+        anderer.selected = eigenerOrt;
+        auswahl.appendChild(anderer);
+        ort.appendChild(auswahl);
+
         const label = document.createElement("label");
         label.className = "entscheidung-anderer-ort";
-        label.append("Anderer Ort oder eigene Formulierung");
+        label.hidden = !eigenerOrt;
+        label.append("Eigene Formulierung");
         const input = document.createElement("input");
         input.type = "text";
         input.maxLength = 180;
         input.placeholder = "z. B. dort, wo das Foul passiert ist";
-        input.value = ORTE.includes(wahl.fortsetzung_ort) ? "" : wahl.fortsetzung_ort;
+        input.value = eigenerOrt ? wahl.fortsetzung_ort : "";
         input.addEventListener("input", () => {
           wahl.fortsetzung_ort = input.value;
-          chips.querySelectorAll(".entscheidung-knopf").forEach((knopf) => {
-            knopf.classList.remove("aktiv");
-            knopf.setAttribute("aria-pressed", "false");
-          });
           aktualisiereSenden(form, wahl, frage);
         });
         label.appendChild(input);
         ort.appendChild(label);
+
+        auswahl.addEventListener("change", () => {
+          if (auswahl.value === "__anderer__") {
+            // Nicht neu zeichnen, sonst verliert das Textfeld sofort den
+            // Fokus und die Tastatur klappt auf dem Handy wieder zu.
+            wahl.fortsetzung_ort = input.value;
+            label.hidden = false;
+            input.focus();
+          } else {
+            wahl.fortsetzung_ort = auswahl.value;
+            label.hidden = true;
+          }
+          aktualisiereSenden(form, wahl, frage);
+        });
         form.appendChild(ort);
       }
 
