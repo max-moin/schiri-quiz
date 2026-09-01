@@ -9,6 +9,7 @@
     frageAnsicht,
     freitext,
     entscheidung,
+    flexibel,
     baueVideoEinbettungModal,
     baueVorlesenButton,
     baueWarumButton,
@@ -47,11 +48,11 @@
         // Wochenzuordnung für alle. Seit dem Mehr-Vereine-Umbau entscheidet der
         // Server anhand des angemeldeten Schiedsrichters, welche Woche gilt -
         // die Sortierung nach Fragennummer kommt gleich mit.
-        sb.rpc("wochen_fragen", {
+        sb.rpc("wochen_fragen_v2", {
           p_schiedsrichter_id: getZugang().schiedsrichterId,
           p_pin: getZugang().pin,
         }),
-        sb.rpc("meine_antworten", {
+        sb.rpc("meine_antworten_v2", {
           p_schiedsrichter_id: getZugang().schiedsrichterId,
           p_pin: getZugang().pin,
         }),
@@ -114,6 +115,7 @@
         // dieser Funktionen gerendert, siehe "baueVideoEinbettung".
         const istFreitext = frage.typ === "freitext" || frage.typ === "video_freitext";
         const istEntscheidung = frage.antworttyp === "entscheidung" || frage.typ === "szenario";
+        const istFlexibel = ["multiple_choice", "mehrfachauswahl", "zahl"].includes(frage.antworttyp);
         if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
           beantworteFragenAnzahl += 1;
           fragenListe.appendChild(
@@ -121,6 +123,8 @@
               ? entscheidung.baueBeantworteteFrageElement(frage, bisherigeAntwort)
               : istFreitext
               ? freitext.baueBeantworteteFreitextElement(frage, bisherigeAntwort)
+              : istFlexibel
+              ? flexibel.baueBeantworteteFrageElement(frage, bisherigeAntwort)
               : baueBeantworteteFrageElement(frage, bisherigeAntwort)
           );
         } else {
@@ -129,6 +133,8 @@
               ? entscheidung.baueFrageElement(frage)
               : istFreitext
               ? freitext.baueFreitextFrageElement(frage)
+              : istFlexibel
+              ? flexibel.baueFrageElement(frage)
               : baueFrageElement(frage)
           );
         }
@@ -165,6 +171,9 @@
       const vorlesenButton = baueVorlesenButton(frage.frage_text);
       if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
       container.appendChild(titelZeile);
+
+      const bild = frageAnsicht.baueFrageBild?.(frage);
+      if (bild) container.appendChild(bild);
 
       const video = baueVideoEinbettungModal(
         frage.video_url,
@@ -247,6 +256,9 @@
       const vorlesenButton = baueVorlesenButton(frage.frage_text);
       if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
       container.appendChild(titelZeile);
+
+      const bild = frageAnsicht.baueFrageBild?.(frage);
+      if (bild) container.appendChild(bild);
 
       const video = baueVideoEinbettungModal(
         frage.video_url,
@@ -372,7 +384,7 @@
       // mit erfasst (eigener "Antwort abschicken"-Button je Karte, wegen der
       // KI-Wartezeit lieber einzeln als im Sammel-Rutsch).
       const offeneMitAuswahl = Array.from(
-        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung)")
+        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung):not(.frage-karte-flex)")
       ).filter((karte) => {
         const button = karte.querySelector(".absenden-button");
         return karte.querySelector('input[type="radio"]:checked') && button && !button.disabled;
@@ -401,7 +413,7 @@
       // erkannt) NOCH schon in dieser Sitzung abgeschickt (Button dann disabled) -
       // eine Karte, die man gerade eben abgeschickt hat, zählt also nicht mehr mit.
       const offeneAnzahl = Array.from(
-        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung)")
+        fragenListe.querySelectorAll(".frage-karte:not(.beantwortet):not(.frage-karte-freitext):not(.frage-karte-entscheidung):not(.frage-karte-flex)")
       ).filter((karte) => {
         const button = karte.querySelector(".absenden-button");
         return button && !button.disabled;

@@ -95,6 +95,8 @@
       const vorlesen = baueVorlesenButton(frage.frage_text);
       if (vorlesen) zeile.appendChild(vorlesen);
       container.appendChild(zeile);
+      const bild = frageAnsicht.baueFrageBild?.(frage);
+      if (bild) container.appendChild(bild);
       const video = baueVideoEinbettungModal(
         frage.video_url, frage.video_start_sekunden, frage.video_end_sekunden,
         frage.video_stumm, frage.antwort_hinweis

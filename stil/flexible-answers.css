@@ -1,0 +1,76 @@
+/* Flexible Wochenfragen: Bild, Mehrfachauswahl und Zahl mit Einheit. */
+.frage-bild {
+  margin: 14px 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: #111;
+}
+
+.frage-bild img {
+  display: block;
+  width: 100%;
+  max-height: min(62vh, 620px);
+  object-fit: contain;
+}
+
+.flexible-optionen .option {
+  gap: 10px;
+}
+
+.flexible-optionen input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  accent-color: var(--blue);
+}
+
+.zahl-eingabe-zeile {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(90px, auto);
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.zahl-eingabe-zeile input,
+.zahl-eingabe-zeile select {
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  color: inherit;
+  font: inherit;
+}
+
+.zahl-aufloesung {
+  display: grid;
+  gap: 6px;
+  margin: 14px 0;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface, #fff) 90%, transparent);
+}
+
+.zahl-aufloesung p {
+  margin: 0;
+}
+
+.badge.typ-bild,
+.badge.typ-auswahl {
+  background: color-mix(in srgb, #7c3aed 13%, transparent);
+  color: #6d28d9;
+}
+
+@media (max-width: 520px) {
+  .frage-bild img { max-height: 48vh; }
+  .zahl-eingabe-zeile { grid-template-columns: minmax(0, 1fr) 92px; }
+}
+
+@media (prefers-color-scheme: dark) {
+  .zahl-eingabe-zeile input,
+  .zahl-eingabe-zeile select { background: rgba(255, 255, 255, 0.06); }
+  .badge.typ-bild,
+  .badge.typ-auswahl { color: #c4b5fd; }
+}

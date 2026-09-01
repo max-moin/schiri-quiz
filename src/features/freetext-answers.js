@@ -36,6 +36,9 @@
       if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
       container.appendChild(titelZeile);
 
+      const bild = frageAnsicht.baueFrageBild?.(frage);
+      if (bild) container.appendChild(bild);
+
       const video = baueVideoEinbettungModal(
         frage.video_url,
         frage.video_start_sekunden,
@@ -332,6 +335,9 @@
       const vorlesenButton = baueVorlesenButton(frage.frage_text);
       if (vorlesenButton) titelZeile.appendChild(vorlesenButton);
       container.appendChild(titelZeile);
+
+      const bild = frageAnsicht.baueFrageBild?.(frage);
+      if (bild) container.appendChild(bild);
 
       const video = baueVideoEinbettungModal(
         frage.video_url,

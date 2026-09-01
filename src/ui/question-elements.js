@@ -13,6 +13,20 @@
       video_freitext: { text: "▶ Video + Freitext", klasse: "typ-video" },
     };
 
+    function baueFrageBild(frage) {
+      if (frage.medium !== "bild" || !frage.bild_base64 || !frage.bild_mime) return null;
+
+      const figure = document.createElement("figure");
+      figure.className = "frage-bild";
+      const bild = document.createElement("img");
+      bild.src = `data:${frage.bild_mime};base64,${frage.bild_base64}`;
+      bild.alt = frage.bild_alt || "Bild zur Regelfrage";
+      bild.loading = "lazy";
+      bild.decoding = "async";
+      figure.appendChild(bild);
+      return figure;
+    }
+
     function baueBadges(frage) {
       const wrap = document.createElement("div");
       wrap.className = "frage-badges";
@@ -28,10 +42,23 @@
 
       // Fragetyp danach - die Information, die beim Überfliegen am meisten
       // hilft ("muss ich hier ein Video ansehen oder etwas schreiben?").
+      const antwortName = frage.antworttyp === "mehrfachauswahl"
+        ? "Mehrfachauswahl"
+        : frage.antworttyp === "zahl"
+        ? "Zahl"
+        : frage.antworttyp === "entscheidung"
+        ? "Icon-Antwort"
+        : null;
+      const mediumSymbol = frage.medium === "bild" ? "▧ Bild" : frage.medium === "video" ? "▶ Video" : null;
       const typInfo = frage.antworttyp === "entscheidung" || frage.typ === "szenario"
         ? {
-            text: frage.medium === "video" ? "▶ Video + Icon-Antwort" : "⚖ Icon-Antwort",
+            text: [mediumSymbol, "⚖ Icon-Antwort"].filter(Boolean).join(" + "),
             klasse: "typ-entscheidung",
+          }
+        : antwortName || mediumSymbol
+        ? {
+            text: [mediumSymbol, antwortName].filter(Boolean).join(" + "),
+            klasse: frage.medium === "video" ? "typ-video" : frage.medium === "bild" ? "typ-bild" : "typ-auswahl",
           }
         : FRAGETYP_BADGE[frage.typ];
       if (typInfo) {
@@ -121,7 +148,7 @@
       }
     }
 
-    return Object.freeze({ baueBadges, loeseOptionenAuf });
+    return Object.freeze({ baueBadges, baueFrageBild, loeseOptionenAuf });
   }
 
   global.SchiriQuizQuestionElements = Object.freeze({ erstelleFragenElemente });
