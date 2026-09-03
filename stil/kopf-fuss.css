@@ -39,6 +39,9 @@
   display: flex;
   align-items: center;
   gap: 10px;
+  /* Damit der Vereinsname darin kuerzen kann statt die Kopfzeile zu
+     sprengen - siehe .marken-titel und .marken-block weiter unten. */
+  min-width: 0;
   background: transparent;
   border: 1px solid transparent;
   border-radius: 10px;
@@ -70,6 +73,12 @@
   font-weight: 600;
   font-size: .97rem;
   line-height: 1.2;
+  /* Von den beiden Zeilen im Kopf ist das die, die nachgeben darf: der
+     Vereinsname steht auf jeder Seite derselbe, der Seitenname darunter
+     ist der, den man gerade braucht. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .haupt-nav {
@@ -92,11 +101,25 @@
   align-items: center;
 }
 .haupt-nav a:hover { background: var(--marke-lighter); }
-.haupt-nav a[aria-current="page"] {
+/* Zwei Staerken, weil es zwei Aussagen sind:
+   "page" = genau diese Seite. "true" = dieser Bereich, aber eine andere
+   Seite - vorlagen.html unter "Unterlagen", entscheiden.html hinter "Zum
+   Quiz".
+
+   Bis zum 03.09.2026 traf die Regel nur "page". Damit war "true" eine
+   Angabe, die Vorleseprogramme vorlasen und sehende Leute nicht sahen -
+   also genau die Haelfte dessen, wofuer sie gesetzt wurde. */
+.haupt-nav a[aria-current] {
   color: var(--marke-dunkel);
   font-weight: 700;
-  box-shadow: inset 0 -2px 0 var(--green);
 }
+.haupt-nav a[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--green); }
+.haupt-nav a[aria-current="true"] { box-shadow: inset 0 -2px 0 var(--border); }
+
+/* Nicht auf dem Aufruf-zum-Quiz: der ist eine runde Pille, ein Strich an
+   ihrer Unterkante sieht aus wie ein Fehler. Auf schmalen Bildschirmen
+   verlaesst er die Navigation ohnehin, dort griff die Regel nie. */
+.haupt-nav a.nav-anmelden[aria-current] { box-shadow: none; }
 
 /* Der Aufruf zum Quiz steht im HTML in der Navigation, wird von
    src/ui/kopf-navigation.js aber in die Kopfzeile gehaengt - sonst
@@ -162,33 +185,50 @@
   .nav-anmelden { order: 0; margin-left: auto; padding: 8px 13px !important; }
 }
 
-/* ---------- Zurueck-Knopf ---------- */
+/* ---------- Name der aktuellen Seite ---------- */
 
-/* Max am 30.08.2026: "Dann brauchst du auf der Website auch irgendwie
-   einen Zurueck-Button, weil sonst muss ich die von Safari selber
-   nutzen."
+/* Max am 03.09.2026: "dass man oben halt immer den Namen stehen hat, auf
+   welcher Seite man gerade ist." Eingesetzt wird er von
+   src/ui/kopf-navigation.js, gelesen aus dem Reiter mit
+   aria-current="page" - hier steht nur, wie er aussieht.
 
-   Er steht UEBER dem Inhalt und nicht im Kopf: dort draengeln sich auf
-   dem Handy schon Wappen, Vereinsname, Quiz-Knopf, Kontoknopf und
-   Burgermenue. Eingesetzt wird er von src/ui/kopf-navigation.js und nur
-   dann, wenn es auch wirklich etwas gibt, wohin er zurueckfuehrt. */
-.zurueck-knopf {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-height: 44px;
-  margin: 0 0 14px;
-  padding: 8px 15px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  background: var(--card);
-  color: var(--marke-hell);
-  font: inherit;
-  font-size: .84rem;
-  font-weight: 600;
-  cursor: pointer;
+   Der Knopf, der bis dahin an dieser Stelle stand, ist ersatzlos
+   entfallen: er beantwortete "wie komme ich weg", und das tut das Wappen
+   daneben laengst.
+
+   Der Block bekommt bewusst KEIN "min-width: 0". Dadurch ist seine
+   Mindestbreite die des Seitennamens - wird der Platz eng, kuerzt der
+   Vereinsname darueber, der Seitenname nie. */
+.marken-block {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
 }
-.zurueck-knopf:hover { background: var(--marke-lighter); border-color: var(--marke-hell); }
+
+.seiten-name {
+  /* Buendig unter dem Vereinsnamen: Wappen (40) + Abstand (10) +
+     Innenabstand des Wappen-Knopfes (6). */
+  padding-left: 56px;
+  margin-top: -3px;
+  font-size: .78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Auf schmalen Bildschirmen faellt der Einzug weg. Bei 375 px teilen sich
+   Wappen, Vereinsname, Seitenname, "Zum Quiz", Kontoknopf und Burgermenue
+   eine einzige Zeile - 56 px Vorlauf sind dort der Unterschied zwischen
+   "passt" und "passt nicht". Der Name rueckt dann unter das Wappen statt
+   unter den Vereinsnamen; die zweite Zeile bleibt er trotzdem.
+
+   Steht bewusst HINTER der Grundregel: Media Queries erhoehen die
+   Spezifitaet nicht, es entscheidet die Reihenfolge. */
+@media (max-width: 760px) {
+  .seiten-name { padding-left: 2px; }
+}
 
 /* ---------- Fußbereich ---------- */
 

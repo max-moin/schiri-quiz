@@ -22,6 +22,7 @@ const { erstelleFlexibleAntworten } = SchiriQuizFlexibleAnswers;
 const { erstelleHistorienModus } = SchiriQuizHistoryMode;
 const { erstelleWochenQuiz } = SchiriQuizWeeklyQuiz;
 const { erstelleZugang } = SchiriQuizAccess;
+const { montiereQuizVerlassen } = SchiriQuizVerlassenDialog;
 
 const mitgliedSession = erstelleSessionSpeicher("schiriQuizSession");
 const kennungSession = erstelleSessionSpeicher("schiriQuizVereinskennung", {
@@ -151,3 +152,4 @@ zugangController = erstelleZugang({
 
 void zugangController.start();
 initialisiereKopfmenue();
+montiereQuizVerlassen();

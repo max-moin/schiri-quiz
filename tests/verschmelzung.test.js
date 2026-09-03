@@ -176,22 +176,24 @@ test("das Quiz heisst ueberall nur Quiz", () => {
 });
 
 /* ============================================================
-   4. Zurueck-Knopf
+   4. Kein Zurueck-Knopf mehr, dafuer der Name der Seite
    ============================================================ */
 
-test("der Zurueck-Knopf erscheint nur, wenn er auch etwas tut", () => {
-  // Max: "Dann brauchst du auf der Website auch irgendwie einen
-  // Zurueck-Button, weil sonst muss ich die von Safari selber nutzen."
+test("der Zurueck-Knopf ist weg - und kommt nicht heimlich zurueck", () => {
+  // Max am 03.09.2026: "zurueck rausnehmen." Der Knopf beantwortete "wie
+  // komme ich weg" - das tut das Wappen laengst, es fuehrt zur Startseite.
+  // Die offene Frage war "wo bin ich"; die beantwortet jetzt der Seitenname.
   //
-  // Wer den Link aus WhatsApp oeffnet, hat keinen Verlauf in diesem Tab.
-  // Ein Knopf, der dann aus der Seite hinausfuehrt, waere schlechter als
-  // keiner - deshalb die Pruefung auf die eigene Herkunft.
+  // Diese Pruefung ist bewusst umgedreht statt geloescht: der Knopf war
+  // einmal eine gute Idee und waere beim naechsten "auf dem Handy fehlt
+  // was"-Gefuehl schnell wieder da, ohne dass jemand die Entscheidung von
+  // heute noch kennt.
   const nav = ohneJsKommentare(lies("src/ui/kopf-navigation.js"));
-  assert.match(nav, /document\.referrer/);
-  assert.match(nav, /origin === location\.origin/);
-  assert.match(nav, /history\.back\(\)/);
-  assert.match(ohneJsKommentare(lies("seite.js")), /montiereZurueckKnopf\(/);
-  assert.match(lies("stil/kopf-fuss.css"), /\.zurueck-knopf/);
+  assert.doesNotMatch(nav, /montiereZurueckKnopf/);
+  assert.doesNotMatch(nav, /history\.back/);
+  assert.doesNotMatch(nav, /zurueck-knopf/);
+  assert.doesNotMatch(ohneJsKommentare(lies("seite.js")), /montiereZurueckKnopf/);
+  assert.doesNotMatch(lies("stil/kopf-fuss.css"), /\.zurueck-knopf/);
 });
 
 test("der Quiz-Knopf steht nicht im Burgermenue", () => {

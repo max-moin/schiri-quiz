@@ -1861,6 +1861,98 @@ body.video-dialog-offen {
   overflow: hidden;
 }
 
+/* ---------- Rueckfrage vor dem Verlassen des Quiz ----------
+
+   Max am 03.09.2026: "das find ich gut, dass da ein Hinweis kommt, wenn
+   man das Quiz verlaesst, dass ungespeicherte Antworten verschluckt
+   werden."
+
+   Bewusst dieselbe Formsprache wie die Video-Grossansicht direkt darueber:
+   dunkle Flaeche, eine Karte darin, zwei runde Knoepfe. Ein zweites
+   Fensterdesign auf derselben Seite waere nur mehr zu lernen.
+
+   Der sichere Knopf ("Weiter beantworten") traegt die kraeftige Farbe und
+   bekommt den Fokus. Wer versehentlich die Eingabetaste drueckt, bleibt
+   damit im Quiz. Beschriftet sind beide mit dem, was sie tun - "OK" und
+   "Abbrechen" sagen an dieser Stelle nichts. */
+
+.verlassen-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(6, 10, 20, 0.86);
+}
+
+.verlassen-overlay[hidden] {
+  display: none;
+}
+
+body.verlassen-dialog-offen {
+  overflow: hidden;
+}
+
+.verlassen-karte {
+  width: min(440px, 100%);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(155deg, #17243a 0%, #0f172a 100%);
+  color: #fff;
+  padding: 24px 22px;
+  text-align: center;
+}
+
+.verlassen-karte h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  line-height: 1.3;
+}
+
+.verlassen-karte p {
+  margin: 10px 0 0;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.verlassen-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.verlassen-knopf {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+.verlassen-bleiben {
+  border: 1px solid var(--marke);
+  background: var(--marke);
+  color: #fff;
+}
+
+.verlassen-gehen {
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.verlassen-knopf:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
 .video-gross-inhalt {
   position: relative;
   width: 100%;

@@ -26,7 +26,7 @@
   <link rel="stylesheet" href="stil/obmann.css" />
   <link rel="stylesheet" href="stil/spesen.css" />
 </head>
-<body class="admin-seite">
+<body class="admin-seite" data-seitenname="Obmann-Zugang">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   <header class="seiten-kopf">
     <div class="kopf-innen">
@@ -164,6 +164,19 @@
       <div data-admin-bereich="terminsuche" hidden></div>
     </section>
   </main>
+
+  <!-- Rechtliches erreichbar, aber leise (03.09.2026). Diese Seite war die
+       einzige ohne Fusszeile und damit die einzige, von der aus Impressum,
+       Datenschutzerklaerung und Nutzungsbedingungen nicht erreichbar waren.
+       Den Obmann-Zugang traegt sie bewusst nicht - man ist schon hier. -->
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+    </div>
+  </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js"></script>
   <script type="module" src="seite.js"></script>

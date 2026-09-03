@@ -173,6 +173,39 @@ body { overflow-x: hidden; }
 }
 .liste-kopf:not(:first-child) { border-top: 1px solid var(--border); }
 
+/* Eigene Unterlagen mit Wappen (03.09.2026).
+
+   Auf informationen.html stehen unsere eigenen Vorlagen in einer eigenen
+   Gruppe ueber den Verbandsdokumenten. Sonst weiss niemand mehr, wer fuer
+   welchen Inhalt geradesteht - und das macht beide Sorten weniger
+   vertrauenswuerdig, nicht nur eine.
+
+   Wappen UND Wortmarke: das Bild allein waere ein Symbol ohne Wort. */
+.eigene-sachen { margin-top: 20px; }
+.eigene-sachen-kopf {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: .86rem;
+  color: var(--marke-dunkel);
+}
+/* Schlaegt die 40 px aus stil/kopf-fuss.css - dieselbe Spezifitaet, aber
+   spaeter eingebunden. Die Klasse "wappen" bleibt dran, damit seite.js das
+   Bild aus verein.config.js auch hier austauscht. */
+.eigen-wappen { height: 22px; width: 22px; }
+
+/* Ueberschrift des Fremd-Teils. Steht frei und nicht in einer .liste,
+   deshalb keine Balkenoptik. */
+.verbands-kopf {
+  margin: 34px 0 6px;
+  font-family: var(--font-titel);
+  font-size: 1.12rem;
+  font-weight: 700;
+  color: var(--marke-dunkel);
+}
+
 /* ---------- Segmentierter Umschalter ----------
    Zwei sich ausschließende Zustände. Als zwei einzelne Pillen sah man
    nicht, dass sie zusammengehören; als ein Bauteil mit Schieber schon. */

@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Unterlagen – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Die Dokumente des Stadtverbands Fußball Dresden und des Sächsischen Fußball-Verbands – sortiert danach, wann man sie braucht." />
+  <meta name="description" content="Unsere eigenen Vorlagen und Werkzeuge – und getrennt davon die Dokumente des Stadtverbands Fußball Dresden und des Sächsischen Fußball-Verbands." />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,11 +38,9 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
-        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
+        <a href="spesenrechner.html">Spesen</a>
         <a href="regeluebersicht.html">Regeln</a>
-        <a href="spesenrechner.html">Spesenrechner</a>
-        <a href="vorlagen.html">Vorlagen</a>
         <a href="informationen.html" aria-current="page">Unterlagen</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
@@ -51,26 +49,93 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
 
-    <span class="kicker">Von den Verbänden</span>
+    <span class="kicker">Alles an einem Ort</span>
     <h1 class="seiten-titel">Unterlagen</h1>
+    <p class="seiten-unter">
+      Zwei Sorten Dokumente, bewusst getrennt: zuerst das, was von uns selbst
+      stammt, danach das, was Stadtverband und Landesverband herausgeben.
+    </p>
+
+    <!-- ============================================================
+         Eigene Sachen zuerst und als eigene erkennbar (03.09.2026)
+         ============================================================
+         Max: "Bei Unterlagen würde ich das irgendwie als Erstes so
+         verlinken, dass das auch von uns ist bzw. von mir als Vorlage."
+
+         Bis heute stand hier nur ein Satz, der auf die Reiterleiste
+         verwies ("findest du oben in der Leiste"). Seit die Leiste kürzer
+         ist, stimmt das für die Vorlagen nicht mehr - sie haben dort
+         keinen eigenen Reiter mehr.
+
+         Warum eine eigene Gruppe mit Wappen und Wortmarke statt vier
+         weiterer Zeilen in der grossen Liste: Stehen eigene Vorlagen und
+         fremde Weiterleitungen ununterschieden untereinander, weiss
+         niemand mehr, wer für welchen Inhalt geradesteht. Wer sich auf
+         eine Vorlage verlässt, muss wissen, dass wir sie geschrieben
+         haben; wer auf eine Verbandsseite klickt, muss wissen, dass er
+         unsere Seite gerade verlässt. Ohne die Trennung wird beides
+         weniger vertrauenswürdig, nicht nur eins von beiden.
+         ============================================================ -->
+    <section class="eigene-sachen" aria-labelledby="eigene-sachen-titel">
+      <div class="liste">
+        <h2 class="liste-kopf eigene-sachen-kopf" id="eigene-sachen-titel">
+          <img class="wappen eigen-wappen" src="bilder/logo.png" alt="" width="22" height="22" />
+          <span>Von uns – <span data-verein="name">FV Löbtauer Kickers</span></span>
+        </h2>
+        <a class="lz" href="vorlagen.html">
+          <span class="lz-marke hier" aria-hidden="true"></span>
+          <span class="lz-text">
+            <span class="lz-titel">Vorlagen für E-Mails</span>
+            <span class="lz-sub">Spielabsage und Regellehrabend – kopieren, ausfüllen, abschicken.</span>
+          </span>
+          <span class="lz-rechts">
+            <span class="abzeichen abz-hier">Bei uns</span>
+            <span class="lz-pfeil" aria-hidden="true">→</span>
+          </span>
+        </a>
+        <a class="lz" href="regeluebersicht.html">
+          <span class="lz-marke hier" aria-hidden="true"></span>
+          <span class="lz-text">
+            <span class="lz-titel">Regeln auf einen Blick</span>
+            <span class="lz-sub">Die Fälle, die im Spiel wirklich vorkommen – von uns zusammengestellt.</span>
+          </span>
+          <span class="lz-rechts">
+            <span class="abzeichen abz-hier">Bei uns</span>
+            <span class="lz-pfeil" aria-hidden="true">→</span>
+          </span>
+        </a>
+        <a class="lz" href="spesenrechner.html">
+          <span class="lz-marke hier" aria-hidden="true"></span>
+          <span class="lz-text">
+            <span class="lz-titel">Spesenrechner</span>
+            <span class="lz-sub">Was dir für ein Spiel zusteht, inklusive Fahrtkosten.</span>
+          </span>
+          <span class="lz-rechts">
+            <span class="abzeichen abz-hier">Bei uns</span>
+            <span class="lz-pfeil" aria-hidden="true">→</span>
+          </span>
+        </a>
+        <a class="lz" href="modus.html">
+          <span class="lz-marke hier" aria-hidden="true"></span>
+          <span class="lz-text">
+            <span class="lz-titel">Quiz</span>
+            <span class="lz-sub">Wochenfragen und Entscheidungen aus unserem eigenen Fragenkatalog.</span>
+          </span>
+          <span class="lz-rechts">
+            <span class="abzeichen abz-hier">Bei uns</span>
+            <span class="lz-pfeil" aria-hidden="true">→</span>
+          </span>
+        </a>
+      </div>
+    </section>
+
+    <h2 class="verbands-kopf">Von den Verbänden</h2>
     <p class="seiten-unter">
       Alles, was Stadtverband und Landesverband herausgeben – sortiert danach,
       wann du es brauchst, nicht danach, wie das Dokument heißt. Der farbige
       Strich links zeigt, wer dafür geradesteht: blau der Stadtverband Dresden,
-      violett der Sächsische Fußball-Verband.
-    </p>
-    <!-- Entscheidung vom 22.08.2026 (Vorschlag A): Die eigenen Werkzeuge -
-         Regeln, Spesenrechner, Vorlagen, Quiz - stehen jetzt einzeln in der
-         Navigationsleiste und nicht mehr zwischen den Verbandsdokumenten.
-         Max: "Das sind ja die eigenen Sachen. Das, was extern ist, das
-         vielleicht so, wie es jetzt aufbereitet ist." Der Satz hier bleibt
-         als Wegweiser stehen, weil jemand diese Seite verlinkt haben
-         koennte, um den Spesenrechner zu finden. -->
-    <p class="seiten-unter" style="margin-top:-10px">
-      Unsere eigenen Sachen – <a href="regeluebersicht.html">Regeln auf einen Blick</a>,
-      <a href="spesenrechner.html">Spesenrechner</a>,
-      <a href="vorlagen.html">Vorlagen</a> und das
-      <a href="modus.html">Quiz</a> – findest du oben in der Leiste.
+      violett der Sächsische Fußball-Verband. Diese Links führen aus unserer
+      Seite hinaus.
     </p>
 
     <!-- ============================================================

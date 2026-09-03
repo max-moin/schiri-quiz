@@ -20,7 +20,7 @@
 
 import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
 import { montiereKontoBereich } from "./src/ui/konto-bereich.js";
-import { montiereZurueckKnopf, zeigeQuizKnopfImmer } from "./src/ui/kopf-navigation.js";
+import { zeigeQuizKnopfImmer, zeigeSeitenname } from "./src/ui/kopf-navigation.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -97,6 +97,8 @@ document.querySelectorAll("img[data-bild]").forEach((el) => {
 // leise, waehrend Auth, TOTP und RLS den eigentlichen Schutz uebernehmen.
 document.querySelectorAll(".seiten-fuss .fuss-innen").forEach((fuss) => {
   if (fuss.querySelector('[href="obmann.html"]')) return;
+  // Auf obmann.html selbst waere es ein Verweis auf die aktuelle Seite.
+  if (location.pathname.endsWith("obmann.html")) return;
   const link = document.createElement("a");
   link.href = "obmann.html";
   link.textContent = "Obmann-Zugang";
@@ -306,14 +308,17 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   });
 }
 
-// ---------- Zurueck-Knopf ----------
+// ---------- Name der aktuellen Seite ----------
 //
-// Max am 30.08.2026: "Dann brauchst du auf der Website auch irgendwie
-// einen Zurueck-Button, weil sonst muss ich die von Safari selber nutzen."
+// Max am 03.09.2026: "dass man oben halt immer den Namen stehen hat, auf
+// welcher Seite man gerade ist."
 //
-// Bewusst UNTER der Kopfleiste und nicht darin: im Kopf stehen auf dem
-// Handy schon Wappen, Vereinsname, "Zum Quiz", der Kontoknopf und das
-// Burgermenue. Ein sechstes Bedienelement haette dort bei 390 px keinen
-// Platz mehr. Ueber dem Inhalt ist er ausserdem genau da, wo der Daumen
-// nach dem Scrollen nach oben ohnehin hinwandert.
-montiereZurueckKnopf(document.querySelector("main.inhalt"));
+// Steht ganz am Ende und damit nach zeigeQuizKnopfImmer: der Aufruf-zum-Quiz
+// ist dann schon aus der Navigation heraus, und der Seitenname liest
+// garantiert einen Reiter statt eines Knopfes.
+//
+// Der Zurueck-Knopf, der bis zum 03.09.2026 an dieser Stelle eingesetzt
+// wurde, ist ersatzlos entfallen (Max: "zurueck rausnehmen"). Er beantwortete
+// "wie komme ich weg" - dafuer gibt es das Wappen, das zur Startseite fuehrt.
+// Die offene Frage war die davor: "wo bin ich".
+zeigeSeitenname(kopfInnen);
