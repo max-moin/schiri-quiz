@@ -2819,3 +2819,280 @@ input.maskiert.sichtbar {
   color: var(--green-dark, #166534);
   background: var(--green-light, #dcfce7);
 }
+
+/* ============================================================
+   Rueckmeldung zu einer Frage ("Passt was nicht?", 03.09.2026)
+   ============================================================
+   Max: "Ich wuerde keinen unaufdringlichen Link machen, sondern so einen
+   Button mit einem Fragezeichen oder Feedback - ein Button sieht geiler
+   aus als so ein Text mit Hyperlink."
+
+   Der Knopf steht BEI DER LOESUNG, nicht an der offenen Frage - die
+   Begruendung steht im Kopf von src/features/frage-melden.js. Damit die
+   Frage nicht ueberladen wirkt (Max' ausdrueckliche Sorge), steht dort
+   genau ein Knopf, direkt neben dem schon vorhandenen "Warum?".
+
+   Das Fenster uebernimmt die Formsprache des Erklaerungs-Popups (helle
+   Karte auf dunkler Flaeche) und nicht die der Verlassen-Rueckfrage: Das
+   hier ist ein Formular zum Lesen und Tippen, keine Warnung.
+   ============================================================ */
+
+.loesung-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Der "Warum?"-Knopf bringt seinen eigenen Abstand mit. In der Zeile
+   wuerde er die beiden Knoepfe gegeneinander verschieben. */
+.loesung-aktionen .warum-button {
+  margin-top: 0;
+}
+
+.melde-knopf {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* 44 px ist die kleinste Flaeche, die man auf dem Handy zuverlaessig
+     trifft - hier als Mindestmass und nicht als feste Hoehe, damit der
+     Knopf bei grosser Schrift mitwaechst. */
+  min-height: 44px;
+  min-width: 44px;
+  background: none;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--marke);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.melde-knopf:hover {
+  border-color: var(--marke);
+  background: var(--marke-lighter);
+}
+
+.melde-knopf:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+.melde-symbol {
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+/* Die Marke an einer schon gemeldeten Frage. Bewusst leise: sie ist eine
+   Empfangsbestaetigung, keine Auszeichnung - und sie steht als Wort da,
+   nicht als Haekchen. */
+.melde-marke {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  color: var(--muted);
+  padding: 5px 11px;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.melde-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.55);
+}
+
+/* Ohne diese Zeile schlaegt "display: flex" oben das hidden-Attribut und
+   das Fenster stuende die ganze Zeit offen - dieselbe Falle wie beim
+   Erklaerungs-Popup. */
+.melde-overlay[hidden] {
+  display: none;
+}
+
+body.melde-dialog-offen {
+  overflow: hidden;
+}
+
+.melde-karte {
+  width: 100%;
+  max-width: 460px;
+  max-height: 85vh;
+  overflow-y: auto;
+  background: var(--card-bg);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-hover);
+  padding: 20px 22px 22px;
+}
+
+.melde-karte h2 {
+  margin: 0;
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+}
+
+.melde-einleitung {
+  margin: 8px 0 14px;
+  color: var(--muted);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.melde-kategorien {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+  border: none;
+}
+
+.melde-kategorien legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.melde-kategorie {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: baseline;
+  gap: 4px 10px;
+  min-height: 44px;
+  align-content: center;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.melde-kategorie:hover {
+  border-color: var(--marke);
+}
+
+.melde-kategorie:focus-within {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+.melde-kategorie-wort {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+.melde-kategorie-hinweis {
+  grid-column: 2;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.melde-text-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.melde-text {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.melde-text:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 1px;
+}
+
+/* Der Zaehler taucht erst kurz vor der Grenze auf und warnt dann - er
+   sperrt nicht. Max: "eine maximale Zeichenanzahl, aber dass da auch
+   nicht so richtig gesperrt wird." */
+.melde-zaehler {
+  margin: 6px 0 0;
+  text-align: right;
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.melde-zaehler.zu-lang {
+  color: var(--red);
+  font-weight: 700;
+}
+
+.melde-hinweis {
+  margin: 10px 0 0;
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  background: var(--bg-end);
+  color: var(--text);
+}
+
+.melde-hinweis.melde-fehler {
+  background: var(--red-light);
+  color: var(--red);
+}
+
+.melde-hinweis.melde-erfolg {
+  background: var(--green-light);
+  color: var(--green-dark);
+}
+
+.melde-aktionen {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.melde-knopf-senden,
+.melde-knopf-abbrechen {
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 9px 18px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.melde-knopf-senden {
+  border: 1px solid var(--marke);
+  background: var(--marke);
+  color: #fff;
+}
+
+.melde-knopf-senden:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.melde-knopf-abbrechen {
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+}
+
+.melde-knopf-senden:focus-visible,
+.melde-knopf-abbrechen:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}

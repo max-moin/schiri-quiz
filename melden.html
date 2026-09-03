@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Etwas melden – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Regelfall, Vorfall, Gesprächswunsch oder ein Hinweis zur Website – direkt an den Schiedsrichter-Obmann." />
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <!-- Gestaltung nach Funktion getrennt (29.08.2026).
+       Die Reihenfolge entspricht der Reihenfolge, in der die Bloecke
+       vorher in seite.css standen - daran haengt die Kaskade. Neue
+       Regeln kommen in die Datei ihrer Funktion, nicht ans Ende der
+       naechstbesten. tests/frontend-architecture.test.js prueft beides. -->
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/startseite.css" />
+  <link rel="stylesheet" href="stil/termine.css" />
+  <link rel="stylesheet" href="stil/regeln.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/hinweise.css" />
+  <link rel="stylesheet" href="stil/vorlagen.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
+  <link rel="stylesheet" href="stil/melden.css" />
+</head>
+<body data-seitenname="Etwas melden">
+
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf">
+    <div class="kopf-innen">
+      <a class="marken-knopf" href="index.html" aria-label="Zur Startseite">
+        <img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" />
+        <span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span>
+      </a>
+      <button class="nav-knopf" id="nav-knopf" type="button"
+              aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+      <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="termine.html">Termine</a>
+        <a href="spesenrechner.html">Spesen</a>
+        <a href="regeluebersicht.html">Regeln</a>
+        <a href="informationen.html">Unterlagen</a>
+        <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="inhalt" id="inhalt" tabindex="-1">
+
+    <!-- ============================================================
+         Der Meldebogen (03.09.2026).
+
+         Vier Anliegen, die bisher alle in derselben WhatsApp gelandet
+         waeren: Regelfall, Vorfall, Gespraechswunsch, Website-Hinweis.
+         Sie brauchen unterschiedliche Angaben und vor allem
+         unterschiedliche Zusagen - deshalb erst die Art waehlen, dann
+         die Felder dazu.
+
+         Der Inhalt wird von src/website/melden-seite.js gebaut, die
+         Regel "welche Art fragt was" steht in src/website/melden-arten.js.
+         Absichtlich nicht hier im HTML: an einem Formular mit allen
+         Feldern gleichzeitig laesst sich nicht mehr ablesen, welches
+         Feld zu welcher Art gehoert - und genau daran haengt, dass ein
+         Vorfall kein Veroeffentlichungs-Ankreuzfeld bekommt.
+         ============================================================ -->
+
+    <div id="meldenBereich" aria-live="polite">
+      <p class="seiten-unter">Wird geladen …</p>
+    </div>
+
+  </main>
+
+  <footer class="seiten-fuss">
+    <div class="fuss-innen">
+      <a href="impressum.html">Impressum</a>
+      <a href="datenschutz.html">Datenschutz</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
+      <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
+      <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
+      <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> &middot; <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+    </div>
+  </footer>
+
+  <script src="src/core/anmeldung.js"></script>
+  <script src="src/ui/masked-input.js"></script>
+  <script src="src/ui/login-dialog.js"></script>
+  <!-- Profil-Punkte im Kontomenue (30.08.2026). Dieselben Bausteine wie
+       im Quiz - siehe Kopf von src/ui/profil-fenster.js. Ebenfalls
+       klassische Skripte VOR seite.js, aus demselben Grund wie oben. -->
+  <script src="src/core/quiz-utils.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/profil-fenster.js"></script>
+  <script src="src/features/profile-requests.js"></script>
+  <!-- Derselbe Zeichenzaehler wie im Quiz. Klassisches Skript, damit ihn
+       beide Seiten benutzen koennen - das Modul unten holt ihn sich ueber
+       globalThis, wie die Anmeldung auch. -->
+  <script src="src/ui/zeichen-zaehler.js"></script>
+  <script type="module" src="seite.js"></script>
+  <script type="module" src="src/website/melden-seite.js"></script>
+</body>
+</html>

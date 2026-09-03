@@ -36,7 +36,7 @@ const ohneKommentare = (quelltext) =>
 
 const SEITEN = [
   "index.html", "termine.html", "regeluebersicht.html", "informationen.html",
-  "spesenrechner.html", "vorlagen.html", "schiri-werden.html",
+  "spesenrechner.html", "vorlagen.html", "schiri-werden.html", "melden.html",
 ];
 
 test("die Terminseite und ihre Bausteine existieren", () => {

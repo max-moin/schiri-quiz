@@ -1,0 +1,288 @@
+/* ============================================================
+   Der Meldebogen (melden.html, 03.09.2026)
+   ============================================================
+   Seitenspezifisch wie modus.css und entscheiden.css und deshalb ganz
+   hinten eingebunden: Diese Regeln duerfen die gemeinsamen ueberschreiben,
+   aber nichts davon darf auf eine andere Seite durchschlagen. Alle
+   Selektoren beginnen darum mit einer eigenen Klasse - kein nacktes
+   "label { ... }", das sonst ueberall mitfaerbt (die Falle aus
+   spesen.css, siehe tests/frontend-architecture.test.js).
+
+   Die Formsprache ist die der uebrigen Vereinsseiten: weisse Karte,
+   weicher Rand, Anthrazit als Marke. Gruen und Rot bleiben ausschliess-
+   lich Rueckmeldung.
+   ============================================================ */
+
+.melden-karte {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px;
+  margin-top: 18px;
+}
+
+.melden-karte h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+}
+
+.melden-karte p {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  line-height: 1.55;
+}
+
+.melden-hinweis-leise {
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+/* ---------- Erst die Art waehlen ---------- */
+
+/* Vier grosse Flaechen statt eines Ausklappmenues: Die Wahl der Art ist
+   die eigentliche Entscheidung dieser Seite, und in einem Menue steht
+   von den vier Angeboten immer nur eines sichtbar da. */
+.melden-arten {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin-top: 18px;
+}
+
+.melden-art {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 44px;
+  text-align: left;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 16px 18px;
+  font-family: inherit;
+  color: var(--text);
+  cursor: pointer;
+  transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+
+.melden-art:hover {
+  border-color: var(--marke);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+
+.melden-art:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+/* Die gewaehlte Art bleibt sichtbar markiert - sonst weiss man beim
+   Ausfuellen nicht mehr, welches Formular man da eigentlich vor sich
+   hat. Markiert wird mit Rand UND Flaeche, nicht mit Farbe allein. */
+.melden-art.gewaehlt {
+  border-color: var(--marke);
+  background: var(--marke-lighter);
+  box-shadow: var(--shadow-hover);
+}
+
+.melden-art-titel {
+  font-family: var(--font-titel);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.melden-art-frage {
+  font-size: .9rem;
+  font-weight: 600;
+  color: var(--marke-hell);
+}
+
+.melden-art-text {
+  font-size: .82rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ---------- Das Formular zur gewaehlten Art ---------- */
+
+.melden-formular {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px 22px 22px;
+  margin-top: 18px;
+}
+
+.melden-formular-titel {
+  margin: 0 0 6px;
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+}
+
+.melden-formular-text {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: .85rem;
+  line-height: 1.5;
+}
+
+.melden-feld {
+  margin-bottom: 16px;
+}
+
+.melden-beschriftung {
+  display: block;
+  margin-bottom: 6px;
+  font-size: .85rem;
+  font-weight: 700;
+}
+
+.melden-feld input[type="text"],
+.melden-feld textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  font-family: inherit;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--text);
+  background: var(--card);
+}
+
+.melden-feld textarea {
+  resize: vertical;
+}
+
+.melden-feld input[type="text"]:focus-visible,
+.melden-feld textarea:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 1px;
+}
+
+/* Ankreuzfelder: 44 px Trefferflaeche, und die Beschriftung gehoert mit
+   in den Klickbereich - sonst trifft man auf dem Handy nur das Kaestchen. */
+.melden-ankreuz {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  padding: 8px 0;
+  font-size: .88rem;
+  line-height: 1.5;
+  cursor: pointer;
+}
+
+.melden-ankreuz input[type="checkbox"] {
+  width: 20px;
+  height: 20px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--marke);
+}
+
+/* Der Hinweis ueber Angaben zu Dritten. Er steht AM Feld, nicht unten,
+   und darf deshalb nicht wie Kleingedrucktes aussehen - aber auch nicht
+   wie eine Warnung, die vom Schreiben abhaelt. */
+.melden-datenschutz {
+  margin: 8px 0 0;
+  border-left: 3px solid var(--border);
+  padding: 2px 0 2px 10px;
+  color: var(--muted);
+  font-size: .78rem;
+  line-height: 1.55;
+}
+
+.melden-datenschutz a {
+  color: var(--blau);
+}
+
+.melden-zaehler {
+  margin: 6px 0 0;
+  text-align: right;
+  color: var(--muted);
+  font-size: .76rem;
+}
+
+/* Warnen, nicht sperren: die Zahl wird rot, das Feld bleibt offen. */
+.melden-zaehler.zu-lang {
+  color: var(--red);
+  font-weight: 700;
+}
+
+/* ---------- Anonyme Abgabe ---------- */
+
+.melden-anonym {
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  margin: 4px 0 16px;
+}
+
+.melden-anonym .melden-hinweis-leise {
+  margin: 4px 0 0;
+}
+
+/* ---------- Absenden und Rueckmeldung ---------- */
+
+.melden-senden,
+.melden-anmelden {
+  min-height: 44px;
+  border: 1px solid var(--marke);
+  border-radius: 999px;
+  background: var(--marke);
+  color: #fff;
+  padding: 10px 20px;
+  font-family: inherit;
+  font-size: .88rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.melden-senden:hover,
+.melden-anmelden:hover {
+  background: var(--marke-dunkel);
+}
+
+.melden-senden:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+.melden-senden:focus-visible,
+.melden-anmelden:focus-visible {
+  outline: 3px solid var(--karte-gelb);
+  outline-offset: 2px;
+}
+
+.melden-rueckmeldung {
+  margin: 0 0 14px;
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  background: var(--marke-lighter);
+  font-size: .85rem;
+  line-height: 1.55;
+}
+
+.melden-rueckmeldung.melden-fehler {
+  background: var(--red-hell);
+  color: var(--red);
+  font-weight: 600;
+}
+
+.melden-dank {
+  border-color: var(--green);
+}
+
+@media (max-width: 560px) {
+  .melden-formular,
+  .melden-karte {
+    padding: 16px 14px;
+  }
+}

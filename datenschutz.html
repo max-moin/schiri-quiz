@@ -73,6 +73,24 @@
         PIN anmeldest, wird der Zeitpunkt gespeichert. Es werden immer nur die
         <strong>letzten drei</strong> Anmeldungen vorgehalten - jede neue überschreibt die
         älteste. Fehlversuche werden nicht erfasst. Näheres in Punkt 4.<br />
+        - <strong>Stammdaten zu deiner Person:</strong> Geburtsdatum, Liga-Einstufung, seit
+        wann du Schiedsrichter:in bist, und eine interne Bemerkung. Diese Felder pflegt
+        ausschließlich der Schiedsrichter-Obmann (Näheres in Punkt 9).<br />
+        - Bei Fragen mit Symbol-, Zahlen- oder Mehrfachauswahl: die von dir gewählten
+        Symbole (Spielfortsetzung, Richtung, persönliche Strafen, Rolle, Rückennummer),
+        deine frei geschriebene Ortsangabe, deine Zahl mit Einheit bzw. die angeklickten
+        Optionen - jeweils zusammen mit der Bewertung dieser einzelnen Angaben.<br />
+        - Im Entscheidungs-Modus: deine Wahl je Szenario, die Bewertung, die erreichte
+        Punktzahl, der wievielte Versuch es war und wann du geantwortet hast.<br />
+        - Bei Terminen und Terminfindungen: deine Zu- oder Absage, bei einer Absage der
+        gewählte Grund und dein freier Kommentar, deine Antwort je Terminvorschlag und
+        jeweils der Zeitpunkt (Näheres in Punkt 10).<br />
+        - Falls du eine Rückmeldung zu einer Quizfrage abgibst: die Kategorie, dein Text,
+        der Zeitpunkt, dein Name sowie ein Schnappschuss deiner eigenen Antwort und des
+        damaligen Lösungsstands (Näheres in Punkt 12).<br />
+        - Falls du den Meldebogen nutzt: die Angaben, die du dort machst, der Zeitpunkt und
+        - sofern du die Meldung nicht als anonym kennzeichnest - dein Name (Näheres in
+        Punkt 13).<br />
         - Technische Daten, die beim Aufruf jeder Internetseite automatisch anfallen (z.B.
         IP-Adresse, Zeitpunkt des Zugriffs) - diese fallen beim Hosting-Anbieter (Vercel, siehe
         Punkt 5) an, nicht bei uns direkt.
@@ -124,9 +142,12 @@
 
       <h2>7. KI-Auswertung (Google Gemini)</h2>
       <p>
-        Für zwei Funktionen wird eine künstliche Intelligenz (Google Gemini, betrieben von
+        Für drei Funktionen wird eine künstliche Intelligenz (Google Gemini, betrieben von
         Google) eingesetzt: erstens zur automatischen Bewertung von Freitext-Antworten,
-        zweitens für die freiwillige "Warum?"-Erklärfunktion. In beiden Fällen werden die
+        zweitens für die freiwillige "Warum?"-Erklärfunktion, drittens - nur bei Fragen mit
+        Symbol-Antwort - zur Prüfung einer frei geschriebenen Ortsangabe, und dort auch nur
+        dann, wenn der Server sie nicht schon durch einen festen Textvergleich ohne KI
+        einordnen kann. In beiden Fällen werden die
         Frage, die (Muster-)Antwort und deine eigene Antwort an Google übermittelt, um eine
         Bewertung bzw. Erklärung zu erzeugen. Ist eine Freitext-Antwort im Kern richtig, aber
         unvollständig, formuliert die KI zusätzlich die Rückfrage, mit der du zur Ergänzung
@@ -137,6 +158,17 @@
         eigener KI-Modelle, wenn sie über die API-Schnittstelle (wie hier) übermittelt werden.
         Weder dein Name noch deine PIN werden an Google übermittelt. Näheres in der
         <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer">Datenschutzerklärung von Google</a>.
+      </p>
+      <p>
+        Übermittelt wird jeweils nur der fachliche Zusammenhang: der Fragetext, die
+        hinterlegte Musterantwort mit den Bewertungshinweisen und dein Antworttext (bei der
+        Ortsprüfung der Fragetext, der hinterlegte Ort und deine Ortsangabe). Nicht
+        übermittelt werden dein Name, deine PIN und deine Kennnummer - der Aufruf enthält
+        keine Angabe darüber, von wem die Antwort stammt. Genutzt wird die
+        Programmierschnittstelle von Google mit einem fest eingestellten Modell
+        (Voreinstellung "gemini-3.5-flash-lite"; der Verantwortliche kann für die einzelnen
+        Funktionen ein anderes Gemini-Modell einstellen). Der Zugangsschlüssel liegt
+        ausschließlich auf dem Server und erreicht deinen Browser nie.
       </p>
 
       <h2>8. Videos (YouTube)</h2>
@@ -156,7 +188,10 @@
         zur Aktivitätsanalyse setzt, solange du das Video nicht abspielst. Rechtsgrundlage
         für diese Übermittlung ist deine Einwilligung durch den Klick auf den Platzhalter
         (Art. 6 Abs. 1 lit. a DSGVO); du kannst sie erteilen oder es einfach lassen - die
-        Frage lässt sich auch ohne Video beantworten.
+        Frage lässt sich auch ohne Video beantworten. Technisch genau: Vor dem Klick zeigt
+        die Seite nur einen selbst gezeichneten Platzhalter, es wird auch kein Vorschaubild
+        von YouTube geladen. Nach dem Klick lädt die Seite zuerst das Abspielprogramm von
+        youtube.com und bettet das Video selbst dann über youtube-nocookie.com ein.
       </p>
       <p>
         Näheres in der
@@ -165,7 +200,203 @@
         der von YouTube dafür vorgesehenen Form eingebettet, nicht kopiert oder gespeichert.
       </p>
 
-      <h2>9. Speicherdauer</h2>
+      <h2>9. Stammdaten der Schiedsrichter:innen</h2>
+      <p>
+        Zu jeder Person, die der Schiedsrichter-Obmann anlegt, kann er zusätzlich folgende
+        Angaben hinterlegen: <strong>Geburtsdatum</strong>, <strong>Liga-Einstufung</strong>,
+        das Datum, <strong>seit wann jemand Schiedsrichter:in ist</strong>, und ein freies
+        <strong>Bemerkungsfeld</strong>. Diese Angaben gibst du nicht selbst im Quiz ein;
+        sie werden ausschließlich vom Obmann gepflegt.
+      </p>
+      <p>
+        Sichtbar sind diese Felder nur für den Obmann. Die Abfragen, mit denen die Website
+        anderen angemeldeten Schiedsrichter:innen Namen anzeigt (etwa die Teilnehmerliste
+        eines Termins), geben Geburtsdatum, Einstufung und Bemerkung nicht heraus.
+      </p>
+      <!-- PRUEFEN: Das Bemerkungsfeld ist ein offenes Freitextfeld ueber eine Person, das
+           diese Person selbst nicht zu sehen bekommt. Rechtsgrundlage fuer solche internen
+           Notizen und der Umfang der Auskunft nach Art. 15 DSGVO (die Notiz gehoert
+           grundsaetzlich dazu) sind eine juristische Frage, keine technische. -->
+      <p>
+        Ebenfalls am Personendatensatz stehen der Zeitpunkt deiner letzten Anmeldung und die
+        Zeitpunkte der letzten drei Anmeldungen (Punkt 4).
+      </p>
+
+      <h2>10. Termine, Terminfindung und Rückmeldungen</h2>
+      <p>
+        Auf der Terminseite kannst du zu Vereinsterminen zu- oder absagen. Gespeichert werden
+        dabei deine Zu- oder Absage, bei einer Absage der ausgewählte Grund (Arbeit, eigenes
+        Spiel, Urlaub, krank, Familie oder Sonstiges) und dein freier Kommentar dazu, sowie
+        der Zeitpunkt der Meldung.
+      </p>
+      <p>
+        Wer was sieht: Andere angemeldete Schiedsrichter:innen sehen die <strong>Namen
+        derjenigen, die zugesagt haben</strong>, und die Anzahl der Zu- und Absagen. Deinen
+        Absagegrund und deinen Kommentar sieht nur der Schiedsrichter-Obmann. In der
+        öffentlichen, nicht angemeldeten Ansicht der Terminseite erscheinen weder Namen noch
+        vereinsinterne Termine - dort werden ausschließlich die ausdrücklich als öffentlich
+        freigegebenen Termine geladen.
+      </p>
+      <p>
+        Bei einer Terminfindung ("wann passt es?") wird deine Antwort je Terminvorschlag
+        gespeichert - ja, vielleicht oder nein - zusammen mit dem Zeitpunkt. Die anderen
+        Angemeldeten sehen dazu nur Zahlen und ihre eigene Antwort, nicht, wer wie gestimmt
+        hat; der Obmann sieht die Namen zu den Antworten.
+      </p>
+
+      <h2>11. Ausrüstungsanfragen und Anliegen</h2>
+      <p>
+        Über den Bereich "Anträge und Anliegen" kannst du Ausrüstung anfragen (Trikot, Hose,
+        Stutzen, Schuhe - mit Farbe, Größe und bei Trikots der Ärmellänge) oder ein freies
+        Anliegen schildern. Gespeichert werden diese Angaben, deine Anmerkung, der
+        Bearbeitungsstand, der Beschaffungsweg und die Zeitpunkte von Anlage und letzter
+        Änderung.
+      </p>
+      <p>
+        Lädst du zu einer Anfrage eine Rechnung hoch, wird das Bild selbst in der Datenbank
+        abgelegt, zusammen mit seinem Dateityp und dem Zeitpunkt des Hochladens. Bedenke
+        dabei, dass auf einem abfotografierten Kassenbon oder einer Rechnung mehr stehen
+        kann als der Betrag - etwa deine Anschrift oder deine Kontoverbindung.
+      </p>
+      <p>
+        Diese Angaben sieht nur der Schiedsrichter-Obmann. Er kann zu einer Anfrage eine
+        interne Notiz hinterlegen, die dir nicht angezeigt wird, und er kann eine Anfrage
+        vollständig löschen.
+      </p>
+
+      <h2>12. Rückmeldung zu einer Quizfrage</h2>
+      <p>
+        Zu einer Quizfrage kannst du eine Rückmeldung abgeben - etwa dass die hinterlegte
+        Lösung nicht stimmt, der Text unklar ist, das Video nicht lädt, oder einfach als
+        Anmerkung. Gespeichert werden die gewählte Kategorie, dein Text (höchstens 1000
+        Zeichen), der Zeitpunkt und <strong>wer gemeldet hat</strong>. Diese Rückmeldung ist
+        also ausdrücklich nicht anonym: Sie soll dem Obmann erlauben, bei dir nachzufragen.
+      </p>
+      <p>
+        Zusätzlich hält die Datenbank im Moment des Meldens zwei Schnappschüsse fest: deine
+        eigene Antwort auf diese Frage und den damaligen Stand der hinterlegten Lösung. Ohne
+        beides wäre eine Meldung wie "die Lösung stimmt nicht" später nicht mehr
+        nachvollziehbar, sobald die Lösung geändert wurde. Beide Schnappschüsse werden auf
+        dem Server aus den ohnehin vorhandenen Daten erzeugt, nicht von deinem Browser
+        geliefert, und sie werden auch nicht wieder an deinen Browser ausgeliefert - sie
+        enthalten die Lösung der Frage.
+      </p>
+      <p>
+        Meldest du dieselbe Frage ein zweites Mal, wird deine erste Meldung nicht ersetzt,
+        sondern um einen weiteren datierten Eintrag ergänzt. Du selbst siehst zu deinen
+        eigenen Meldungen den Bearbeitungsstand (offen, erledigt oder abgelehnt) und deine
+        eigenen Texte. Fremde Meldungen bekommst du nicht zu sehen, und es wird auch nicht
+        angezeigt, wie viele andere dieselbe Frage gemeldet haben.
+      </p>
+
+      <h2>13. Der Meldebogen</h2>
+      <p>
+        Über den Meldebogen kannst du dem Schiedsrichter-Obmann vier verschiedene Dinge
+        melden:
+      </p>
+      <p>
+        - <strong>Regelfall:</strong> eine Spielsituation, bei der du dir unsicher bist.<br />
+        - <strong>Vorfall:</strong> eine Anfeindung, Bedrohung oder Diskriminierung.<br />
+        - <strong>Gesprächswunsch:</strong> du möchtest einfach mit dem Obmann reden.<br />
+        - <strong>Website:</strong> eine Rückmeldung zur Seite allgemein.
+      </p>
+      <p>
+        Gespeichert werden je nach Art: deine Schilderung der Situation (höchstens 4000
+        Zeichen), die Spielklasse, deine eigene Entscheidung, warum du unsicher warst,
+        Angaben zu Beteiligten, ob du einen Sonderbericht geschrieben hast, ob du einer
+        Veröffentlichung zugestimmt hast, der Bearbeitungsstand, der Zeitpunkt und - sofern
+        du die Meldung nicht als anonym kennzeichnest - die Kennung deiner Person, an der
+        der Obmann deinen Namen sieht. Bei einer Rückmeldung zur Website werden Spielklasse,
+        eigene Entscheidung und Angaben zu Beteiligten gar nicht erst gespeichert, auch wenn
+        sie mitgeschickt würden.
+      </p>
+      <p>
+        <strong>Anonyme Abgabe.</strong> Vorfall und Gesprächswunsch kannst du anonym
+        abgeben. Anonym heißt hier nicht "wird nur ausgeblendet": Kennzeichnest du eine
+        Meldung als anonym, verwirft der Server deine Kennnummer, bevor der Datensatz
+        angelegt wird, und die Datenbank weist einen als anonym gekennzeichneten Datensatz
+        mit Personenbezug von sich aus zurück. Aus dem gespeicherten Datensatz selbst führt
+        danach kein Weg zurück zu dir. Angemeldet sein musst du trotzdem - sonst wüsste die Datenbank nicht,
+        zu welchem Verein die Meldung gehört, und jeder Fremde könnte hineinschreiben.
+      </p>
+      <p>
+        Zwei Dinge dazu, offen gesagt: Erstens kann dein eigener Text dich verraten, wenn du
+        eine Situation schilderst, die nur du erlebt haben kannst - darauf hat die Technik
+        keinen Einfluss. Zweitens wird der Zeitpunkt der Meldung gespeichert, während
+        getrennt davon an deinem Personendatensatz die letzten drei Anmeldezeitpunkte stehen
+        (Punkt 4); zeitlich dicht beieinander liegende Einträge lassen sich theoretisch
+        miteinander in Verbindung bringen.
+      </p>
+      <!-- PRUEFEN: Die Zusage "anonym" haelt technisch, weil die Kennnummer verworfen wird.
+           Der Meldezeitpunkt bleibt aber gespeichert, und an "schiedsrichter.letzte_anmeldungen"
+           stehen die letzten drei Anmeldezeitpunkte je Person. Eine zeitliche Korrelation ist
+           damit nicht ausgeschlossen. Ob das der Zusage entgegensteht und ob dagegen etwas
+           unternommen werden muss (z.B. Meldezeitpunkt bei anonymen Meldungen nur auf den Tag
+           genau), sollte Max entscheiden. -->
+      <p>
+        <strong>Ein Vorfall wird nie veröffentlicht.</strong> Eine Meldung der Art "Vorfall"
+        wird nicht zur Quizfrage und nicht zu einem öffentlichen Fall. Das ist keine bloße
+        Absichtserklärung, sondern eine Bedingung in der Datenbank: Ein Vorfall mit gesetzter
+        Veröffentlichungsfreigabe lässt sich technisch nicht speichern, und der Server setzt
+        die Freigabe bei einem Vorfall ohnehin auf "nein" zurück, bevor er den Datensatz
+        anlegt.
+      </p>
+      <p>
+        <strong>Regelfall und Veröffentlichung.</strong> Ein gemeldeter Regelfall darf nur
+        dann - anonymisiert - zu einer Quizfrage werden, wenn du das im Meldebogen
+        ausdrücklich freigibst. Ohne diese Freigabe bleibt er beim Obmann. Die Freigabe ist
+        von Haus aus nicht gesetzt.
+      </p>
+      <!-- PRUEFEN: Anders als beim Vorfall ist beim Regelfall NICHT technisch erzwungen,
+           dass ohne Freigabe nichts veroeffentlicht wird. Gespeichert wird nur das
+           Kennzeichen "veroeffentlichung_erlaubt" (Vorbelegung false); einen Weg vom
+           Meldebogen zur Quizfrage gibt es im Code bisher gar nicht, und wenn er gebaut
+           wird, muss er dieses Kennzeichen selbst beachten. Bis dahin ist der Satz oben
+           eine organisatorische Zusage von Max, keine Zusicherung der Technik. -->
+      <p>
+        <strong>Aufbewahrung.</strong> Bei Vorfall und Gesprächswunsch trägt die Datenbank
+        beim Anlegen ein Aufbewahrungsdatum zwei Jahre in der Zukunft ein. Dieses Datum ist
+        ein <strong>Löschvorschlag, keine Automatik</strong>: Es gibt in dieser Anwendung
+        keinen Vorgang, der abgelaufene Meldungen von selbst entfernt. Gelöscht wird bewusst
+        und von Hand. Meldungen der Art Regelfall und Website bekommen gar kein solches
+        Datum.
+      </p>
+      <!-- PRUEFEN: Die Zwei-Jahres-Frist ist eine Erinnerung ohne Loeschlauf. Ob eine Frist
+           ohne Automatik genuegt, und ob zwei Jahre fuer Vorfall und Gespraechswunsch
+           angemessen sind, ist eine juristische Bewertung. Faktenlage: kein pg_cron, kein
+           geplanter Job, keine Loesch-RPC fuer "meldungen" - geprueft am 03.09.2026. -->
+
+      <h2>14. Angaben über andere Personen</h2>
+      <p>
+        Die Freitextfelder im Meldebogen und in den Frage-Rückmeldungen sind offen. In der
+        Schilderung eines Regelfalls und erst recht eines Vorfalls stehen fast zwangsläufig
+        Angaben über andere Menschen: Spieler, Trainer, Betreuer, Zuschauer, andere
+        Schiedsrichter:innen. Ein eigenes Feld "Beteiligte" fragt solche Angaben sogar
+        ausdrücklich ab. Diese Personen haben dem nicht zugestimmt und erfahren in aller
+        Regel auch nicht, dass etwas über sie festgehalten wurde. Das soll hier nicht
+        beschönigt werden - es ist der heikelste Punkt an dieser Funktion.
+      </p>
+      <p>
+        Was die Anwendung dagegen tut: Meldungen sind ausschließlich für den
+        Schiedsrichter-Obmann sichtbar, nicht für andere Schiedsrichter:innen und nicht
+        öffentlich. Ein Vorfall wird nie veröffentlicht (Punkt 13), ein Regelfall nur mit
+        deiner ausdrücklichen Freigabe und nur anonymisiert. Was du selbst dazu tun kannst:
+        Schreib nur, was für die Sache wirklich nötig ist, und nenne Namen Dritter nur, wenn
+        es ohne sie nicht geht.
+      </p>
+      <p>
+        Wer meint, dass in einer solchen Meldung etwas über ihn oder sie steht, kann sich an
+        den Verantwortlichen wenden (Punkt 1) - die Rechte aus Punkt 16 gelten auch für
+        Personen, die das Quiz selbst gar nicht nutzen.
+      </p>
+      <!-- PRUEFEN: Angaben ueber Dritte, die selbst nicht eingewilligt haben. Zu klaeren
+           sind mindestens: Rechtsgrundlage fuer diese Verarbeitung, die Informationspflicht
+           nach Art. 14 DSGVO gegenueber den betroffenen Dritten (und ob eine Ausnahme
+           greift), und ob Vorfallmeldungen besondere Kategorien nach Art. 9 DSGVO betreffen
+           koennen - eine Diskriminierungsmeldung enthaelt der Sache nach oft Angaben zu
+           ethnischer Herkunft, Religion oder sexueller Orientierung. -->
+
+      <h2>15. Speicherdauer</h2>
       <p>
         Die Zeitpunkte deiner Anmeldungen werden fortlaufend überschrieben - es sind immer
         nur die letzten drei vorhanden, ältere verschwinden automatisch und dauerhaft.
@@ -174,12 +405,21 @@
         Deine Antworten bleiben grundsätzlich gespeichert, solange du aktives
         Vereinsmitglied bzw. aktiver Schiedsrichter bist, damit der Lernfortschritt über die
         Zeit nachvollziehbar bleibt. Auf Wunsch werden deine Daten früher gelöscht (siehe
-        Punkt 10). Automatisierte Löschfristen für bestimmte Bereiche (z.B. Anfragen im
+        Punkt 16). Automatisierte Löschfristen für bestimmte Bereiche (z.B. Anfragen im
         "Anträge und Anliegen") werden gesondert an der jeweiligen Stelle im Quiz/Dashboard
         kommuniziert, sobald diese Funktion aktiv ist.
       </p>
+      <p>
+        Der Stand heute, damit hier nichts versprochen wird, was die Anwendung nicht tut:
+        Ein Aufbewahrungsdatum trägt die Datenbank ausschließlich bei Meldungen der Art
+        Vorfall und Gesprächswunsch ein (zwei Jahre, siehe Punkt 13). Ein automatischer
+        Löschlauf, der abgelaufene Daten von selbst entfernt, ist an keiner Stelle
+        eingerichtet - weder für diese Meldungen noch für Antworten, Frage-Rückmeldungen,
+        Terminmeldungen oder Ausrüstungsanfragen. Gelöscht wird von Hand, auf Wunsch oder
+        wenn der Zweck entfallen ist.
+      </p>
 
-      <h2>10. Deine Rechte</h2>
+      <h2>16. Deine Rechte</h2>
       <p>
         Du hast jederzeit das Recht auf Auskunft über die zu dir gespeicherten Daten, auf
         Berichtigung falscher Daten, auf Löschung, auf Einschränkung der Verarbeitung und auf
@@ -189,7 +429,7 @@
         beschweren.
       </p>
 
-      <h2>11. Minderjährige Nutzer:innen</h2>
+      <h2>17. Minderjährige Nutzer:innen</h2>
       <p>
         Unter den Vereins-Schiedsrichter:innen sind auch Minderjährige. Die Anmeldedaten
         (Name, PIN) werden vom Schiedsrichter-Obmann im Rahmen der bestehenden
@@ -198,16 +438,17 @@
         sich Erziehungsberechtigte ebenfalls jederzeit an den Obmann wenden.
       </p>
 
-      <h2>12. Cookies und Zwischenspeicherung im Browser</h2>
+      <h2>18. Cookies und Zwischenspeicherung im Browser</h2>
       <p>
         Diese Seite setzt keine Cookies und kein Tracking ein. Damit du nach der Anmeldung
-        nicht bei jedem Klick erneut Name und PIN eingeben musst, wird deine Anmeldung
-        technisch notwendig im sogenannten "sessionStorage" deines Browsers zwischengespeichert
+        nicht bei jedem Klick erneut Name und PIN eingeben musst, werden deine Anmeldedaten
+        (Vereinskennung, Name, Kennnummer und PIN) technisch notwendig im sogenannten
+        "sessionStorage" deines Browsers zwischengespeichert
         - dieser wird automatisch gelöscht, sobald du den Browser-Tab schließt, und nie an
         Dritte übertragen.
       </p>
 
-      <h2>13. Änderungen dieser Erklärung</h2>
+      <h2>19. Änderungen dieser Erklärung</h2>
       <p>
         Diese Datenschutzerklärung kann angepasst werden, wenn sich das Quiz oder die
         verwendeten Dienste ändern. Es lohnt sich also, hin und wieder erneut
@@ -215,7 +456,7 @@
       </p>
 
       <p class="hinweis">
-        Stand: 11.08.2026
+        Stand: 03.09.2026
       </p>
     </section>
   </main>

@@ -332,6 +332,7 @@ export const BILDER = {
   spesen:       { foto: null, ersatz: "bilder/motiv-spesen.svg" },
   vorlagen:     { foto: null, ersatz: "bilder/motiv-absage.svg" },
   unterlagen:   { foto: null, ersatz: "bilder/motiv-dokumente.svg" },
+  melden:       { foto: null, ersatz: "bilder/motiv-ausruestung.svg" },
 };
 
 // ============================================================

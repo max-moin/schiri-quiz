@@ -48,6 +48,7 @@ const VEREINSSEITEN = [
   "spesenrechner.html",
   "vorlagen.html",
   "schiri-werden.html",
+  "melden.html",
 ];
 
 const BAUSTEINE = ["src/core/anmeldung.js", "src/ui/masked-input.js", "src/ui/login-dialog.js"];

@@ -23,6 +23,7 @@ const { erstelleHistorienModus } = SchiriQuizHistoryMode;
 const { erstelleWochenQuiz } = SchiriQuizWeeklyQuiz;
 const { erstelleZugang } = SchiriQuizAccess;
 const { montiereQuizVerlassen } = SchiriQuizVerlassenDialog;
+const { erstelleFrageMeldung } = SchiriQuizFrageMeldung;
 
 const mitgliedSession = erstelleSessionSpeicher("schiriQuizSession");
 const kennungSession = erstelleSessionSpeicher("schiriQuizVereinskennung", {
@@ -51,7 +52,13 @@ const erklaerungsDialog = erstelleErklaerungsDialog({
   getZugang,
   vorHistorieErklaerung: () => historieController?.stoppeAutoTimer(),
 });
-const { baueWarumButton } = erklaerungsDialog;
+// Bei der Loesung stehen zwei Knoepfe nebeneinander: "Warum?" und "Passt
+// was nicht?". Beide baut ab hier dieselbe Funktion - dadurch bekommt jede
+// Antwortart den Melde-Knopf, ohne eine Zeile davon zu wissen, und er kann
+// nicht versehentlich an einer offenen Frage landen (src/features/frage-melden.js).
+const frageMeldung = erstelleFrageMeldung({ sb, getZugang });
+const baueWarumButton = (frageId, istHistorie) =>
+  frageMeldung.baueLoesungsAktionen(erklaerungsDialog.baueWarumButton(frageId, istHistorie), frageId);
 
 const freitext = erstelleFreitextAntworten({
   getZugang,
@@ -147,7 +154,12 @@ zugangController = erstelleZugang({
   verbindeSichtbarkeit,
   setZugang,
   beiStatusPruefen: () => profilAnfragen.aktualisiereAnfragenStatusPunkt(),
-  beiAngemeldet: () => wochenQuiz.ladeFragenUndAntworten(),
+  beiAngemeldet: () => {
+    // Erst wissen, was diese Person schon gemeldet hat - sonst steht die
+    // Marke "Gemeldet" an keiner Frage und dieselbe Sache kommt dreimal.
+    void frageMeldung.ladeEigeneMeldungen();
+    return wochenQuiz.ladeFragenUndAntworten();
+  },
 });
 
 void zugangController.start();

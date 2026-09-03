@@ -60,7 +60,7 @@ const stildateien = readdirSync(STIL_ORDNER).filter((n) => n.endsWith(".css"));
 const OEFFENTLICHE_SEITEN = [
   "index.html", "termine.html", "regeluebersicht.html", "informationen.html",
   "spesenrechner.html", "vorlagen.html", "schiri-werden.html",
-  "modus.html", "entscheiden.html",
+  "modus.html", "entscheiden.html", "melden.html",
 ];
 
 // Die verbindliche Einbindereihenfolge. An ihr haengt die Kaskade: wird
@@ -86,7 +86,7 @@ const OEFFENTLICHE_SEITEN = [
 const REIHENFOLGE = [
   "basis", "kopf-fuss", "startseite", "termine", "regeln",
   "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "obmann", "spesen",
-  "modus", "entscheiden",
+  "modus", "entscheiden", "melden",
 ];
 
 test("es gibt keine gesammelte seite.css mehr", () => {

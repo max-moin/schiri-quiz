@@ -52,7 +52,7 @@ const ohneCssKommentare = (css) => css.replace(/\/\*[\s\S]*?\*\//g, " ");
 const SEITEN_MIT_LEISTE = [
   "index.html", "termine.html", "regeluebersicht.html", "spesenrechner.html",
   "vorlagen.html", "informationen.html", "modus.html", "entscheiden.html",
-  "schiri-werden.html",
+  "schiri-werden.html", "melden.html",
 ];
 
 // Die verbindliche Reihenfolge, in Max' Worten: Termine, Spesen, Regeln,
@@ -178,6 +178,9 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
     // "page" waere hier schlicht gelogen.
     "vorlagen.html": ["informationen.html", "true"],
     "schiri-werden.html": null,
+    // melden.html haengt an keinem Reiter: Der Meldebogen ist weder Quiz
+    // noch Unterlage. Wo man ist, sagt dort das data-seitenname.
+    "melden.html": null,
   };
 
   for (const seite of SEITEN_MIT_LEISTE) {
@@ -586,6 +589,9 @@ test("die Seiten hinter der Leiste tragen ihren Namen am body", () => {
     "entscheiden.html": "Entscheiden",
     // Hinter der Fusszeile. <title> und <h1> heissen beide so.
     "obmann.html": "Obmann-Zugang",
+    // Erreichbar von der Startseite und aus der Modus-Auswahl, aber ohne
+    // eigenen Reiter - genau der Fall, fuer den data-seitenname da ist.
+    "melden.html": "Etwas melden",
   };
   for (const [seite, name] of Object.entries(ERWARTET)) {
     assert.match(lies(seite), new RegExp(`<body[^>]*data-seitenname="${name}"`),
@@ -597,7 +603,7 @@ test("die Seiten mit eigenem Reiter tragen KEIN data-seitenname", () => {
   // Sonst gaebe es zwei Namen fuer dieselbe Seite, und der zweite faellt
   // beim Umbenennen des Reiters hinten runter.
   for (const seite of SEITEN_MIT_LEISTE) {
-    if (seite === "modus.html" || seite === "entscheiden.html") continue;
+    if (seite === "modus.html" || seite === "entscheiden.html" || seite === "melden.html") continue;
     assert.doesNotMatch(lies(seite), /data-seitenname/,
       seite + " hat einen zweiten Namen am body, obwohl es einen Reiter gibt");
   }

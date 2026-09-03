@@ -146,6 +146,11 @@ function zeichne({ woche, statistik, angemeldet }) {
     <p class="modus-nachsatz">
       Alte Fragen noch einmal durchgehen? Das findest du
       <a href="quiz.html">im Quiz ganz unten</a>.
+    </p>
+    <p class="modus-nachsatz">
+      Etwas erlebt, das nicht ins Quiz gehört – ein Regelfall, ein Vorfall
+      oder einfach ein Gesprächswunsch? Dafür gibt es den
+      <a href="melden.html">Meldebogen</a>.
     </p>`;
 
   bereich.querySelector("[data-anmelden]")?.addEventListener("click", async () => {
