@@ -53,6 +53,51 @@
     return youtubeApiPromise;
   }
 
+  // YouTube blendet Untertitel von sich aus ein - besonders bei stummen
+  // Videos, wo der Player automatische Untertitel zuschaltet, und bei allen,
+  // die in ihrem YouTube-Konto "Untertitel immer anzeigen" stehen haben.
+  //
+  // Bei Regelfragen ist das ein echtes Problem und nicht nur haesslich: Der
+  // Kommentator sagt oft genau das, was die Frage wissen will ("klares Foul,
+  // das muss Rot sein"). Steht das als Text im Bild, ist die Loesung
+  // mitgeliefert - und zwar ausgerechnet bei den stummgeschalteten Videos,
+  // die stumm sind, damit der Kommentar NICHT verraet.
+  //
+  // "cc_load_policy: 0" allein reicht nicht: Die 0 bedeutet laut YouTube
+  // nicht "aus", sondern "nimm die Einstellung des Nutzers". Zuverlaessig ist
+  // nur, das Untertitel-Modul im Player selbst zu entladen. Es heisst je nach
+  // Player-Generation "captions" oder "cc" - deshalb beide, und deshalb in
+  // try/catch: Ein nicht geladenes Modul zu entladen wirft, und das ist der
+  // Normalfall, kein Fehler.
+  function unterdrueckeUntertitel(player) {
+    if (!player) return false;
+    let erfolgreich = false;
+
+    if (typeof player.unloadModule === "function") {
+      for (const modul of ["captions", "cc"]) {
+        try {
+          player.unloadModule(modul);
+          erfolgreich = true;
+        } catch (fehler) {
+          // Modul war nicht geladen - nichts zu tun.
+        }
+      }
+    }
+
+    // Zweiter, unabhaengiger Weg: die Spur ausdruecklich leeren. Wenn das
+    // Entladen an einer Player-Generation vorbeigeht, greift meist das hier.
+    if (typeof player.setOption === "function") {
+      try {
+        player.setOption("captions", "track", {});
+        erfolgreich = true;
+      } catch (fehler) {
+        // Auch hier: kein Grund, die Wiedergabe zu stoeren.
+      }
+    }
+
+    return erfolgreich;
+  }
+
   // Gemeinsame Großansicht für alle Video-Fragen. Der YouTube-Player wird
   // ausschließlich hier aufgebaut; in der kleinen Fragenkarte liegt niemals
   // ein iframe. Das ist auf Mobilgeräten verlässlicher und verhindert die
@@ -263,12 +308,35 @@
         aktiv: true,
         player: null,
         intervall: null,
+        untertitelZeitgeber: [],
       };
+
+      // Einmal bei onReady zu entladen genuegt nicht: YouTube laedt das
+      // Untertitel-Modul beim tatsaechlichen Abspielstart teilweise neu.
+      // Deshalb wird die Unterdrueckung ein paar Mal nachgezogen, statt sich
+      // auf einen einzigen Zeitpunkt zu verlassen.
+      function ziehUntertitelUnterdrueckungNach() {
+        for (const id of sitzung.untertitelZeitgeber.splice(0)) {
+          window.clearTimeout(id);
+        }
+        for (const verzoegerung of [0, 300, 1200, 3000]) {
+          const id = window.setTimeout(() => {
+            if (!sitzung.aktiv || !sitzung.player) return;
+            unterdrueckeUntertitel(sitzung.player);
+          }, verzoegerung);
+          sitzung.untertitelZeitgeber.push(id);
+        }
+      }
 
       function stoppeIntervall() {
         if (sitzung.intervall) {
           window.clearInterval(sitzung.intervall);
           sitzung.intervall = null;
+        }
+        // Sonst laeuft ein Nachzieh-Zeitgeber noch auf einen zerstoerten
+        // Player und wirft dort ins Leere.
+        for (const id of sitzung.untertitelZeitgeber.splice(0)) {
+          window.clearTimeout(id);
         }
       }
 
@@ -419,6 +487,7 @@
         setzeAbspielKnopf("laedt");
 
         let durchlaufBeendet = false;
+        let untertitelBeimAbspielenNachgezogen = false;
         const VORLAUF_SEKUNDEN = 0.55;
 
         function zeigeEndkarte() {
@@ -443,6 +512,14 @@
             return;
           }
           if (zustand === YT.PlayerState.PLAYING) {
+            // Genau hier laedt YouTube die automatischen Untertitel bei
+            // stummen Videos nach. Einmal je Durchlauf reicht - diese
+            // Funktion laeuft aus einem 200-ms-Intervall und darf nicht
+            // fuenfmal pro Sekunde am Player herumschalten.
+            if (!untertitelBeimAbspielenNachgezogen) {
+              untertitelBeimAbspielenNachgezogen = true;
+              ziehUntertitelUnterdrueckungNach();
+            }
             setzeAbspielKnopf("laeuft");
             zeigeStatus("");
           } else if (zustand === YT.PlayerState.BUFFERING) {
@@ -463,6 +540,9 @@
             disablekb: 1,
             rel: 0,
             iv_load_policy: 3,
+            // Kein Force-Off, sondern nur "nicht ausdruecklich einschalten".
+            // Das eigentliche Abschalten macht unterdrueckeUntertitel().
+            cc_load_policy: 0,
             fs: 0,
             playsinline: 1,
             hl: "de",
@@ -483,6 +563,10 @@
                 resetButton.disabled = false;
                 setzeAbspielKnopf("pausiert");
                 if (stumm && typeof sitzung.player.mute === "function") sitzung.player.mute();
+                // Vor dem playVideo() unten, damit gar nicht erst ein Frame
+                // mit Untertiteln zu sehen ist.
+                unterdrueckeUntertitel(sitzung.player);
+                ziehUntertitelUnterdrueckungNach();
 
                 abspielButton.addEventListener("click", () => {
                   if (!sitzung.player) return;
@@ -544,5 +628,8 @@
 
   global.SchiriQuizVideoPlayer = Object.freeze({
     baueVideoEinbettungModal,
+    // Nach aussen gegeben, damit die Untertitel-Unterdrueckung ohne DOM und
+    // ohne echten YouTube-Player geprueft werden kann.
+    unterdrueckeUntertitel,
   });
 })(globalThis);
