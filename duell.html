@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="de"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quiz-Duell – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Fordere jemanden zu fünf bereits gespielten Regelfragen heraus.">
+  <meta name="robots" content="noindex"><link rel="icon" href="bilder/logo.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="stil/basis.css"><link rel="stylesheet" href="stil/kopf-fuss.css">
+  <link rel="stylesheet" href="stil/bausteine.css"><link rel="stylesheet" href="stil/anmeldung.css">
+  <link rel="stylesheet" href="stil/profil.css"><link rel="stylesheet" href="stil/duell.css">
+</head><body data-seitenname="Quiz-Duell">
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf"><div class="kopf-innen">
+    <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40"><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
+    <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+    <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><a href="regeluebersicht.html">Regeln</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
+  </div></header>
+  <main class="inhalt duell-seite" id="inhalt" tabindex="-1"><div id="duellBereich" aria-live="polite"><p>Wird geladen …</p></div></main>
+  <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a></div></footer>
+  <script src="src/core/anmeldung.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script>
+  <script src="src/core/quiz-utils.js"></script><script src="src/core/rpc.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script>
+  <script type="module" src="seite.js"></script><script type="module" src="src/website/duell-seite.js"></script>
+</body></html>

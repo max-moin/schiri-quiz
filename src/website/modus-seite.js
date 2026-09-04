@@ -124,6 +124,18 @@ function gesperrteKachel() {
     </div>`;
 }
 
+function duellKachel() {
+  return `
+    <a class="modus-kachel" href="duell.html">
+      <div class="modus-kopf">
+        <span class="modus-name">Quiz-Duell</span>
+        <span class="modus-pille neu">Neu</span>
+      </div>
+      <p class="modus-text">Fünf frühere Wochenfragen. Erstelle einen Code oder tritt als Gast bei.</p>
+      <span class="modus-fuss">Asynchron · ohne Einfluss aufs Scoreboard</span>
+    </a>`;
+}
+
 // ---------- Seite ----------
 
 function zeichne({ woche, statistik, angemeldet }) {
@@ -131,9 +143,9 @@ function zeichne({ woche, statistik, angemeldet }) {
 
   const kacheln = angemeldet
     ? (wochenfragenFertig
-        ? [entscheidenKachel(statistik, true), wochenKachel(woche)]
-        : [wochenKachel(woche), entscheidenKachel(statistik, false)])
-    : [wochenKachel({ unbekannt: true, offen: 0, gesamt: 0 }), gesperrteKachel()];
+        ? [entscheidenKachel(statistik, true), wochenKachel(woche), duellKachel()]
+        : [wochenKachel(woche), entscheidenKachel(statistik, false), duellKachel()])
+    : [wochenKachel({ unbekannt: true, offen: 0, gesamt: 0 }), duellKachel(), gesperrteKachel()];
 
   bereich.innerHTML = `
     <h1 class="seiten-titel">Was willst du machen?</h1>
