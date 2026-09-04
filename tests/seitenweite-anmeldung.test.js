@@ -134,9 +134,14 @@ test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
     "seite.js faengt auch quiz.html#gast ab - der Gastweg waere damit zu"
   );
   assert.match(lies("index.html"), /href="quiz\.html#gast"/);
-  // Der Gast landet direkt im Quiz und nicht in der Auswahl - dort waere
-  // nur eine der beiden Kacheln fuer ihn benutzbar.
-  assert.match(seiteJs, /=== "gast"\) location\.href = "quiz\.html#gast"/);
+  // Vom allgemeinen "Zum Quiz"-Weg bekommt ein Gast die Wahl zwischen
+  // Gastquiz und Duell. Der ausdrueckliche Gastknopf auf der Startseite
+  // bleibt trotzdem ein Direkteinstieg.
+  assert.match(seiteJs, /=== "gast"\) location\.href = "modus\.html#ohne-anmeldung"/);
+  const modus = lies("src/website/modus-seite.js");
+  assert.match(modus, /function gastKachel\(\)[\s\S]*href="quiz\.html#gast"/);
+  assert.match(modus, /: \[gastKachel\(\), duellKachel\(\)\]/);
+  assert.doesNotMatch(modus, /: \[wochenKachel\(\{ unbekannt: true/);
 });
 
 test("andere Bausteine koennen dasselbe Anmeldefenster benutzen", () => {

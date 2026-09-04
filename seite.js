@@ -291,9 +291,9 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   // Startseite die ausdrueckliche Einladung zum Ausprobieren ohne
   // Anmeldung; ein Anmeldefenster davor waere genau das Gegenteil davon.
   //
-  // Gaeste landen bewusst direkt im Quiz und nicht in der Auswahl: der
-  // Entscheidungs-Modus braucht eine Anmeldung, eine Auswahl mit genau
-  // einer waehlbaren Kachel waere eine Sackgasse mit Zwischenschritt.
+  // Ohne Anmeldung geht es zuerst in eine kleine, echte Auswahl:
+  // Gastquiz ausprobieren oder einem Duell per Code beitreten. Die
+  // persoenlichen Wochenfragen bleiben dort bewusst unsichtbar.
   document.querySelectorAll('a[href="modus.html"]').forEach((link) => {
     link.addEventListener("click", async (e) => {
       if (anmeldung.istAngemeldet()) return; // direkt durch, wie versprochen
@@ -303,7 +303,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
         gastErlaubt: true,
       });
       if (ergebnis.status === "angemeldet") location.href = "modus.html";
-      else if (ergebnis.status === "gast") location.href = "quiz.html#gast";
+      else if (ergebnis.status === "gast") location.href = "modus.html#ohne-anmeldung";
     });
   });
 }

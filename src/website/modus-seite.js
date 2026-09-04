@@ -38,7 +38,6 @@ const zaehleWoche = erstelleWochenZaehler({
 });
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung || null;
-const loginDialog = globalThis.SchiriSeitenAnmeldung?.loginDialog || null;
 
 const person = () => anmeldung?.lesen() || null;
 const sicher = (t) => String(t ?? "").replace(/[&<>"']/g,
@@ -108,22 +107,6 @@ function entscheidenKachel(statistik, hervorgehoben) {
     </a>`;
 }
 
-function gesperrteKachel() {
-  return `
-    <div class="modus-kachel gesperrt">
-      <div class="modus-kopf">
-        <span class="modus-name">Entscheiden</span>
-        <span class="modus-pille">Nur für Mitglieder</span>
-      </div>
-      <p class="modus-text">
-        Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?
-        Dafür brauchst du deine Vereinskennung – die Serie und dein Stand hängen
-        an deinem Namen.
-      </p>
-      <button class="modus-anmelden" type="button" data-anmelden>Anmelden</button>
-    </div>`;
-}
-
 function duellKachel() {
   return `
     <a class="modus-kachel" href="duell.html">
@@ -136,6 +119,18 @@ function duellKachel() {
     </a>`;
 }
 
+function gastKachel() {
+  return `
+    <a class="modus-kachel hervorgehoben" href="quiz.html#gast">
+      <div class="modus-kopf">
+        <span class="modus-name">Gastquiz</span>
+        <span class="modus-pille">Ohne Anmeldung</span>
+      </div>
+      <p class="modus-text">Ein paar freigegebene Fragen unverbindlich ausprobieren.</p>
+      <span class="modus-fuss">Ohne Wochenstand · ohne Scoreboard</span>
+    </a>`;
+}
+
 // ---------- Seite ----------
 
 function zeichne({ woche, statistik, angemeldet }) {
@@ -145,14 +140,14 @@ function zeichne({ woche, statistik, angemeldet }) {
     ? (wochenfragenFertig
         ? [entscheidenKachel(statistik, true), wochenKachel(woche), duellKachel()]
         : [wochenKachel(woche), entscheidenKachel(statistik, false), duellKachel()])
-    : [wochenKachel({ unbekannt: true, offen: 0, gesamt: 0 }), duellKachel(), gesperrteKachel()];
+    : [gastKachel(), duellKachel()];
 
   bereich.innerHTML = `
     <h1 class="seiten-titel">Was willst du machen?</h1>
     <p class="seiten-unter">
       ${angemeldet
         ? `Hallo ${sicher(person()?.name || "")} – such dir aus, womit du anfängst.`
-        : "Melde dich an, dann zählt alles mit."}
+        : "Wähle das Gastquiz oder tritt mit einem Code einem Duell bei. Deine persönlichen Wochenfragen bleiben geschützt."}
     </p>
     <div class="modus-liste">${kacheln.join("")}</div>
     <p class="modus-nachsatz">
@@ -165,13 +160,6 @@ function zeichne({ woche, statistik, angemeldet }) {
       <a href="melden.html">Meldebogen</a>.
     </p>`;
 
-  bereich.querySelector("[data-anmelden]")?.addEventListener("click", async () => {
-    const ergebnis = await loginDialog?.oeffne({
-      grund: "Für den Entscheidungs-Modus brauchst du deine Anmeldung.",
-      gastErlaubt: false,
-    });
-    if (ergebnis?.status === "angemeldet") starte();
-  });
 }
 
 async function starte() {
