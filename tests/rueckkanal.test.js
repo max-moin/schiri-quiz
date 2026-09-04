@@ -703,13 +703,13 @@ test("ein Vorfall bekommt kein Veroeffentlichungsfeld - und schickt auch keins",
   assert.equal(mitHaken.p_veroeffentlichung_erlaubt, true, "die Freigabe kommt nicht durch");
 });
 
-test("anonym gibt es nur bei Vorfall und Gespraech", () => {
+test("anonym gibt es bei Vorfall und Website, nicht bei Gesprächswünschen", () => {
   assert.equal(erlaubtAnonym("vorfall"), true);
-  assert.equal(erlaubtAnonym("gespraech"), true);
+  assert.equal(erlaubtAnonym("gespraech"), false);
   // Beim Regelfall waere es sinnlos: "war das richtig so?" braucht eine
   // Antwort an jemanden. Beim Website-Hinweis ist nichts zu schuetzen.
   assert.equal(erlaubtAnonym("regelfall"), false);
-  assert.equal(erlaubtAnonym("website"), false);
+  assert.equal(erlaubtAnonym("website"), true);
 
   // Und ein untergeschobenes "anonym" bei einer Art, die es nicht
   // anbietet, kommt nicht durch - sonst waere das ein stiller
@@ -808,7 +808,7 @@ test("beim Feld Beteiligte steht ein Datenschutzhinweis mit Verweis statt Wieder
     "der Hinweis sagt nicht, dass dort Angaben ueber Dritte landen");
   assert.ok(seitenModul.includes("Schiedsrichter-Obmann"),
     "der Hinweis sagt nicht, wer das liest");
-  assert.ok(seitenModul.includes("zwei Jahre"),
+  assert.ok(seitenModul.includes("30 Tagen"),
     "der Hinweis sagt nicht, wie lange es bleibt");
   assert.match(seitenModul, /verweis\.href = "datenschutz\.html"/,
     "der Hinweis verlinkt die Datenschutzerklaerung nicht");
@@ -818,14 +818,16 @@ test("beim Feld Beteiligte steht ein Datenschutzhinweis mit Verweis statt Wieder
     "der verlinkte Abschnitt 14 gibt es nicht mehr");
 });
 
-test("wer nicht angemeldet ist, bekommt den Weg zur Anmeldung - keine Fehlermeldung", () => {
+test("Gäste können Website-Feedback senden; andere Arten führen zur Anmeldung", () => {
   assert.match(seitenModul, /function zeichneAnmeldeAufforderung\(\)/,
     "es gibt keinen eigenen Bildschirm fuer nicht Angemeldete");
   assert.match(seitenModul, /loginDialog\?\.oeffne\(/,
     "der Knopf oeffnet nicht das vorhandene Anmeldefenster");
   assert.ok(seitenModul.includes("Anmelden"), "der Knopf traegt keine Beschriftung");
-  assert.match(seitenModul, /if \(!person\(\) \|\| !server\) \{\s*zeichneAnmeldeAufforderung\(\);/,
-    "ohne Anmeldung wird etwas anderes gezeigt als der Weg dorthin");
+  assert.match(seitenModul, /if \(!person\(\) && art !== "website"\)/,
+    "nur Website-Feedback darf ohne Anmeldung zugänglich sein");
+  assert.match(seitenModul, /if \(!person\(\)\) waehleArt\("website"\)/,
+    "Gäste starten direkt mit Website-Feedback");
 });
 
 /* ============================================================

@@ -70,7 +70,7 @@ export const MELDE_ARTEN = [
     frage: "Ich möchte einfach mal reden",
     beschreibung: "Kein Formular nötig – schreib in einem Satz, worum es geht.",
     felder: ["situation"],
-    anonymErlaubt: true,
+    anonymErlaubt: false,
     beschriftungen: { situation: "Worum geht es?" },
   },
   {
@@ -79,7 +79,7 @@ export const MELDE_ARTEN = [
     frage: "An der Seite passt etwas nicht",
     beschreibung: "Fehler, Wunsch oder Hinweis zu dieser Website.",
     felder: ["situation"],
-    anonymErlaubt: false,
+    anonymErlaubt: true,
     beschriftungen: { situation: "Was passt nicht?" },
   },
 ];

@@ -8,13 +8,11 @@
 //  deshalb erst die Art, dann die Felder (siehe melden-arten.js).
 //
 //  ------------------------------------------------------------
-//  DIE ANMELDUNG IST KEINE HUERDE, SONDERN EINE SACKGASSE OHNE WEG
+//  ANMELDUNG JE NACH MELDEART
 //  ------------------------------------------------------------
-//  meldebogen_abgeben verlangt Kennung und PIN - auch fuer eine anonyme
-//  Meldung, denn der Server muss wissen, um welchen Verein es geht. Wer
-//  nicht angemeldet ist, bekommt hier deshalb KEINE Fehlermeldung,
-//  sondern den Knopf, der das Anmeldefenster oeffnet. Eine rote Zeile
-//  "nicht angemeldet" haette dieselbe Information und keinen Ausweg.
+//  Website-Feedback ist über eine serverseitig begrenzte Gast-API offen.
+//  Andere Meldearten benötigen weiterhin eine Anmeldung. Gesprächswünsche
+//  werden mit Personenkennung gespeichert; Website/Vorfall optional ohne.
 //
 //  ------------------------------------------------------------
 //  WAS "ANONYM" HIER HEISST - und was nicht
@@ -37,7 +35,7 @@
 //  wiederholt: zwei Fassungen desselben Versprechens laufen auseinander.
 // ============================================================
 
-import { DATENBANK } from "../../verein.config.js";
+import { DATENBANK, VEREIN } from "../../verein.config.js";
 import {
   MELDE_ARTEN,
   MELDE_FELDER,
@@ -94,9 +92,8 @@ function zeichneAnmeldeAufforderung() {
   karte.append(
     el("h2", null, "Dafür brauchst du deine Anmeldung"),
     absatz(null,
-      "Der Meldebogen ist keine offene Kontaktseite. Die Anmeldung sagt der "
-      + "Datenbank, zu welchem Verein deine Meldung gehört – sonst könnte jeder "
-      + "Fremde hineinschreiben."),
+      "Für Regelfälle, Vorfälle und Gesprächswünsche brauchst du deine Anmeldung. "
+      + "Website-Feedback kannst du auch ohne Anmeldung senden."),
     absatz("melden-hinweis-leise",
       "Auch eine anonyme Meldung braucht sie. Gespeichert wird deine Kennung "
       + "dabei trotzdem nicht: Bei einer anonymen Meldung verwirft der Server sie, "
@@ -148,6 +145,15 @@ function zeichneGeruest() {
 }
 
 function waehleArt(art) {
+  if (!person() && art !== "website") {
+    gewaehlteArt = art;
+    zeichneAnmeldeAufforderung();
+    const zurueck = el("button", "melden-anmelden", "Website-Feedback ohne Anmeldung");
+    zurueck.type = "button";
+    zurueck.addEventListener("click", () => { zeichneGeruest(); waehleArt("website"); });
+    bereich.appendChild(zurueck);
+    return;
+  }
   gewaehlteArt = art;
   bereich.querySelectorAll(".melden-art").forEach((knopf) => {
     const aktiv = knopf.dataset.art === art;
@@ -199,8 +205,8 @@ function baueFeld(art, name) {
     const hinweis = absatz("melden-datenschutz",
       "Hier landen Angaben über andere Menschen, die davon nichts wissen. "
       + "Lesen kann sie ausschließlich der Schiedsrichter-Obmann – nicht andere "
-      + "Schiedsrichter, nicht öffentlich. Gelöscht wird von Hand; bei Vorfällen "
-      + "merkt die Datenbank dafür ein Datum zwei Jahre später vor. Schreib nur, "
+      + "Schiedsrichter, nicht öffentlich. Meldungen werden standardmäßig nach 30 Tagen gelöscht; "
+      + "der Obmann kann die Frist anpassen. Schreib nur, "
       + "was für die Sache nötig ist. Ausführlich: ");
     const verweis = el("a", null, "Datenschutz, Punkt 13 und 14");
     verweis.href = "datenschutz.html";
@@ -234,8 +240,7 @@ function baueAnonymBereich(art) {
   halter.appendChild(absatz("melden-hinweis-leise",
     "Dann verwirft der Server deine Personenkennung, bevor die Meldung gespeichert "
     + "wird – sie ist danach nicht wiederherstellbar. Das heißt auch: Der Obmann "
-    + "kann dir nicht antworten und nicht nachfragen. Angemeldet sein musst du "
-    + "trotzdem, sonst weiß die Datenbank nicht, zu welchem Verein die Meldung gehört."));
+    + "kann dir nicht antworten und nicht nachfragen."));
   return halter;
 }
 
@@ -259,8 +264,20 @@ function zeichneFormular(art) {
     if (feld) form.appendChild(feld);
   }
 
-  const anonym = baueAnonymBereich(art);
+  const anonym = person() ? baueAnonymBereich(art) : null;
   if (anonym) form.appendChild(anonym);
+  if (art === "website" && !person()) {
+    form.appendChild(absatz("melden-hinweis-leise", "Ohne Anmeldung wird keine Personenkennung gespeichert. Einen Namen kannst du freiwillig im folgenden Feld angeben; dann ist der Inhalt nicht mehr namenlos. Bitte keine sensiblen Angaben."));
+    const label = el("label", "melden-beschriftung", "Name (freiwillig, nicht geprüft)");
+    label.htmlFor = "gast-feedback-name";
+    const name = el("input");
+    name.id = "gast-feedback-name"; name.type = "text"; name.maxLength = 80; name.dataset.feld = "name";
+    const nameFeld = el("div", "melden-feld");
+    nameFeld.append(label, name);
+    form.appendChild(nameFeld);
+    form.querySelector('[data-feld="situation"]').maxLength = 3800;
+  }
+  if (art === "gespraech") form.appendChild(absatz("melden-hinweis-leise", "Damit der Obmann dich ansprechen kann, wird dein Name mitgesendet."));
 
   const meldung = absatz("melden-rueckmeldung");
   meldung.setAttribute("role", "status");
@@ -296,8 +313,9 @@ function sageAn(stelle, text, klasse) {
 }
 
 async function abschicken(art, form, senden, meldung) {
+  if (senden.disabled) return;
   const ich = person();
-  if (!ich) {
+  if (!ich && art !== "website") {
     zeichneAnmeldeAufforderung();
     return;
   }
@@ -318,26 +336,37 @@ async function abschicken(art, form, senden, meldung) {
   }
 
   const anonymFeld = form.querySelector("#melden-anonym-feld");
-  const parameter = baueParameter({
+  const parameter = ich ? baueParameter({
     art,
     werte,
     person: ich,
     anonym: Boolean(anonymFeld && anonymFeld.checked),
-  });
+  }) : null;
 
   senden.disabled = true;
   sageAn(meldung, "Wird abgeschickt …", "");
 
-  const { error } = await server.rpc("meldebogen_abgeben", parameter);
-
-  if (error) {
+  try {
+    if (!ich) {
+      const response = await fetch('/api/website-feedback', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({seite: VEREIN.seitenschluessel, text: situation, name: werte.name || ''}),
+        signal: AbortSignal.timeout(15000),
+      });
+      const data = await response.json();
+      if (!response.ok || data.ok !== true) throw new Error(data.fehler || 'Bitte später erneut versuchen.');
+    } else {
+      const { error } = await server.rpc("meldebogen_abgeben", parameter);
+      if (error) throw error;
+    }
+  } catch (error) {
     senden.disabled = false;
     sageAn(meldung, "Das hat nicht geklappt: " + (error.message || "unbekannter Fehler"),
       "melden-fehler");
     return;
   }
 
-  zeigeDank(art, parameter.p_anonym);
+  zeigeDank(art, !ich || parameter.p_anonym);
 }
 
 function zeigeDank(art, anonym) {
@@ -349,9 +378,7 @@ function zeigeDank(art, anonym) {
   karte.append(
     el("h2", null, "Angekommen."),
     absatz(null, anonym
-      ? "Deine Meldung liegt beim Schiedsrichter-Obmann. Deine Personenkennung "
-        + "wurde dabei verworfen – er kann dir also nicht antworten. Wenn du doch "
-        + "eine Rückmeldung möchtest, meld dich noch einmal ohne das Häkchen."
+      ? "Danke für deinen Hinweis! Er liegt beim Schiedsrichter-Obmann. Es wurde keine Personenkennung gespeichert; eine direkte Antwort ist deshalb nicht möglich."
       : "Deine Meldung liegt beim Schiedsrichter-Obmann. Er sieht deinen Namen "
         + "und kann bei dir nachfragen.")
   );
@@ -375,12 +402,9 @@ function zeigeDank(art, anonym) {
 
 function starte() {
   if (!bereich) return;
-  if (!person() || !server) {
-    zeichneAnmeldeAufforderung();
-    return;
-  }
   zeichneGeruest();
-  if (gewaehlteArt) waehleArt(gewaehlteArt);
+  if (!person()) waehleArt("website");
+  else if (gewaehlteArt) waehleArt(gewaehlteArt);
 }
 
 // abonniere() ruft sofort einmal auf - deshalb hier KEIN zusaetzliches
