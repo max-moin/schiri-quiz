@@ -25,11 +25,28 @@
   accent-color: var(--blue);
 }
 
+/* Zwei Spalten - Zahl und Einheit - und sonst nichts. Als Raster, damit
+   beide Teile auch auf dem schmalsten Handy in EINER Zeile bleiben. */
 .zahl-eingabe-zeile {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(90px, auto);
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 10px;
   margin: 14px 0;
+}
+
+.zahl-eingabe-zeile select {
+  min-width: 92px;
+}
+
+/* Gibt es nur eine Einheit, ist sie keine Wahl, sondern eine Angabe. */
+.zahl-einheit-fest {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 .zahl-eingabe-zeile input,
@@ -65,7 +82,7 @@
 
 @media (max-width: 520px) {
   .frage-bild img { max-height: 48vh; }
-  .zahl-eingabe-zeile { grid-template-columns: minmax(0, 1fr) 92px; }
+  .zahl-eingabe-zeile { grid-template-columns: minmax(0, 1fr) auto; }
 }
 
 @media (prefers-color-scheme: dark) {

@@ -128,9 +128,17 @@ class TestElement {
   nachfahren() { return this.kinder.flatMap((k) => [k, ...k.nachfahren()]); }
 
   querySelectorAll(waehler) {
-    const teile = String(waehler).match(/^\.([\w-]+)$/);
-    if (!teile) throw new Error("Der Test-DOM kennt diesen Waehler nicht: " + waehler);
-    return this.nachfahren().filter((el) => el.klassen.has(teile[1]));
+    const text = String(waehler).trim();
+    const klasse = text.match(/^\.([\w-]+)$/);
+    if (klasse) return this.nachfahren().filter((el) => el.klassen.has(klasse[1]));
+    // Die angehakte Kategorie im Melde-Fenster.
+    const angehakt = text.match(/^input\[name="([\w-]+)"\]:checked$/);
+    if (angehakt) {
+      return this.nachfahren().filter(
+        (el) => el.tag === "input" && el.name === angehakt[1] && el.checked === true
+      );
+    }
+    throw new Error("Der Test-DOM kennt diesen Waehler nicht: " + waehler);
   }
   querySelector(waehler) { return this.querySelectorAll(waehler)[0] || null; }
 
@@ -389,6 +397,160 @@ test("nach dem Abschicken sagt die Seite, ob neu angelegt oder ergaenzt wurde", 
   assert.ok(melden.includes("ergänzt"),
     "die Rueckmeldung fuer eine ergaenzte Meldung fehlt");
   assert.match(melden, /meldung_frage_abgeben/, "die Meldung wird gar nicht abgeschickt");
+});
+
+/* ------------------------------------------------------------
+   Nach dem Abschicken: Fenster zu, Bestaetigung an der Frage
+   ------------------------------------------------------------
+   Max am 04.09.2026: "wenn man die Rueckmeldung abgeschickt hat, soll das
+   Fenster sich einfach schliessen und dann so eine Meldung kommen ... und
+   nicht, dass das dann noch offen bleibt, dass man nochmal ein Feedback
+   schicken kann, weil das soll ja ausdruecklich nicht passieren."
+
+   Geprueft wird deshalb am laufenden Fenster und nicht am Dateitext: ob
+   es wirklich zugeht, ob wirklich eine Bestaetigung an der Frage steht -
+   und ob ein zweiter Klick auf "Abschicken" wirklich ins Leere geht. */
+
+/** Baut zwei Loesungszeilen, oeffnet das Fenster an "f1" und tippt Text. */
+function offenesMeldeFenster(serverAntwort) {
+  neuerDom();
+  ladeKlassisch("src/ui/zeichen-zaehler.js");
+  ladeKlassisch("src/features/frage-melden.js");
+
+  const gerufen = [];
+  const meldung = globalThis.SchiriQuizFrageMeldung.erstelleFrageMeldung({
+    sb: {
+      rpc: async (name, parameter) => {
+        gerufen.push([name, parameter]);
+        if (typeof serverAntwort === "function") return serverAntwort();
+        return { data: [serverAntwort], error: null };
+      },
+    },
+    getZugang: () => ({ schiedsrichterId: "s1", pin: "1234" }),
+  });
+
+  const zeileEins = meldung.baueLoesungsAktionen(document.createElement("button"), "f1");
+  const zeileZwei = meldung.baueLoesungsAktionen(document.createElement("button"), "f2");
+  zeileEins.querySelector(".melde-knopf").ausloesen("click");
+
+  const overlay = document.querySelectorAll(".melde-overlay")[0];
+  assert.ok(overlay, "der Knopf oeffnet gar kein Fenster");
+  const feld = overlay.querySelector(".melde-text");
+  feld.value = "Die hinterlegte Loesung stimmt nicht.";
+  return { meldung, gerufen, zeileEins, zeileZwei, overlay, feld,
+    senden: overlay.querySelector(".melde-knopf-senden") };
+}
+
+/** Wartet, bis die angestossene async-Funktion durchgelaufen ist. */
+const naechsteRunde = () => new Promise((fertig) => setTimeout(fertig, 0));
+
+test("ein laufender Versand wird nicht doppelt gesendet und schliesst keinen neuen Dialog", async () => {
+  let fertig;
+  const fall = offenesMeldeFenster(() => new Promise(resolve => { fertig = resolve; }));
+  fall.senden.ausloesen("click");
+  fall.senden.ausloesen("click");
+  assert.equal(fall.gerufen.length, 1);
+  fall.zeileZwei.querySelector(".melde-knopf").ausloesen("click");
+  fall.feld.value = "Anderer Hinweis, noch nicht abgeschickt";
+  fertig({ data: [{ neu_angelegt: true, anzahl_eintraege: 1 }], error: null });
+  await naechsteRunde();
+  assert.equal(fall.overlay.hidden, false);
+  assert.equal(fall.feld.value, "Anderer Hinweis, noch nicht abgeschickt");
+  assert.ok(fall.zeileEins.querySelector(".melde-marke"));
+  assert.equal(fall.zeileZwei.querySelector(".melde-marke"), null);
+});
+
+test("ein Netzwerkfehler behaelt den Text und erlaubt erneutes Senden", async () => {
+  const fall = offenesMeldeFenster(() => Promise.reject(new Error("Netz weg")));
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+  assert.equal(fall.overlay.hidden, false);
+  assert.equal(fall.senden.disabled, false);
+  assert.ok(fall.feld.value.length > 0);
+});
+
+test("nach dem Abschicken schliesst sich das Fenster sofort", async () => {
+  const fall = offenesMeldeFenster({ neu_angelegt: true, anzahl_eintraege: 1 });
+  assert.equal(fall.overlay.hidden, false, "das Fenster ging gar nicht auf");
+
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  assert.equal(fall.gerufen[0][0], "meldung_frage_abgeben", "es wurde gar nichts abgeschickt");
+  assert.equal(fall.overlay.hidden, true,
+    "das Fenster bleibt nach dem Abschicken offen stehen");
+  assert.equal(document.body.classList.contains("melde-dialog-offen"), false,
+    "die Seite gilt weiter als von einem Fenster verdeckt");
+  assert.equal(fall.feld.value, "",
+    "der abgeschickte Text steht noch im Feld - bereit fuer ein zweites Abschicken");
+});
+
+test("ein zweiter Klick auf Abschicken geht ins Leere", async () => {
+  // Erneutes Melden soll nur ueber ein erneutes OEFFNEN gehen.
+  //
+  // Dass das Textfeld leergeraeumt wird, genuegt als Schloss nicht: es
+  // faengt nur den Klick auf ein leeres Feld ab. Hier wird deshalb der
+  // schlimmere Fall geprueft - im geschlossenen Fenster steht wieder Text
+  // (weil jemand ihn hineingelegt hat oder der Browser ihn
+  // wiederhergestellt hat) und der Senden-Knopf wird noch einmal
+  // ausgeloest. Auch dann darf nichts mehr rausgehen: das Fenster ist zu,
+  // also ist keine Frage offen.
+  const fall = offenesMeldeFenster({ neu_angelegt: true, anzahl_eintraege: 1 });
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  fall.feld.value = "Und noch ein zweiter Hinweis.";
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  const meldungen = fall.gerufen.filter(([name]) => name === "meldung_frage_abgeben");
+  assert.equal(meldungen.length, 1,
+    "das geschlossene Fenster schickt ein zweites Mal - genau das soll nicht passieren");
+  assert.equal(meldungen[0][1].p_frage_id, "f1");
+});
+
+test("die Bestaetigung steht danach an der gemeldeten Frage - und nur dort", async () => {
+  const fall = offenesMeldeFenster({ neu_angelegt: true, anzahl_eintraege: 1 });
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  const bestaetigung = fall.zeileEins.querySelector(".melde-bestaetigung");
+  assert.ok(bestaetigung, "an der Frage steht nach dem Abschicken keine Bestaetigung");
+  assert.match(bestaetigung.text(), /Danke/, "die Bestaetigung sagt nicht danke");
+  assert.match(bestaetigung.text(), /angekommen/,
+    "die Bestaetigung sagt nicht, dass die Rueckmeldung angekommen ist");
+  assert.equal(bestaetigung.getAttribute("role"), "status",
+    "Vorleseprogramme bekommen die Bestaetigung nicht mit");
+  assert.equal(fall.zeileZwei.querySelector(".melde-bestaetigung"), null,
+    "die Bestaetigung steht auch an einer Frage, zu der gar nichts gemeldet wurde");
+
+  // Kein zweites Fenster, das man wieder wegklicken muss.
+  assert.equal(document.querySelectorAll(".melde-overlay").length, 1,
+    "es wurde ein zweites Fenster fuer die Bestaetigung aufgemacht");
+});
+
+test("die Marke Gemeldet steht sofort da, ohne Neuladen", async () => {
+  const fall = offenesMeldeFenster({ neu_angelegt: true, anzahl_eintraege: 1 });
+  assert.equal(fall.zeileEins.querySelector(".melde-marke"), null,
+    "die Marke stand schon vor der Meldung da");
+
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  const marke = fall.zeileEins.querySelector(".melde-marke");
+  assert.ok(marke, "die Marke erscheint erst nach einem Neuladen der Seite");
+  assert.equal(marke.textContent, "Gemeldet");
+});
+
+test("eine Ergaenzung sagt in der Bestaetigung, dass sie ergaenzt wurde", async () => {
+  const fall = offenesMeldeFenster({ neu_angelegt: false, anzahl_eintraege: 3 });
+  fall.senden.ausloesen("click");
+  await naechsteRunde();
+
+  const text = fall.zeileEins.querySelector(".melde-bestaetigung").text();
+  assert.match(text, /ergänzt/,
+    "eine Ergaenzung sieht aus wie eine neue Meldung - dann haelt man seinen Hinweis fuer verschluckt");
+  assert.match(text, /3/, "die Zahl der Eintraege fehlt in der Bestaetigung");
 });
 
 /* ============================================================

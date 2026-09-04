@@ -2902,6 +2902,18 @@ input.maskiert.sichtbar {
   font-weight: 600;
 }
 
+/* Die Bestaetigung direkt nach dem Abschicken. Sie steht in derselben
+   Zeile wie der Knopf, hat keinen Schliessen-Knopf und geht nach ein paar
+   Sekunden von allein - ein Fenster, das man wegklicken muss, waere genau
+   das, was hier gerade abgeschafft wurde. */
+.melde-bestaetigung {
+  flex-basis: 100%;
+  margin: 4px 0 0;
+  color: var(--green-dark);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
 .melde-overlay {
   position: fixed;
   inset: 0;

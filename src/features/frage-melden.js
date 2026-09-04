@@ -73,6 +73,8 @@
     let fenster = null;
     let offeneFrageId = null;
     let vorherigerFokus = null;
+    let dialogVersion = 0;
+    let sendet = false;
 
     // ---------- Marke an einer schon gemeldeten Frage ----------
 
@@ -80,6 +82,8 @@
       if (!eintrag) return "";
       if (eintrag.status === "erledigt") return "Gemeldet · erledigt";
       if (eintrag.status === "abgelehnt") return "Gemeldet · angesehen";
+      if (eintrag.status === "in_arbeit") return "Gemeldet · in Bearbeitung";
+      if (eintrag.status === "gelesen") return "Gemeldet · gelesen";
       return "Gemeldet";
     }
 
@@ -97,6 +101,28 @@
 
     function markiereAlle() {
       document.querySelectorAll(".loesung-aktionen").forEach(setzeMarke);
+    }
+
+    // Die Bestaetigung nach dem Abschicken. Kein zweites Fenster und kein
+    // Browser-Dialog: sie steht in derselben Zeile wie der Knopf, der
+    // gerade gedrueckt wurde, meldet sich Vorleseprogrammen als "status"
+    // und verschwindet nach ein paar Sekunden von allein. Nichts, was man
+    // wegklicken muss - und nichts, was man versehentlich noch einmal
+    // abschickt.
+    function zeigeBestaetigung(frageId, nachricht) {
+      document.querySelectorAll(".loesung-aktionen").forEach((zeile) => {
+        const alte = zeile.querySelector(".melde-bestaetigung");
+        if (alte) alte.remove();
+        if (!zeile.dataset || zeile.dataset.frageId !== frageId) return;
+        const hinweis = document.createElement("p");
+        hinweis.className = "melde-bestaetigung";
+        hinweis.setAttribute("role", "status");
+        hinweis.textContent = nachricht;
+        zeile.appendChild(hinweis);
+        // unref, damit ein offener Timer in Tests den Prozess nicht haelt.
+        const uhr = setTimeout(() => hinweis.remove(), 9000);
+        if (uhr && typeof uhr.unref === "function") uhr.unref();
+      });
     }
 
     async function ladeEigeneMeldungen() {
@@ -222,6 +248,7 @@
 
     function schliessen() {
       if (!fenster) return;
+      dialogVersion += 1;
       fenster.overlay.hidden = true;
       document.body.classList.remove("melde-dialog-offen");
       offeneFrageId = null;
@@ -235,6 +262,9 @@
     }
 
     async function abschicken() {
+      // Nach dem Abschicken ist das Fenster zu und keine Frage mehr offen.
+      // Ein zweiter Aufruf - egal woher - schickt dann nichts mehr los.
+      if (!offeneFrageId || sendet) return;
       const zugang = typeof getZugang === "function" ? getZugang() : {};
       if (!zugang.schiedsrichterId || !zugang.pin) {
         sageAn("Dafür musst du angemeldet sein.", "melde-fehler");
@@ -256,18 +286,30 @@
       }
 
       const gewaehlt = fenster.gruppe.querySelector('input[name="melde-kategorie"]:checked');
+      const frageId = offeneFrageId;
+      const version = dialogVersion;
+      sendet = true;
       fenster.senden.disabled = true;
       sageAn("Wird abgeschickt …", "");
 
-      const { data, error } = await sb.rpc("meldung_frage_abgeben", {
-        p_schiedsrichter_id: zugang.schiedsrichterId,
-        p_pin: zugang.pin,
-        p_frage_id: offeneFrageId,
-        p_kategorie: gewaehlt ? gewaehlt.value : "sonstiges",
-        p_text: String(fenster.text.value || "").trim(),
-      });
+      let data, error;
+      try {
+        ({ data, error } = await sb.rpc("meldung_frage_abgeben", {
+          p_schiedsrichter_id: zugang.schiedsrichterId,
+          p_pin: zugang.pin,
+          p_frage_id: frageId,
+          p_kategorie: gewaehlt ? gewaehlt.value : "sonstiges",
+          p_text: String(fenster.text.value || "").trim(),
+        }));
+      } catch (fehler) {
+        error = fehler;
+      } finally {
+        sendet = false;
+        fenster.senden.disabled = false;
+      }
 
       if (error) {
+        if (version !== dialogVersion) return;
         fenster.senden.disabled = false;
         sageAn("Das hat nicht geklappt: " + (error.message || "unbekannter Fehler"), "melde-fehler");
         return;
@@ -276,25 +318,41 @@
       const ergebnis = Array.isArray(data) ? data[0] || {} : data || {};
       const anzahl = Number(ergebnis.anzahl_eintraege) || 1;
 
-      // Der Unterschied zwischen "neu" und "ergaenzt" ist die eigentliche
-      // Antwort auf die Frage "ist mein zweiter Hinweis untergegangen?".
-      sageAn(ergebnis.neu_angelegt
-        ? "Danke – deine Rückmeldung ist angekommen."
-        : `Danke – deine Rückmeldung wurde zu deiner bisherigen Meldung zu dieser Frage `
-          + `ergänzt. Sie hat jetzt ${anzahl} Einträge.`,
-        "melde-erfolg");
+      // Die Frage merken, BEVOR schliessen() sie vergisst.
+      meldungen.set(frageId, { status: "offen", anzahl });
 
-      meldungen.set(offeneFrageId, { status: "offen", anzahl });
+      // Max am 04.09.2026: "wenn man die Rueckmeldung abgeschickt hat, soll
+      // das Fenster sich einfach schliessen und dann so eine Meldung kommen
+      // ... und nicht, dass das dann noch offen bleibt, dass man nochmal ein
+      // Feedback schicken kann, weil das soll ja ausdruecklich nicht
+      // passieren. Du hast es ja so gebaut, dass das dann ergaenzt wird -
+      // aber dann muss man es halt nochmal aufrufen."
+      //
+      // Also: erst leerraeumen, dann zu. Ergaenzen bleibt moeglich, aber nur
+      // ueber den Knopf an der Frage - ein bewusster Griff statt eines
+      // zweiten Klicks auf einen stehengebliebenen Senden-Knopf.
+      if (version === dialogVersion) {
+        fenster.text.value = "";
+        fenster.zaehler.hidden = true;
+        fenster.senden.disabled = false;
+        sageAn("", "");
+        schliessen();
+      }
+
+      // Erst danach die Frage selbst: die Marke aktualisiert sich sofort
+      // (ohne Neuladen), und daneben steht, was gerade passiert ist. Der
+      // Unterschied zwischen "neu" und "ergaenzt" ist die eigentliche
+      // Antwort auf "ist mein zweiter Hinweis untergegangen?".
       markiereAlle();
-
-      fenster.text.value = "";
-      fenster.zaehler.hidden = true;
-      fenster.senden.disabled = false;
-      fenster.abbrechen.textContent = "Schließen";
-      fenster.abbrechen.focus();
+      zeigeBestaetigung(frageId, ergebnis.neu_angelegt
+        ? "Danke – deine Rückmeldung ist angekommen."
+        : `Danke – deine Rückmeldung ist angekommen und wurde zu deiner `
+          + `bisherigen Meldung zu dieser Frage ergänzt. `
+          + `Sie hat jetzt ${anzahl} Einträge.`);
     }
 
     function oeffne(frageId) {
+      dialogVersion += 1;
       if (!fenster) {
         fenster = baueFenster();
         fenster.abbrechen.addEventListener("click", schliessen);

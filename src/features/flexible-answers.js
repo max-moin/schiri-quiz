@@ -149,6 +149,22 @@
         return karte;
       }
 
+      // ------------------------------------------------------------
+      // EINE Eingabe, nicht mehrere Felder nebeneinander
+      // ------------------------------------------------------------
+      // Max, zum zweiten Mal am 04.09.2026: "Bei dieser Antwort mit Zahl
+      // gefaellt mir noch nicht, dass man da die Einheit irgendwie separat
+      // eingeben kann und auch die Zahl, und da gibt es irgendwie noch eine
+      // dritte Zahl hinten dran."
+      //
+      // In dieser Zeile stehen deshalb genau zwei Dinge: das Zahlenfeld und
+      // die Einheit. Kein drittes Feld, keine Position, kein Zaehler. Gibt
+      // es nur eine einzige Einheit, steht sie als Wort daneben - ein
+      // Ausklappmenue mit genau einem Eintrag ist eine Wahl ohne Wahl.
+      //
+      // Abgeschickt wird unveraendert eine Zahl und ein Einheitentext:
+      // antwort_zahl_abgeben(p_wert numeric, p_einheit text). Wer hier das
+      // Format aendert, entwertet alle bisherigen Antworten.
       const zeile = document.createElement("div");
       zeile.className = "zahl-eingabe-zeile";
       const input = document.createElement("input");
@@ -157,35 +173,53 @@
       input.autocomplete = "off";
       input.placeholder = "Zahl";
       input.setAttribute("aria-label", "Zahlenwert");
-      const einheit = document.createElement("select");
-      einheit.setAttribute("aria-label", "Einheit");
-      for (const wert of einheiten) {
-        const option = document.createElement("option");
-        option.value = wert;
-        option.textContent = wert;
-        einheit.appendChild(option);
+
+      const felder = [input];
+      let leseEinheit;
+      if (einheiten.length === 1) {
+        const feste = document.createElement("span");
+        feste.className = "zahl-einheit-fest";
+        feste.textContent = einheiten[0];
+        input.setAttribute("aria-label", "Zahlenwert in " + einheiten[0]);
+        zeile.append(input, feste);
+        leseEinheit = () => einheiten[0];
+      } else {
+        const auswahl = document.createElement("select");
+        auswahl.className = "zahl-einheit-auswahl";
+        auswahl.setAttribute("aria-label", "Einheit");
+        for (const wert of einheiten) {
+          const option = document.createElement("option");
+          option.value = wert;
+          option.textContent = wert;
+          auswahl.appendChild(option);
+        }
+        zeile.append(input, auswahl);
+        felder.push(auswahl);
+        leseEinheit = () => auswahl.value;
       }
-      zeile.append(input, einheit);
       karte.appendChild(zeile);
 
       const button = absendenButton();
       button.addEventListener("click", async () => {
-        const wert = Number(input.value.trim().replace(",", "."));
-        if (!Number.isFinite(wert) || !einheit.value) {
+        const rohwert = String(input.value || "").trim();
+        const wert = Number(rohwert.replace(",", "."));
+        const einheitWert = String(leseEinheit() || "").trim();
+        if (rohwert === "" || !Number.isFinite(wert) || !einheitWert) {
           zeigeFehler("Bitte eine gültige Zahl und Einheit eingeben.");
           return;
         }
         versteckeFehler();
-        button.disabled = input.disabled = einheit.disabled = true;
+        button.disabled = true;
+        felder.forEach((feld) => (feld.disabled = true));
         const { data, error } = await sb.rpc("antwort_zahl_abgeben", {
           p_schiedsrichter_id: getZugang().schiedsrichterId,
           p_frage_id: frage.id,
           p_wert: wert,
-          p_einheit: einheit.value,
+          p_einheit: einheitWert,
           p_pin: getZugang().pin,
         });
         if (error) {
-          button.disabled = input.disabled = einheit.disabled = false;
+          felder.forEach((feld) => (feld.disabled = false));
           return fehlerZuruecksetzen(karte, zeile, button, error.message);
         }
         const korrekt = data[0].korrekt;
