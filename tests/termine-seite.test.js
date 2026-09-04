@@ -84,7 +84,7 @@ test("ohne Anmeldung wird nur die öffentliche Abfrage benutzt", () => {
   // laeuft - die filtert auf "oeffentlich".
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /alleOeffentlich\(VEREIN\.seitenschluessel\)/);
-  assert.match(js, /if \(ich\)/);
+  assert.match(js, /ich \? zugriff\.alleFuerMitglied\(ich\)/);
 
   // Und: die Mitgliederabfrage darf nur mit einer Person aufgerufen werden.
   const zugriff = ohneKommentare(lies("src/website/termine.js"));
@@ -96,7 +96,8 @@ test("Namen der Zusagen erscheinen nur für Angemeldete", () => {
   // Absagegruende nur fuer ihn. Fuer Besucher der oeffentlichen Seite sind
   // die Namen der Vereinsmitglieder nichts.
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
-  assert.match(js, /const teilnehmer = ich && zusagen\.length/);
+  assert.match(js, /const teilnehmer = darfAntworten && zusagen\.length/);
+  assert.match(js, /if \(ich && termin\.mitgliedSicht\)/);
 });
 
 test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {

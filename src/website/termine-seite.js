@@ -10,7 +10,7 @@
 import { DATENBANK, VEREIN } from "../../verein.config.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
-  teileVergangenheitAb, datumLang, zeitspanne, sicher, GRUENDE, ARTEN,
+  teileVergangenheitAb, datumLang, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
 } from "./termine.js";
 
 const bereich = document.getElementById("terminBereich");
@@ -33,16 +33,17 @@ function person() {
 
 async function ladeTermine() {
   const ich = person();
-  if (ich) {
-    try {
-      return await zugriff.alleFuerMitglied(ich);
-    } catch {
-      // Eine abgelaufene oder geaenderte PIN darf nicht dazu fuehren,
-      // dass die Seite leer bleibt. Dann eben die oeffentliche Sicht.
-      return zugriff.alleOeffentlich(VEREIN.seitenschluessel);
-    }
+  const [oeffentlich, eigene] = await Promise.allSettled([
+    zugriff.alleOeffentlich(VEREIN.seitenschluessel),
+    ich ? zugriff.alleFuerMitglied(ich) : Promise.resolve([]),
+  ]);
+  if (oeffentlich.status === "rejected" && (!ich || eigene.status === "rejected")) {
+    throw new Error("Termine konnten nicht geladen werden");
   }
-  return zugriff.alleOeffentlich(VEREIN.seitenschluessel);
+  return verbindeTerminSichten(
+    oeffentlich.status === "fulfilled" ? oeffentlich.value : [],
+    eigene.status === "fulfilled" ? eigene.value : [],
+  );
 }
 
 // ---------- Liste ----------
@@ -51,7 +52,7 @@ function zeichneListe(termine, findungen) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
 
-  const offen = kuenftig.filter((t) => ich && t.mein_status == null).length;
+  const offen = kuenftig.filter((t) => t.mitgliedSicht && t.mein_status == null).length;
 
   const kopf = `
     <h1 class="seiten-titel">Termine</h1>
@@ -60,7 +61,7 @@ function zeichneListe(termine, findungen) {
       ${ich
         ? (offen > 0
             ? `<strong>${offen} ${offen === 1 ? "Termin wartet" : "Termine warten"} noch auf deine Rückmeldung.</strong>`
-            : "Du hast auf alles geantwortet.")
+            : "Keine offenen Rückmeldungen in deinem Verein.")
         : "Melde dich an, um zu- oder abzusagen."}
     </p>
     ${ich ? "" : `
@@ -139,6 +140,7 @@ function bindeStimmen() {
 
 function zeichneDetail(termin, zusagen) {
   const ich = person();
+  const darfAntworten = Boolean(ich && termin.mitgliedSicht);
   const zeit = zeitspanne(termin);
 
   const marken = [
@@ -169,6 +171,8 @@ function zeichneDetail(termin, zusagen) {
       <button type="button" class="td-senden" data-anmelden>
         Zum Antworten anmelden
       </button>`;
+  } else if (!darfAntworten) {
+    antwort = '<p class="td-abgelaufen">Öffentlicher Termin eines anderen Vereins. Hier siehst du dieselben Informationen wie Besucher ohne Anmeldung.</p>';
   } else {
     const jaAn = termin.mein_status === "zu" ? " an" : "";
     const neinAn = termin.mein_status === "ab" ? " an" : "";
@@ -200,7 +204,7 @@ function zeichneDetail(termin, zusagen) {
   // Namen nur fuer Angemeldete - fuer Besucher der oeffentlichen Seite
   // sind die Namen der Vereinsmitglieder nichts. Max' Entscheidung vom
   // 29.08.2026: Zusagen mit Namen, Absagegruende nur fuer ihn.
-  const teilnehmer = ich && zusagen.length ? `
+  const teilnehmer = darfAntworten && zusagen.length ? `
     <div class="td-teilnehmer">
       <p class="td-teilnehmer-titel">Dabei · ${zusagen.length}</p>
       <div class="td-namen">${zusagen.map((z) =>
@@ -222,7 +226,7 @@ function zeichneDetail(termin, zusagen) {
       </div>
     </article>`;
 
-  if (ich && !termin.vergangen) bindeAntwort(termin);
+  if (darfAntworten && !termin.vergangen) bindeAntwort(termin);
 }
 
 function bindeAntwort(termin) {
@@ -349,7 +353,7 @@ async function start() {
 
     let zusagen = [];
     const ich = person();
-    if (ich) {
+    if (ich && termin.mitgliedSicht) {
       // Scheitert das, ist der Termin trotzdem anzeigbar - nur die
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }

@@ -32,11 +32,9 @@
 //  ------------------------------------------------------------
 //  Wer meldet und danach nichts sieht, meldet dieselbe Sache noch einmal
 //  - und hoert dann ganz auf. Beim Aufbau wird deshalb einmal
-//  "meine_frage_meldungen" gelesen und an den betroffenen Fragen eine
-//  ruhige Marke gesetzt ("Gemeldet", bei erledigten "Gemeldet -
-//  erledigt"). Die Serverfunktion liefert ausdruecklich nur die EIGENEN
-//  Meldungen und keine Zahl ueber fremde (siehe v112) - hier wird
-//  deshalb auch nichts angezeigt, was andere gemeldet haben.
+//  "frage_melde_markierungen" gelesen: eigene offene Hinweise der aktuellen
+//  Woche und ungelöste Video-/Technikprobleme im eigenen Verein. Keine
+//  fremden Texte oder Namen. Erledigtes und der Übungsmodus bleiben ohne Marke.
 //
 //  Faellt die Abfrage aus, fehlt die Marke und sonst nichts. Ein Quiz,
 //  das wegen einer Marke nicht laedt, waere der schlechtere Tausch.
@@ -75,15 +73,12 @@
     let vorherigerFokus = null;
     let dialogVersion = 0;
     let sendet = false;
+    let markenVersion = 0;
 
     // ---------- Marke an einer schon gemeldeten Frage ----------
 
     function markenText(eintrag) {
-      if (!eintrag) return "";
-      if (eintrag.status === "erledigt") return "Gemeldet · erledigt";
-      if (eintrag.status === "abgelehnt") return "Gemeldet · angesehen";
-      if (eintrag.status === "in_arbeit") return "Gemeldet · in Bearbeitung";
-      if (eintrag.status === "gelesen") return "Gemeldet · gelesen";
+      if (!eintrag || ["erledigt", "abgelehnt"].includes(eintrag.status)) return "";
       return "Gemeldet";
     }
 
@@ -92,7 +87,7 @@
       const alte = zeile.querySelector(".melde-marke");
       if (alte) alte.remove();
       const eintrag = frageId ? meldungen.get(frageId) : null;
-      if (!eintrag) return;
+      if (zeile.dataset.istHistorie === "true" || !markenText(eintrag)) return;
       const marke = document.createElement("span");
       marke.className = "melde-marke";
       marke.textContent = markenText(eintrag);
@@ -126,12 +121,19 @@
     }
 
     async function ladeEigeneMeldungen() {
+      const version = ++markenVersion;
+      meldungen.clear();
+      markiereAlle();
       const zugang = typeof getZugang === "function" ? getZugang() : {};
       if (!zugang.schiedsrichterId || !zugang.pin || !sb) return;
-      const { data, error } = await sb.rpc("meine_frage_meldungen", {
+      let antwort;
+      try { antwort = await sb.rpc("frage_melde_markierungen", {
         p_schiedsrichter_id: zugang.schiedsrichterId,
         p_pin: zugang.pin,
-      });
+      }); } catch { return; }
+      const aktuell = typeof getZugang === "function" ? getZugang() : {};
+      if (version !== markenVersion || aktuell.schiedsrichterId !== zugang.schiedsrichterId || aktuell.pin !== zugang.pin) return;
+      const { data, error } = antwort;
       // Stillschweigend aufgeben: eine fehlende Marke ist ein Schoenheits-
       // fehler, ein Fehlerbalken ueber dem ganzen Quiz waere keiner.
       if (error || !Array.isArray(data)) return;
@@ -420,11 +422,12 @@
 
     // Die einzige Tuer nach draussen. Ohne "Warum?"-Knopf - also ohne
     // Loesung - gibt es hier gar nichts.
-    function baueLoesungsAktionen(warumKnopf, frageId) {
+    function baueLoesungsAktionen(warumKnopf, frageId, istHistorie = false) {
       if (!warumKnopf) return null;
       const zeile = document.createElement("div");
       zeile.className = "loesung-aktionen";
       zeile.dataset.frageId = frageId;
+      zeile.dataset.istHistorie = String(Boolean(istHistorie));
       zeile.appendChild(warumKnopf);
       zeile.appendChild(baueMeldeKnopf(frageId));
       setzeMarke(zeile);

@@ -58,7 +58,7 @@ const erklaerungsDialog = erstelleErklaerungsDialog({
 // nicht versehentlich an einer offenen Frage landen (src/features/frage-melden.js).
 const frageMeldung = erstelleFrageMeldung({ sb, getZugang });
 const baueWarumButton = (frageId, istHistorie) =>
-  frageMeldung.baueLoesungsAktionen(erklaerungsDialog.baueWarumButton(frageId, istHistorie), frageId);
+  frageMeldung.baueLoesungsAktionen(erklaerungsDialog.baueWarumButton(frageId, istHistorie), frageId, istHistorie);
 
 const freitext = erstelleFreitextAntworten({
   getZugang,

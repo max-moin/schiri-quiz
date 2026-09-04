@@ -92,6 +92,13 @@ export function zeitspanne(termin) {
 
 // ---------- Serverzugriff ----------
 
+// Berechtigungen kommen aus dem jeweiligen RPC, niemals nur aus „angemeldet“.
+export function verbindeTerminSichten(oeffentlich, eigene) {
+  const termine = new Map(oeffentlich.map(t => [t.id, { ...t, mitgliedSicht: false }]));
+  for (const termin of eigene) termine.set(termin.id, { ...termin, mitgliedSicht: true });
+  return [...termine.values()].sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
+}
+
 export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
   async function rufe(name, parameter) {
     const antwort = await fetch(`${adresse}/rest/v1/rpc/${name}`, {

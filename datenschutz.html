@@ -284,9 +284,10 @@
       <p>
         Meldest du dieselbe Frage ein zweites Mal, wird deine erste Meldung nicht ersetzt,
         sondern um einen weiteren datierten Eintrag ergänzt. Du selbst siehst zu deinen
-        eigenen Meldungen den Bearbeitungsstand (offen, erledigt oder abgelehnt) und deine
-        eigenen Texte. Fremde Meldungen bekommst du nicht zu sehen, und es wird auch nicht
-        angezeigt, wie viele andere dieselbe Frage gemeldet haben.
+        noch offenen Hinweisen in der aktuellen Quizwoche die Markierung „Gemeldet“.
+        Bei offenen Video-/Technikproblemen erscheint diese Markierung auch für andere
+        Mitglieder desselben Vereins, ohne Namen, Meldungstexte oder Anzahl der Meldenden.
+        Nach Erledigung verschwindet sie. Im Übungsmodus gibt es keine Markierung.
       </p>
 
       <h2>13. Der Meldebogen</h2>
@@ -347,24 +348,18 @@
         ausdrücklich freigibst. Ohne diese Freigabe bleibt er beim Obmann. Die Freigabe ist
         von Haus aus nicht gesetzt.
       </p>
-      <!-- PRUEFEN: Anders als beim Vorfall ist beim Regelfall NICHT technisch erzwungen,
-           dass ohne Freigabe nichts veroeffentlicht wird. Gespeichert wird nur das
-           Kennzeichen "veroeffentlichung_erlaubt" (Vorbelegung false); einen Weg vom
-           Meldebogen zur Quizfrage gibt es im Code bisher gar nicht, und wenn er gebaut
-           wird, muss er dieses Kennzeichen selbst beachten. Bis dahin ist der Satz oben
-           eine organisatorische Zusage von Max, keine Zusicherung der Technik. -->
+      <!-- Die App bietet die Übernahme als Fragenentwurf nur bei erteilter Freigabe an.
+           Personenangaben im freien Situationstext müssen vor Veröffentlichung weiterhin
+           manuell entfernt werden; eine automatische Anonymisierung wird nicht behauptet. -->
       <p>
-        <strong>Aufbewahrung.</strong> Bei Vorfall und Gesprächswunsch trägt die Datenbank
-        beim Anlegen ein Aufbewahrungsdatum zwei Jahre in der Zukunft ein. Dieses Datum ist
-        ein <strong>Löschvorschlag, keine Automatik</strong>: Es gibt in dieser Anwendung
-        keinen Vorgang, der abgelaufene Meldungen von selbst entfernt. Gelöscht wird bewusst
-        und von Hand. Meldungen der Art Regelfall und Website bekommen gar kein solches
-        Datum.
+        <strong>Aufbewahrung.</strong> Meldebögen und Fragefeedback erhalten standardmäßig
+        eine Frist von 30 Tagen. Ein täglicher Löschlauf entfernt abgelaufene Meldungen
+        einschließlich zugehöriger Feedbacktexte, auch wenn sie noch offen sind. Der Obmann
+        kann die Standardfrist für seinen Verein ändern, die Automatik ausschalten oder
+        für einzelne Meldungen ein anderes Datum festlegen. Bereits vorhandene Meldungen
+        erhalten bei der Umstellung zunächst 30 Tage ab Aktivierung. Eine frühere manuelle
+        Löschung ist ebenfalls möglich.
       </p>
-      <!-- PRUEFEN: Die Zwei-Jahres-Frist ist eine Erinnerung ohne Loeschlauf. Ob eine Frist
-           ohne Automatik genuegt, und ob zwei Jahre fuer Vorfall und Gespraechswunsch
-           angemessen sind, ist eine juristische Bewertung. Faktenlage: kein pg_cron, kein
-           geplanter Job, keine Loesch-RPC fuer "meldungen" - geprueft am 03.09.2026. -->
 
       <h2>14. Angaben über andere Personen</h2>
       <p>
@@ -410,13 +405,10 @@
         kommuniziert, sobald diese Funktion aktiv ist.
       </p>
       <p>
-        Der Stand heute, damit hier nichts versprochen wird, was die Anwendung nicht tut:
-        Ein Aufbewahrungsdatum trägt die Datenbank ausschließlich bei Meldungen der Art
-        Vorfall und Gesprächswunsch ein (zwei Jahre, siehe Punkt 13). Ein automatischer
-        Löschlauf, der abgelaufene Daten von selbst entfernt, ist an keiner Stelle
-        eingerichtet - weder für diese Meldungen noch für Antworten, Frage-Rückmeldungen,
-        Terminmeldungen oder Ausrüstungsanfragen. Gelöscht wird von Hand, auf Wunsch oder
-        wenn der Zweck entfallen ist.
+        Die automatische Aufbewahrungsfrist betrifft ausschließlich Meldebögen und
+        Fragefeedback (siehe Punkt 13). Quizantworten, Termine, Zu-/Absagen und
+        Ausrüstungsanfragen werden dadurch nicht gelöscht. Für diese Daten erfolgt eine
+        Löschung gesondert auf Wunsch oder wenn ihr Zweck entfallen ist.
       </p>
 
       <h2>16. Deine Rechte</h2>

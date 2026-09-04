@@ -370,21 +370,38 @@ test("schon gemeldete Fragen bekommen eine ruhige Marke", () => {
   const zeileEins = meldung.baueLoesungsAktionen(document.createElement("button"), "f1");
   const zeileZwei = meldung.baueLoesungsAktionen(document.createElement("button"), "f2");
   const zeileDrei = meldung.baueLoesungsAktionen(document.createElement("button"), "f3");
+  const uebung = meldung.baueLoesungsAktionen(document.createElement("button"), "f1", true);
 
   assert.equal(zeileEins.querySelector(".melde-marke"), null,
     "vor dem Laden steht schon eine Marke da");
 
   return meldung.ladeEigeneMeldungen().then(() => {
-    assert.equal(gerufen[0][0], "meine_frage_meldungen",
-      "es wird eine andere Serverfunktion gefragt als die fuer die eigenen Meldungen");
+    assert.equal(gerufen[0][0], "frage_melde_markierungen");
     assert.deepEqual(gerufen[0][1], { p_schiedsrichter_id: "s1", p_pin: "1234" });
 
     assert.equal(zeileEins.querySelector(".melde-marke").textContent, "Gemeldet");
-    assert.equal(zeileZwei.querySelector(".melde-marke").textContent, "Gemeldet · erledigt",
-      "eine erledigte Meldung sieht aus wie eine offene");
+    assert.equal(zeileZwei.querySelector(".melde-marke"), null, "Erledigtes darf keine Marke haben");
+    assert.equal(uebung.querySelector(".melde-marke"), null, "Im Üben dürfen keine Marken stehen");
     assert.equal(zeileDrei.querySelector(".melde-marke"), null,
       "eine nie gemeldete Frage bekommt trotzdem eine Marke");
   });
+});
+
+test("Markierungen bleiben beim Kontowechsel nicht beim nächsten Nutzer stehen", async () => {
+  neuerDom();
+  ladeKlassisch("src/features/frage-melden.js");
+  let zugang = { schiedsrichterId: "s1", pin: "test" };
+  let antwort = { data: [{ frage_id: "f1", status: "offen" }], error: null };
+  const meldung = globalThis.SchiriQuizFrageMeldung.erstelleFrageMeldung({
+    sb: { rpc: async () => antwort }, getZugang: () => zugang,
+  });
+  const zeile = meldung.baueLoesungsAktionen(document.createElement("button"), "f1");
+  await meldung.ladeEigeneMeldungen();
+  assert.ok(zeile.querySelector(".melde-marke"));
+  zugang = { schiedsrichterId: "s2", pin: "test" };
+  antwort = { data: null, error: { message: "offline" } };
+  await meldung.ladeEigeneMeldungen();
+  assert.equal(zeile.querySelector(".melde-marke"), null);
 });
 
 test("nach dem Abschicken sagt die Seite, ob neu angelegt oder ergaenzt wurde", () => {
