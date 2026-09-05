@@ -1,31 +1,229 @@
-.duell-seite { max-width: 860px; }
-.duell-seite h1,.duell-seite h2 { font-family:var(--font-titel); }
-.duell-einstieg,.duell-karte p { color:var(--muted); line-height:1.55; }
-.duell-zurueck { color:var(--marke); text-decoration:none; font-weight:700; }
-.duell-start { display:grid; gap:16px; margin-top:24px; }
-.duell-karte { padding:22px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); box-shadow:var(--shadow); }
-.duell-symbol { font-size:2rem; }
-.duell-karte label { display:grid; gap:7px; margin:14px 0; font-weight:700; }
-.duell-karte input[type="text"],.duell-karte input:not([type]),.duell-karte textarea { box-sizing:border-box; width:100%; min-height:48px; padding:12px; border:1px solid var(--border); border-radius:10px; font:inherit; background:var(--bg); color:inherit; }
-.duell-karte textarea { min-height:130px; resize:vertical; }
-.duell-haupt,.duell-aktionen button,.duell-reaktionen button { display:inline-flex; align-items:center; justify-content:center; min-height:48px; padding:11px 18px; border:0; border-radius:11px; background:var(--marke); color:#fff; font:600 1rem var(--font-text); text-decoration:none; cursor:pointer; }
-.duell-haupt:disabled { opacity:.5; }
-.duell-aktionen { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
-.duell-aktionen button:first-child { background:var(--marke-lighter); color:var(--marke); }
-.duell-code,.duell-fertig { margin-top:32px; text-align:center; }
-.duell-code>strong { display:block; margin:10px 0; font:800 clamp(2.8rem,12vw,5rem)/1 var(--font-titel); letter-spacing:.13em; color:var(--marke); }
-.duell-fortschritt { display:flex; justify-content:space-between; gap:12px; margin:18px 0 10px; color:var(--muted); font-weight:700; }
-.duell-option { grid-template-columns:auto 1fr!important; align-items:center; min-height:52px; padding:9px 12px; border:1px solid var(--border); border-radius:11px; cursor:pointer; }
-.duell-option input { width:22px; height:22px; accent-color:var(--marke); }
-.duell-medium { display:block; width:100%; max-height:380px; object-fit:contain; border-radius:12px; background:#111; }
-.duell-video { display:flex; min-height:100px; align-items:center; justify-content:center; margin-bottom:15px; border-radius:12px; background:#111; color:#fff; font-weight:800; text-decoration:none; }
-.duell-ergebnis { text-align:center; margin-top:30px; border-top:6px solid var(--red,#d33); }
-.duell-ergebnis.richtig { border-top-color:var(--green,#18a558); }
-.duell-loesung { padding:14px; border-radius:11px; background:var(--bg); text-align:left; }
-.duell-reaktionen { display:flex; justify-content:center; flex-wrap:wrap; gap:8px; margin:18px 0; }
-.duell-reaktionen button { background:var(--bg); color:inherit; border:1px solid var(--border); font-size:1.25rem; }
-.duell-stand { display:grid; gap:8px; margin:18px 0; text-align:left; }
-.duell-stand div { display:flex; justify-content:space-between; gap:10px; padding:12px; border-radius:10px; background:var(--bg); }
-.duell-stand span { color:var(--muted); }
-.duell-fehler { padding:12px; border-radius:10px; background:#fee2e2; color:#991b1b; font-weight:700; }
-@media(min-width:720px){.duell-start{grid-template-columns:1fr 1fr}.duell-karte{padding:28px}}
+/* ============================================================
+   Duell-Modus: dieselbe Optik wie die Hauptquiz-Seite
+   ============================================================
+   Kompletter Neubau (05.09.2026). Max zur ersten, von einem anderen
+   KI-Tool (Codex) gebauten Fassung: "sieht richtig scheiße aus" - er
+   will, dass sich das wie der Rest der Seite anfuehlt, nicht wie ein
+   rohes Formular.
+
+   style.css wird bewusst NICHT eingebunden (75 KB fachfremdes Altzeug
+   aus dem Wochenquiz) - stattdessen wird hier die VISUELLE SPRACHE von
+   quiz.html (Karte mit farbigem Rand, die nach dem Beantworten
+   gruen/rot/orange wird, Fortschrittsbalken, markierte Antwortoptionen)
+   mit den Tokens aus basis.css/bausteine.css nachgebaut. Eigene Klassen
+   tragen bewusst das "duell-"-Praefix, damit auf dieser Seite nichts
+   mit den gleichnamigen Klassen aus dem Wochenquiz kollidiert, falls
+   beide Regelwerke je zusammen gelesen werden.
+
+   Zeilenbudget: tests/frontend-architecture.test.js laesst jeder Datei
+   in stil/ hoechstens 500 Zeilen - bewusst knapp gehalten.
+   ============================================================ */
+
+:root {
+  /* Dritte Ampelfarbe fuer "nachbessern" (Freitext-Zwischenstufe) -
+     dieselben Werte wie --amber-light/--karte-orange in style.css,
+     hier als eigene Tokens, weil basis.css keine Amber-Farbe kennt. */
+  --duell-orange: #f97316;
+  --duell-orange-hell: #fef3c7;
+  --duell-orange-dunkel: #92400e;
+}
+
+.duell-seite { max-width: 720px; }
+.duell-seite h1, .duell-seite h2 { font-family: var(--font-titel); }
+.duell-einstieg, .duell-karte p { color: var(--muted); line-height: 1.55; }
+.duell-zurueck { display: inline-block; margin-bottom: 6px; color: var(--marke); text-decoration: none; font-weight: 700; }
+.duell-zurueck:hover { text-decoration: underline; }
+
+/* ---------- Karte (generisch, z.B. Einstieg/Code-Anzeige) ---------- */
+.duell-karte {
+  position: relative;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.duell-symbol { font-size: 2rem; display: block; margin-bottom: 4px; }
+.duell-start { display: grid; gap: 16px; margin-top: 20px; }
+.duell-karte label { display: grid; gap: 7px; margin: 14px 0; font-weight: 700; }
+.duell-karte input[type="text"], .duell-karte input:not([type]) {
+  box-sizing: border-box; width: 100%; min-height: 48px; padding: 12px;
+  border: 1px solid var(--border); border-radius: 10px; font: inherit; background: var(--bg-start, #fff); color: inherit;
+}
+.duell-haupt, .duell-aktionen button {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 48px;
+  padding: 11px 18px; border: 0; border-radius: 11px; background: var(--marke); color: #fff;
+  font: 600 1rem var(--font-text); text-decoration: none; cursor: pointer;
+}
+.duell-haupt:disabled { opacity: .5; cursor: default; }
+.duell-aktionen { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
+.duell-aktionen button:first-child { background: var(--marke-lighter); color: var(--marke); }
+.duell-code, .duell-fertig { margin-top: 28px; text-align: center; }
+.duell-code > strong {
+  display: block; margin: 10px 0; font: 800 clamp(2.6rem, 11vw, 4.6rem)/1 var(--font-titel);
+  letter-spacing: .13em; color: var(--marke);
+}
+.duell-fehler { padding: 12px; border-radius: 10px; background: var(--red-hell); color: var(--red); font-weight: 700; margin-bottom: 16px; }
+.duell-lade-hinweis { color: var(--muted); text-align: center; padding: 30px 0; }
+
+/* ---------- Letzte Duelle (Einstiegsbildschirm, Teil E) ---------- */
+.duell-letzte-duelle { margin-top: 26px; }
+.duell-letzte-duelle h2 { font-size: 1rem; margin-bottom: 10px; }
+.duell-liste { border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); overflow: hidden; }
+.duell-liste-eintrag {
+  display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 16px; border: 0; border-bottom: 1px solid #f3f4f6; background: none; text-align: left;
+  font: inherit; color: inherit; cursor: pointer;
+}
+.duell-liste-eintrag:last-child { border-bottom: 0; }
+.duell-liste-eintrag:hover { background: var(--marke-lighter); }
+.duell-liste-code { font-weight: 700; font-family: var(--font-titel); letter-spacing: .04em; }
+.duell-liste-info { color: var(--muted); font-size: .82rem; }
+
+/* ---------- Fortschrittsanzeige (Teil B) ---------- */
+.duell-fortschritt { margin: 0 0 16px; }
+.duell-fortschritt-zeile {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  font-size: .85rem; font-weight: 700; color: var(--marke-hell); margin-bottom: 7px;
+}
+.duell-fortschritt-track { height: 10px; border-radius: 999px; background: var(--marke-lighter); overflow: hidden; }
+.duell-fortschritt-fill {
+  height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--karte-gelb), var(--duell-orange));
+  transition: width .5s cubic-bezier(.4, 0, .2, 1);
+}
+
+/* ---------- Die Frage-Karte: EINE Karte pro Frage, die beim
+   Beantworten die Farbe wechselt (Max' ausdrueckliche Vorgabe) ---------- */
+.duell-frage-karte { position: relative; padding: 24px 22px 22px; }
+.duell-frage-karte::before {
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
+  background: linear-gradient(90deg, var(--karte-gelb), var(--duell-orange));
+}
+.duell-frage-karte.beantwortet::before { background: var(--border); }
+.duell-frage-karte.beantwortet.richtig-karte::before { background: var(--green); }
+.duell-frage-karte.beantwortet.falsch-karte::before { background: var(--red); }
+.duell-frage-karte.teilweise-karte::before { background: var(--duell-orange); }
+.duell-frage-karte.beantwortet.richtig-karte { box-shadow: inset 4px 0 0 var(--green), var(--shadow); }
+.duell-frage-karte.beantwortet.falsch-karte { box-shadow: inset 4px 0 0 var(--red), var(--shadow); }
+.duell-frage-karte.teilweise-karte { box-shadow: inset 4px 0 0 var(--duell-orange), var(--shadow); }
+.duell-frage-text { font-family: var(--font-titel); font-weight: 700; font-size: 1.15rem; line-height: 1.45; margin: 0 0 16px; }
+.duell-medium { display: block; width: 100%; max-height: 340px; object-fit: contain; border-radius: 12px; background: #111; margin-bottom: 14px; }
+.duell-video {
+  display: flex; min-height: 90px; align-items: center; justify-content: center; margin-bottom: 14px;
+  border-radius: 12px; background: #111; color: #fff; font-weight: 800; text-decoration: none;
+}
+
+/* ---------- Antwortoptionen: Farbsystem wie im Wochenquiz ---------- */
+.duell-optionen { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+.duell-option {
+  display: flex; align-items: center; gap: 10px;
+  min-height: 50px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.duell-option:hover:not(.gesperrt) { border-color: var(--marke-hell); background: var(--marke-lighter); }
+.duell-option input { width: 20px; height: 20px; accent-color: var(--marke); flex-shrink: 0; }
+.duell-option span { flex: 1; }
+.duell-option.ausgewaehlt { border-color: var(--marke); background: var(--marke-lighter); font-weight: 600; }
+.duell-option.gesperrt { cursor: default; }
+.duell-option.ist-richtig { border-color: var(--green); background: var(--green-light); font-weight: 600; }
+.duell-option.ist-falsch { border-color: var(--red); background: var(--red-hell); font-weight: 600; }
+.duell-marke { margin-left: auto; font-weight: 800; }
+.ist-richtig .duell-marke { color: var(--green-dark); }
+.ist-falsch .duell-marke { color: var(--red); }
+
+/* ---------- Freitext ---------- */
+.duell-freitext-label { display: block; font-weight: 700; margin-bottom: 8px; }
+.duell-freitext-label textarea, .duell-ergaenzung textarea {
+  display: block; box-sizing: border-box; width: 100%; min-height: 110px; margin-top: 7px;
+  padding: 12px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  font: inherit; font-size: .95rem; background: var(--bg-start, #fafafa); resize: vertical;
+}
+.duell-freitext-label textarea:focus, .duell-ergaenzung textarea:focus {
+  outline: none; border-color: var(--marke); box-shadow: 0 0 0 3px rgba(31, 41, 55, .12);
+}
+/* Kein maxlength, siehe src/ui/zeichen-zaehler.js - dieser Zaehler warnt
+   erst ab 90 % statt das Tippen mitten im Wort zu stoppen. */
+.duell-zaehler { text-align: right; font-size: .78rem; color: var(--muted); margin: 4px 0 0; }
+.duell-zaehler.zu-lang { color: var(--red); font-weight: 700; }
+.duell-eigene-antwort { font-size: .92rem; background: var(--marke-lighter); border-radius: var(--radius-sm); padding: 10px 12px; margin: 0 0 10px; }
+
+/* ---------- Feedback + Loesung ---------- */
+.duell-feedback {
+  display: flex; align-items: center; gap: 9px; font-weight: 700; padding: 12px 14px;
+  border-radius: var(--radius-sm); margin: 4px 0 14px; font-size: .96rem;
+}
+.duell-feedback-symbol { font-size: 1.2rem; }
+.duell-feedback.richtig { color: var(--green-dark); background: var(--green-light); }
+.duell-feedback.falsch { color: var(--red); background: var(--red-hell); }
+.duell-feedback.teilweise { color: var(--duell-orange-dunkel); background: var(--duell-orange-hell); }
+.duell-loesung { padding: 13px 14px; border-radius: var(--radius-sm); background: var(--marke-lighter); margin-bottom: 14px; }
+.duell-loesung b { display: block; margin-bottom: 3px; }
+
+/* ---------- Nachbessern: zweiter Freitext-Versuch (Teil C) ---------- */
+.duell-ergaenzung {
+  margin: 4px 0 14px; padding: 15px; border: 1px solid #fcd34d; border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--duell-orange-hell) 55%, transparent);
+}
+.duell-nachfrage { margin: 0 0 6px; font-weight: 700; color: var(--duell-orange-dunkel); line-height: 1.45; }
+.duell-ergaenzung-hinweis { margin: 0 0 10px; font-size: .84rem; color: var(--muted); }
+
+/* ---------- Vergleichsblock: eigene vs. fremde Antwort (Teil B/D) ---------- */
+.duell-vergleich { display: grid; gap: 8px; margin: 6px 0 16px; }
+@keyframes duell-einblenden { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.duell-einblenden { animation: duell-einblenden .35s ease-out both; }
+.duell-vergleich-zeile { padding: 11px 13px; border-radius: var(--radius-sm); background: var(--marke-lighter); border: 1px solid transparent; }
+.duell-vergleich-zeile.mir { border-color: var(--border); }
+.duell-vergleich-zeile.richtig { background: var(--green-light); }
+.duell-vergleich-zeile.falsch { background: var(--red-hell); }
+.duell-vergleich-zeile.teilweise { background: var(--duell-orange-hell); }
+.duell-vergleich-zeile.wartend, .duell-vergleich-zeile.gesperrt { color: var(--muted); font-style: italic; }
+.duell-vergleich-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.duell-vergleich-name { font-weight: 700; font-style: normal; }
+.duell-vergleich-symbol { font-weight: 800; }
+.duell-vergleich-antwort { margin: 5px 0 0; font-size: .92rem; }
+.duell-vergleich-warten, .duell-vergleich-gesperrt { font-size: .88rem; }
+
+/* ---------- Reaktions-Gimmick (Teil F, niedrigste Prioritaet) ----------
+   Max' Wunsch: reine Emoji-Buttons ohne Beschriftung darunter, deshalb
+   gilt hier die "Woerter statt Icons"-Regel bewusst NICHT (siehe
+   Kommentar in duell-reaktionen.js). 44pt Trefferflaeche. */
+.duell-reaktionsleiste { display: flex; justify-content: center; gap: 10px; margin: 4px 0 16px; }
+.duell-reaktion-knopf {
+  width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--border); background: var(--card);
+  font-size: 1.35rem; display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+  transition: transform .12s, background .12s;
+}
+.duell-reaktion-knopf:hover { background: var(--marke-lighter); transform: scale(1.08); }
+.duell-reaktion-pille {
+  display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; padding: 2px 9px;
+  border-radius: 999px; background: var(--card); border: 1px solid var(--border); font-size: .78rem; font-weight: 600;
+}
+.duell-reaktion-einblendung {
+  position: absolute; inset: 0; z-index: 2; display: grid; place-items: center; gap: 4px;
+  background: rgba(17, 24, 39, .55); border-radius: var(--radius); color: #fff; text-align: center;
+  opacity: 0; pointer-events: none; transition: opacity .4s ease;
+}
+.duell-reaktion-einblendung.sichtbar { opacity: 1; }
+.duell-reaktion-einblendung-emoji { font-size: 2.4rem; }
+.duell-reaktion-einblendung-name { font-weight: 700; }
+
+/* ---------- Auswertungsscreen (Teil D) ---------- */
+.duell-uebersicht-kopf { margin-bottom: 16px; }
+.duell-stand-reihe { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 22px; }
+.duell-stand-kachel {
+  padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--shadow);
+}
+.duell-stand-kachel strong { display: block; font-family: var(--font-titel); font-size: 1rem; }
+.duell-stand-kachel span { color: var(--muted); font-size: .84rem; }
+.duell-uebersicht-frage { margin-bottom: 20px; }
+.duell-uebersicht-frage-kopf { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.duell-uebersicht-frage-kopf .badge {
+  font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--marke-lighter); color: var(--marke-hell);
+}
+.duell-uebersicht-frage-text { font-family: var(--font-titel); font-weight: 600; margin: 0; }
+
+@media (min-width: 720px) {
+  .duell-start { grid-template-columns: 1fr 1fr; }
+  .duell-karte { padding: 28px; }
+}

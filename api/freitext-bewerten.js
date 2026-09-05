@@ -182,7 +182,7 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
 // erster Text + Rückfrage + Ergänzung zusammen. Sonst würde eine Ergänzung
 // bestraft, die für sich genommen unvollständig wirkt, im Zusammenhang aber
 // genau die Lücke schließt.
-function baueNachbesserungsPrompt(kontext, ergaenzung) {
+export function baueNachbesserungsPrompt(kontext, ergaenzung) {
   return `${SYSTEMKONTEXT}
 
 ${ALLGEMEINE_BEWERTUNGSREGELN}
