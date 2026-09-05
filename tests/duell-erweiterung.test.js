@@ -92,11 +92,12 @@ test("die Duell-Seite lädt den Zeichenzähler-Baustein (kein hartes maxlength m
 test("Video-Duelle nutzen denselben kontrollierten Großbild-Player wie das Wochenquiz", () => {
   const html = lies("duell.html");
   const seite = lies("src/website/duell-seite.js");
+  const fragenAnsicht = lies("src/website/duell-fragen-ansicht.js");
   assert.match(html, /src="src\/features\/video-player\.js"/);
   assert.match(html, /id="video-gross-overlay"/);
   assert.match(html, /href="stil\/video-player\.css"/);
-  assert.match(seite, /SchiriQuizVideoPlayer\?\.baueVideoEinbettungModal/);
-  assert.doesNotMatch(seite, /if \(f\.medium === "video"[^\n]+target="_blank"/);
+  assert.match(fragenAnsicht, /SchiriQuizVideoPlayer\?\.baueVideoEinbettungModal/);
+  assert.doesNotMatch(`${seite}\n${fragenAnsicht}`, /if \(f\.medium === "video"[^\n]+target="_blank"/);
   assert.match(lies("supabase/migrations/20260905094500_v121_duell_antwort_hinweis.sql"), /'antwort_hinweis',v_f\.antwort_hinweis/);
 });
 

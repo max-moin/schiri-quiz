@@ -4,6 +4,7 @@
 .env
 .env.*
 node_modules/
+supabase/.temp/
 
 # Ablage für Dateien, die aus der Ferne nicht gelöscht werden konnten
 # (18.08.2026). Der Ordner darf nie mitcommittet werden - er ist nur ein

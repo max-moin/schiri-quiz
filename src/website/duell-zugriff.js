@@ -52,6 +52,11 @@ export function erstelleDuellZugriff({ adresse, oeffentlicherSchluessel }) {
     antworten: (zugang, frageId, auswahl) => fetchRpc("duell_antwort_auswahl", {
       p_zugang: zugang, p_frage_id: frageId, p_auswahl: auswahl,
     }),
+    zahl: (zugang, frageId, wert, einheit) => fetchRpc("duell_antwort_zahl", {
+      p_zugang: zugang, p_frage_id: frageId, p_wert: wert, p_einheit: einheit,
+    }),
+    entscheidung: (zugang, frageId, antwort) =>
+      rufeApi("/api/duell-entscheidung", { zugang, frageId, antwort }),
     freitext: (zugang, frageId, freitext) => rufeApi("/api/duell-freitext", { zugang, frageId, freitext }),
     freitextErgaenzung: (zugang, frageId, ergaenzung) =>
       rufeApi("/api/duell-freitext-ergaenzung", { zugang, frageId, ergaenzung }),
@@ -63,6 +68,7 @@ export function erstelleDuellZugriff({ adresse, oeffentlicherSchluessel }) {
     }),
     // Voller Verlauf (alle 5 Fragen, Vergleich, Auswertungsscreen - Teile B/D).
     verlauf: (zugang) => fetchRpc("duell_verlauf", { p_zugang: zugang }),
+    stand: (zugang) => fetchRpc("duell_stand", { p_zugang: zugang }),
     // Nur fuer angemeldete Vereinsmitglieder sinnvoll (Teil E) - Gaeste
     // haben keine serverseitige Identitaet, an der man das festmachen koennte.
     meineListe: (person) => fetchRpc("duell_meine_liste", { p_schiedsrichter_id: person.id, p_pin: person.pin }),

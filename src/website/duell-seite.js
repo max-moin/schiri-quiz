@@ -22,8 +22,15 @@ import { DATENBANK } from "../../verein.config.js";
 import { erstelleDuellZugriff } from "./duell-zugriff.js";
 import { baueVergleichsBlock, findeTeilnehmerZeile, baueUebersicht } from "./duell-verlauf-ansicht.js";
 import { baueReaktionsleiste, bauePille, zeigeKurzeEinblendung, findeLetzteFremdeReaktion } from "./duell-reaktionen.js";
+import { mediumHtml, verdrahteMedium, zahlEingabeHtml, formatZahl, erstelleDuellEntscheidungsController } from "./duell-fragen-ansicht.js";
 
 const root = document.getElementById("duellBereich");
+const kopfTitel = document.getElementById("duell-kopf-titel");
+const kopfUntertitel = document.getElementById("duell-kopf-untertitel");
+const kopfFortschritt = document.getElementById("duell-kopf-fortschritt");
+const kopfFortschrittText = document.getElementById("duell-kopf-fortschritt-text");
+const kopfCode = document.getElementById("duell-kopf-code");
+const kopfFill = document.getElementById("duell-kopf-fortschritt-fill");
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung || null;
 const loginDialog = globalThis.SchiriSeitenAnmeldung?.loginDialog || null;
 const zaehlwerkModul = globalThis.SchiriZeichenZaehler || null;
@@ -43,6 +50,7 @@ const LETZTE_DUELLE_MAX = 8;
 
 let sitzung = null;
 let frage = null;
+let entscheidung = null;
 
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
 
@@ -52,6 +60,25 @@ function speichernSitzung(wert) {
 }
 function lesenSitzung() {
   try { return JSON.parse(sessionStorage.getItem(SPEICHER_SITZUNG)); } catch { return null; }
+}
+
+function setzeKopf({ titel = "Quiz-Duell", untertitel = "Fünf frühere Wochenfragen – direkt gegeneinander.", position = null, gesamt = 5 } = {}) {
+  kopfTitel.textContent = titel;
+  kopfUntertitel.textContent = untertitel;
+  const imSpiel = Number.isInteger(position);
+  kopfFortschritt.hidden = !imSpiel;
+  if (!imSpiel) return;
+  const prozent = Math.round(((position - 1) / gesamt) * 100);
+  kopfFortschrittText.textContent = `Frage ${position} von ${gesamt}`;
+  kopfCode.textContent = `Duell ${sitzung?.code || ""}`;
+  kopfFill.style.width = `${prozent}%`;
+  kopfFill.parentElement?.setAttribute("aria-valuenow", String(prozent));
+}
+
+function neuesDuellStarten() {
+  speichernSitzung(null);
+  history.replaceState({}, "", location.pathname);
+  startAnsicht();
 }
 
 function leseLetzteDuelle() {
@@ -104,14 +131,15 @@ async function baueLetzteDuelleHtml(person) {
 }
 
 async function startAnsicht() {
+  setzeKopf();
   const person = anmeldung?.lesen();
   const code = new URLSearchParams(location.search).get("code")?.toUpperCase().replace(/[^A-F0-9]/g, "").slice(0, 6) || "";
-  root.innerHTML = `<a class="duell-zurueck" href="modus.html">← Modi</a><h1>Quiz-Duell</h1>
-    <p class="duell-einstieg">Fünf frühere Wochenfragen – ohne Einfluss auf euren normalen Quizstand.</p>
+  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
+    <section class="card duell-einstiegskarte"><h2>Quiz-Duell</h2><p class="duell-einstieg">Fünf frühere Wochenfragen – ohne Einfluss auf euren normalen Quizstand.</p></section>
     <div class="duell-start">
-      <section class="duell-karte"><span class="duell-symbol">⚔️</span><h2>Neues Duell</h2><p>Du erhältst einen Code zum Teilen. Maximal drei offene Duelle.</p>
+      <section class="card duell-karte"><span class="duell-symbol">⚔️</span><h2>Neues Duell</h2><p>Du erhältst einen Code zum Teilen. Maximal drei offene Duelle.</p>
         ${person ? '<button class="duell-haupt" data-erstellen>Code erstellen</button>' : '<button class="duell-haupt" data-login>Als Vereinsmitglied anmelden</button>'}</section>
-      <section class="duell-karte"><span class="duell-symbol">🔑</span><h2>Beitreten</h2><form data-beitreten>
+      <section class="card duell-karte"><span class="duell-symbol">🔑</span><h2>Beitreten</h2><form data-beitreten>
         <label>Session-Code<input name="code" value="${esc(code)}" maxlength="6" autocomplete="off" required></label>
         ${person ? `<p>Du spielst als <strong>${esc(person.name)}</strong>.</p>` : '<label>Dein Anzeigename<input name="name" minlength="2" maxlength="30" autocomplete="nickname" required></label>'}
         <button class="duell-haupt" type="submit">Duell öffnen</button></form></section>
@@ -156,41 +184,35 @@ async function startAnsicht() {
 }
 
 function codeAnsicht(neu = false) {
+  setzeKopf({ untertitel: "Code teilen – danach startet dein Duell." });
   const url = `${location.origin}${location.pathname}?code=${sitzung.code}`;
-  root.innerHTML = `<section class="duell-code duell-karte"><span class="duell-symbol">${neu ? "🎯" : "⚔️"}</span><p>Session-Code</p><strong>${esc(sitzung.code)}</strong>
+  root.innerHTML = `<section class="duell-code card duell-karte"><span class="duell-symbol">${neu ? "🎯" : "⚔️"}</span><p>Session-Code</p><strong>${esc(sitzung.code)}</strong>
     <p>Teile den Code oder den Link. Jede Person braucht nur einen Anzeigenamen.</p>
-    <div class="duell-aktionen"><button data-kopieren>Link kopieren</button><button class="duell-haupt" data-start>Jetzt spielen</button></div></section>`;
+    <div class="duell-aktionen"><button data-kopieren>Link kopieren</button><button class="duell-haupt" data-start>Jetzt spielen</button><button data-neu>Anderes Duell</button></div></section>`;
   root.querySelector("[data-kopieren]").addEventListener("click", async (e) => { await navigator.clipboard?.writeText(url); e.currentTarget.textContent = "Kopiert ✓"; });
   root.querySelector("[data-start]").addEventListener("click", laden);
+  root.querySelector("[data-neu]").addEventListener("click", neuesDuellStarten);
 }
 
 // ---------- Fortschritt + Frage-Karte ----------
 
 function baueFortschrittHtml(f) {
-  const prozent = Math.round(((f.position - 1) / f.gesamt) * 100);
-  return `<div class="duell-fortschritt"><div class="duell-fortschritt-zeile"><span>Frage ${f.position} von ${f.gesamt}</span><span>Duell ${esc(sitzung.code)}</span></div>
-    <div class="duell-fortschritt-track" role="progressbar" aria-label="Fortschritt im Duell" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${prozent}">
-      <div class="duell-fortschritt-fill" style="width:${prozent}%"></div></div></div>`;
+  setzeKopf({ untertitel: "Wie im Wochenquiz – diesmal im direkten Vergleich.", position: f.position, gesamt: f.gesamt });
+  return `<div class="historie-kopf duell-spiel-kopf"><button class="sekundaer-button" type="button" data-duell-uebersicht>Duellübersicht</button><button class="historie-neu-laden-button" type="button" data-neues-duell>Neues Duell</button></div>`;
 }
 
-function mediumHtml(f) {
-  if (f.medium === "bild" && f.bild_base64) return `<img class="duell-medium" src="data:${esc(f.bild_mime || "image/jpeg")};base64,${f.bild_base64}" alt="${esc(f.bild_alt || "Spielsituation")}">`;
-  if (f.medium === "video" && f.video_url) return `<div class="duell-video-halter" data-duell-video></div>`;
-  return "";
+function verdrahteSpielKopf() {
+  root.querySelector("[data-duell-uebersicht]")?.addEventListener("click", () => uebersichtAnsicht(true));
+  root.querySelector("[data-neues-duell]")?.addEventListener("click", neuesDuellStarten);
 }
 
-function verdrahteMedium(f) {
-  if (f.medium !== "video" || !f.video_url) return;
-  const halter = root.querySelector("[data-duell-video]");
-  const player = globalThis.SchiriQuizVideoPlayer?.baueVideoEinbettungModal(
-    f.video_url,
-    f.video_start_sekunden,
-    f.video_end_sekunden,
-    Boolean(f.video_stumm),
-    f.antwort_hinweis || ""
-  );
-  if (halter && player) halter.replaceChildren(player);
-  else if (halter) halter.innerHTML = `<a class="duell-video" href="${esc(f.video_url)}" target="_blank" rel="noopener noreferrer">Videoausschnitt öffnen</a>`;
+function scoreboardHtml(stand) {
+  const teilnehmer = stand?.teilnehmer || [];
+  if (!teilnehmer.length) return "";
+  return `<div class="historie-scoreboard duell-scoreboard"><div class="historie-scoreboard-kopf">
+    <span class="historie-scoreboard-label">Zwischenstand</span><span class="historie-scoreboard-gesamt-hinweis">${esc(stand.code || sitzung.code)}</span></div>
+    <div class="duell-scoreboard-spieler">${teilnehmer.map((t) => `<div class="duell-scoreboard-spielerfeld">
+      <strong>${esc(t.name)}${t.name === stand.ich ? " (du)" : ""}</strong><span><b>${t.richtig}</b> richtig · ${t.beantwortet}/5 gespielt</span></div>`).join("")}</div></div>`;
 }
 
 // "ausgewaehlt": eigene Auswahl (zum Wiedererkennen nach dem Absenden).
@@ -200,7 +222,7 @@ function baueOptionenHtml(f, ausgewaehlt, aufgeloest) {
   const mehrfach = f.antworttyp === "mehrfachauswahl";
   return (f.antwortoptionen || []).filter((o) => o?.text).map((o) => {
     const gewaehlt = Boolean(ausgewaehlt?.includes(o.schluessel));
-    let klasse = "duell-option";
+    let klasse = "option duell-option";
     let marke = "";
     if (aufgeloest) {
       klasse += " gesperrt";
@@ -218,15 +240,42 @@ function verdrahteZeichenZaehler(feldWaehler, zaehlerWaehler) {
   if (feld && anzeige) zaehlwerkModul.haengeZeichenZaehlerAn(feld, anzeige, { grenze: FREITEXT_ZEICHENLIMIT });
 }
 
-function frageAnsicht(f) {
+async function stelleEntscheidungsControllerBereit() {
+  if (entscheidung) return entscheidung;
+  entscheidung = await erstelleDuellEntscheidungsController({
+    getSitzung: () => sitzung, api, fehler, versteckeFehler,
+    nachEntscheidung: (f, _daten, karte) => {
+      karte.classList.add("frage-karte-historie");
+      const anschluss = document.createElement("div");
+      anschluss.dataset.anschluss = "";
+      karte.appendChild(anschluss);
+      naechsteSchritte(f);
+    },
+  });
+  return entscheidung;
+}
+
+async function frageAnsicht(f, stand = null) {
   frage = f;
+  const kopfHtml = baueFortschrittHtml(f) + scoreboardHtml(stand);
+  if (f.antworttyp === "entscheidung") {
+    const controller = await stelleEntscheidungsControllerBereit();
+    root.innerHTML = kopfHtml;
+    const karte = controller.baueFrageElement(f);
+    karte.classList.add("frage-karte-historie");
+    root.appendChild(karte);
+    verdrahteSpielKopf();
+    return;
+  }
   const inhalt = f.antworttyp === "freitext"
     ? `<label class="duell-freitext-label">Deine Antwort<textarea name="freitext" rows="3" placeholder="Deine Antwort ..."></textarea></label><p class="duell-zaehler" data-zaehler hidden></p>`
+    : f.antworttyp === "zahl" ? zahlEingabeHtml(f)
     : `<div class="duell-optionen">${baueOptionenHtml(f)}</div>`;
-  root.innerHTML = `${baueFortschrittHtml(f)}
-    <section class="duell-karte duell-frage-karte" id="duellKarte">${mediumHtml(f)}<h1 class="duell-frage-text">${esc(f.frage_text)}</h1>
-      <form data-antwort>${inhalt}<button class="duell-haupt" type="submit">Antwort abgeben</button></form></section>`;
-  verdrahteMedium(f);
+  root.innerHTML = `${kopfHtml}
+    <section class="frage-karte frage-karte-historie duell-frage-karte" id="duellKarte">${mediumHtml(f)}<div class="frage-text">${esc(f.frage_text)}</div>
+      <form data-antwort>${inhalt}<button class="absenden-button" type="submit">Antwort abgeben</button></form></section>`;
+  verdrahteSpielKopf();
+  verdrahteMedium(root, f);
   if (f.antworttyp === "freitext") verdrahteZeichenZaehler('[name="freitext"]', "[data-zaehler]");
   root.querySelector("[data-antwort]").addEventListener("submit", antwortenAbgeben);
 }
@@ -244,6 +293,14 @@ async function antwortenAbgeben(event) {
       if (text.length > FREITEXT_ZEICHENLIMIT) throw new Error(`Deine Antwort ist ${text.length - FREITEXT_ZEICHENLIMIT} Zeichen zu lang. Bitte kürze sie.`);
       const ergebnis = await api.freitext(sitzung.zugang, frage.id, text);
       zeigeFreitextErgebnis(frage, text, ergebnis);
+    } else if (frage.antworttyp === "zahl") {
+      const rohwert = form.querySelector('[name="zahl"]').value.trim();
+      const wert = Number(rohwert.replace(",", "."));
+      const feste = frage.zahl_einheiten?.length === 1 ? frage.zahl_einheiten[0].einheit : null;
+      const einheit = feste || form.querySelector('[name="einheit"]')?.value || "";
+      if (!rohwert || !Number.isFinite(wert) || !einheit) throw new Error("Bitte gib eine gültige Zahl und Einheit ein.");
+      const ergebnis = await api.zahl(sitzung.zugang, frage.id, wert, einheit);
+      zeigeZahlErgebnis(frage, wert, einheit, ergebnis);
     } else {
       const auswahl = [...form.querySelectorAll('[name="auswahl"]:checked')].map((x) => x.value);
       if (!auswahl.length) throw new Error("Bitte wähle erst eine Antwort aus.");
@@ -253,16 +310,28 @@ async function antwortenAbgeben(event) {
   } catch (e) { knopf.disabled = false; fehler(e); }
 }
 
+function zeigeZahlErgebnis(f, wert, einheit, ergebnis) {
+  const richtig = ergebnis.korrekt === true;
+  const loesung = (ergebnis.richtige_antworten || []).map((x) => `${formatZahl(x.wert)} ${x.einheit}`).join(" oder ");
+  root.innerHTML = `${baueFortschrittHtml(f)}<section class="frage-karte frage-karte-historie beantwortet ${richtig ? "richtig-karte" : "falsch-karte"}" id="duellKarte">
+    ${mediumHtml(f)}<div class="frage-text">${esc(f.frage_text)}</div><div class="zahl-aufloesung"><p>Deine Antwort: ${esc(formatZahl(wert))} ${esc(einheit)}</p>
+    <p>Richtig: ${esc(loesung)}</p></div><div class="feedback ${richtig ? "richtig" : "falsch"}">${richtig ? "Richtig!" : "Leider nicht richtig."}</div><div data-anschluss></div></section>`;
+  verdrahteSpielKopf();
+  verdrahteMedium(root, f);
+  naechsteSchritte(f);
+}
+
 function zeigeAuswahlErgebnis(f, auswahl, ergebnis) {
   const richtig = ergebnis.korrekt === true;
   const optionenHtml = baueOptionenHtml(f, auswahl, { richtig: ergebnis.richtige_auswahl || [] });
   root.innerHTML = `${baueFortschrittHtml(f)}
-    <section class="duell-karte duell-frage-karte beantwortet ${richtig ? "richtig-karte" : "falsch-karte"}" id="duellKarte">
-      ${mediumHtml(f)}<h1 class="duell-frage-text">${esc(f.frage_text)}</h1>
+    <section class="frage-karte frage-karte-historie duell-frage-karte beantwortet ${richtig ? "richtig-karte" : "falsch-karte"}" id="duellKarte">
+      ${mediumHtml(f)}<div class="frage-text">${esc(f.frage_text)}</div>
       <div class="duell-optionen">${optionenHtml}</div>
-      <div class="duell-feedback ${richtig ? "richtig" : "falsch"}"><span class="duell-feedback-symbol">${richtig ? "✓" : "✕"}</span>${richtig ? "Richtig!" : "Leider nicht richtig."}</div>
+      <div class="feedback ${richtig ? "richtig" : "falsch"}"><span class="duell-feedback-symbol">${richtig ? "✓" : "✕"}</span>${richtig ? "Richtig!" : "Leider nicht richtig."}</div>
       <div data-anschluss></div></section>`;
-  verdrahteMedium(f);
+  verdrahteSpielKopf();
+  verdrahteMedium(root, f);
   naechsteSchritte(f);
 }
 
@@ -282,15 +351,16 @@ function zeigeFreitextErgebnis(f, ersterText, ergebnis, zweiterText = null) {
   const feedbackSymbol = wartet ? "🟠" : status === "richtig" ? "✓" : "✕";
   const feedbackText = wartet ? "Fast! Da fehlt noch ein Punkt." : status === "richtig" ? "Richtig!" : "Leider nicht richtig.";
   root.innerHTML = `${baueFortschrittHtml(f)}
-    <section class="duell-karte duell-frage-karte beantwortet ${klasse}" id="duellKarte">
-      ${mediumHtml(f)}<h1 class="duell-frage-text">${esc(f.frage_text)}</h1>
+    <section class="frage-karte frage-karte-historie duell-frage-karte beantwortet ${klasse}" id="duellKarte">
+      ${mediumHtml(f)}<div class="frage-text">${esc(f.frage_text)}</div>
       <p class="duell-eigene-antwort">Deine Antwort: ${esc(ersterText)}</p>
       ${zweiterText ? `<p class="duell-eigene-antwort">Deine Ergänzung: ${esc(zweiterText)}</p>` : ""}
-      <div class="duell-feedback ${feedbackKlasse}"><span class="duell-feedback-symbol">${feedbackSymbol}</span>${feedbackText}</div>
+      <div class="feedback duell-feedback ${feedbackKlasse}"><span class="duell-feedback-symbol">${feedbackSymbol}</span>${feedbackText}</div>
       ${!wartet && ergebnis.musterantwort ? `<div class="duell-loesung"><b>Richtige Antwort</b><p>${esc(ergebnis.musterantwort)}</p></div>` : ""}
       ${wartet ? baueErgaenzungHtml(ergebnis.nachfrage) : ""}
       <div data-anschluss></div></section>`;
-  verdrahteMedium(f);
+  verdrahteSpielKopf();
+  verdrahteMedium(root, f);
   if (wartet) {
     verdrahteZeichenZaehler('[name="ergaenzung"]', "[data-zaehler]");
     root.querySelector("[data-ergaenzen]").addEventListener("submit", (event) => ergaenzungAbschicken(event, f, ersterText));
@@ -325,8 +395,8 @@ async function naechsteSchritte(f) {
   const weiterKnopf = () => {
     const weiter = document.createElement("button");
     weiter.type = "button";
-    weiter.className = "duell-haupt";
-    weiter.textContent = "Weiter";
+    weiter.className = "historie-weiter-button";
+    weiter.textContent = "Nächste Frage";
     weiter.addEventListener("click", laden);
     return weiter;
   };
@@ -373,11 +443,17 @@ function setzePillen(vergleichsBlock, reaktionenListe) {
 // ---------- Auswertungsscreen (Teil D) + Ablauf ----------
 
 async function uebersichtAnsicht(weiterspielenErlaubt) {
+  setzeKopf({ untertitel: "Runde für Runde: eure Antworten im direkten Vergleich." });
   root.innerHTML = `<p class="duell-lade-hinweis">Auswertung wird geladen …</p>`;
   try {
     const verlauf = await api.verlauf(sitzung.zugang);
     root.innerHTML = "";
-    root.appendChild(baueUebersicht(verlauf, { weiterspielenErlaubt, aufWeiterspielen: laden }));
+    root.appendChild(baueUebersicht(verlauf, {
+      weiterspielenErlaubt,
+      aufWeiterspielen: laden,
+      aufNeuesDuell: neuesDuellStarten,
+      aufDuellListe: startAnsicht,
+    }));
     // Wurde eine Frage mit einer offenen Ergaenzung "ueberholt" (der
     // Spielfortschritt ist schon weiter, aber der zweite Freitext-Versuch
     // steht noch aus), gibt es hier - und nur hier - noch einen Weg
@@ -418,7 +494,10 @@ async function einstiegInLaufendesDuell() {
     // zu vergleichen. Sonst (mind. eine Frage beantwortet, oder ganz
     // fertig) automatisch die Auswertung (Teil D) - "Weiterspielen" steht
     // dort als eigener Knopf, wenn noch nicht fertig.
-    if (f && !f.fertig && f.position === 1) frageAnsicht(f);
+    if (f && !f.fertig && f.position === 1) {
+      const stand = await api.stand(sitzung.zugang).catch(() => null);
+      await frageAnsicht(f, stand);
+    }
     else await uebersichtAnsicht(!f?.fertig);
   } catch (e) { speichernSitzung(null); startAnsicht(); fehler(e); }
 }
@@ -426,12 +505,16 @@ async function einstiegInLaufendesDuell() {
 async function laden() {
   root.innerHTML = `<p class="duell-lade-hinweis">Duell wird geladen …</p>`;
   try {
-    const f = await api.frage(sitzung.zugang);
+    const [f, stand] = await Promise.all([api.frage(sitzung.zugang), api.stand(sitzung.zugang).catch(() => null)]);
     if (f?.fertig) await uebersichtAnsicht(false);
-    else frageAnsicht(f);
+    else await frageAnsicht(f, stand);
   } catch (e) { speichernSitzung(null); startAnsicht(); fehler(e); }
 }
 
+// Ein gespeicherter Zugang ist nur ein Komfort fuer die Liste. Er darf
+// beim Seitenaufruf nie ungefragt ein altes Duell oeffnen - sonst landet
+// man nach einer Auswertung in einer Navigationsschleife und kann kein
+// neues Duell beginnen.
 sitzung = lesenSitzung();
-if (sitzung?.zugang) { merkeLetztesDuell(sitzung.code, sitzung.zugang); einstiegInLaufendesDuell(); }
-else startAnsicht();
+if (sitzung?.zugang) merkeLetztesDuell(sitzung.code, sitzung.zugang);
+startAnsicht();

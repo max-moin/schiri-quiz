@@ -6,14 +6,10 @@
    will, dass sich das wie der Rest der Seite anfuehlt, nicht wie ein
    rohes Formular.
 
-   style.css wird bewusst NICHT eingebunden (75 KB fachfremdes Altzeug
-   aus dem Wochenquiz) - stattdessen wird hier die VISUELLE SPRACHE von
-   quiz.html (Karte mit farbigem Rand, die nach dem Beantworten
-   gruen/rot/orange wird, Fortschrittsbalken, markierte Antwortoptionen)
-   mit den Tokens aus basis.css/bausteine.css nachgebaut. Eigene Klassen
-   tragen bewusst das "duell-"-Praefix, damit auf dieser Seite nichts
-   mit den gleichnamigen Klassen aus dem Wochenquiz kollidiert, falls
-   beide Regelwerke je zusammen gelesen werden.
+   Die Seite bindet die gemeinsamen Quiz-Bausteine aus style.css ein.
+   Duell-spezifische Komponenten tragen trotzdem ein eigenes Praefix;
+   dadurch bleibt klar, was gemeinsames Wochenquiz-Muster und was
+   zusaetzliche Duell-Darstellung ist.
 
    Zeilenbudget: tests/frontend-architecture.test.js laesst jeder Datei
    in stil/ hoechstens 500 Zeilen - bewusst knapp gehalten.
@@ -28,7 +24,8 @@
   --duell-orange-dunkel: #92400e;
 }
 
-.duell-seite { max-width: 720px; }
+.duell-quiz-koerper { min-height: 100vh; }
+.duell-seite { max-width: 760px; }
 .duell-seite h1, .duell-seite h2 { font-family: var(--font-titel); }
 .duell-einstieg, .duell-karte p { color: var(--muted); line-height: 1.55; }
 .duell-zurueck { display: inline-block; margin-bottom: 6px; color: var(--marke); text-decoration: none; font-weight: 700; }
@@ -46,6 +43,8 @@
 }
 .duell-symbol { font-size: 2rem; display: block; margin-bottom: 4px; }
 .duell-start { display: grid; gap: 16px; margin-top: 20px; }
+.duell-einstiegskarte { margin-top: 16px; }
+.duell-einstiegskarte h2 { margin: 0 0 6px; }
 .duell-karte label { display: grid; gap: 7px; margin: 14px 0; font-weight: 700; }
 .duell-karte input[type="text"], .duell-karte input:not([type]) {
   box-sizing: border-box; width: 100%; min-height: 48px; padding: 12px;
@@ -66,6 +65,19 @@
 }
 .duell-fehler { padding: 12px; border-radius: 10px; background: var(--red-hell); color: var(--red); font-weight: 700; margin-bottom: 16px; }
 .duell-lade-hinweis { color: var(--muted); text-align: center; padding: 30px 0; }
+.duell-spiel-kopf { margin-bottom: 0; }
+
+/* Zwischenstand wie die Anzeigetafel aus dem Üben-Modus, aber mit
+   Spielern statt den abstrakten Feldern "Fragen/Richtig". */
+.duell-scoreboard { margin-bottom: 0; }
+.duell-scoreboard-spieler { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 10px; }
+.duell-scoreboard-spielerfeld {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 0; padding: 10px; border-radius: var(--radius-sm); background: #0f172a; color: #f8fafc;
+}
+.duell-scoreboard-spielerfeld strong { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.duell-scoreboard-spielerfeld span { color: #94a3b8; font-size: .75rem; }
+.duell-scoreboard-spielerfeld b { color: #4ade80; font-size: 1.25rem; }
 
 /* ---------- Letzte Duelle (Einstiegsbildschirm, Teil E) ---------- */
 .duell-letzte-duelle { margin-top: 26px; }
@@ -95,7 +107,7 @@
 
 /* ---------- Die Frage-Karte: EINE Karte pro Frage, die beim
    Beantworten die Farbe wechselt (Max' ausdrueckliche Vorgabe) ---------- */
-.duell-frage-karte { position: relative; padding: 24px 22px 22px; }
+.duell-frage-karte { position: relative; }
 .duell-frage-karte::before {
   content: ""; position: absolute; inset: 0 0 auto 0; height: 4px;
   background: linear-gradient(90deg, var(--karte-gelb), var(--duell-orange));
@@ -121,6 +133,7 @@
   min-height: 50px; padding: 10px 13px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); cursor: pointer;
   transition: border-color .15s, background .15s;
 }
+.duell-option.option { margin: 0; }
 .duell-option:hover:not(.gesperrt) { border-color: var(--marke-hell); background: var(--marke-lighter); }
 .duell-option input { width: 20px; height: 20px; accent-color: var(--marke); flex-shrink: 0; }
 .duell-option span { flex: 1; }
@@ -210,6 +223,16 @@
 
 /* ---------- Auswertungsscreen (Teil D) ---------- */
 .duell-uebersicht-kopf { margin-bottom: 16px; }
+.duell-ergebnis-banner {
+  display: flex; align-items: center; gap: 13px; margin: 0 0 14px; padding: 15px 17px;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--marke-lighter);
+}
+.duell-ergebnis-banner > span { font-size: 1.8rem; }
+.duell-ergebnis-banner strong { display: block; font: 800 1.05rem var(--font-titel); }
+.duell-ergebnis-banner p { margin: 2px 0 0; color: var(--muted); font-size: .86rem; }
+.duell-ergebnis-banner.gewonnen { background: var(--green-light); border-color: var(--green); }
+.duell-ergebnis-banner.verloren { background: var(--red-hell); border-color: var(--red); }
+.duell-ergebnis-banner.unentschieden { background: var(--duell-orange-hell); border-color: var(--duell-orange); }
 .duell-stand-reihe { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); margin-bottom: 22px; }
 .duell-stand-kachel {
   padding: 14px 16px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); box-shadow: var(--shadow);
@@ -222,6 +245,16 @@
   font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--marke-lighter); color: var(--marke-hell);
 }
 .duell-uebersicht-frage-text { font-family: var(--font-titel); font-weight: 600; margin: 0; }
+.duell-uebersicht .duell-zurueck { margin-top: 16px; }
+
+@media (max-width: 560px) {
+  .duell-seite { padding-top: 16px; }
+  .duell-scoreboard-spieler { grid-template-columns: 1fr 1fr; }
+  .duell-scoreboard-spielerfeld { padding-inline: 7px; }
+  .duell-spiel-kopf { gap: 8px; }
+  .duell-spiel-kopf > * { padding-inline: 11px; font-size: .78rem; }
+  .duell-uebersicht-frage-kopf { align-items: flex-start; }
+}
 
 @media (min-width: 720px) {
   .duell-start { grid-template-columns: 1fr 1fr; }

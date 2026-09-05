@@ -16,6 +16,8 @@
 //  aber (noch) gesperrt, beantwortet und sichtbar.
 // ============================================================
 
+import { fortsetzungLabel, mannschaftLabel, strafeLabel, ROLLEN } from "./entscheidungs-optionen.js";
+
 const esc = (t) => String(t ?? "").replace(/[&<>"']/g, (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
 
 // Reine Funktion, absichtlich exportiert - direkt testbar ohne DOM.
@@ -33,6 +35,29 @@ export function formatiereAntwort(frageEintrag, teilnehmer) {
     let text = teilnehmer.freitext || "";
     if (teilnehmer.zweiter_freitext) text += (text ? " · Ergänzung: " : "Ergänzung: ") + teilnehmer.zweiter_freitext;
     return text || "–";
+  }
+  if (frageEintrag.antworttyp === "zahl") {
+    const d = teilnehmer.details || {};
+    const wert = Number.isFinite(Number(d.wert))
+      ? new Intl.NumberFormat("de-DE", { maximumFractionDigits: 6 }).format(Number(d.wert)) : d.wert;
+    return `${wert ?? "–"} ${d.einheit || ""}`.trim();
+  }
+  if (frageEintrag.antworttyp === "entscheidung") {
+    const a = teilnehmer.details?.antwort || {};
+    const teile = [];
+    if (a.spielfortsetzung) {
+      let fort = fortsetzungLabel(a.spielfortsetzung);
+      if (a.fortsetzung_fuer) fort += ` für ${mannschaftLabel(a.fortsetzung_fuer)}`;
+      if (a.fortsetzung_ort) fort += ` · ${a.fortsetzung_ort}`;
+      teile.push(fort);
+    }
+    const strafen = Array.isArray(a.strafen) ? a.strafen : [];
+    if (strafen.length) {
+      teile.push(strafen.map((s) => `${strafeLabel(s.strafe)}${s.fuer_mannschaft ? ` für ${mannschaftLabel(s.fuer_mannschaft)}` : ""}${s.strafe_fuer_rolle ? ` (${ROLLEN[s.strafe_fuer_rolle] || s.strafe_fuer_rolle}${s.rueckennummer ? `, Nr. ${s.rueckennummer}` : ""})` : ""}`).join("; "));
+    } else if (a.persoenliche_strafe === "keine" || a.strafen) {
+      teile.push("Keine persönliche Strafe");
+    }
+    return teile.join(" · ") || "–";
   }
   const optionen = frageEintrag.antwortoptionen || [];
   const gewaehlt = teilnehmer.auswahl || [];
@@ -115,21 +140,59 @@ function baueStandKachel(name, istIch, fragen) {
   return kachel;
 }
 
+function baueErgebnisBanner(fragen, namen) {
+  const staende = namen.map((name) => ({
+    name,
+    istIch: fragen.some((f) => f.teilnehmer.find((t) => t.name === name)?.ist_ich),
+    ...eigenerStand(fragen, name),
+  }));
+  const ich = staende.find((stand) => stand.istIch);
+  if (!ich?.beantwortet) return null;
+
+  const alleFertig = staende.every((stand) => stand.beantwortet >= stand.gesamt);
+  const banner = document.createElement("section");
+  banner.className = "duell-ergebnis-banner";
+
+  if (!alleFertig) {
+    const offene = staende.filter((stand) => stand.beantwortet < stand.gesamt && !stand.istIch).length;
+    banner.classList.add("laeuft");
+    banner.innerHTML = `<span>⏳</span><div><strong>${ich.beantwortet >= ich.gesamt ? "Du bist fertig" : "Duell läuft"}</strong>
+      <p>${offene ? `${offene} ${offene === 1 ? "Person spielt" : "Personen spielen"} noch.` : "Spiele die offenen Fragen weiter."}</p></div>`;
+    return banner;
+  }
+
+  const hoechsterStand = Math.max(...staende.map((stand) => stand.richtig));
+  const gewinner = staende.filter((stand) => stand.richtig === hoechsterStand);
+  const ichGewinne = gewinner.some((stand) => stand.istIch);
+  const unentschieden = gewinner.length > 1;
+  banner.classList.add(ichGewinne && !unentschieden ? "gewonnen" : unentschieden ? "unentschieden" : "verloren");
+  const titel = unentschieden ? "Unentschieden" : ichGewinne ? "Du gewinnst das Duell" : `${gewinner[0].name} gewinnt`;
+  const punktText = `${ich.richtig} von ${ich.gesamt} Fragen richtig`;
+  banner.innerHTML = `<span>${unentschieden ? "🤝" : ichGewinne ? "🏆" : "⚔️"}</span><div><strong>${esc(titel)}</strong><p>${esc(punktText)}</p></div>`;
+  return banner;
+}
+
 // Der komplette Auswertungsscreen (Teil D): Gesamtstand oben, darunter
 // jede der 5 Fragen mit ihrem Vergleichsblock. "aufWeiterspielen" bleibt
 // weg, wenn das Duell fuer diese Person schon fertig ist.
-export function baueUebersicht(verlauf, { weiterspielenErlaubt = false, aufWeiterspielen } = {}) {
+export function baueUebersicht(verlauf, {
+  weiterspielenErlaubt = false, aufWeiterspielen, aufNeuesDuell, aufDuellListe,
+} = {}) {
   const wrap = document.createElement("div");
   wrap.className = "duell-uebersicht";
 
   const kopf = document.createElement("div");
   kopf.className = "duell-uebersicht-kopf";
-  kopf.innerHTML = `<h1>Duell ${esc(verlauf.code)}</h1><p>Auswertungsstand über alle 5 Fragen.</p>`;
+  kopf.innerHTML = `<div class="historie-kopf"><button type="button" class="sekundaer-button" data-duell-liste>Duellübersicht</button>
+    <button type="button" class="historie-neu-laden-button" data-neues-duell>Neues Duell</button></div>
+    <h1>Auswertung</h1><p>Duell ${esc(verlauf.code)} · Runde für Runde im Vergleich.</p>`;
   wrap.appendChild(kopf);
 
   const namen = [...new Set((verlauf.fragen || []).flatMap((f) => f.teilnehmer.map((t) => t.name)))];
+  const ergebnis = baueErgebnisBanner(verlauf.fragen || [], namen);
+  if (ergebnis) wrap.appendChild(ergebnis);
   const standReihe = document.createElement("div");
-  standReihe.className = "duell-stand-reihe";
+  standReihe.className = "historie-scoreboard duell-stand-reihe";
   for (const name of namen) {
     const istIch = verlauf.fragen.some((f) => f.teilnehmer.find((t) => t.name === name)?.ist_ich);
     standReihe.appendChild(baueStandKachel(name, istIch, verlauf.fragen));
@@ -138,7 +201,7 @@ export function baueUebersicht(verlauf, { weiterspielenErlaubt = false, aufWeite
 
   for (const frageEintrag of verlauf.fragen || []) {
     const block = document.createElement("section");
-    block.className = "duell-uebersicht-frage";
+    block.className = "frage-karte frage-karte-historie duell-uebersicht-frage";
     block.dataset.frageId = frageEintrag.frage_id;
     const kopfZeile = document.createElement("div");
     kopfZeile.className = "duell-uebersicht-frage-kopf";
@@ -152,7 +215,7 @@ export function baueUebersicht(verlauf, { weiterspielenErlaubt = false, aufWeite
   if (weiterspielenErlaubt && typeof aufWeiterspielen === "function") {
     const knopf = document.createElement("button");
     knopf.type = "button";
-    knopf.className = "duell-haupt";
+    knopf.className = "historie-weiter-button";
     knopf.textContent = "Weiterspielen";
     knopf.addEventListener("click", aufWeiterspielen);
     wrap.appendChild(knopf);
@@ -163,6 +226,9 @@ export function baueUebersicht(verlauf, { weiterspielenErlaubt = false, aufWeite
   zurueck.href = "modus.html";
   zurueck.textContent = "← Zurück zu den Modi";
   wrap.appendChild(zurueck);
+
+  kopf.querySelector("[data-neues-duell]")?.addEventListener("click", () => aufNeuesDuell?.());
+  kopf.querySelector("[data-duell-liste]")?.addEventListener("click", () => aufDuellListe?.());
 
   return wrap;
 }

@@ -14,6 +14,8 @@
     getZugang, zeigeFehler, versteckeFehler, frageAnsicht,
     baueVideoEinbettungModal, baueVorlesenButton, baueWarumButton,
     beiWochenfrageBeantwortet,
+    entscheidungSenden = null,
+    nachEntscheidung = null,
   }) {
     let optionen = null;
 
@@ -544,24 +546,35 @@
       button.textContent = "Wird geprüft …";
       const feedback = container.querySelector(".entscheidung-feedback");
       try {
-        const zugang = getZugang();
-        const antwort = await fetch("/api/entscheidung-bewerten", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            schiedsrichterId: zugang.schiedsrichterId,
-            frageId: frage.id,
-            pin: zugang.pin,
-            antwort: baueAntwort(frage, wahl),
-          }),
-        });
-        const daten = await antwort.json();
-        if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
-        container.replaceWith(baueBeantworteteFrageElement(frage, {
+        let daten;
+        const gegebeneAntwort = baueAntwort(frage, wahl);
+        if (typeof entscheidungSenden === "function") {
+          daten = await entscheidungSenden(frage, gegebeneAntwort);
+        } else {
+          const zugang = getZugang();
+          const antwort = await fetch("/api/entscheidung-bewerten", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              schiedsrichterId: zugang.schiedsrichterId,
+              frageId: frage.id,
+              pin: zugang.pin,
+              antwort: gegebeneAntwort,
+            }),
+          });
+          daten = await antwort.json();
+          if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
+        }
+        const beantworteteKarte = baueBeantworteteFrageElement(frage, {
           korrekt: daten.korrekt,
           entscheidung: { antwort: daten.antwort, loesung: daten.loesung, ergebnis: daten.ergebnis },
-        }));
-        beiWochenfrageBeantwortet();
+        });
+        container.replaceWith(beantworteteKarte);
+        if (typeof nachEntscheidung === "function") {
+          nachEntscheidung(frage, daten, beantworteteKarte);
+        } else {
+          beiWochenfrageBeantwortet();
+        }
       } catch (fehler) {
         feedback.hidden = false;
         feedback.classList.add("falsch");

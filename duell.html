@@ -6,17 +6,26 @@
   <meta name="robots" content="noindex"><link rel="icon" href="bilder/logo.png">
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="stil/basis.css"><link rel="stylesheet" href="stil/kopf-fuss.css">
-  <link rel="stylesheet" href="stil/bausteine.css"><link rel="stylesheet" href="stil/anmeldung.css">
-  <link rel="stylesheet" href="stil/profil.css"><link rel="stylesheet" href="stil/video-player.css"><link rel="stylesheet" href="stil/duell.css">
-</head><body data-seitenname="Quiz-Duell">
+  <link rel="stylesheet" href="stil/basis.css"><link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="stil/anmeldung.css"><link rel="stylesheet" href="stil/profil.css">
+  <link rel="stylesheet" href="stil/flexible-answers.css"><link rel="stylesheet" href="stil/wochen-entscheidung.css">
+  <link rel="stylesheet" href="stil/video-player.css"><link rel="stylesheet" href="stil/duell.css">
+</head><body data-seitenname="Quiz-Duell" class="duell-quiz-koerper">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
-  <header class="seiten-kopf"><div class="kopf-innen">
-    <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40"><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
-    <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
-    <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><a href="regeluebersicht.html">Regeln</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
+  <header class="kopf kopf-uebung" id="kopf"><div class="kopf-inhalt">
+    <div class="kopf-titelzeile"><span class="ball" aria-hidden="true">⚔️</span><div>
+      <h1 id="duell-kopf-titel">Quiz-Duell</h1>
+      <p class="subtitle" id="duell-kopf-untertitel">Fünf frühere Wochenfragen – direkt gegeneinander.</p>
+    </div><a href="modus.html" class="heim-knopf" aria-label="Zurück zu den Modi" title="Zurück zu den Modi">
+      <svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M15.5 5 8.5 12l7 7-1.5 1.5L5.5 12 14 3.5z"/></svg>
+    </a></div>
+    <div id="duell-kopf-fortschritt" class="fortschritt-wrap" hidden><div class="fortschritt-zeile">
+      <span id="duell-kopf-fortschritt-text">Frage 1 von 5</span><span id="duell-kopf-code"></span>
+    </div><div class="fortschritt-track" role="progressbar" aria-label="Fortschritt im Duell" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div id="duell-kopf-fortschritt-fill" class="fortschritt-fill"></div>
+    </div></div>
   </div></header>
-  <main class="inhalt duell-seite" id="inhalt" tabindex="-1"><div id="duellBereich" aria-live="polite"><p>Wird geladen …</p></div></main>
+  <main class="wrap duell-seite" id="inhalt" tabindex="-1"><div id="duellBereich" aria-live="polite"><p>Wird geladen …</p></div></main>
   <div id="video-gross-overlay" class="video-gross-overlay" hidden>
     <div class="video-gross-inhalt" role="dialog" aria-modal="true" aria-label="Video ansehen">
       <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button" aria-label="Video schließen" title="Video schließen">
@@ -25,9 +34,10 @@
       <div id="video-gross-spieler-halter" class="video-gross-spieler-halter"></div>
     </div>
   </div>
-  <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a></div></footer>
+  <footer class="fuss"><div class="fuss-inhalt"><a href="impressum.html">Impressum</a><span class="fuss-trenner">·</span><a href="datenschutz.html">Datenschutz</a><span class="fuss-trenner">·</span><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a></div></footer>
   <script src="src/core/anmeldung.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script>
   <script src="src/core/quiz-utils.js"></script><script src="src/core/rpc.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script>
   <script src="src/ui/zeichen-zaehler.js"></script><script src="src/features/video-player.js"></script>
+  <script src="src/features/decision-answers.js"></script>
   <script type="module" src="seite.js"></script><script type="module" src="src/website/duell-seite.js"></script>
 </body></html>
