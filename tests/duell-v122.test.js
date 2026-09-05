@@ -22,6 +22,13 @@ test("ein gespeichertes altes Duell öffnet nicht mehr automatisch", async () =>
   assert.match(js, /neuesDuellStarten/);
 });
 
+test("der kompakte Duellkopf initialisiert trotzdem die gemeinsame Vereinssitzung", async () => {
+  const js = await lese("src/website/duell-seite.js");
+  assert.match(js, /SchiriAnmeldung\.erstelleAnmeldung/);
+  assert.match(js, /SchiriLoginDialog\.erstelleLoginDialog/);
+  assert.match(js, /globalThis\.SchiriSeitenAnmeldung = bereit/);
+});
+
 test("Zahl und Icon sind im Duell echte serverseitige Antwortwege", async () => {
   const sql = await lese("supabase/migrations/20260905110000_v122_duell_alle_antworttypen.sql");
   const zugriff = await lese("src/website/duell-zugriff.js");

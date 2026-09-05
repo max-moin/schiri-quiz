@@ -31,8 +31,30 @@ const kopfFortschritt = document.getElementById("duell-kopf-fortschritt");
 const kopfFortschrittText = document.getElementById("duell-kopf-fortschritt-text");
 const kopfCode = document.getElementById("duell-kopf-code");
 const kopfFill = document.getElementById("duell-kopf-fortschritt-fill");
-const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung || null;
-const loginDialog = globalThis.SchiriSeitenAnmeldung?.loginDialog || null;
+
+// seite.js montiert die gemeinsame Anmeldung normalerweise zusammen mit
+// der Vereinsnavigation. duell.html hat absichtlich den kompakten
+// Wochenquiz-Kopf und damit keinen `.seiten-kopf .kopf-innen`. Deshalb
+// initialisiert diese Seite den vorhandenen Anmeldebaustein selbst.
+function holeSeitenAnmeldung() {
+  if (globalThis.SchiriSeitenAnmeldung) return globalThis.SchiriSeitenAnmeldung;
+  if (!globalThis.SchiriAnmeldung || !globalThis.SchiriLoginDialog || !globalThis.SchiriQuizMaskedInputs) {
+    return { anmeldung: null, loginDialog: null };
+  }
+  const anmeldung = globalThis.SchiriAnmeldung.erstelleAnmeldung({
+    adresse: DATENBANK.adresse,
+    oeffentlicherSchluessel: DATENBANK.oeffentlicherSchluessel,
+  });
+  const loginDialog = globalThis.SchiriLoginDialog.erstelleLoginDialog({
+    anmeldung,
+    maskierung: globalThis.SchiriQuizMaskedInputs,
+  });
+  const bereit = Object.freeze({ anmeldung, loginDialog });
+  globalThis.SchiriSeitenAnmeldung = bereit;
+  return bereit;
+}
+
+const { anmeldung, loginDialog } = holeSeitenAnmeldung();
 const zaehlwerkModul = globalThis.SchiriZeichenZaehler || null;
 const api = erstelleDuellZugriff(DATENBANK);
 
