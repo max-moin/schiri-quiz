@@ -175,8 +175,22 @@ function baueFortschrittHtml(f) {
 
 function mediumHtml(f) {
   if (f.medium === "bild" && f.bild_base64) return `<img class="duell-medium" src="data:${esc(f.bild_mime || "image/jpeg")};base64,${f.bild_base64}" alt="${esc(f.bild_alt || "Spielsituation")}">`;
-  if (f.medium === "video" && f.video_url) return `<a class="duell-video" href="${esc(f.video_url)}" target="_blank" rel="noopener noreferrer">▶ Videoausschnitt öffnen</a>`;
+  if (f.medium === "video" && f.video_url) return `<div class="duell-video-halter" data-duell-video></div>`;
   return "";
+}
+
+function verdrahteMedium(f) {
+  if (f.medium !== "video" || !f.video_url) return;
+  const halter = root.querySelector("[data-duell-video]");
+  const player = globalThis.SchiriQuizVideoPlayer?.baueVideoEinbettungModal(
+    f.video_url,
+    f.video_start_sekunden,
+    f.video_end_sekunden,
+    Boolean(f.video_stumm),
+    f.antwort_hinweis || ""
+  );
+  if (halter && player) halter.replaceChildren(player);
+  else if (halter) halter.innerHTML = `<a class="duell-video" href="${esc(f.video_url)}" target="_blank" rel="noopener noreferrer">Videoausschnitt öffnen</a>`;
 }
 
 // "ausgewaehlt": eigene Auswahl (zum Wiedererkennen nach dem Absenden).
@@ -212,6 +226,7 @@ function frageAnsicht(f) {
   root.innerHTML = `${baueFortschrittHtml(f)}
     <section class="duell-karte duell-frage-karte" id="duellKarte">${mediumHtml(f)}<h1 class="duell-frage-text">${esc(f.frage_text)}</h1>
       <form data-antwort>${inhalt}<button class="duell-haupt" type="submit">Antwort abgeben</button></form></section>`;
+  verdrahteMedium(f);
   if (f.antworttyp === "freitext") verdrahteZeichenZaehler('[name="freitext"]', "[data-zaehler]");
   root.querySelector("[data-antwort]").addEventListener("submit", antwortenAbgeben);
 }
@@ -247,6 +262,7 @@ function zeigeAuswahlErgebnis(f, auswahl, ergebnis) {
       <div class="duell-optionen">${optionenHtml}</div>
       <div class="duell-feedback ${richtig ? "richtig" : "falsch"}"><span class="duell-feedback-symbol">${richtig ? "✓" : "✕"}</span>${richtig ? "Richtig!" : "Leider nicht richtig."}</div>
       <div data-anschluss></div></section>`;
+  verdrahteMedium(f);
   naechsteSchritte(f);
 }
 
@@ -274,6 +290,7 @@ function zeigeFreitextErgebnis(f, ersterText, ergebnis, zweiterText = null) {
       ${!wartet && ergebnis.musterantwort ? `<div class="duell-loesung"><b>Richtige Antwort</b><p>${esc(ergebnis.musterantwort)}</p></div>` : ""}
       ${wartet ? baueErgaenzungHtml(ergebnis.nachfrage) : ""}
       <div data-anschluss></div></section>`;
+  verdrahteMedium(f);
   if (wartet) {
     verdrahteZeichenZaehler('[name="ergaenzung"]', "[data-zaehler]");
     root.querySelector("[data-ergaenzen]").addEventListener("submit", (event) => ergaenzungAbschicken(event, f, ersterText));

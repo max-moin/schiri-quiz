@@ -1,0 +1,124 @@
+/* Gemeinsamer Modal-first-Videoplayer für Wochenquiz und Duell.
+   Die Duellseite lädt bewusst nicht das große Legacy-style.css; deshalb
+   stehen die ausschließlich vom VideoPlayer erzeugten Bausteine hier als
+   kleines, eigenständiges Modul. */
+:root { --blue: var(--blau, #2563eb); }
+
+.video-einbettung { margin: 0 0 14px; display: flex; flex-direction: column; gap: 8px; }
+.video-karten-aktionen { display: flex; justify-content: flex-end; }
+.video-info-button {
+  min-height: 40px; border: 1.5px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--blue); padding: 7px 13px;
+  font-family: inherit; font-size: .78rem; font-weight: 600; line-height: 1.2; cursor: pointer;
+}
+.video-info-button:hover, .video-info-button:focus-visible { border-color: var(--blue); background: var(--bg-end); }
+.video-info-panel {
+  border: 1px solid var(--border); border-left: 4px solid var(--blue);
+  border-radius: var(--radius-sm); background: var(--bg-end); padding: 12px 14px;
+  color: var(--text); font-size: .82rem; line-height: 1.5;
+}
+.video-info-panel[hidden] { display: none; }
+.video-info-panel p { margin: 0; }
+.video-info-panel p + p { margin-top: 8px; }
+.video-info-panel .video-info-titel { margin-top: 12px; font-weight: 750; color: var(--text); }
+.video-info-panel .video-info-titel:first-child { margin-top: 0; }
+.video-info-zeit { font-weight: 700; }
+.video-info-fallback { color: var(--muted); font-size: .76rem; }
+
+.video-platzhalter {
+  position: relative; aspect-ratio: 16/9; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; width: 100%; padding: 16px;
+  border: 0; border-radius: var(--radius-sm); overflow: hidden; cursor: pointer;
+  background: linear-gradient(160deg, #1e293b, #0f172a); color: #fff; font-family: inherit;
+}
+.video-platzhalter:disabled { cursor: default; opacity: .85; }
+.video-platzhalter-icon {
+  width: 56px; height: 56px; border-radius: 50%; background: rgb(255 255 255/.12);
+  display: grid; place-items: center; font-size: 1.6rem; transition: background .15s, transform .15s;
+}
+.video-platzhalter:hover .video-platzhalter-icon { background: var(--marke); transform: scale(1.06); }
+.video-platzhalter-text { font-size: .85rem; font-weight: 600; color: rgb(255 255 255/.85); }
+.video-platzhalter-hinweis { font-size: .72rem; color: rgb(255 255 255/.6); max-width: 260px; text-align: center; }
+.video-platzhalter-angesehen { background: linear-gradient(160deg, #1e2f28, #0f1f19); }
+.video-platzhalter-fehler { border: 2px solid rgb(248 113 113/.8); background: linear-gradient(160deg, #3b2024, #211014); }
+.video-platzhalter-badge {
+  position: absolute; top: 10px; right: 10px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid rgb(34 197 94/.55); background: rgb(34 197 94/.22);
+  color: #86efac; font-size: .68rem; font-weight: 700;
+}
+
+.video-spieler-buehne { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.video-spieler-halter {
+  position: relative; aspect-ratio: 16/9; width: 100%; min-height: 200px;
+  border-radius: var(--radius-sm); overflow: hidden; background: #000;
+}
+.video-spieler-halter iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.video-bedienleiste { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.video-abspiel-button, .video-reset-button {
+  min-height: 42px; border-radius: 999px; border: 1.5px solid var(--border);
+  background: var(--card); color: var(--text); padding: 8px 14px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  font-family: inherit; font-size: .8rem; font-weight: 700; cursor: pointer;
+}
+.video-reset-button { background: transparent; color: var(--blue); }
+.video-abspiel-button:hover, .video-reset-button:hover { border-color: var(--blue); background: var(--bg-end); }
+.video-abspiel-button:disabled, .video-reset-button:disabled { cursor: wait; opacity: .55; }
+.video-abspiel-button.laeuft { border-color: var(--blue); color: var(--blue); }
+.video-button-symbol { display: inline-flex; align-items: center; justify-content: center; min-width: 1.1em; line-height: 1; }
+.video-status { flex-basis: 100%; color: var(--muted); font-size: .76rem; line-height: 1.4; }
+.video-status[hidden] { display: none; }
+
+.video-gross-overlay {
+  position: fixed; inset: 0; z-index: 60; display: flex; align-items: center;
+  justify-content: center; padding: 16px; background: rgb(6 10 20/.86);
+}
+.video-gross-overlay[hidden] { display: none; }
+body.video-dialog-offen { overflow: hidden; }
+.video-gross-inhalt { position: relative; width: 100%; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.video-gross-spieler-halter { position: relative; width: min(94vw, calc((84vh - 58px) * 16 / 9)); margin-top: 56px; }
+.video-gross-spieler-halter .video-spieler-buehne, .video-dialog-sitzung { width: 100%; }
+.video-ladeanzeige { position: absolute; inset: 0; display: grid; place-items: center; margin: 0; color: rgb(255 255 255/.86); font-weight: 650; }
+.video-dialog-karte {
+  aspect-ratio: 16/9; min-height: 240px; border-radius: var(--radius-sm);
+  background: linear-gradient(155deg, #17243a, #0f172a); color: #fff;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 10px; padding: 28px; text-align: center;
+}
+.video-dialog-karte-icon { width: 54px; height: 54px; border-radius: 50%; display: grid; place-items: center; background: rgb(255 255 255/.12); color: #86efac; font-size: 1.55rem; font-weight: 800; }
+.video-dialog-karte h3, .video-dialog-karte p { margin: 0; }
+.video-dialog-karte p { max-width: 440px; color: rgb(255 255 255/.76); font-size: .88rem; line-height: 1.5; }
+.video-dialog-karte-aktionen { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+.video-dialog-primaer-button, .video-dialog-sekundaer-button { min-height: 44px; border-radius: 999px; padding: 9px 16px; font-family: inherit; font-size: .82rem; font-weight: 700; line-height: 1.2; cursor: pointer; }
+.video-dialog-primaer-button { border: 1px solid var(--marke); background: var(--marke); color: #fff; }
+.video-dialog-sekundaer-button { border: 1px solid rgb(255 255 255/.35); background: rgb(255 255 255/.08); color: #fff; }
+.video-gross-schliessen-button {
+  position: absolute; top: max(12px, env(safe-area-inset-top)); right: max(12px, env(safe-area-inset-right)); z-index: 5;
+  min-width: 44px; min-height: 44px; padding: 9px 16px; border: 1px solid rgb(255 255 255/.35);
+  border-radius: 999px; background: rgb(15 23 42/.82); color: #fff; backdrop-filter: blur(6px);
+  font-family: inherit; font-size: .82rem; font-weight: 600; cursor: pointer;
+}
+.video-gross-schliessen-button:hover { background: rgb(15 23 42/.95); }
+.video-gross-spieler-halter .video-bedienleiste { padding-bottom: env(safe-area-inset-bottom); }
+.video-gross-spieler-halter .video-abspiel-button, .video-gross-spieler-halter .video-reset-button {
+  min-height: 46px; padding: 10px 18px; font-size: .9rem; color: #fff;
+  background: rgb(15 23 42/.88); border: 1px solid rgb(255 255 255/.25);
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  .video-gross-overlay { padding: 0; align-items: stretch; }
+  .video-gross-inhalt { height: 100dvh; gap: 0; }
+  .video-gross-spieler-halter {
+    width: 100vw; height: 100dvh; margin-top: 0;
+    padding: max(6px, env(safe-area-inset-top)) max(6px, env(safe-area-inset-right)) max(6px, env(safe-area-inset-bottom)) max(6px, env(safe-area-inset-left));
+    box-sizing: border-box;
+  }
+  .video-gross-spieler-halter .video-dialog-sitzung { height: 100%; }
+  .video-gross-spieler-halter .video-spieler-buehne { height: 100%; display: grid; grid-template-columns: minmax(0,1fr) 52px; grid-template-rows: minmax(0,1fr); align-items: center; gap: 6px; }
+  .video-gross-spieler-halter .video-spieler-halter { grid-column: 1; grid-row: 1; justify-self: center; width: min(100%, calc((100dvh - 12px) * 16 / 9)); min-height: 0; }
+  .video-gross-spieler-halter .video-bedienleiste { grid-column: 2; grid-row: 1; align-self: stretch; flex-direction: column; flex-wrap: nowrap; justify-content: flex-end; padding: 58px 0 max(2px, env(safe-area-inset-bottom)); gap: 8px; }
+  .video-gross-overlay .video-gross-schliessen-button { top: max(6px, env(safe-area-inset-top)); right: max(6px, env(safe-area-inset-right)); width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+  .video-gross-spieler-halter .video-abspiel-button, .video-gross-spieler-halter .video-reset-button { width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+  .video-gross-overlay .video-button-beschriftung { display: none; }
+  .video-gross-spieler-halter .video-status { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .video-gross-spieler-halter .video-dialog-karte { width: min(calc(100vw - 70px), calc((100dvh - 12px) * 16 / 9)); min-height: 0; max-height: calc(100dvh - 12px); margin-right: 58px; padding: 18px; }
+}

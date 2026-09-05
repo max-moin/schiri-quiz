@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="stil/basis.css"><link rel="stylesheet" href="stil/kopf-fuss.css">
   <link rel="stylesheet" href="stil/bausteine.css"><link rel="stylesheet" href="stil/anmeldung.css">
-  <link rel="stylesheet" href="stil/profil.css"><link rel="stylesheet" href="stil/duell.css">
+  <link rel="stylesheet" href="stil/profil.css"><link rel="stylesheet" href="stil/video-player.css"><link rel="stylesheet" href="stil/duell.css">
 </head><body data-seitenname="Quiz-Duell">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   <header class="seiten-kopf"><div class="kopf-innen">
@@ -17,9 +17,17 @@
     <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><a href="regeluebersicht.html">Regeln</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
   </div></header>
   <main class="inhalt duell-seite" id="inhalt" tabindex="-1"><div id="duellBereich" aria-live="polite"><p>Wird geladen …</p></div></main>
+  <div id="video-gross-overlay" class="video-gross-overlay" hidden>
+    <div class="video-gross-inhalt" role="dialog" aria-modal="true" aria-label="Video ansehen">
+      <button id="video-gross-schliessen-button" class="video-gross-schliessen-button" type="button" aria-label="Video schließen" title="Video schließen">
+        <span class="video-button-symbol" aria-hidden="true">✕</span><span class="video-button-beschriftung">Schließen</span>
+      </button>
+      <div id="video-gross-spieler-halter" class="video-gross-spieler-halter"></div>
+    </div>
+  </div>
   <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a></div></footer>
   <script src="src/core/anmeldung.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script>
   <script src="src/core/quiz-utils.js"></script><script src="src/core/rpc.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script>
-  <script src="src/ui/zeichen-zaehler.js"></script>
+  <script src="src/ui/zeichen-zaehler.js"></script><script src="src/features/video-player.js"></script>
   <script type="module" src="seite.js"></script><script type="module" src="src/website/duell-seite.js"></script>
 </body></html>

@@ -89,6 +89,17 @@ test("die Duell-Seite lädt den Zeichenzähler-Baustein (kein hartes maxlength m
   assert.match(lies("duell.html"), /src="src\/ui\/zeichen-zaehler\.js"/);
 });
 
+test("Video-Duelle nutzen denselben kontrollierten Großbild-Player wie das Wochenquiz", () => {
+  const html = lies("duell.html");
+  const seite = lies("src/website/duell-seite.js");
+  assert.match(html, /src="src\/features\/video-player\.js"/);
+  assert.match(html, /id="video-gross-overlay"/);
+  assert.match(html, /href="stil\/video-player\.css"/);
+  assert.match(seite, /SchiriQuizVideoPlayer\?\.baueVideoEinbettungModal/);
+  assert.doesNotMatch(seite, /if \(f\.medium === "video"[^\n]+target="_blank"/);
+  assert.match(lies("supabase/migrations/20260905094500_v121_duell_antwort_hinweis.sql"), /'antwort_hinweis',v_f\.antwort_hinweis/);
+});
+
 test("Emoji-Gimmick bleibt als Gimmick gekennzeichnet und beschriftet die Reaktionsknöpfe nicht mit Wörtern", () => {
   const reaktionen = lies("src/website/duell-reaktionen.js");
   assert.match(reaktionen, /Gimmick/);
