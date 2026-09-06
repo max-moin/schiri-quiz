@@ -119,6 +119,28 @@ function duellKachel() {
     </a>`;
 }
 
+function uebenKachel(freigeschaltet) {
+  return freigeschaltet
+    ? `<a class="modus-kachel" href="quiz.html#ueben">
+        <div class="modus-kopf"><span class="modus-name">Üben</span><span class="modus-pille erledigt">Frei</span></div>
+        <p class="modus-text">Alte Wochenfragen wiederholen – ohne Einfluss auf das Scoreboard.</p>
+        <span class="modus-fuss">Deine Wochenrunde ist abgeschlossen</span>
+      </a>`
+    : `<a class="modus-kachel gesperrt" href="quiz.html">
+        <div class="modus-kopf"><span class="modus-name">Üben</span><span class="modus-pille">Noch gesperrt</span></div>
+        <p class="modus-text">Schließe zuerst die Fragen dieser Woche ab. Danach wird der Übungsmodus freigeschaltet.</p>
+        <span class="modus-fuss">Zur offenen Wochenrunde</span>
+      </a>`;
+}
+
+function vorschlagKachel() {
+  return `<a class="modus-kachel" href="frage-vorschlagen.html">
+      <div class="modus-kopf"><span class="modus-name">Frage vorschlagen</span><span class="modus-pille neu">Mitgestalten</span></div>
+      <p class="modus-text">Eine Regelfrage vollständig ausarbeiten, belegen und zur Prüfung einreichen.</p>
+      <span class="modus-fuss">Du siehst später Status und Änderungen</span>
+    </a>`;
+}
+
 function gastKachel() {
   return `
     <a class="modus-kachel hervorgehoben" href="quiz.html#gast">
@@ -138,8 +160,8 @@ function zeichne({ woche, statistik, angemeldet }) {
 
   const kacheln = angemeldet
     ? (wochenfragenFertig
-        ? [entscheidenKachel(statistik, true), wochenKachel(woche), duellKachel()]
-        : [wochenKachel(woche), entscheidenKachel(statistik, false), duellKachel()])
+        ? [entscheidenKachel(statistik, true), wochenKachel(woche), uebenKachel(true), duellKachel(), vorschlagKachel()]
+        : [wochenKachel(woche), uebenKachel(false), entscheidenKachel(statistik, false), duellKachel(), vorschlagKachel()])
     : [gastKachel(), duellKachel()];
 
   bereich.innerHTML = `
@@ -150,10 +172,6 @@ function zeichne({ woche, statistik, angemeldet }) {
         : "Wähle das Gastquiz oder tritt mit einem Code einem Duell bei. Deine persönlichen Wochenfragen bleiben geschützt."}
     </p>
     <div class="modus-liste">${kacheln.join("")}</div>
-    <p class="modus-nachsatz">
-      Alte Fragen noch einmal durchgehen? Das findest du
-      <a href="quiz.html">im Quiz ganz unten</a>.
-    </p>
     <p class="modus-nachsatz">
       Etwas erlebt, das nicht ins Quiz gehört – ein Regelfall, ein Vorfall
       oder einfach ein Gesprächswunsch? Dafür gibt es den

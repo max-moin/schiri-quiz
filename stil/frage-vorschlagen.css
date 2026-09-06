@@ -1,0 +1,24 @@
+.vorschlag-seite { max-width: 1180px; }
+.vorschlag-kopf { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin:28px 0 18px; }
+.vorschlag-kopf h1,.vorschlag-hinweis h1 { margin-bottom:6px; }
+.vorschlag-kopf p { margin:0; color:var(--muted); max-width:720px; }
+.vorschlag-layout { display:grid; grid-template-columns:minmax(0,1.7fr) minmax(280px,.8fr); gap:18px; align-items:start; }
+.vorschlag-karte { padding:20px; background:var(--card); border:1px solid var(--border); border-radius:var(--radius); box-shadow:var(--shadow); }
+.vorschlag-karte h2 { margin:22px 0 10px; font-size:1.05rem; }
+.vorschlag-karte h2:first-child { margin-top:0; }
+.formular-raster { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.vorschlag-karte label { display:grid; gap:6px; margin:11px 0; font-weight:650; font-size:.9rem; }
+.vorschlag-karte input,.vorschlag-karte select,.vorschlag-karte textarea { width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:10px; padding:11px 12px; background:var(--surface); color:inherit; font:inherit; }
+.vorschlag-karte textarea { resize:vertical; line-height:1.45; }
+.formular-aktionen { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; margin-top:18px; }
+.formular-aktionen button,.primaer-link { min-height:44px; padding:10px 16px; border-radius:10px; font-weight:700; }
+.vorschlag-eintrag { width:100%; text-align:left; padding:12px; margin:0 0 9px; border:1px solid var(--border); border-radius:12px; background:var(--surface); color:inherit; cursor:pointer; }
+.vorschlag-eintrag strong,.vorschlag-eintrag span { display:block; }
+.vorschlag-eintrag span { color:var(--muted); font-size:.8rem; margin-top:4px; }
+.status { display:inline-block!important; width:auto; padding:3px 8px; border-radius:999px; background:var(--marke-lighter); color:var(--marke)!important; font-weight:700; }
+.vorschlag-meldung { min-height:1.3em; color:var(--muted); }
+.version { padding:12px 0; border-top:1px solid var(--border); }
+.version:first-child { border-top:0; }
+.version details { margin-top:7px; }
+.geaendert { color:#b45309; font-weight:700; }
+@media(max-width:760px){.vorschlag-layout{grid-template-columns:1fr}.formular-raster{grid-template-columns:1fr}.vorschlag-kopf{display:block}.vorschlag-kopf button{margin-top:12px}}

@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Frage vorschlagen – Schiri-Quiz</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/frage-vorschlagen.css" />
+</head>
+<body>
+  <header class="seiten-kopf"><div class="kopf-innen">
+    <a class="marken-knopf" href="modus.html"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" /><span class="marken-titel">Schiri-Quiz</span></a>
+    <a class="sekundaer-button" href="modus.html">Zurück zu den Modi</a>
+  </div></header>
+  <main class="inhalt vorschlag-seite" id="inhalt">
+    <div id="vorschlag-zugang" class="vorschlag-hinweis" hidden>
+      <h1>Frage vorschlagen</h1>
+      <p>Dieser Bereich ist nur für angemeldete Schiedsrichter des Vereins verfügbar.</p>
+      <a class="primaer-link" href="modus.html">Zum Anmelden</a>
+    </div>
+    <div id="vorschlag-inhalt" hidden>
+      <div class="vorschlag-kopf">
+        <div><h1>Frage vorschlagen</h1><p>Arbeite die Frage mit Lösung und belastbarem Regelbeleg aus. Veröffentlicht wird sie erst nach Prüfung durch den Obmann.</p></div>
+        <button id="neuer-vorschlag" type="button" class="sekundaer-button">Neue Frage</button>
+      </div>
+      <section class="vorschlag-layout">
+        <form id="vorschlag-formular" class="vorschlag-karte">
+          <input id="vorschlag-id" type="hidden" />
+          <h2>1. Frage</h2>
+          <div class="formular-raster">
+            <label>Kurztitel<input id="kurztitel" maxlength="120" placeholder="z. B. Einwurf – Gegner zu nah" /></label>
+            <label>Medium<select id="medium"><option value="text">Text</option><option value="video">Video</option><option value="bild">Bild</option></select></label>
+            <label>Antworttyp<select id="antworttyp"><option value="multiple_choice">Multiple Choice</option><option value="mehrfachauswahl">Mehrfachauswahl</option><option value="freitext">Freitext</option><option value="zahl">Zahl</option><option value="entscheidung">Entscheidung</option></select></label>
+            <label>Regelnummer<input id="regelnummer" inputmode="numeric" placeholder="z. B. 12" /></label>
+          </div>
+          <label>Fragestellung<textarea id="fragetext" required minlength="10" rows="5"></textarea></label>
+          <div id="medium-zusatz"></div>
+          <h2>2. Lösung</h2>
+          <div id="loesung-felder"></div>
+          <h2>3. Begründung und Beleg</h2>
+          <label>Warum ist diese Lösung richtig?<textarea id="begruendung" required minlength="40" rows="5" placeholder="Erkläre die Regelauslegung und wende sie auf die Situation an."></textarea></label>
+          <label>Beleg / Quelle<textarea id="beleg" required minlength="20" rows="3" placeholder="IFAB-/DFB-Regel, Ausgabe, Seite oder direkter Link"></textarea></label>
+          <p id="formular-meldung" class="vorschlag-meldung" aria-live="polite"></p>
+          <div class="formular-aktionen"><button id="entwurf-speichern" type="button" class="sekundaer-button">Als Entwurf speichern</button><button id="einreichen" type="submit">Zur Prüfung einreichen</button></div>
+        </form>
+        <aside class="vorschlag-karte"><h2>Meine Vorschläge</h2><div id="vorschlag-liste"><p>Wird geladen …</p></div></aside>
+      </section>
+      <section id="versionen-bereich" class="vorschlag-karte" hidden><h2>Änderungsverlauf</h2><p>Hier siehst du auch, welche Inhalte der Obmann verändert hat.</p><div id="versionen-liste"></div></section>
+    </div>
+  </main>
+  <script src="src/core/anmeldung.js"></script>
+  <script src="src/core/rpc.js"></script>
+  <script src="src/ui/masked-input.js"></script>
+  <script src="src/ui/login-dialog.js"></script>
+  <script type="module" src="seite.js"></script>
+  <script type="module" src="src/website/frage-vorschlagen.js"></script>
+</body>
+</html>

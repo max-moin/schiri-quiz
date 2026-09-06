@@ -514,7 +514,7 @@
       historieStartButton.hidden = false;
     }
 
-    return Object.freeze({ stoppeAutoTimer, zeigeStartButton });
+    return Object.freeze({ stoppeAutoTimer, zeigeStartButton, betreteUebenModus });
   }
 
   global.SchiriQuizHistoryMode = Object.freeze({ erstelleHistorienModus });

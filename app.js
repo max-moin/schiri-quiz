@@ -154,11 +154,19 @@ zugangController = erstelleZugang({
   verbindeSichtbarkeit,
   setZugang,
   beiStatusPruefen: () => profilAnfragen.aktualisiereAnfragenStatusPunkt(),
-  beiAngemeldet: () => {
+  beiAngemeldet: async () => {
     // Erst wissen, was diese Person schon gemeldet hat - sonst steht die
     // Marke "Gemeldet" an keiner Frage und dieselbe Sache kommt dreimal.
     void frageMeldung.ladeEigeneMeldungen();
-    return wochenQuiz.ladeFragenUndAntworten();
+    await wochenQuiz.ladeFragenUndAntworten();
+    if (
+      window.location.hash === "#ueben" &&
+      document.getElementById("historie-start-button")?.hidden === false
+    ) {
+      // Auch ein direkt eingegebener Hash darf die Wochenquiz-Sperre nicht
+      // umgehen. Der Startknopf wird erst nach Abschluss freigegeben.
+      historieController.betreteUebenModus();
+    }
   },
 });
 

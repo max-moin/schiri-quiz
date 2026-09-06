@@ -263,6 +263,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     anmeldung,
     loginDialog,
     profilAktionen: profilVerfuegbar ? [
+      { text: "Mein Ausrüstungsbestand", tun: () => { window.location.href = "ausruestung.html"; } },
       { text: "Ausrüstung anfragen", tun: () => { const p = holeProfil(); if (p) p.oeffneAusruestungsAnfrage(); } },
       { text: "Anliegen melden", tun: () => { const p = holeProfil(); if (p) p.oeffneAnliegen(); } },
       { text: "Meine Anfragen", punkt: true, tun: () => { const p = holeProfil(); if (p) void p.oeffneMeineAnfragen(); } },
