@@ -19,7 +19,10 @@
         <span class="ball" aria-hidden="true">⚽</span>
         <div>
           <h1>Quiz</h1>
-          <p class="subtitle" id="kopf-untertitel">Kurz ein paar Regelfragen beantworten – dauert unter 2 Minuten.</p>
+          <!-- Im Wochenquiz braucht der Kopf keinen Werbetext. Der leere,
+               versteckte Platzhalter bleibt nur fuer die konkrete Einordnung
+               im Ueben-Modus erhalten. -->
+          <p class="subtitle" id="kopf-untertitel" hidden></p>
         </div>
 
         <!-- Die Vereinsseite hat bereits eine vollständige Navigation.
@@ -226,46 +229,16 @@
       </button>
     </section>
 
-    <!-- Angemeldet-Leiste (11.07.2026, drittes Feedback: wirkte als reiner
-         Text/Link "billig" - jetzt Badge + echter Button).
-         Update (12.07.2026, Baustein 5a, Anfragen-System - Nav-Konzept B
-         aus der Brainstorm-Skizze): der Badge ist jetzt selbst ein Button
-         und öffnet ein kleines Profil-Panel mit "Anfrage stellen"/"Meine
-         Anfragen" - bewusst KEIN separater neuer Button in der Leiste,
-         damit hier später weitere Menüpunkte (z.B. Sorgenkasten) einfach
-         ergänzt werden können, ohne dass die Leiste voller wird. -->
+    <!-- Im konzentrierten Quizfluss steht hier nur, wer angemeldet ist.
+         Ausruestung, Anfragen und Meldungen gehoeren in das Kontomenue der
+         Vereinsseite und werden im Quiz nicht ein zweites Mal angeboten. -->
     <div id="angemeldet-leiste" class="angemeldet-leiste" hidden>
-      <div class="angemeldet-badge-wrapper">
-        <button id="angemeldet-badge-button" class="angemeldet-badge" type="button" aria-haspopup="true" aria-expanded="false">
-          <span class="angemeldet-avatar" aria-hidden="true">🧑‍⚖️</span>
-          <!-- "Angemeldet als" ist am 30.08.2026 weggefallen. Max: "dieses
-               'Angemeldet als' kann da eigentlich auch raus, beziehungsweise
-               das Dropdown-Menü kann an sich bleiben." Der Name allein sagt
-               dasselbe, und der Badge liest sich damit wie der Kontoknopf in
-               der Kopfleiste jeder Vereinsseite - beides derselbe Weg zu
-               denselben Punkten. -->
-          <span><strong id="angemeldet-name"></strong></span>
-          <span class="angemeldet-pfeil" aria-hidden="true">▾</span>
-          <span id="profil-status-punkt" class="profil-status-punkt" hidden title="Es gibt Neuigkeiten zu deinen Anfragen"></span>
-        </button>
-        <div id="profil-panel" class="profil-panel" hidden role="menu">
-          <a class="profil-panel-item" href="ausruestung.html" role="menuitem">
-            <span aria-hidden="true">🧳</span> Mein Ausrüstungsbestand
-          </a>
-          <button id="panel-anfrage-stellen-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">📋</span> Ausrüstung anfragen
-          </button>
-          <!-- Baustein 5c (12.07.2026, Baustein E - Max' eigene Wortwahl
-               "Anträge und Anliegen" statt "Sorgenkasten"): dritter
-               Panel-Eintrag für allgemeine Anliegen (nicht nur Ausrüstung). -->
-          <button id="panel-anliegen-melden-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">💬</span> Anliegen melden
-          </button>
-          <button id="panel-meine-anfragen-button" class="profil-panel-item" type="button" role="menuitem">
-            <span aria-hidden="true">📦</span> Meine Anfragen
-            <span id="panel-anfragen-status-punkt" class="profil-status-punkt" hidden></span>
-          </button>
-        </div>
+      <div class="angemeldet-badge" aria-label="Angemeldetes Vereinsmitglied">
+        <svg class="angemeldet-avatar" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="8" r="3.5"></circle>
+          <path d="M5 20c.5-4.1 3-6.2 7-6.2s6.5 2.1 7 6.2"></path>
+        </svg>
+        <strong id="angemeldet-name"></strong>
       </div>
       <!-- Der "Abmelden"-Knopf stand bis zum 30.08.2026 hier.
            Max: "Wenn du dich angemeldet hast, dann ins Quiz gehst, Fragen
@@ -492,12 +465,9 @@
   <script src="src/ui/masked-input.js"></script>
   <script src="src/ui/text-to-speech.js"></script>
   <script src="src/ui/explanation-dialog.js"></script>
-  <script src="src/ui/header-menu.js"></script>
   <script src="src/ui/question-elements.js"></script>
   <script src="src/features/video-player.js"></script>
   <script src="src/features/guest-mode.js"></script>
-  <script src="src/ui/profil-fenster.js"></script>
-  <script src="src/features/profile-requests.js"></script>
   <script src="src/features/freetext-answers.js"></script>
   <script src="src/features/decision-answers.js"></script>
   <script src="src/features/flexible-answers.js"></script>

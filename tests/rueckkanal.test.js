@@ -191,7 +191,7 @@ function ladeKlassisch(pfad) {
 const melden = ohneKommentare(lies("src/features/frage-melden.js"));
 const app = ohneKommentare(lies("app.js"));
 
-test("es gibt einen Knopf mit Fragezeichen UND Wort, nicht nur ein Symbol", () => {
+test("es gibt einen Knopf mit echtem Icon UND Wort, nicht nur ein Symbol", () => {
   // Max: "so einen Button mit einem Fragezeichen oder Feedback - ein
   // Button sieht geiler aus als so ein Text mit Hyperlink."
   //
@@ -219,9 +219,21 @@ test("es gibt einen Knopf mit Fragezeichen UND Wort, nicht nur ein Symbol", () =
     'die Beschriftung "Passt was nicht?" fehlt - der Knopf steht als blosses Symbol da');
 
   const symbol = knopf.querySelector(".melde-symbol");
-  assert.ok(symbol, "das Fragezeichen fehlt");
+  assert.ok(symbol, "das Rueckmelde-Icon fehlt");
   assert.equal(symbol.getAttribute("aria-hidden"), "true",
     "das Symbol wird Vorleseprogrammen vorgelesen, obwohl das Wort daneben steht");
+  assert.match(melden, /<svg viewBox=/, "statt eines UI-Icons wird wieder ein Emoji verwendet");
+  assert.doesNotMatch(melden, /❓/, "der Rueckmeldeknopf verwendet wieder ein Emoji");
+});
+
+test("das Meldefenster bleibt auf dem iPhone steuerbar und loest keinen Eingabezoom aus", () => {
+  const css = lies("style.css").replace(/\/\*[\s\S]*?\*\//g, " ");
+  assert.match(melden, /melde-schliessen/, "oben im Fenster fehlt ein direkter Schliessen-Knopf");
+  assert.match(melden, /Rückmeldung schließen/, "der Schliessen-Knopf hat keine zugängliche Beschriftung");
+  assert.match(css, /\.melde-text\s*\{[^}]*font-size:\s*1rem/s,
+    "das Textfeld ist kleiner als 16 px und kann iPhone-Safari hineinzoomen lassen");
+  assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.melde-overlay\s*\{[^}]*align-items:\s*flex-end/s,
+    "mobil ist das Meldefenster kein kompakt erreichbares Bottom-Sheet");
 });
 
 test("der Knopf hat eine Trefferflaeche von mindestens 44 Punkten", () => {

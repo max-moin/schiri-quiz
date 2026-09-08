@@ -53,10 +53,10 @@
       angemeldetLeiste.hidden = false;
       fragenSchritt.hidden = false;
       fortschrittWrap.hidden = false;
-      // Baustein 5a: prüft im Hintergrund, ob es Neuigkeiten zu bestehenden
-      // Anfragen gibt (Status-Punkt am Profil-Badge) - bewusst "fire and
-      // forget", damit das Login nicht auf diesen Zusatz-Request warten muss.
-      void beiStatusPruefen();
+      // Zusatzpruefungen bleiben optional. Der konzentrierte Quizfluss zeigt
+      // bewusst keine Ausruestungs- oder Anfrageverwaltung mehr; andere
+      // Einbauorte koennen hier weiterhin einen Statusabruf verdrahten.
+      if (typeof beiStatusPruefen === "function") void beiStatusPruefen();
     }
 
     // Lädt die Namensliste des Vereins zur bestätigten Kennung.

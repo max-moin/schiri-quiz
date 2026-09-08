@@ -8,7 +8,6 @@ const videoPlayer = readFileSync(new URL("../src/features/video-player.js", impo
 const vorlesen = readFileSync(new URL("../src/ui/text-to-speech.js", import.meta.url), "utf8");
 const maskierteEingabe = readFileSync(new URL("../src/ui/masked-input.js", import.meta.url), "utf8");
 const erklaerungsDialog = readFileSync(new URL("../src/ui/explanation-dialog.js", import.meta.url), "utf8");
-const kopfmenue = readFileSync(new URL("../src/ui/header-menu.js", import.meta.url), "utf8");
 const fragenElemente = readFileSync(new URL("../src/ui/question-elements.js", import.meta.url), "utf8");
 const gastmodus = readFileSync(new URL("../src/features/guest-mode.js", import.meta.url), "utf8");
 const wochenQuiz = readFileSync(new URL("../src/features/weekly-quiz.js", import.meta.url), "utf8");
@@ -59,10 +58,10 @@ test("app.js bindet die ausgelagerten Browsermodule ein", () => {
   assert.match(app, /SchiriQuizMaskedInputs/);
   assert.match(app, /SchiriQuizTextToSpeech/);
   assert.match(app, /SchiriQuizExplanationDialog/);
-  assert.match(app, /SchiriQuizHeaderMenu/);
   assert.match(app, /SchiriQuizQuestionElements/);
   assert.match(app, /SchiriQuizGuestMode/);
-  assert.match(app, /SchiriQuizProfileRequests/);
+  assert.doesNotMatch(app, /SchiriQuizProfileRequests/);
+  assert.doesNotMatch(app, /SchiriProfilFenster/);
   assert.match(app, /SchiriQuizFreetextAnswers/);
   assert.match(app, /SchiriQuizDecisionAnswers/);
   assert.match(app, /SchiriQuizHistoryMode/);
@@ -71,7 +70,6 @@ test("app.js bindet die ausgelagerten Browsermodule ein", () => {
   assert.doesNotMatch(app, /function baueVideoEinbettungModal/);
   assert.doesNotMatch(app, /sessionStorage/);
   assert.doesNotMatch(app, /SpeechSynthesisUtterance/);
-  assert.doesNotMatch(app, /function initialisiereKopfmenue/);
   assert.doesNotMatch(app, /function starteGastModus/);
 });
 
@@ -81,7 +79,6 @@ test("UI-Module behalten Sicherheits- und Bedienungsfallbacks", () => {
   assert.match(maskierteEingabe, /aria-pressed/);
   assert.match(erklaerungsDialog, /\/api\/erklaerung/);
   assert.match(erklaerungsDialog, /cacheSchluessel/);
-  assert.match(kopfmenue, /knopf\.focus\(\)/);
   assert.match(gastmodus, /gast_fragen_liste/);
   assert.match(gastmodus, /gast_antwort_pruefen/);
   assert.match(gastmodus, /gast_interesse_melden/);

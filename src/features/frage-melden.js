@@ -170,6 +170,16 @@
       titel.id = "melde-titel";
       titel.textContent = "Passt was nicht?";
 
+      const kopf = document.createElement("div");
+      kopf.className = "melde-kopf";
+      const schliessenKnopf = document.createElement("button");
+      schliessenKnopf.type = "button";
+      schliessenKnopf.className = "melde-schliessen";
+      schliessenKnopf.setAttribute("aria-label", "Rückmeldung schließen");
+      schliessenKnopf.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        + '<path d="M6 6l12 12M18 6 6 18"></path></svg>';
+      kopf.append(titel, schliessenKnopf);
+
       const einleitung = document.createElement("p");
       einleitung.className = "melde-einleitung";
       einleitung.textContent = "Deine Rückmeldung geht an den Schiedsrichter-Obmann – "
@@ -231,7 +241,7 @@
       abbrechen.textContent = "Abbrechen";
       aktionen.append(senden, abbrechen);
 
-      karte.append(titel, einleitung, gruppe, textLabel, text, zaehler, hinweis, aktionen);
+      karte.append(kopf, einleitung, gruppe, textLabel, text, zaehler, hinweis, aktionen);
       overlay.appendChild(karte);
       document.body.appendChild(overlay);
 
@@ -245,7 +255,10 @@
           })
         : null;
 
-      return { overlay, karte, gruppe, text, zaehler, hinweis, senden, abbrechen, zaehlwerk };
+      return {
+        overlay, karte, gruppe, text, zaehler, hinweis, senden, abbrechen,
+        schliessenKnopf, zaehlwerk,
+      };
     }
 
     function schliessen() {
@@ -357,6 +370,7 @@
       dialogVersion += 1;
       if (!fenster) {
         fenster = baueFenster();
+        fenster.schliessenKnopf.addEventListener("click", schliessen);
         fenster.abbrechen.addEventListener("click", schliessen);
         fenster.senden.addEventListener("click", () => void abschicken());
         fenster.overlay.addEventListener("click", (ereignis) => {
@@ -413,7 +427,10 @@
       const symbol = document.createElement("span");
       symbol.className = "melde-symbol";
       symbol.setAttribute("aria-hidden", "true");
-      symbol.textContent = "❓";
+      symbol.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+        + '<circle cx="12" cy="12" r="9"></circle>'
+        + '<path d="M9.8 9a2.4 2.4 0 1 1 3.1 2.3c-.7.3-.9.8-.9 1.7"></path>'
+        + '<circle class="melde-symbol-punkt" cx="12" cy="16.5" r=".8"></circle></svg>';
       knopf.append(symbol, document.createTextNode("Passt was nicht?"));
       knopf.setAttribute("aria-label", "Passt was nicht? Rückmeldung zu dieser Frage geben");
       knopf.addEventListener("click", () => oeffne(frageId));

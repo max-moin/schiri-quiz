@@ -15,9 +15,8 @@
 //
 //  Genau so ist es jetzt: EIN Menue in der Kopfleiste jeder Vereinsseite,
 //  mit dem Namen, dem Weg ins Quiz, den drei Profil-Punkten und dem
-//  Abmelden. Auf der Quizseite gibt es weiterhin das Dropdown am
-//  "Angemeldet als"-Badge - beide bedienen dieselben Funktionen aus
-//  src/features/profile-requests.js, es ist kein zweiter Nachbau.
+//  Abmelden. Der konzentrierte Quizfluss zeigt nur noch die angemeldete
+//  Person; Ausruestung, Anliegen und Anfragen werden dort nicht dupliziert.
 //
 //  Der Knopf wird eingesetzt und steht nicht im HTML: ein Anmeldeknopf,
 //  der ohne JavaScript sichtbar waere, aber nichts tun kann, waere

@@ -63,7 +63,10 @@
     // da störte die Leiste laut Max nur noch.
     function betreteUebenModus() {
       if (kopf) kopf.classList.add("kopf-uebung");
-      if (kopfUntertitel) kopfUntertitel.textContent = UEBEN_UNTERTITEL;
+      if (kopfUntertitel) {
+        kopfUntertitel.textContent = UEBEN_UNTERTITEL;
+        kopfUntertitel.hidden = false;
+      }
       fortschrittWrap.hidden = true;
       fragenSchritt.hidden = true;
       historieSchritt.hidden = false;
@@ -79,7 +82,10 @@
       }
       stoppeVorlesen();
       if (kopf) kopf.classList.remove("kopf-uebung");
-      if (kopfUntertitel) kopfUntertitel.textContent = kopfUntertitelOriginal;
+      if (kopfUntertitel) {
+        kopfUntertitel.textContent = kopfUntertitelOriginal;
+        kopfUntertitel.hidden = !kopfUntertitelOriginal;
+      }
       // Die wöchentliche Fortschrittsleiste gehört nur ins normale Quiz - war sie
       // vorher (angemeldeter Zustand) sichtbar, kommt sie jetzt einfach wieder.
       fortschrittWrap.hidden = false;

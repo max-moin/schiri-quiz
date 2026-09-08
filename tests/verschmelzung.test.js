@@ -78,7 +78,7 @@ test("es gibt genau eine Stelle, die abmeldet", () => {
 });
 
 /* ============================================================
-   2. Das Profil-Menue gehoert auf jede Seite
+   2. Profilverwaltung gehoert auf die Vereinsseite, nicht ins Quiz
    ============================================================ */
 
 const PROFIL_BAUSTEINE = [
@@ -101,6 +101,29 @@ test("das Markup der Profil-Fenster gibt es nur noch einmal", () => {
   }
 });
 
+test("das Quiz zeigt nur die Identitaet und keine Vereinsverwaltung", () => {
+  const quiz = ohneHtmlKommentare(lies("quiz.html"));
+  const app = ohneJsKommentare(lies("app.js"));
+  for (const punkt of ["Mein Ausrüstungsbestand", "Ausrüstung anfragen", "Anliegen melden", "Meine Anfragen"]) {
+    assert.ok(!quiz.includes(punkt), `Quiz enthaelt wieder Vereinsverwaltung: ${punkt}`);
+  }
+  assert.doesNotMatch(quiz, /src="src\/ui\/profil-fenster\.js"/);
+  assert.doesNotMatch(quiz, /src="src\/features\/profile-requests\.js"/);
+  assert.doesNotMatch(app, /SchiriQuizProfileRequests|SchiriProfilFenster/);
+  assert.match(quiz, /id="angemeldet-name"/,
+    "im Quiz ist nicht mehr erkennbar, wer angemeldet ist");
+});
+
+test("der Quizkopf verschwendet vor dem Start keinen Platz fuer einen Werbetext", () => {
+  const quiz = ohneHtmlKommentare(lies("quiz.html"));
+  assert.doesNotMatch(quiz, /Kurz ein paar Regelfragen beantworten/);
+  assert.match(quiz, /id="kopf-untertitel" hidden/,
+    "der dynamische Ueben-Hinweis ist nicht platzsparend vorbereitet");
+  const historie = ohneJsKommentare(lies("src/features/history-mode.js"));
+  assert.match(historie, /kopfUntertitel\.hidden = false/,
+    "im Ueben-Modus wird der hilfreiche Untertitel nicht eingeblendet");
+});
+
 test("jede Vereinsseite laedt die Profil-Bausteine vor seite.js", () => {
   // Klassische Skripte laufen vor den Modulen. Steht einer dahinter,
   // faellt das nicht auf - die Profil-Punkte verschwinden dann einfach
@@ -118,7 +141,7 @@ test("jede Vereinsseite laedt die Profil-Bausteine vor seite.js", () => {
   }
 });
 
-test("das Kontomenue benutzt dieselbe Logik wie das Quiz, kein zweites Modul", () => {
+test("das Kontomenue der Vereinsseite benutzt das gemeinsame Profilmodul", () => {
   // Ohne den Kommentar-Abzug faende die Suche nach "Anliegen melden" den
   // Erklaertext daraeber, warum es diesen Punkt gibt - der Test waere dann
   // gruen geblieben, auch wenn der Punkt selbst fehlt. Genau so ist er bei
@@ -129,8 +152,7 @@ test("das Kontomenue benutzt dieselbe Logik wie das Quiz, kein zweites Modul", (
   for (const punkt of ["Ausrüstung anfragen", "Anliegen melden", "Meine Anfragen"]) {
     assert.ok(seiteJs.includes(punkt), "Punkt fehlt im Kontomenue: " + punkt);
   }
-  // Der Ausloeser im Quiz und der auf der Vereinsseite rufen dieselben
-  // Funktionen auf - deshalb muessen sie exportiert sein.
+  // Das Kontomenue der Vereinsseite ruft die exportierten Funktionen auf.
   // Bewusst gegen den RUECKGABEWERT geprueft und nicht gegen die ganze
   // Datei: eine Funktion, die es zwar gibt, die das Modul aber nicht mehr
   // herausgibt, ist fuer das Kontomenue genauso weg. Bei der
