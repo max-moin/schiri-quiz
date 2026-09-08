@@ -2868,6 +2868,9 @@ input.maskiert.sichtbar {
   justify-content: center;
   padding: 20px;
   background: rgba(15, 23, 42, 0.55);
+  overflow: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
 }
 
 /* Ohne diese Zeile schlaegt "display: flex" oben das hidden-Attribut und
@@ -2882,9 +2885,13 @@ body.melde-dialog-offen {
 }
 
 .melde-karte {
+  box-sizing: border-box;
   width: min(100%, 460px);
   max-height: min(85dvh, 720px);
   overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
   background: var(--card-bg);
   border-radius: var(--radius);
   box-shadow: var(--shadow-hover);
@@ -2905,7 +2912,7 @@ body.melde-dialog-offen {
   flex: 0 0 44px;
   width: 44px;
   height: 44px;
-  margin: -10px -10px -10px 0;
+  margin: -4px -4px 0 0;
   border: 0;
   border-radius: 50%;
   background: transparent;
@@ -2919,8 +2926,8 @@ body.melde-dialog-offen {
   outline-offset: 1px;
 }
 .melde-schliessen svg {
-  width: 21px;
-  height: 21px;
+  width: 25px;
+  height: 25px;
   fill: none;
   stroke: currentColor;
   stroke-width: 2;
@@ -2996,6 +3003,10 @@ body.melde-dialog-offen {
   font-weight: 700;
 }
 
+.melde-eingabe[hidden] {
+  display: none;
+}
+
 .melde-text {
   width: 100%;
   box-sizing: border-box;
@@ -3013,14 +3024,14 @@ body.melde-dialog-offen {
 @media (max-width: 560px) {
   .melde-overlay {
     align-items: flex-end;
-    padding: 12px;
+    padding: max(12px, env(safe-area-inset-top)) 12px;
     padding-bottom: max(12px, env(safe-area-inset-bottom));
     background: rgba(15, 23, 42, 0.46);
   }
 
   .melde-karte {
     width: 100%;
-    max-height: min(78dvh, 640px);
+    max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
     border-radius: 20px;
     padding: 16px 16px 18px;
   }

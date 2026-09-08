@@ -32,7 +32,9 @@
   justify-content: center;
   z-index: 1000;
   overflow-y: auto;
+  overflow-x: hidden;
   overscroll-behavior: contain;
+  touch-action: pan-y;
   /* Oben verankert statt zentriert - dieselbe iPhone-Begruendung wie beim
      Anmeldefenster (siehe Kopf des iPhone-Abschnitts in anmeldung.css):
      sobald die Tastatur aufgeht, schrumpft nur der sichtbare Bereich, und
@@ -46,11 +48,17 @@
 .profil-fenster[hidden] { display: none; }
 
 .profil-fenster .erklaerung-popup {
+  box-sizing: border-box;
   background: var(--card);
   border-radius: var(--radius);
   box-shadow: var(--shadow-hover);
   max-width: 460px;
   width: 100%;
+  max-height: calc(100dvh - max(32px, env(safe-area-inset-top)) - max(16px, env(safe-area-inset-bottom)));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
   height: fit-content;
   padding: 20px 22px 22px;
   font-family: var(--font-text);
@@ -73,13 +81,13 @@
 
 .profil-fenster .erklaerung-schliessen-button {
   flex: none;
-  width: 38px;
-  height: 38px;
+  width: 44px;
+  height: 44px;
   border: 0;
   border-radius: 50%;
   background: var(--marke-lighter);
   color: var(--muted);
-  font-size: .95rem;
+  font-size: 1.15rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;

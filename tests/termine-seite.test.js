@@ -109,6 +109,17 @@ test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {
   assert.match(js, /Bitte wähle noch einen Grund aus/);
 });
 
+test("der Terminvorschlag lässt sich auf dem Handy sicher schließen und nur vertikal bewegen", () => {
+  const js = ohneKommentare(lies("src/website/termine-seite.js"));
+  const css = lies("stil/termine.css").replace(/\/\*[\s\S]*?\*\//g, " ");
+  assert.match(js, /type="button" class="dialog-schliessen"/,
+    "das X ist wieder ein impliziter Formular-Submitter");
+  assert.match(js, /dialog\.close\("abbrechen"\)/,
+    "das X besitzt keinen ausdrücklichen Schließweg");
+  assert.match(css, /\.termin-dialog\{[^}]*overflow-x:hidden[^}]*overflow-y:auto[^}]*touch-action:pan-y/s,
+    "der Terminvorschlag kann wieder horizontal verschoben werden");
+});
+
 test("eine erfolgreiche Terminrückmeldung darf einen leeren RPC-Körper liefern", async () => {
   const antwort = { text: async () => "" };
   assert.deepEqual(await leseRpcAntwort(antwort), []);

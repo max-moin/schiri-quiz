@@ -141,6 +141,18 @@ test("jede Vereinsseite laedt die Profil-Bausteine vor seite.js", () => {
   }
 });
 
+test("auch die beiden angemeldeten Unterseiten haben das vollständige Kontomenü", () => {
+  for (const seite of ["ausruestung.html", "frage-vorschlagen.html"]) {
+    const html = lies(seite);
+    const seiteJs = html.indexOf('src="seite.js"');
+    for (const baustein of PROFIL_BAUSTEINE) {
+      const stelle = html.indexOf(`src="${baustein}"`);
+      assert.ok(stelle > -1 && stelle < seiteJs, `${seite}: ${baustein} fehlt oder lädt zu spät`);
+    }
+    assert.match(html, /href="stil\/profil\.css"/, `${seite} lädt die Fenster-Gestaltung nicht`);
+  }
+});
+
 test("das Kontomenue der Vereinsseite benutzt das gemeinsame Profilmodul", () => {
   // Ohne den Kommentar-Abzug faende die Suche nach "Anliegen melden" den
   // Erklaertext daraeber, warum es diesen Punkt gibt - der Test waere dann

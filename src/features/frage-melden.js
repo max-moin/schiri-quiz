@@ -1,5 +1,5 @@
 // ============================================================
-//  Rueckmeldung zu einer Frage ("Passt was nicht?")
+//  Feedback zu einer Frage
 // ============================================================
 //  Max am 03.09.2026: "Ich wuerde keinen unaufdringlichen Link machen,
 //  sondern so einen Button mit einem Fragezeichen oder Feedback - ein
@@ -168,7 +168,7 @@
 
       const titel = document.createElement("h2");
       titel.id = "melde-titel";
-      titel.textContent = "Passt was nicht?";
+      titel.textContent = "Feedback zur Frage";
 
       const kopf = document.createElement("div");
       kopf.className = "melde-kopf";
@@ -191,14 +191,16 @@
       legende.textContent = "Worum geht es?";
       gruppe.appendChild(legende);
 
-      KATEGORIEN.forEach((kategorie, stelle) => {
+      const kategorieFelder = [];
+      KATEGORIEN.forEach((kategorie) => {
         const label = document.createElement("label");
         label.className = "melde-kategorie";
         const feld = document.createElement("input");
         feld.type = "radio";
         feld.name = "melde-kategorie";
         feld.value = kategorie.wert;
-        if (stelle === 0) feld.checked = true;
+        feld.className = "melde-kategorie-feld";
+        kategorieFelder.push(feld);
         const wort = document.createElement("span");
         wort.className = "melde-kategorie-wort";
         wort.textContent = kategorie.text;
@@ -241,9 +243,23 @@
       abbrechen.textContent = "Abbrechen";
       aktionen.append(senden, abbrechen);
 
-      karte.append(kopf, einleitung, gruppe, textLabel, text, zaehler, hinweis, aktionen);
+      // Auf dem iPhone bleibt die Tastatur beim Öffnen bewusst zu. Erst
+      // nach der Auswahl wird die eigentliche Texteingabe sichtbar.
+      const eingabe = document.createElement("div");
+      eingabe.className = "melde-eingabe";
+      eingabe.hidden = true;
+      eingabe.append(textLabel, text, zaehler, aktionen);
+
+      karte.append(kopf, einleitung, gruppe, hinweis, eingabe);
       overlay.appendChild(karte);
       document.body.appendChild(overlay);
+
+      kategorieFelder.forEach((feld) => {
+        feld.addEventListener("change", () => {
+          eingabe.hidden = false;
+          text.focus();
+        });
+      });
 
       const zaehlwerk = global.SchiriZeichenZaehler
         ? global.SchiriZeichenZaehler.haengeZeichenZaehlerAn(text, zaehler, {
@@ -256,8 +272,8 @@
         : null;
 
       return {
-        overlay, karte, gruppe, text, zaehler, hinweis, senden, abbrechen,
-        schliessenKnopf, zaehlwerk,
+        overlay, karte, gruppe, eingabe, kategorieFelder, text, zaehler,
+        hinweis, senden, abbrechen, schliessenKnopf, zaehlwerk,
       };
     }
 
@@ -301,6 +317,10 @@
       }
 
       const gewaehlt = fenster.gruppe.querySelector('input[name="melde-kategorie"]:checked');
+      if (!gewaehlt) {
+        sageAn("Wähle bitte zuerst aus, worum es geht.", "melde-fehler");
+        return;
+      }
       const frageId = offeneFrageId;
       const version = dialogVersion;
       sendet = true;
@@ -313,7 +333,7 @@
           p_schiedsrichter_id: zugang.schiedsrichterId,
           p_pin: zugang.pin,
           p_frage_id: frageId,
-          p_kategorie: gewaehlt ? gewaehlt.value : "sonstiges",
+          p_kategorie: gewaehlt.value,
           p_text: String(fenster.text.value || "").trim(),
         }));
       } catch (fehler) {
@@ -385,18 +405,20 @@
             return;
           }
           if (ereignis.key !== "Tab") return;
-          const ziele = Array.from(
-            fenster.karte.querySelectorAll("input, textarea, button")
-          ).filter((el) => !el.disabled);
-          if (ziele.length === 0) return;
+          const ziele = [fenster.schliessenKnopf, ...fenster.kategorieFelder];
+          if (!fenster.eingabe.hidden) ziele.push(fenster.text, fenster.senden, fenster.abbrechen);
+          const aktiveZiele = ziele.filter((el) => !el.disabled);
+          if (aktiveZiele.length === 0) return;
           ereignis.preventDefault();
-          const jetzt = ziele.indexOf(document.activeElement);
+          const jetzt = aktiveZiele.indexOf(document.activeElement);
           const schritt = ereignis.shiftKey ? -1 : 1;
-          ziele[(jetzt + schritt + ziele.length) % ziele.length].focus();
+          aktiveZiele[(jetzt + schritt + aktiveZiele.length) % aktiveZiele.length].focus();
         });
       }
 
       offeneFrageId = frageId;
+      fenster.kategorieFelder.forEach((feld) => { feld.checked = false; });
+      fenster.eingabe.hidden = true;
       fenster.text.value = "";
       fenster.zaehler.hidden = true;
       fenster.senden.disabled = false;
@@ -411,7 +433,7 @@
       vorherigerFokus = document.activeElement;
       fenster.overlay.hidden = false;
       document.body.classList.add("melde-dialog-offen");
-      fenster.text.focus();
+      fenster.kategorieFelder[0].focus();
     }
 
     // ---------- Der Knopf ----------
@@ -431,8 +453,8 @@
         + '<circle cx="12" cy="12" r="9"></circle>'
         + '<path d="M9.8 9a2.4 2.4 0 1 1 3.1 2.3c-.7.3-.9.8-.9 1.7"></path>'
         + '<circle class="melde-symbol-punkt" cx="12" cy="16.5" r=".8"></circle></svg>';
-      knopf.append(symbol, document.createTextNode("Passt was nicht?"));
-      knopf.setAttribute("aria-label", "Passt was nicht? Rückmeldung zu dieser Frage geben");
+      knopf.append(symbol, document.createTextNode("Feedback geben"));
+      knopf.setAttribute("aria-label", "Feedback zu dieser Frage geben");
       knopf.addEventListener("click", () => oeffne(frageId));
       return knopf;
     }

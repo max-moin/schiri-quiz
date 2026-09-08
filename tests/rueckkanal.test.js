@@ -3,7 +3,7 @@
 // ============================================================
 //  Zwei Wege zurueck zum Obmann, die es vorher nicht gab:
 //
-//  1. "Passt was nicht?" an einer Frage - ein Knopf BEI DER LOESUNG.
+//  1. "Feedback geben" an einer Frage - ein Knopf BEI DER LOESUNG.
 //  2. melden.html - Regelfall, Vorfall, Gespraech, Website.
 //
 //  Diese Tests pruefen nicht das Aussehen, sondern die Zusagen, an denen
@@ -185,7 +185,7 @@ function ladeKlassisch(pfad) {
 }
 
 /* ============================================================
-   1. Der Knopf "Passt was nicht?"
+   1. Der Knopf "Feedback geben"
    ============================================================ */
 
 const melden = ohneKommentare(lies("src/features/frage-melden.js"));
@@ -215,8 +215,8 @@ test("es gibt einen Knopf mit echtem Icon UND Wort, nicht nur ein Symbol", () =>
   const knopf = zeile.querySelector(".melde-knopf");
   assert.ok(knopf, "der Melde-Knopf fehlt in der Loesungszeile");
   assert.equal(knopf.tag, "button", "der Melde-Knopf ist ein " + knopf.tag + " statt eines button");
-  assert.ok(knopf.text().includes("Passt was nicht?"),
-    'die Beschriftung "Passt was nicht?" fehlt - der Knopf steht als blosses Symbol da');
+  assert.ok(knopf.text().includes("Feedback geben"),
+    'die Beschriftung "Feedback geben" fehlt - der Knopf steht als blosses Symbol da');
 
   const symbol = knopf.querySelector(".melde-symbol");
   assert.ok(symbol, "das Rueckmelde-Icon fehlt");
@@ -234,6 +234,10 @@ test("das Meldefenster bleibt auf dem iPhone steuerbar und loest keinen Eingabez
     "das Textfeld ist kleiner als 16 px und kann iPhone-Safari hineinzoomen lassen");
   assert.match(css, /@media\s*\(max-width:\s*560px\)[\s\S]*?\.melde-overlay\s*\{[^}]*align-items:\s*flex-end/s,
     "mobil ist das Meldefenster kein kompakt erreichbares Bottom-Sheet");
+  assert.match(melden, /eingabe\.hidden = true/,
+    "die Texteingabe ist vor der Auswahl einer Kategorie schon sichtbar");
+  assert.match(melden, /kategorieFelder\[0\]\.focus\(\)/,
+    "beim Öffnen wird nicht die erste Auswahl, sondern möglicherweise das Textfeld fokussiert");
 });
 
 test("der Knopf hat eine Trefferflaeche von mindestens 44 Punkten", () => {
@@ -465,6 +469,9 @@ function offenesMeldeFenster(serverAntwort) {
   const overlay = document.querySelectorAll(".melde-overlay")[0];
   assert.ok(overlay, "der Knopf oeffnet gar kein Fenster");
   const feld = overlay.querySelector(".melde-text");
+  const kategorie = overlay.querySelector(".melde-kategorie-feld");
+  kategorie.checked = true;
+  kategorie.ausloesen("change");
   feld.value = "Die hinterlegte Loesung stimmt nicht.";
   return { meldung, gerufen, zeileEins, zeileZwei, overlay, feld,
     senden: overlay.querySelector(".melde-knopf-senden") };
