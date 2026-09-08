@@ -57,10 +57,15 @@ const SEITEN_MIT_LEISTE = [
 
 // Die verbindliche Reihenfolge, in Max' Worten: Termine, Spesen, Regeln,
 // Unterlagen, und ganz hinten der Aufruf zum Quiz.
+// 08.09.2026: Spesen und Regeln stehen weiter an ihrer Stelle in der Leiste,
+// sind aber bis zur fachlichen Pruefung nicht anklickbar (Max' Entscheidung
+// vor dem Start am 14.09.). Sie haben deshalb kein Ziel, sondern die
+// Kennzeichnung "In Pruefung" - auch im statischen Rueckfallstand, damit sie
+// selbst dann nicht erreichbar sind, wenn das Skript nicht laedt.
 const REITER = [
   { ziel: "termine.html", text: "Termine" },
-  { ziel: "spesenrechner.html", text: "Spesen" },
-  { ziel: "regeluebersicht.html", text: "Regeln" },
+  { ziel: null, text: "Spesen" },
+  { ziel: null, text: "Regeln" },
   { ziel: "informationen.html", text: "Unterlagen" },
   { ziel: "modus.html", text: "Zum Quiz" },
 ];
@@ -78,6 +83,19 @@ function leiste(seite) {
 }
 
 function reiterAus(zeile) {
+  // Ein gesperrter Reiter ist ein <span> ohne Ziel: "Spesen<small>In
+  // Pruefung</small>". Er zaehlt trotzdem als Reiter, denn er steht sichtbar
+  // an seiner Stelle - nur eben ohne Verweis.
+  if (zeile.includes("nav-deaktiviert")) {
+    const gesperrt = zeile.match(/>([^<]*)<small>/);
+    assert.ok(gesperrt, "keine Beschriftung in: " + zeile);
+    assert.ok(!/href=/.test(zeile), "gesperrter Reiter darf kein Ziel haben: " + zeile);
+    assert.match(zeile, /aria-disabled="true"/, "gesperrter Reiter ohne aria-disabled: " + zeile);
+    const hier = zeile.match(/aria-current="([^"]+)"/);
+    // Ohne Ziel, aber mit Ortsangabe: wer die Adresse direkt aufruft, soll
+    // trotzdem sehen, wo er ist.
+    return { ziel: null, text: gesperrt[1].trim(), strom: hier ? hier[1] : null };
+  }
   const ziel = zeile.match(/href="([^"]+)"/);
   const text = zeile.match(/>([^<]*)<\/a>/);
   const strom = zeile.match(/aria-current="([^"]+)"/);
@@ -121,14 +139,28 @@ test("die Leiste ist kuerzer geworden: kein Start, keine Vorlagen", () => {
   }
 });
 
-test('der Spesenrechner heisst in der Leiste nur noch "Spesen"', () => {
-  // Max' Wunsch. Das Ziel bleibt spesenrechner.html - der Reiter wird
-  // kuerzer, nicht die Seite eine andere.
+test('Spesen und Regeln stehen in der Leiste, sind aber nirgends verlinkt', () => {
+  // 08.09.2026, vor dem Start am 14.09.: Beide Inhalte sind fachlich noch
+  // nicht gegengeprueft. Max will sie trotzdem sichtbar lassen ("dass der
+  // Name da steht"), nur eben nicht erreichbar. Der Reiter heisst weiterhin
+  // kurz "Spesen" bzw. "Regeln".
   for (const seite of SEITEN_MIT_LEISTE) {
-    const spesen = leiste(seite).map(reiterAus).find((r) => r.ziel === "spesenrechner.html");
-    assert.ok(spesen, seite + " verlinkt den Spesenrechner nicht mehr");
-    assert.equal(spesen.text, "Spesen",
-      `${seite}: der Reiter heisst "${spesen.text}" statt "Spesen"`);
+    const reiter = leiste(seite).map(reiterAus);
+    for (const name of ["Spesen", "Regeln"]) {
+      const eintrag = reiter.find((r) => r.text === name);
+      assert.ok(eintrag, `${seite}: "${name}" fehlt in der Leiste`);
+      assert.equal(eintrag.ziel, null,
+        `${seite}: "${name}" ist wieder verlinkt, obwohl der Inhalt noch geprueft wird`);
+    }
+  }
+});
+
+test("die ungeprueften Seiten sind aus dem Suchindex genommen", () => {
+  // Damit niemand ueber eine Suchmaschine auf ungeprueften Regelinhalt
+  // stoesst, solange er nicht gegengelesen ist.
+  for (const seite of ["spesenrechner.html", "regeluebersicht.html"]) {
+    assert.match(lies(seite), /<meta name="robots" content="noindex, nofollow">/,
+      seite + " steht noch im Suchindex");
   }
 });
 
@@ -165,8 +197,10 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
   const ERWARTET = {
     "index.html": null,
     "termine.html": ["termine.html", "page"],
-    "regeluebersicht.html": ["regeluebersicht.html", "page"],
-    "spesenrechner.html": ["spesenrechner.html", "page"],
+    // Seit dem 08.09.2026 sind diese beiden Reiter gesperrt und haben
+    // deshalb kein Ziel mehr. Erkannt werden sie hier an der Beschriftung.
+    "regeluebersicht.html": ["Regeln", "page"],
+    "spesenrechner.html": ["Spesen", "page"],
     "informationen.html": ["informationen.html", "page"],
     "modus.html": ["modus.html", "page"],
     // entscheiden.html ist NICHT modus.html. Bis zum 03.09.2026 stand hier
@@ -192,7 +226,9 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
       continue;
     }
     assert.equal(markiert.length, 1, seite + " markiert nicht genau einen Reiter");
-    assert.equal(markiert[0].ziel, erwartet[0], seite + ": falscher Reiter markiert");
+    // Ein gesperrter Reiter hat kein Ziel; dann entscheidet die Beschriftung.
+    const kennung = markiert[0].ziel ?? markiert[0].text;
+    assert.equal(kennung, erwartet[0], seite + ": falscher Reiter markiert");
     assert.equal(markiert[0].strom, erwartet[1], seite + ": falscher aria-current-Wert");
   }
 });
