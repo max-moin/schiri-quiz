@@ -1,5 +1,5 @@
 /* ============================================================
-   Startseite: Aufmacher, Bildkacheln, Probefrage, bildgefuehrte Abschnitte
+   Startseite: Aufmacher, schnelle Wege und bildgefuehrte Abschnitte
    ============================================================
    Teil der nach Funktion aufgeteilten Gestaltung (29.08.2026).
 
@@ -121,95 +121,36 @@
 }
 .bildkachel p { margin: 0; font-size: .87rem; color: var(--muted); line-height: 1.55; }
 
-/* ---------- Probefrage auf der Startseite ----------
-   Ersetzt den Knopf "Fragen ausprobieren", den Max nicht mochte. Ein
-   Knopf verspricht etwas; eine echte Frage, die man sofort anklicken
-   kann, zeigt es. Die Antwort wird erst nach dem Klick aufgedeckt -
-   danach führt der Weg ins richtige Quiz. */
 
-.probe {
-  /* Die Karte liegt IM dunklen Band, erbt also dessen weiße Schrift - auf
-     weißem Grund. Deshalb hier die Textfarbe ausdrücklich zurücksetzen.
-     Zweimal in Folge im Review übersehen, im gerenderten Screenshot am
-     21.08.2026 sofort zu sehen: die Frage stand gar nicht da. */
-  color: var(--text);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  box-shadow: var(--shadow);
-  max-width: 560px;
-}
-.probe .marke {
-  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .07em;
-  color: var(--green-dark); margin-bottom: 9px;
-}
-.probe .frage { color: var(--text); font-family: var(--font-titel); font-size: 1.02rem; line-height: 1.45; margin: 0 0 15px; }
-.probe-optionen { display: grid; gap: 8px; }
-.probe-optionen button {
-  text-align: left; font: inherit; font-size: .88rem;
-  padding: 13px 15px; border-radius: 11px;
-  border: 1px solid var(--border); background: var(--card);
-  cursor: pointer; color: var(--text);
-  min-height: 44px;
-  transition: border-color .15s, background .15s;
-  display: flex; align-items: center; gap: 11px;
-}
-/* :not([disabled]) griff nie, weil die Knoepfe aria-disabled bekommen und
-   nicht disabled. Der Hover ueberschrieb dadurch genau die gruene bzw. rote
-   Auswertung, sobald der Zeiger noch auf dem geklickten Knopf lag. */
-.probe-optionen button:hover:not([aria-disabled="true"]) { border-color: var(--marke-hell); background: #f9fafb; }
-.probe-optionen button .buchstabe {
-  flex: none; width: 24px; height: 24px; border-radius: 7px;
-  background: var(--marke-lighter); color: var(--marke-hell);
-  display: grid; place-items: center;
-  font-size: .74rem; font-weight: 800;
-}
-.probe-optionen button.richtig {
-  border-color: var(--green); background: var(--green-light); color: #052e16; font-weight: 600;
-}
-.probe-optionen button.richtig .buchstabe { background: var(--green); color: #fff; }
-.probe-optionen button.falsch {
-  border-color: var(--red); background: var(--red-hell); color: #7f1d1d;
-}
-.probe-optionen button.falsch .buchstabe { background: var(--red); color: #fff; }
-.probe-optionen button[aria-disabled="true"] { cursor: default; }
-/* aria-disabled statt disabled: ein deaktivierter Knopf verliert den
-   Fokus und faellt aus der Tabreihenfolge - man landet nach dem Klick
-   unvermittelt am Seitenanfang. Der Klick wird stattdessen im Skript
-   abgefangen. */
-.probe-optionen button[aria-disabled="true"]:not(.richtig):not(.falsch) { opacity: .6; }
+.schnellweg-icon { display: none; }
 
-/* Ergebnis nicht nur ueber Farbe (WCAG 1.4.1): jede bewertete Antwort
-   bekommt zusaetzlich ein Wort. */
-.probe-marker {
-  margin-left: auto; flex: none;
-  font-size: .7rem; font-weight: 800; text-transform: uppercase; letter-spacing: .04em;
+@media (max-width: 620px) {
+  .kachelraster { grid-template-columns: 1fr; gap: 10px; }
+  .bildkachel { min-height: 78px; display: grid; grid-template-columns: 1fr; }
+  .bildkachel .bildflaeche { display: none; }
+  .bildkachel-text {
+    padding: 13px 15px;
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    column-gap: 12px;
+    align-items: center;
+  }
+  .schnellweg-icon {
+    grid-row: 1 / span 2;
+    display: grid;
+    width: 44px;
+    height: 44px;
+    place-items: center;
+    border-radius: 13px;
+    font-size: 1.35rem;
+    font-weight: 800;
+  }
+  .schnellweg-icon.absage { color: #991b1b; background: #fee2e2; }
+  .schnellweg-icon.melden { color: #9a3412; background: #ffedd5; }
+  .schnellweg-icon.unterlagen { color: #1d4ed8; background: #dbeafe; }
+  .bildkachel h3 { grid-column: 2; margin: 0 0 2px; font-size: 1rem; }
+  .bildkachel p { grid-column: 2; font-size: .82rem; line-height: 1.4; }
 }
-.richtig .probe-marker { color: var(--green-dark); }
-.falsch .probe-marker { color: #991b1b; }
-
-.probe-aufloesung {
-  margin-top: 14px; padding-top: 14px;
-  border-top: 1px solid var(--border);
-  font-size: .85rem; color: var(--muted); line-height: 1.6;
-}
-.probe-aufloesung a {
-  display: inline-flex; align-items: center; gap: 6px;
-  margin-top: 11px; font-weight: 700; font-size: .86rem;
-  color: var(--marke-dunkel); text-decoration: none;
-  border-bottom: 2px solid var(--green);
-  padding-bottom: 2px;
-}
-.probe-aufloesung a:hover { border-bottom-color: var(--marke-dunkel); }
-
-/* Zweispaltiges Band: Text links, Probefrage rechts. */
-.band-zwei {
-  display: grid; gap: 34px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
-  align-items: center;
-}
-@media (max-width: 860px) { .band-zwei { grid-template-columns: 1fr; gap: 24px; } }
 
 /* ---------- Aufmacher der Unterseiten ----------
    Flacher als der Startseiten-Aufmacher: Bildstreifen mit Titel darauf,

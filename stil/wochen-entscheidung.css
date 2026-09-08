@@ -14,7 +14,13 @@
    ueber, und weil der Inhalt zentriert ist, schob es das Icon links aus
    dem Knopf heraus. Es stand dann zwischen zwei Knoepfen im Nichts. */
 .entscheidung-knopf { min-height: 54px; padding: 9px 8px; border: 1.5px solid #d8dee8; border-radius: 12px; background: #fff; color: #1f2937; display: flex; align-items: center; justify-content: center; gap: 7px; font: inherit; font-weight: 650; cursor: pointer; overflow: hidden; }
-.entscheidung-knopf > span:last-child { min-width: 0; overflow-wrap: anywhere; line-height: 1.15; }
+.entscheidung-knopf > span:last-child {
+  min-width: 0;
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: none;
+  line-height: 1.15;
+}
 .entscheidung-knopf:hover { border-color: #93a4bb; background: #f8fafc; }
 .entscheidung-knopf.aktiv { border-color: var(--entscheidung-akzent); background: #eff6ff; box-shadow: 0 0 0 2px rgb(37 99 235 / 12%); }
 .entscheidung-symbol { width: 28px; height: 28px; display: grid; place-items: center; flex: 0 0 auto; }

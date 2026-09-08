@@ -37,12 +37,29 @@
 }
 .konto-knopf:hover { background: var(--marke-lighter); border-color: var(--marke-hell); }
 
-/* Angemeldet: derselbe Knopf, nur mit gruenem Punkt davor. Bewusst kein
-   Symbol und kein Avatarbild - die Seite arbeitet mit Woertern. */
-.konto-knopf .konto-punkt {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--green); flex: none;
+.konto-symbol {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
 }
+
+.konto-knopf.ist-angemeldet { position: relative; }
+.konto-knopf.ist-angemeldet::after,
+.konto-knopf.hat-neuigkeit::after {
+  content: "";
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--green);
+  box-shadow: 0 0 0 2px var(--card);
+}
+.konto-knopf.hat-neuigkeit::after { background: #f59e0b; }
 
 .konto-menue {
   position: absolute; top: calc(100% + 6px); right: 0;
@@ -78,7 +95,7 @@
 .konto-menue button:hover { background: var(--marke-lighter); }
 .konto-menue .konto-abmelden { color: #b91c1c; font-weight: 600; }
 
-@media (max-width: 760px) {
+@media (max-width: 960px) {
   /* Der Kontoknopf bleibt auch auf dem Handy sichtbar und wandert NICHT
      ins Burgermenue: wer sich anmelden will, soll nicht erst ein Menue
      aufklappen muessen. Er steht links vom Menueknopf. */
@@ -88,7 +105,13 @@
      teilen und eine Luecke mitten in die Gruppe reissen. */
   .nav-anmelden ~ .konto-bereich { margin-left: 0; }
   .nav-knopf { order: 2; margin-left: 0; }
-  .konto-knopf { padding: 8px 13px; font-size: .8rem; }
+  .konto-knopf {
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  .konto-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .konto-menue { min-width: 200px; }
 }
 
@@ -98,14 +121,12 @@
    gesetzt - der volle Vereinsname ist Max' ausdrueckliche Vorgabe. */
 @media (max-width: 430px) {
   .kopf-innen { gap: 6px; padding: 0 12px; }
-  .marken-knopf { gap: 8px; padding: 4px 4px 4px 2px; }
-  .marken-titel { font-size: .88rem; }
-  .konto-knopf { padding: 8px 10px; font-size: .78rem; gap: 6px; }
+  .marken-knopf { padding: 4px; }
   /* Seit dem 30.08.2026 steht auch der Quiz-Knopf in dieser Zeile. Bei
      390 px (iPhone 12-15) gehen sich Wappen, Vereinsname, Quiz, Konto und
      Burgermenue nur mit diesen engeren Massen aus - nachgemessen an
      derselben Breite, an der am 29.08.2026 der Vereinsname umbrach. */
-  .nav-anmelden { padding: 8px 11px !important; font-size: .78rem; }
+  .nav-anmelden { padding: 8px 12px !important; font-size: .78rem; }
   .nav-knopf { width: 40px; height: 40px; }
 }
 

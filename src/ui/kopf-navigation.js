@@ -22,6 +22,93 @@
 //  gerade jemand anderes.
 // ============================================================
 
+const NAVIGATION = [
+  { href: "termine.html", text: "Termine", seiten: ["termine.html"] },
+  { href: "informationen.html", text: "Unterlagen", seiten: ["informationen.html"] },
+  { href: "vorlagen.html", text: "Absagen", seiten: ["vorlagen.html"] },
+  { href: "melden.html", text: "Etwas melden", seiten: ["melden.html"] },
+];
+
+function dateiname() {
+  const teil = String(globalThis.location?.pathname || "").split("/").filter(Boolean).pop();
+  return teil || "index.html";
+}
+
+// Die Navigationspunkte werden an einer Stelle aufgebaut. Damit bekommen
+// auch Unterseiten wie "Meine Ausrüstung" und "Frage vorschlagen", die
+// früher nur einen Text-Zurück-Link hatten, denselben Seitenkopf. Spesen und
+// Regeln bleiben im Code erreichbar, werden bis zur fachlichen Prüfung aber
+// bewusst nicht verlinkt.
+export function vereinheitlicheHauptnavigation(kopfInnen) {
+  if (!kopfInnen) return null;
+
+  const marke = kopfInnen.querySelector("a.marken-knopf");
+  if (marke) {
+    marke.href = "index.html";
+    marke.setAttribute("aria-label", "Zur Startseite");
+    const titel = marke.querySelector(".marken-titel");
+    if (titel) {
+      titel.setAttribute("data-verein", "name");
+      titel.textContent = "FV Löbtauer Kickers";
+    }
+  }
+
+  const alterZurueckLink = Array.from(kopfInnen.querySelectorAll("a.sekundaer-button"))
+    .find((link) => /zurück|vereinsseite/i.test(link.textContent || ""));
+  if (alterZurueckLink) alterZurueckLink.remove();
+
+  let navKnopf = kopfInnen.querySelector("#nav-knopf");
+  if (!navKnopf) {
+    navKnopf = document.createElement("button");
+    navKnopf.id = "nav-knopf";
+    navKnopf.className = "nav-knopf";
+    navKnopf.type = "button";
+    navKnopf.setAttribute("aria-expanded", "false");
+    navKnopf.setAttribute("aria-controls", "haupt-nav");
+    navKnopf.setAttribute("aria-label", "Menü öffnen");
+    kopfInnen.appendChild(navKnopf);
+  }
+  navKnopf.innerHTML = '<span class="nav-striche" aria-hidden="true"><i></i><i></i><i></i></span>';
+
+  let nav = kopfInnen.querySelector("#haupt-nav");
+  if (!nav) {
+    nav = document.createElement("nav");
+    nav.id = "haupt-nav";
+    nav.className = "haupt-nav";
+    nav.setAttribute("aria-label", "Hauptnavigation");
+    kopfInnen.appendChild(nav);
+  }
+
+  nav.replaceChildren();
+  const aktuell = dateiname();
+  for (const eintrag of NAVIGATION) {
+    const link = document.createElement("a");
+    link.href = eintrag.href;
+    link.textContent = eintrag.text;
+    if (eintrag.seiten.includes(aktuell)) link.setAttribute("aria-current", "page");
+    nav.appendChild(link);
+  }
+
+  for (const [text, titel] of [
+    ["Spesen", "Spesenrechner wird noch fachlich geprüft"],
+    ["Regeln", "Regelübersicht wird noch fachlich geprüft"],
+  ]) {
+    const inaktiv = document.createElement("span");
+    inaktiv.className = "nav-deaktiviert";
+    inaktiv.setAttribute("aria-disabled", "true");
+    inaktiv.title = titel;
+    inaktiv.innerHTML = `${text}<small>In Prüfung</small>`;
+    nav.appendChild(inaktiv);
+  }
+
+  const quiz = document.createElement("a");
+  quiz.href = "modus.html";
+  quiz.className = "nav-anmelden";
+  quiz.innerHTML = '<span class="nav-quiz-lang">Zum Quiz</span><span class="nav-quiz-kurz">Quiz</span>';
+  nav.appendChild(quiz);
+  return nav;
+}
+
 // Der Aufruf-zum-Quiz sitzt im HTML in der Hauptnavigation. Auf breiten
 // Bildschirmen ist das genau richtig - dort steht er sichtbar ganz rechts,
 // und Max mag die Kombination aus "Zum Quiz" und dem Kontoknopf daneben.
@@ -81,7 +168,16 @@ export function leseSeitenname(kopfInnen) {
   }
 
   const vorgabe = document.body && document.body.getAttribute("data-seitenname");
-  return vorgabe ? vorgabe.trim() : "";
+  if (vorgabe) return vorgabe.trim();
+
+  // Profil-Unterseiten haben keinen eigenen Reiter. Dort ist die erste
+  // Überschrift die verlässlichste Ortsangabe; nur die Startseite soll
+  // bewusst ohne ein zusätzliches Seitenschild bleiben.
+  if (dateiname() !== "index.html") {
+    const ueberschrift = document.querySelector("main h1");
+    if (ueberschrift) return ueberschrift.textContent.trim();
+  }
+  return "";
 }
 
 // Der Name der Seite, auf der man gerade steht.
@@ -124,5 +220,6 @@ export function zeigeSeitenname(kopfInnen) {
   schild.className = "seiten-name";
   schild.textContent = name;
   block.appendChild(schild);
+  kopfInnen.classList?.add?.("hat-seiten-name");
   return schild;
 }

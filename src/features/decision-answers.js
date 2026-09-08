@@ -178,7 +178,7 @@
         }, () => {
           wahl.spielfortsetzung = eintrag.schluessel;
           if (!optionen.brauchtRichtung(eintrag.schluessel)) wahl.fortsetzung_fuer = null;
-          if (eintrag.schluessel === "weiterspielen") wahl.fortsetzung_ort = "";
+          if (!optionen.brauchtOrt(eintrag.schluessel)) wahl.fortsetzung_ort = "";
           zeichneForm(frage, container, wahl);
         }));
       }
@@ -198,7 +198,7 @@
         form.appendChild(richtung);
       }
 
-      if (wahl.spielfortsetzung && wahl.spielfortsetzung !== "weiterspielen"
+      if (optionen.brauchtOrt(wahl.spielfortsetzung)
           && verlangt(frage, "fordert_fortsetzung_ort")) {
         // Sechs Knopfreihen plus Textfeld haben die Frage auf dem iPhone
         // ewig lang gemacht - Max am 31.08.2026: "Das mit 'Wo wird
@@ -478,7 +478,7 @@
       if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_fuer")
           && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) return false;
       if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_ort")
-          && wahl.spielfortsetzung !== "weiterspielen"
+          && optionen.brauchtOrt(wahl.spielfortsetzung)
           && !String(wahl.fortsetzung_ort || "").trim()) return false;
       if (verlangt(frage, "fordert_strafe")) {
         if (wahl.strafen.length > HOECHSTENS_STRAFEN) return false;
@@ -525,7 +525,7 @@
       return {
         spielfortsetzung: wahl.spielfortsetzung,
         fortsetzung_fuer: wahl.fortsetzung_fuer,
-        fortsetzung_ort: wahl.fortsetzung_ort,
+        fortsetzung_ort: optionen.brauchtOrt(wahl.spielfortsetzung) ? wahl.fortsetzung_ort : "",
         strafen,
         // Die erste Strafe steht zusaetzlich in den alten Einzelfeldern.
         // Bewertet wird ausschliesslich "strafen" - aber die Klartextzeile
@@ -616,7 +616,7 @@
       return {
         fortsetzung: optionen.fortsetzungLabel(wert?.spielfortsetzung)
           + (wert?.fortsetzung_fuer ? ` für ${optionen.mannschaftLabel(wert.fortsetzung_fuer)}` : ""),
-        ort: wert?.spielfortsetzung === "weiterspielen" ? "Entfällt" : wert?.fortsetzung_ort,
+        ort: optionen.brauchtOrt(wert?.spielfortsetzung) ? wert?.fortsetzung_ort : "Entfällt",
       };
     }
 

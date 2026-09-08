@@ -32,7 +32,13 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
   const bereich = document.createElement("div");
   bereich.className = "konto-bereich";
   bereich.innerHTML = `
-    <button class="konto-knopf" type="button" data-konto-knopf aria-expanded="false" aria-haspopup="menu"></button>
+    <button class="konto-knopf" type="button" data-konto-knopf aria-expanded="false" aria-haspopup="menu">
+      <svg class="konto-symbol" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <circle cx="12" cy="8" r="3.5"></circle>
+        <path d="M5 20c.5-4.1 3-6.2 7-6.2s6.5 2.1 7 6.2"></path>
+      </svg>
+      <span class="konto-text" data-konto-text>Anmelden</span>
+    </button>
     <div class="konto-menue" data-konto-menue role="menu" hidden>
       <div class="konto-menue-kopf"><strong data-konto-name></strong><span>Angemeldet in diesem Tab</span></div>
       <a href="modus.html" role="menuitem">Zum Quiz</a>
@@ -44,6 +50,7 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
   kopfInnen.appendChild(bereich);
 
   const kontoKnopf = bereich.querySelector("[data-konto-knopf]");
+  const kontoText = bereich.querySelector("[data-konto-text]");
   const kontoMenue = bereich.querySelector("[data-konto-menue]");
   const kontoName = bereich.querySelector("[data-konto-name]");
   const punkteBereich = bereich.querySelector("[data-profil-punkte]");
@@ -80,13 +87,14 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
 
   anmeldung.abonniere((stand) => {
     if (stand) {
-      kontoKnopf.innerHTML = '<span class="konto-punkt" aria-hidden="true"></span>';
-      kontoKnopf.append(vorname(stand.name));
+      kontoText.textContent = vorname(stand.name);
+      kontoKnopf.classList.add("ist-angemeldet");
       kontoKnopf.setAttribute("aria-label", `Angemeldet als ${stand.name || "Mitglied"} – Kontomenü öffnen`);
       kontoName.textContent = stand.name || "Angemeldet";
     } else {
-      kontoKnopf.textContent = "Anmelden";
-      kontoKnopf.removeAttribute("aria-label");
+      kontoText.textContent = "Anmelden";
+      kontoKnopf.classList.remove("ist-angemeldet");
+      kontoKnopf.setAttribute("aria-label", "Als Vereinsmitglied anmelden");
       setzePunkt(false);
       schliesseKontoMenue();
     }
@@ -125,8 +133,7 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
 
   function setzePunkt(anzeigen) {
     if (punktAnzeige) punktAnzeige.hidden = !anzeigen;
-    const punkt = kontoKnopf.querySelector(".konto-punkt");
-    if (punkt) punkt.classList.toggle("neu", !!anzeigen);
+    kontoKnopf.classList.toggle("hat-neuigkeit", !!anzeigen);
   }
 
   return Object.freeze({ setzePunkt });

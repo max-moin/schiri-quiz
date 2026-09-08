@@ -92,6 +92,17 @@ export function zeitspanne(termin) {
 
 // ---------- Serverzugriff ----------
 
+// PostgREST liefert bei RPCs mit `returns void` nach erfolgreichem
+// Speichern einen leeren Antwortkörper. Safari wirft beim direkten
+// `.json()` darauf einen Syntaxfehler ("The string did not match the
+// expected pattern"), obwohl die Rückmeldung bereits gespeichert wurde.
+export async function leseRpcAntwort(antwort) {
+  const roh = await antwort.text();
+  if (!roh.trim()) return [];
+  const daten = JSON.parse(roh);
+  return Array.isArray(daten) ? daten : [];
+}
+
 // Berechtigungen kommen aus dem jeweiligen RPC, niemals nur aus „angemeldet“.
 export function verbindeTerminSichten(oeffentlich, eigene) {
   const termine = new Map(oeffentlich.map(t => [t.id, { ...t, mitgliedSicht: false }]));
@@ -111,8 +122,7 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
       body: JSON.stringify(parameter),
     });
     if (!antwort.ok) throw new Error(`Server antwortet mit ${antwort.status}`);
-    const daten = await antwort.json();
-    return Array.isArray(daten) ? daten : [];
+    return leseRpcAntwort(antwort);
   }
 
   return Object.freeze({

@@ -159,6 +159,14 @@ export const OHNE_RICHTUNG = FORTSETZUNGEN
   .filter((f) => f.ohneRichtung)
   .map((f) => f.schluessel);
 
+// Diese Spielfortsetzungen bringen ihren Ausführungsbereich bereits mit.
+// Eine zusätzliche Ortsfrage wäre nur Doppelarbeit ("Strafstoß" wird an
+// der Strafstoßmarke ausgeführt, "Eckstoß" im Eckbereich). Freistöße,
+// Einwurf und SR-Ball bleiben dagegen szenenabhängig.
+export const OHNE_ORTSFRAGE = [
+  "weiterspielen", "strafstoss", "eckstoss", "abstoss", "anstoss",
+];
+
 export function fortsetzungLabel(schluessel) {
   return FORTSETZUNGEN.find((f) => f.schluessel === schluessel)?.label || "—";
 }
@@ -182,6 +190,10 @@ export function strafeLabel(schluessel) {
 
 export function brauchtRichtung(schluessel) {
   return schluessel != null && !OHNE_RICHTUNG.includes(schluessel);
+}
+
+export function brauchtOrt(schluessel) {
+  return schluessel != null && !OHNE_ORTSFRAGE.includes(schluessel);
 }
 
 // "heim" und "gast" sind Datenbankwerte; angezeigt wird die Trikotfarbe

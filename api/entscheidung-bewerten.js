@@ -31,6 +31,11 @@ const HOECHSTENS_STRAFEN = 4;
 const MANNSCHAFTEN = new Set(["heim", "gast"]);
 const ROLLEN = new Set(["feldspieler", "torwart", "auswechselspieler", "trainer"]);
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const OHNE_ORTSFRAGE = new Set(["weiterspielen", "strafstoss", "eckstoss", "abstoss", "anstoss"]);
+
+export function brauchtOrt(spielfortsetzung) {
+  return !OHNE_ORTSFRAGE.has(spielfortsetzung);
+}
 
 export function normalisiereOrt(wert) {
   return String(wert || "")
@@ -156,7 +161,7 @@ export function pruefeVollstaendig(antwort, kontext) {
     return "Mannschaft der Spielfortsetzung fehlt.";
   }
   if (verlangt("fordert_fortsetzung") && verlangt("fordert_fortsetzung_ort")
-      && antwort.spielfortsetzung !== "weiterspielen"
+      && brauchtOrt(antwort.spielfortsetzung)
       && !String(antwort.fortsetzung_ort || "").trim()) {
     return "Ort der Spielfortsetzung fehlt.";
   }
@@ -291,7 +296,7 @@ export default async function handler(req, res) {
   // den Wert ohnehin, sobald fordert_fortsetzung_ort false ist.
   let ortPruefung = { gleichwertig: true, feedback: null };
   if (kontext.fordert_fortsetzung_ort !== false
-      && antwort.spielfortsetzung !== "weiterspielen") {
+      && brauchtOrt(antwort.spielfortsetzung)) {
     const lokal = vergleicheOrtLokal(antwort.fortsetzung_ort, kontext.fortsetzung_ort);
     if (lokal !== null) {
       ortPruefung = {

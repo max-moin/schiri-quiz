@@ -14,6 +14,7 @@ import {
 import {
   pruefeForm,
   pruefeVollstaendig,
+  brauchtOrt,
   vergleicheOrtLokal,
   vergleicheOrtMitGemini,
 } from "./entscheidung-bewerten.js";
@@ -46,7 +47,7 @@ export default async function handler(req, res) {
   if (fehlendes) return res.status(400).json({ fehler: fehlendes });
 
   let ortPruefung = { gleichwertig: true, feedback: null };
-  if (kontext.fordert_fortsetzung_ort !== false && antwort.spielfortsetzung !== "weiterspielen") {
+  if (kontext.fordert_fortsetzung_ort !== false && brauchtOrt(antwort.spielfortsetzung)) {
     const lokal = vergleicheOrtLokal(antwort.fortsetzung_ort, kontext.fortsetzung_ort);
     if (lokal !== null) {
       ortPruefung = { gleichwertig: lokal, feedback: lokal ? null : "Die Ortsangabe bezeichnet einen anderen regeltechnischen Anknüpfungspunkt." };

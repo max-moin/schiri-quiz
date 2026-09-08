@@ -7,6 +7,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
+import { leseRpcAntwort } from "../src/website/termine.js";
 
 const lies = (pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf8");
 
@@ -106,6 +107,16 @@ test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /if \(!gewaehlterGrund\)/);
   assert.match(js, /Bitte wähle noch einen Grund aus/);
+});
+
+test("eine erfolgreiche Terminrückmeldung darf einen leeren RPC-Körper liefern", async () => {
+  const antwort = { text: async () => "" };
+  assert.deepEqual(await leseRpcAntwort(antwort), []);
+});
+
+test("lesende Termin-RPCs werden weiterhin als Liste ausgewertet", async () => {
+  const antwort = { text: async () => '[{"id":"termin-1"}]' };
+  assert.deepEqual(await leseRpcAntwort(antwort), [{ id: "termin-1" }]);
 });
 
 test("die sechs Absagegründe stimmen mit der Datenbank überein", () => {

@@ -101,6 +101,28 @@
   align-items: center;
 }
 .haupt-nav a:hover { background: var(--marke-lighter); }
+.haupt-nav .nav-deaktiviert {
+  min-height: 44px;
+  padding: 7px 11px;
+  border-radius: 8px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  color: #6b7280;
+  font-size: .82rem;
+  font-weight: 600;
+  line-height: 1.05;
+  background: #f3f4f6;
+  cursor: not-allowed;
+}
+.nav-deaktiviert small {
+  margin-top: 3px;
+  color: #8b5e00;
+  font-size: .61rem;
+  font-weight: 750;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
 /* Zwei Staerken, weil es zwei Aussagen sind:
    "page" = genau diese Seite. "true" = dieser Bereich, aber eine andere
    Seite - vorlagen.html unter "Unterlagen", entscheiden.html hinter "Zum
@@ -154,15 +176,20 @@
   margin-left: auto;
   background: transparent;
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: 50%;
   width: 44px; height: 44px;
-  font-size: 1.15rem;
   cursor: pointer;
   color: var(--marke-hell);
+  align-items: center;
+  justify-content: center;
 }
 
-@media (max-width: 760px) {
-  .nav-knopf { display: block; }
+.nav-striche { width: 18px; display: grid; gap: 4px; }
+.nav-striche i { height: 2px; border-radius: 2px; background: currentColor; display: block; }
+.nav-quiz-kurz { display: none; }
+
+@media (max-width: 960px) {
+  .nav-knopf { display: inline-flex; }
   .haupt-nav {
     display: none;
     position: absolute;
@@ -176,6 +203,10 @@
     gap: 2px;
   }
   .haupt-nav.offen { display: flex; }
+  .haupt-nav .nav-deaktiviert {
+    align-items: flex-start;
+    padding: 9px 13px;
+  }
   /* Der Quiz-Knopf steht neben dem Kontoknopf, nicht im Burgermenue.
      "margin-left: auto" sitzt hier und nicht am Kontobereich: er ist von
      den beiden der linkere, und nur der vorderste Auto-Rand darf den
@@ -216,6 +247,7 @@
   line-height: 1.2;
   color: var(--muted);
   white-space: nowrap;
+  display: none;
 }
 
 /* Auf schmalen Bildschirmen faellt der Einzug weg. Bei 375 px teilen sich
@@ -226,8 +258,31 @@
 
    Steht bewusst HINTER der Grundregel: Media Queries erhoehen die
    Spezifitaet nicht, es entscheidet die Reihenfolge. */
-@media (max-width: 760px) {
-  .seiten-name { padding-left: 2px; }
+@media (max-width: 960px) {
+  .marken-titel { display: none; }
+  .marken-knopf { padding: 4px; }
+  .marken-block { flex: none; }
+  .kopf-innen.hat-seiten-name {
+    min-height: 84px;
+    padding-bottom: 24px;
+    position: relative;
+  }
+  .seiten-name {
+    display: block;
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    bottom: 8px;
+    padding: 0;
+    margin: 0;
+    text-align: center;
+    font-size: .8rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .nav-quiz-lang { display: none; }
+  .nav-quiz-kurz { display: inline; }
 }
 
 /* ---------- Fußbereich ---------- */

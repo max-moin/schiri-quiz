@@ -54,7 +54,7 @@
     <!-- ============================================================
          Reihenfolge nach Max' Entscheidung vom 21.08.2026, angepasst am
          30.08.2026:
-         Aufmacher · Probefrage · Werkzeugkasten · Termine.
+         Aufmacher · schnelle Wege · Termine.
 
          Die Bildzeile "Steh mitten im Spiel, statt danebenzustehen" stand
          bis zum 30.08.2026 hier. Max: "Ich finde es gut, dass 'Schiri
@@ -89,7 +89,6 @@
       <div class="aufmacher-text">
         <span class="kicker">Schiedsrichter · FV Löbtauer Kickers</span>
         <h1>Ohne uns geht<br />kein Spiel</h1>
-        <p>Neunzig Minuten, zweiundzwanzig Meinungen, eine Entscheidung.</p>
         <div class="aufmacher-knoepfe">
           <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
           <a class="knopf-rand" href="quiz.html#gast">Dein Fußballwissen testen</a>
@@ -97,56 +96,16 @@
       </div>
     </section>
 
-    <!-- Probefrage: eine echte Frage aus dem eigenen Katalog. Siehe Skript
-         am Seitenende. -->
-    <section class="band band-dunkel">
-      <div class="band-zwei">
-        <div class="band-text">
-          <span class="kicker">Ohne Anmeldung</span>
-          <h2>Hättest du richtig entschieden?</h2>
-          <p>
-            Eine echte Frage aus unserem Quiz – dieselben, mit denen sich
-            unsere Schiedsrichter jede Woche vorbereiten.
-          </p>
-        </div>
-
-        <div class="probe">
-          <div class="marke" id="probe-regel">Regel</div>
-          <p class="frage" id="probe-frage"></p>
-          <div class="probe-optionen" id="probe-optionen" role="group" aria-labelledby="probe-frage"></div>
-          <div class="probe-aufloesung leer" id="probe-aufloesung" role="status" aria-live="polite">
-            <p id="probe-text" style="margin:0"></p>
-            <a href="quiz.html#gast" id="probe-weiter">Weiter zum Gastzugang – über 40 Fragen →</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Werkzeugkasten: nur noch das, was wir selbst gebaut haben. Die
-         Verbandsunterlagen haben ihren eigenen Punkt in der Leiste. -->
+    <!-- Drei eindeutige Wege. Quiz bleibt als hervorgehobener Knopf im
+         Seitenkopf und wird hier nicht ein zweites Mal angeboten. -->
     <section class="abschnitt">
       <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
       <div class="kachelraster">
 
-        <a class="bildkachel" href="modus.html">
-          <div class="bildflaeche"><img data-bild="quiz" src="bilder/motiv-quiz.svg" alt="" loading="lazy" /></div>
-          <div class="bildkachel-text">
-            <h3>Quiz</h3>
-            <p>Jede Woche neue Fragen.</p>
-          </div>
-        </a>
-
-        <a class="bildkachel" href="spesenrechner.html">
-          <div class="bildflaeche"><img data-bild="spesen" src="bilder/motiv-spesen.svg" alt="" loading="lazy" /></div>
-          <div class="bildkachel-text">
-            <h3>Spesenrechner</h3>
-            <p>Entschädigung und Fahrtkosten für dein Spiel.</p>
-          </div>
-        </a>
-
         <a class="bildkachel" href="vorlagen.html">
           <div class="bildflaeche"><img data-bild="vorlagen" src="bilder/motiv-absage.svg" alt="" loading="lazy" /></div>
           <div class="bildkachel-text">
+            <span class="schnellweg-icon absage" aria-hidden="true">×</span>
             <h3>Absagen</h3>
             <p>Fertige E-Mail, alle Pflichtangaben drin.</p>
           </div>
@@ -155,6 +114,7 @@
         <a class="bildkachel" href="melden.html">
           <div class="bildflaeche"><img data-bild="melden" src="bilder/motiv-ausruestung.svg" alt="" loading="lazy" /></div>
           <div class="bildkachel-text">
+            <span class="schnellweg-icon melden" aria-hidden="true">!</span>
             <h3>Etwas melden</h3>
             <p>Regelfall, Vorfall oder einfach mal reden.</p>
           </div>
@@ -163,6 +123,7 @@
         <a class="bildkachel" href="informationen.html">
           <div class="bildflaeche"><img data-bild="unterlagen" src="bilder/motiv-dokumente.svg" alt="" loading="lazy" /></div>
           <div class="bildkachel-text">
+            <span class="schnellweg-icon unterlagen" aria-hidden="true">▤</span>
             <h3>Unterlagen</h3>
             <p>Stadtverband und Landesverband an einer Stelle.</p>
           </div>
@@ -334,130 +295,5 @@
     })();
   </script>
 
-  <script>
-    /* ============================================================
-       Probefrage.
-
-       Die vier Fragen stehen WÖRTLICH so im Fragenkatalog der eigenen
-       Datenbank (Stand 21.08.2026). Max, 21.08.2026: "das sind nicht die
-       richtigen Fragen von meiner Webseite. Ich hätte schon gerne, dass
-       auch die Fragen sind und nicht so generische Fragen."
-
-       Bewusst fest eingetragen und nicht live geladen. Die Startseite
-       fragt seit dem 22.08.2026 zwar die Termine aus der Datenbank ab -
-       aber dieser Abschnitt hier darf nicht davon abhängen. Die Termine
-       verschwinden bei einer Störung stillschweigend; eine Probefrage,
-       die nur manchmal da ist, wäre ein Loch mitten auf der Seite.
-       Es sind alles Fragen, bei denen die naheliegende Antwort falsch
-       ist; genau das ist hier der Zweck.
-       ============================================================ */
-    const PROBEFRAGEN = [
-      {
-        regel: "Regel 4 · Die Ausrüstung der Spieler",
-        frage: "Ein Spieler schießt den Ball ins Tor und verliert dabei einen Schuh.",
-        optionen: [
-          "Das Tor zählt nicht, indirekter Freistoß.",
-          "Das Tor zählt nicht, indirekter Freistoß und Verwarnung.",
-          "Das Tor zählt, Anstoß.",
-        ],
-        richtig: 2,
-        text: "Verliert ein Spieler unbeabsichtigt einen Schuh und spielt sofort weiter, "
-            + "bleibt das erlaubt – auch wenn er dabei trifft. Erst bei der nächsten "
-            + "Unterbrechung muss er den Schuh wieder anziehen.",
-      },
-      {
-        regel: "Regel 11 · Abseits",
-        frage: "Ein Stürmer verlässt das Spielfeld über die Torlinie, um sich einer Abseitsstellung zu entziehen. Sein Mitspieler tritt den Ball ins Tor.",
-        optionen: [
-          "Tor, Anstoß, der Spieler durfte das Spielfeld verlassen.",
-          "Indirekter Freistoß wegen Abseits.",
-          "Indirekter Freistoß wegen unerlaubtem Verlassen des Spielfelds, Verwarnung.",
-        ],
-        richtig: 0,
-        text: "Wer das Feld über die Torlinie verlässt, um sich einer Abseitsstellung zu "
-            + "entziehen, tut genau das Richtige. Weder Strafe noch Abseits.",
-      },
-      {
-        regel: "Regel 14 · Strafstoß",
-        frage: "Der Torwart bewegt sich beim Strafstoß zu früh von der Torlinie. Der Schütze ist so irritiert, dass er den Ball gegen den Pfosten schießt.",
-        optionen: [
-          "Weiterspielen.",
-          "Wiederholung, Ermahnung.",
-          "Wiederholung, Verwarnung.",
-        ],
-        richtig: 1,
-        text: "Der Strafstoß wird wiederholt. Für das erste Vergehen dieser Art bekommt der "
-            + "Torwart eine Ermahnung, noch keine Verwarnung.",
-      },
-      {
-        regel: "Regel 15 · Einwurf",
-        frage: "Ein an der falschen Stelle und zusätzlich falsch ausgeführter Einwurf gelangt zum Gegner, der dadurch eine Torchance erhält.",
-        optionen: [
-          "Weiterspielen.",
-          "Wiederholung des Einwurfs durch dieselbe Mannschaft.",
-          "Einwurf für den Gegner.",
-        ],
-        richtig: 0,
-        text: "Vorteil. Die Mannschaft, die falsch eingeworfen hat, soll daraus keinen "
-            + "Nutzen ziehen – und der Gegner nicht um seine Torchance gebracht werden.",
-      },
-    ];
-
-    (function () {
-      const feld = document.getElementById("probe-optionen");
-      if (!feld) return;
-
-      const f = PROBEFRAGEN[Math.floor(Math.random() * PROBEFRAGEN.length)];
-      document.getElementById("probe-regel").textContent = f.regel;
-      document.getElementById("probe-frage").textContent = f.frage;
-
-      const knoepfe = f.optionen.map((text, i) => {
-        const b = document.createElement("button");
-        b.type = "button";
-        const buchstabe = document.createElement("span");
-        buchstabe.className = "buchstabe";
-        buchstabe.textContent = "ABC"[i];
-        const inhalt = document.createElement("span");
-        inhalt.textContent = text;
-        b.append(buchstabe, inhalt);
-        feld.appendChild(b);
-        return b;
-      });
-
-      /* Wort statt nur Farbe - eine Rückmeldung, die ausschließlich über
-         Grün und Rot läuft, kommt bei Farbfehlsichtigkeit nicht an. */
-      const marker = (knopf, wort) => {
-        const s = document.createElement("span");
-        s.className = "probe-marker";
-        s.textContent = wort;
-        knopf.appendChild(s);
-      };
-
-      knoepfe.forEach((b, i) => b.addEventListener("click", () => {
-        if (feld.dataset.beantwortet === "ja") return;
-        feld.dataset.beantwortet = "ja";
-
-        knoepfe.forEach((x, j) => {
-          /* aria-disabled statt disabled: ein deaktivierter Knopf verliert
-             sofort den Fokus, und der nächste Tabulator fängt wieder ganz
-             oben an. Der zweite Klick wird oben abgefangen. */
-          x.setAttribute("aria-disabled", "true");
-          if (j === f.richtig) { x.classList.add("richtig"); marker(x, "Richtig"); }
-        });
-        if (i !== f.richtig) { b.classList.add("falsch"); marker(b, "Daneben"); }
-
-        const loesung = document.getElementById("probe-aufloesung");
-        const ziel = document.getElementById("probe-text");
-        ziel.textContent = "";
-        const fett = document.createElement("strong");
-        fett.textContent = "ABC"[f.richtig] + " ist richtig.";
-        ziel.append(fett, " " + f.text);
-        loesung.classList.remove("leer");
-        /* Auf dem Handy steht die Auflösung sonst unterhalb des sichtbaren
-           Bereichs und es sieht aus, als sei nichts passiert. */
-        loesung.scrollIntoView({ block: "nearest", behavior: "smooth" });
-      }));
-    })();
-  </script>
 </body>
 </html>

@@ -20,7 +20,11 @@
 
 import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
 import { montiereKontoBereich } from "./src/ui/konto-bereich.js";
-import { zeigeQuizKnopfImmer, zeigeSeitenname } from "./src/ui/kopf-navigation.js";
+import {
+  vereinheitlicheHauptnavigation,
+  zeigeQuizKnopfImmer,
+  zeigeSeitenname,
+} from "./src/ui/kopf-navigation.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -107,6 +111,11 @@ document.querySelectorAll(".seiten-fuss .fuss-innen").forEach((fuss) => {
   fuss.insertBefore(link, zeile || null);
 });
 
+// ---------- Eine Navigation für alle öffentlichen Seiten ----------
+
+const kopfInnen = document.querySelector(".seiten-kopf .kopf-innen");
+vereinheitlicheHauptnavigation(kopfInnen);
+
 // ---------- Menü für schmale Bildschirme ----------
 
 const navKnopf = document.getElementById("nav-knopf");
@@ -165,8 +174,6 @@ if (navKnopf && navBereich) {
 //  JavaScript sichtbar waere, aber nichts tun kann, waere schlechter als
 //  gar keiner.
 // ============================================================
-
-const kopfInnen = document.querySelector(".seiten-kopf .kopf-innen");
 
 if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   const anmeldung = globalThis.SchiriAnmeldung.erstelleAnmeldung({

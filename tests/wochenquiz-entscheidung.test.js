@@ -2,7 +2,12 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
 
-import handler, { normalisiereOrt, vergleicheOrtLokal } from "../api/entscheidung-bewerten.js";
+import handler, {
+  brauchtOrt as brauchtOrtServer,
+  normalisiereOrt,
+  vergleicheOrtLokal,
+} from "../api/entscheidung-bewerten.js";
+import { brauchtOrt as brauchtOrtBrowser } from "../src/website/entscheidungs-optionen.js";
 
 const lies = (pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf8");
 const migration = lies("supabase/migrations/20260831120000_v100_wochenquiz_icon_antworten.sql");
@@ -21,6 +26,17 @@ test("gängige Ortsformulierungen werden ohne KI robust normalisiert", () => {
   assert.equal(vergleicheOrtLokal("am Elfmeterpunkt", "Strafstoßmarke"), true);
   assert.equal(vergleicheOrtLokal("wo der Ball zuletzt gespielt wurde", "Ort des Vergehens"), false);
   assert.equal(vergleicheOrtLokal("auf Höhe des zweiten Pfostens", "Ort des Vergehens"), null);
+});
+
+test("feste Spielfortsetzungen verlangen keine redundante Ortsangabe", () => {
+  for (const wert of ["weiterspielen", "strafstoss", "eckstoss", "abstoss", "anstoss"]) {
+    assert.equal(brauchtOrtBrowser(wert), false, wert);
+    assert.equal(brauchtOrtServer(wert), false, wert);
+  }
+  for (const wert of ["direkter_freistoss", "indirekter_freistoss", "einwurf", "sr_ball"]) {
+    assert.equal(brauchtOrtBrowser(wert), true, wert);
+    assert.equal(brauchtOrtServer(wert), true, wert);
+  }
 });
 
 test("die richtige Icon-Lösung gelangt vor dem Antworten nicht in den Fragen-Feed", () => {

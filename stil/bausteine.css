@@ -206,6 +206,36 @@ body { overflow-x: hidden; }
   color: var(--marke-dunkel);
 }
 
+.info-klapptext {
+  margin: 8px 0 18px;
+  max-width: 62ch;
+}
+.info-klapptext summary {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--marke-hell);
+  font-weight: 800;
+  cursor: pointer;
+  list-style: none;
+}
+.info-klapptext summary::-webkit-details-marker { display: none; }
+.info-klapptext[open] summary { background: var(--marke-lighter); border-color: var(--marke-hell); }
+.info-klapptext p {
+  margin: 10px 0 0;
+  padding: 12px 14px;
+  border-left: 3px solid var(--marke);
+  border-radius: 0 10px 10px 0;
+  background: var(--marke-lighter);
+  color: var(--muted);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+
 /* ---------- Segmentierter Umschalter ----------
    Zwei sich ausschließende Zustände. Als zwei einzelne Pillen sah man
    nicht, dass sie zusammengehören; als ein Bauteil mit Schieber schon. */
