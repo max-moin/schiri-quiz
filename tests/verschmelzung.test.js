@@ -154,14 +154,14 @@ test("auch die beiden angemeldeten Unterseiten haben das vollständige Kontomen�
 });
 
 test("das Kontomenue der Vereinsseite benutzt das gemeinsame Profilmodul", () => {
-  // Ohne den Kommentar-Abzug faende die Suche nach "Anliegen melden" den
+  // Ohne den Kommentar-Abzug faende die Suche nach "Meine Anliegen" den
   // Erklaertext daraeber, warum es diesen Punkt gibt - der Test waere dann
   // gruen geblieben, auch wenn der Punkt selbst fehlt. Genau so ist er bei
   // der Sabotageprobe am 30.08.2026 zuerst durchgerutscht.
   const seiteJs = ohneJsKommentare(lies("seite.js"));
   assert.match(seiteJs, /SchiriQuizProfileRequests/);
   assert.match(seiteJs, /erstelleProfilAnfragen/);
-  for (const punkt of ["Ausrüstung anfragen", "Anliegen melden", "Meine Anfragen"]) {
+  for (const punkt of ["Mein Ausrüstungsbestand", "Meine Anliegen"]) {
     assert.ok(seiteJs.includes(punkt), "Punkt fehlt im Kontomenue: " + punkt);
   }
   // Das Kontomenue der Vereinsseite ruft die exportierten Funktionen auf.

@@ -37,6 +37,7 @@
     const meineAnfragenSchliessenButton = document.getElementById("meine-anfragen-schliessen-button");
     const meineAnfragenListe = document.getElementById("meine-anfragen-liste");
     const meineAnfragenLeerHinweis = document.getElementById("meine-anfragen-leer-hinweis");
+    const meineAnfragenAnliegenButton = document.getElementById("meine-anfragen-anliegen-button");
     const panelAnliegenMeldenButton = document.getElementById("panel-anliegen-melden-button");
     const anliegenFormularOverlay = document.getElementById("anliegen-formular-overlay");
     const anliegenFormularSchliessenButton = document.getElementById("anliegen-formular-schliessen-button");
@@ -173,6 +174,12 @@
     // Merkt sich, für welche Anfrage gerade eine Rechnung hochgeladen wird
     // (gesetzt beim Öffnen von "#rechnung-upload-overlay" über eine Zeile in
     // "Meine Anfragen") sowie das im Browser schon komprimierte Bild.
+    // Seit dem 08.09.2026 zeigt dasselbe Fenster zwei Sichten: die
+    // Ausruestungsantraege (Voreinstellung, jetzt von der Bestandsseite aus)
+    // und die Anliegen ("Meine Anliegen" im Kontomenue). Ein Merker statt
+    // eines zweiten Fensters - die Zeilen sind dieselben.
+    let meineAnfragenNurAnliegen = false;
+
     let rechnungUploadAnfrageId = null;
     let rechnungUploadBase64 = null;
     let rechnungUploadMime = null;
@@ -191,7 +198,9 @@
 
       const titel = document.createElement("span");
       titel.className = "anfrage-zeile-titel";
-      titel.textContent = ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie;
+      titel.textContent = anfrage.typ === "anliegen"
+        ? "Anliegen"
+        : (ANFRAGE_KATEGORIE_LABEL[anfrage.kategorie] || anfrage.kategorie);
       kopf.appendChild(titel);
 
       const statusBadge = document.createElement("span");
@@ -263,7 +272,9 @@
       // Ausrüstungs-Anträge - ein Anliegen ist eine einmalige Meldung an den
       // Obmann, kein Status, den der Schiri selbst weiterverfolgen soll (anders
       // als ein Ausrüstungs-Antrag mit Annahme/Beschaffungsweg/Rechnung).
-      const antraege = (data || []).filter((anfrage) => anfrage.typ !== "anliegen");
+      const antraege = (data || []).filter((anfrage) => (meineAnfragenNurAnliegen
+        ? anfrage.typ === "anliegen"
+        : anfrage.typ !== "anliegen"));
 
       if (antraege.length === 0) {
         meineAnfragenLeerHinweis.hidden = false;
@@ -278,12 +289,27 @@
     }
 
     meineAnfragenSchliessenButton.addEventListener("click", schliesseMeineAnfragen);
+    if (meineAnfragenAnliegenButton) {
+      meineAnfragenAnliegenButton.addEventListener("click", () => {
+        schliesseMeineAnfragen();
+        oeffneAnliegen();
+      });
+    }
     meineAnfragenOverlay.addEventListener("click", (event) => {
       if (event.target === meineAnfragenOverlay) schliesseMeineAnfragen();
     });
 
-    async function oeffneMeineAnfragen() {
+    async function oeffneMeineAnfragen(optionen) {
+      meineAnfragenNurAnliegen = !!(optionen && optionen.nurAnliegen);
       schliesseProfilPanel();
+
+      const titel = document.getElementById("meine-anfragen-titel");
+      if (titel) titel.textContent = meineAnfragenNurAnliegen ? "Meine Anliegen \u{1F4AC}" : "Meine Anfragen \u{1F4E6}";
+      if (meineAnfragenAnliegenButton) meineAnfragenAnliegenButton.hidden = !meineAnfragenNurAnliegen;
+      meineAnfragenLeerHinweis.textContent = meineAnfragenNurAnliegen
+        ? "Du hast noch kein Anliegen geschrieben. Schreib eins - nur der Schiri-Obmann sieht es."
+        : "Du hast noch keine Anfragen gestellt.";
+
       meineAnfragenOverlay.hidden = false;
       await ladeMeineAnfragen();
 

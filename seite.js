@@ -212,6 +212,13 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   //
   // Erst beim Anmelden gebaut: fuer jemanden, der nur die Startseite
   // liest, haetten vier verborgene Fenster im Dokument keinen Zweck.
+  // Seit dem 08.09.2026 sind es nur noch zwei Punkte. Max: "Wenn man auf
+  // diesen Konto-Button klickt, wird da nicht so viel aufgelistet."
+  // "Ausruestung anfragen" und "Meine Anfragen" sind nicht weggefallen,
+  // sondern umgezogen: beides steht jetzt auf der Bestandsseite, wo man
+  // ohnehin nachsieht, was man hat und was fehlt. Uebrig bleibt hier der
+  // Weg dorthin und der Weg zu den Anliegen - und an dem haengt der
+  // blaue Punkt, der ungesehene Neuigkeiten meldet.
   let profil = null;
 
   // Seiten, die diese vier Bausteine nicht laden, bekommen die Punkte gar
@@ -258,6 +265,12 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     return profil;
   }
 
+  // Auch andere Bausteine derselben Seite brauchen diese Fenster: die
+  // Bestandsseite oeffnet damit "Ausruestung anfragen", statt die Maske
+  // samt Rechnungs-Upload ein zweites Mal zu bauen (siehe
+  // src/website/ausruestung-seite.js).
+  globalThis.SchiriSeitenProfil = Object.freeze({ holeProfil });
+
   // ---------- Knopf und Menue in den Kopf setzen ----------
 
   // Erst den Aufruf-zum-Quiz aus dem Burgermenue holen, dann den
@@ -271,9 +284,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     loginDialog,
     profilAktionen: profilVerfuegbar ? [
       { text: "Mein Ausrüstungsbestand", tun: () => { window.location.href = "ausruestung.html"; } },
-      { text: "Ausrüstung anfragen", tun: () => { const p = holeProfil(); if (p) p.oeffneAusruestungsAnfrage(); } },
-      { text: "Anliegen melden", tun: () => { const p = holeProfil(); if (p) p.oeffneAnliegen(); } },
-      { text: "Meine Anfragen", punkt: true, tun: () => { const p = holeProfil(); if (p) void p.oeffneMeineAnfragen(); } },
+      { text: "Meine Anliegen", punkt: true, tun: () => { const p = holeProfil(); if (p) void p.oeffneMeineAnfragen({ nurAnliegen: true }); } },
     ] : [],
   });
 

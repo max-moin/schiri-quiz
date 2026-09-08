@@ -163,6 +163,11 @@
 }
 .profil-fenster .sekundaer-button:hover { background: var(--marke-lighter); }
 
+/* Der Weg zum neuen Anliegen steht unter der Liste und ueber die ganze
+   Breite: er ist in dieser Sicht die einzige Handlung (08.09.2026). */
+.profil-fenster #meine-anfragen-anliegen-button { width: 100%; margin-top: 14px; }
+.profil-fenster #meine-anfragen-anliegen-button[hidden] { display: none; }
+
 .profil-fenster .hinweis { color: var(--muted); font-size: .84rem; line-height: 1.55; margin: 10px 0 0; }
 .profil-fenster p { line-height: 1.6; font-size: .92rem; }
 

@@ -117,6 +117,11 @@
 
       <div id="meine-anfragen-liste"></div>
       <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
+      <!-- Nur in der Sicht "Meine Anliegen" sichtbar (08.09.2026): von der
+           Liste aus soll man auch ein neues Anliegen schreiben koennen,
+           ohne vorher das Fenster zu schliessen. Wort plus Zeichen -
+           ein Zeichen allein waere hier zu wenig. -->
+      <button id="meine-anfragen-anliegen-button" class="sekundaer-button" type="button" hidden>+ Neues Anliegen schreiben</button>
     </div>
   </div>
 

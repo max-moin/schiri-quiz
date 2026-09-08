@@ -14,7 +14,7 @@
 //  Vielleicht wenn dann in die Oberleiste mit reinnehmen."
 //
 //  Genau so ist es jetzt: EIN Menue in der Kopfleiste jeder Vereinsseite,
-//  mit dem Namen, dem Weg ins Quiz, den drei Profil-Punkten und dem
+//  mit dem Namen, dem Weg ins Quiz, den Profil-Punkten und dem
 //  Abmelden. Der konzentrierte Quizfluss zeigt nur noch die angemeldete
 //  Person; Ausruestung, Anliegen und Anfragen werden dort nicht dupliziert.
 //
