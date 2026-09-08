@@ -158,6 +158,21 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
         p_schiedsrichter_id: person.id, p_pin: person.pin,
         p_vorschlag_id: vorschlagId, p_antwort: antwort,
       }),
+
+    eigeneVorschlaege: (person) => rufe("meine_termin_vorschlaege", {
+      p_schiedsrichter_id: person.id, p_pin: person.pin,
+    }),
+
+    vorschlagen: (person, eingabe) => rufe("termin_vorschlag_einreichen", {
+      p_schiedsrichter_id: person.id, p_pin: person.pin,
+      p_titel: eingabe.titel, p_datum: eingabe.datum,
+      p_beginn_zeit: eingabe.beginnZeit || null, p_ort: eingabe.ort || null,
+      p_begruendung: eingabe.begruendung,
+    }),
+
+    protokoll: (person, terminId) => rufe("termin_protokoll_fuer_schiri", {
+      p_schiedsrichter_id: person.id, p_pin: person.pin, p_termin_id: terminId,
+    }),
   });
 }
 

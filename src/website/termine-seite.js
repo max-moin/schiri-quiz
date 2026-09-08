@@ -48,7 +48,7 @@ async function ladeTermine() {
 
 // ---------- Liste ----------
 
-function zeichneListe(termine, findungen) {
+function zeichneListe(termine, findungen, vorschlaege = []) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
 
@@ -102,12 +102,49 @@ function zeichneListe(termine, findungen) {
       ${offeneFindungen.map((f) => findungKarte(f)).join("")}
     </section>` : "";
 
+  const vorschlagHtml = ich ? `
+    <section class="termin-aktionen" aria-labelledby="termin-mitgestalten">
+      <div><h2 id="termin-mitgestalten">Termin mitgestalten</h2><p>Du hast eine Idee? Reiche sie zur Prüfung ein.</p></div>
+      <button type="button" class="td-senden" data-vorschlag-oeffnen>Termin vorschlagen</button>
+    </section>
+    ${vorschlaege.length ? `<details class="eigene-vorschlaege"><summary>Meine Vorschläge (${vorschlaege.length})</summary>
+      <div>${vorschlaege.map(v => `<div class="vorschlag-zeile"><span><strong>${sicher(v.titel)}</strong><small>${sicher(datumKurz(v.datum))}</small></span><span class="wortmarke">${sicher(({eingereicht:"Eingereicht",in_pruefung:"In Prüfung",angenommen:"Angenommen",abgelehnt:"Abgelehnt"})[v.status] || v.status)}</span>${v.obmann_rueckmeldung ? `<p>${sicher(v.obmann_rueckmeldung)}</p>` : ""}</div>`).join("")}</div></details>` : ""}` : "";
+
   bereich.innerHTML = `${kopf}
+    ${vorschlagHtml}
     ${findungHtml}
     ${kuenftig.length ? kuenftigHtml : '<p class="keine">Zurzeit steht kein Termin an.</p>'}
     ${vergangenHtml}`;
 
   if (offeneFindungen.length) bindeStimmen();
+  if (ich) bindeVorschlag();
+}
+
+function bindeVorschlag() {
+  bereich.querySelector("[data-vorschlag-oeffnen]")?.addEventListener("click", () => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "termin-dialog";
+    dialog.innerHTML = `<form method="dialog" class="termin-vorschlag-form">
+      <div class="dialog-kopf"><div><span class="wortmarke blau">Vorschlag</span><h2>Termin vorschlagen</h2></div><button value="abbrechen" class="dialog-schliessen" aria-label="Schließen">×</button></div>
+      <p class="dialog-hilfe">Der Vorschlag wird nicht sofort veröffentlicht. Der Obmann prüft ihn zuerst.</p>
+      <label><span>Titel</span><input name="titel" required minlength="3" maxlength="120" autocomplete="off"></label>
+      <div class="formular-reihe"><label><span>Datum</span><input name="datum" type="date" required></label><label><span>Beginn (optional)</span><input name="zeit" type="time"></label></div>
+      <label><span>Ort (optional)</span><input name="ort" maxlength="160"></label>
+      <label><span>Warum ist der Termin sinnvoll?</span><textarea name="begruendung" required minlength="10" maxlength="1200" rows="4"></textarea></label>
+      <p role="status" data-vorschlag-meldung></p><button type="submit" value="senden" class="td-senden">Zur Prüfung senden</button>
+    </form>`;
+    document.body.append(dialog); dialog.showModal();
+    dialog.addEventListener("close", () => dialog.remove());
+    dialog.querySelector("form").addEventListener("submit", async (event) => {
+      if (event.submitter?.value !== "senden") return;
+      event.preventDefault(); const form = new FormData(event.currentTarget); const meldung = dialog.querySelector("[data-vorschlag-meldung]");
+      try {
+        await zugriff.vorschlagen(person(), { titel: form.get("titel"), datum: form.get("datum"), beginnZeit: form.get("zeit"), ort: form.get("ort"), begruendung: form.get("begruendung") });
+        meldung.textContent = "Vorschlag gesendet. Danke fürs Mitdenken."; meldung.dataset.art = "erfolg";
+        setTimeout(() => location.reload(), 700);
+      } catch (fehler) { meldung.textContent = `Konnte nicht gesendet werden: ${fehler.message}`; meldung.dataset.art = "fehler"; }
+    });
+  });
 }
 
 // Die drei Knoepfe je Vorschlag. Der Stand wird nach dem Klick nicht neu
@@ -138,7 +175,7 @@ function bindeStimmen() {
 
 // ---------- Einzelansicht ----------
 
-function zeichneDetail(termin, zusagen) {
+function zeichneDetail(termin, zusagen, protokoll = null) {
   const ich = person();
   const darfAntworten = Boolean(ich && termin.mitgliedSicht);
   const zeit = zeitspanne(termin);
@@ -211,6 +248,7 @@ function zeichneDetail(termin, zusagen) {
         `<span class="td-name">${sicher(z.name)}</span>`).join("")}</div>
     </div>` : "";
 
+  const protokollHtml = protokoll ? `<section class="termin-protokoll"><span class="wortmarke blau">Für Mitglieder</span><h2>${sicher(protokoll.titel || "Protokoll")}</h2><div class="protokoll-text">${sicher(protokoll.inhalt).replace(/\n/g,"<br>")}</div></section>` : "";
   bereich.innerHTML = `
     <a class="zurueck-link" href="termine.html">← Alle Termine</a>
     <article class="termindetail">
@@ -221,7 +259,8 @@ function zeichneDetail(termin, zusagen) {
       </header>
       <div class="td-body">
         ${zeilen}
-        ${antwort}
+      ${antwort}
+      ${protokollHtml}
         ${teilnehmer}
       </div>
     </article>`;
@@ -332,9 +371,10 @@ async function start() {
 
   // Terminsuchen gibt es nur fuer Angemeldete. Scheitert der Abruf,
   // bleibt die Terminliste trotzdem stehen.
-  let findungen = [];
+  let findungen = [], vorschlaege = [];
   if (person() && !gewaehlteId) {
     try { findungen = await zugriff.terminfindungen(person()); } catch { findungen = []; }
+    try { vorschlaege = await zugriff.eigeneVorschlaege(person()); } catch { vorschlaege = []; }
   }
 
   if (gewaehlteId) {
@@ -358,12 +398,14 @@ async function start() {
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }
     }
-    zeichneDetail(termin, zusagen);
+    let protokoll = null;
+    if (ich && termin.mitgliedSicht) { try { protokoll = (await zugriff.protokoll(ich, termin.id))[0] || null; } catch {} }
+    zeichneDetail(termin, zusagen, protokoll);
     bindeAnmeldeKnoepfe();
     return;
   }
 
-  zeichneListe(termine, findungen);
+  zeichneListe(termine, findungen, vorschlaege);
   bindeAnmeldeKnoepfe();
 }
 
