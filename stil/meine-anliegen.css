@@ -1,0 +1,255 @@
+/* ============================================================
+   Persoenlicher Bereich: eigene Vorgaenge und transparente Datensicht
+   ============================================================ */
+
+.meine-seite { max-width: 920px; }
+
+.meine-kopf { margin: 24px 0 20px; }
+.meine-kopf h1,
+.meine-zugang h1 {
+  margin: 0 0 8px;
+  font-family: var(--font-titel);
+  font-size: clamp(1.7rem, 4.3vw, 2.4rem);
+  line-height: 1.1;
+}
+.meine-kopf p,
+.meine-zugang p {
+  max-width: 62ch;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.meine-zugang {
+  max-width: 620px;
+  margin: 40px auto;
+  padding: 24px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.meine-hauptknopf,
+.meine-textlink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--marke);
+  border-radius: 999px;
+  background: var(--marke);
+  color: #fff;
+  font: inherit;
+  font-size: .86rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+}
+.meine-zugang .meine-hauptknopf { margin-top: 16px; }
+.meine-hauptknopf:hover,
+.meine-textlink:hover { background: var(--marke-dunkel); }
+
+.meine-uebersicht {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 14px;
+}
+
+.meine-karte {
+  padding: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.meine-karte-kopf {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.meine-karte-kopf h2 {
+  margin: 0;
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+}
+.meine-symbol {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: none;
+  border-radius: 10px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+}
+.meine-symbol svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.meine-datenliste { margin: 0; }
+.meine-datenliste > div {
+  display: grid;
+  grid-template-columns: 80px minmax(0, 1fr);
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--border);
+}
+.meine-datenliste dt { color: var(--muted); font-size: .8rem; }
+.meine-datenliste dd { margin: 0; font-size: .88rem; font-weight: 700; }
+.meine-datenschutz,
+.meine-anonym-hinweis {
+  margin: 12px 0 0;
+  color: var(--muted);
+  font-size: .77rem;
+  line-height: 1.5;
+}
+
+.meine-quiz-stand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.meine-kennzahl {
+  min-width: 78px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--marke-lighter);
+}
+.meine-kennzahl strong { display: block; font-family: var(--font-titel); font-size: 1.15rem; }
+.meine-kennzahl span { display: block; color: var(--muted); font-size: .72rem; }
+.meine-kennzahl.richtig strong { color: var(--green-dark); }
+.meine-kennzahl.nachbessern strong { color: #9a6700; }
+.meine-kennzahl.falsch strong { color: var(--red); }
+
+.meine-vorgaenge { margin-top: 28px; }
+.meine-vorgaenge-kopf {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.meine-vorgaenge-kopf h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-titel);
+  font-size: 1.25rem;
+}
+.meine-vorgaenge-kopf p { margin: 0; color: var(--muted); font-size: .84rem; }
+
+.meine-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+.meine-filter button {
+  min-height: 44px;
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--muted);
+  font: inherit;
+  font-size: .8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.meine-filter button[aria-pressed="true"] {
+  border-color: var(--marke);
+  background: var(--marke);
+  color: #fff;
+}
+
+.meine-vorgangsliste { display: grid; gap: 9px; }
+.meine-vorgang {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+.meine-vorgang summary {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px 12px;
+  min-height: 58px;
+  padding: 12px 42px 12px 14px;
+  cursor: pointer;
+  list-style: none;
+}
+.meine-vorgang summary::-webkit-details-marker { display: none; }
+.meine-vorgang summary:hover { background: var(--marke-lighter); }
+.meine-vorgang summary::after {
+  content: "›";
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  color: var(--muted);
+  font-size: 1.35rem;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+.meine-vorgang[open] summary::after { transform: translateY(-50%) rotate(90deg); }
+.meine-vorgang-titel { min-width: 0; }
+.meine-vorgang-art { display: block; color: var(--muted); font-size: .72rem; font-weight: 700; }
+.meine-vorgang-name {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .9rem;
+  font-weight: 700;
+}
+.meine-vorgang-meta { display: flex; align-items: center; gap: 8px; }
+.meine-vorgang-datum { color: var(--muted); font-size: .74rem; white-space: nowrap; }
+.meine-status {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+  font-size: .7rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.meine-status.in-pruefung,
+.meine-status.rueckfrage { background: var(--karte-gelb-hell); color: #755700; }
+.meine-status.angenommen,
+.meine-status.erledigt { background: var(--green-light); color: var(--green-dark); }
+.meine-status.abgelehnt { background: var(--red-hell); color: var(--red); }
+
+.meine-vorgang-inhalt {
+  padding: 0 14px 14px;
+  border-top: 1px solid var(--border);
+  color: var(--muted);
+  font-size: .84rem;
+  line-height: 1.55;
+}
+.meine-vorgang-inhalt p { margin: 11px 0 0; white-space: pre-wrap; }
+.meine-vorgang-inhalt strong { color: var(--text); }
+.meine-vorgang-inhalt .meine-textlink { margin-top: 12px; color: #fff; }
+.meine-leer {
+  margin: 0;
+  padding: 22px;
+  text-align: center;
+  color: var(--muted);
+  background: var(--card);
+  border: 1.5px dashed var(--border);
+  border-radius: var(--radius);
+}
+.meine-fehler { color: var(--red); }
+
+@media (max-width: 680px) {
+  .meine-uebersicht { grid-template-columns: 1fr; }
+  .meine-vorgaenge-kopf { align-items: stretch; flex-direction: column; }
+  .meine-vorgaenge-kopf .meine-hauptknopf { align-self: flex-start; }
+  .meine-vorgang summary { grid-template-columns: 1fr; }
+  .meine-vorgang-meta { justify-content: space-between; }
+}

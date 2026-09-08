@@ -217,8 +217,10 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   // "Ausruestung anfragen" und "Meine Anfragen" sind nicht weggefallen,
   // sondern umgezogen: beides steht jetzt auf der Bestandsseite, wo man
   // ohnehin nachsieht, was man hat und was fehlt. Uebrig bleibt hier der
-  // Weg dorthin und der Weg zu den Anliegen - und an dem haengt der
-  // blaue Punkt, der ungesehene Neuigkeiten meldet.
+  // Weg dorthin und der Weg in den persoenlichen Verlauf - und an dem
+  // haengt der blaue Punkt, der ungesehene Neuigkeiten meldet. Der Verlauf
+  // ist eine eigene Seite statt eines kleinen Pop-ups: dort passen auch
+  // Frage- und Terminvorschlaege sowie die transparente Datensicht hinein.
   let profil = null;
 
   // Seiten, die diese vier Bausteine nicht laden, bekommen die Punkte gar
@@ -284,7 +286,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     loginDialog,
     profilAktionen: profilVerfuegbar ? [
       { text: "Mein Ausrüstungsbestand", tun: () => { window.location.href = "ausruestung.html"; } },
-      { text: "Meine Anliegen", punkt: true, tun: () => { const p = holeProfil(); if (p) void p.oeffneMeineAnfragen({ nurAnliegen: true }); } },
+      { text: "Meine Anliegen", punkt: true, tun: () => { window.location.href = "meine-anliegen.html"; } },
     ] : [],
   });
 

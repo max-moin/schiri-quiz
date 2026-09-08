@@ -63,4 +63,11 @@ function zeichneVersionen(versionen){const bereich=$("versionen-bereich");bereic
 function neu(){$("vorschlag-formular").reset();$("vorschlag-id").value="";document.querySelectorAll("#vorschlag-formular input,#vorschlag-formular select,#vorschlag-formular textarea,#vorschlag-formular button").forEach(el=>el.disabled=false);zeichneMedium();zeichneLoesung();setzeMeldung("");$("versionen-bereich").hidden=true;}
 
 $("medium").addEventListener("change",zeichneMedium);$("antworttyp").addEventListener("change",zeichneLoesung);$("vorschlag-formular").addEventListener("submit",e=>{e.preventDefault();speichern(true)});$("entwurf-speichern").addEventListener("click",()=>speichern(false));$("neuer-vorschlag").addEventListener("click",neu);
-if(person()){$("vorschlag-inhalt").hidden=false;neu();ladeListe();}else{$("vorschlag-zugang").hidden=false;}
+if(person()){
+  $("vorschlag-inhalt").hidden=false;
+  neu();
+  ladeListe().then(()=>{
+    const id=new URLSearchParams(location.search).get("vorschlag");
+    if(id&&/^[0-9a-f-]{36}$/i.test(id))void oeffne(id);
+  });
+}else{$("vorschlag-zugang").hidden=false;}

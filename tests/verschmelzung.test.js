@@ -42,7 +42,7 @@ const ohneJsKommentare = (js) =>
 const EIGENE_SEITEN = [
   "index.html", "termine.html", "regeluebersicht.html", "informationen.html",
   "vorlagen.html", "schiri-werden.html", "modus.html", "entscheiden.html",
-  "quiz.html",
+  "meine-anliegen.html", "quiz.html",
 ];
 
 /* ============================================================
@@ -141,8 +141,8 @@ test("jede Vereinsseite laedt die Profil-Bausteine vor seite.js", () => {
   }
 });
 
-test("auch die beiden angemeldeten Unterseiten haben das vollständige Kontomenü", () => {
-  for (const seite of ["ausruestung.html", "frage-vorschlagen.html"]) {
+test("auch die angemeldeten Unterseiten haben das vollständige Kontomenü", () => {
+  for (const seite of ["ausruestung.html", "frage-vorschlagen.html", "meine-anliegen.html"]) {
     const html = lies(seite);
     const seiteJs = html.indexOf('src="seite.js"');
     for (const baustein of PROFIL_BAUSTEINE) {

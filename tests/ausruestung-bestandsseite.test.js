@@ -23,8 +23,6 @@ const html = lies("ausruestung.html");
 const seite = lies("src/website/ausruestung-seite.js");
 const stil = lies("stil/ausruestung.css");
 const seiteJs = lies("seite.js");
-const fenster = lies("src/ui/profil-fenster.js");
-const anfragen = lies("src/features/profile-requests.js");
 
 test("beim Oeffnen steht nur der Bestand da - das Formular kommt auf Wunsch", () => {
   assert.match(html, /<form id="bestand-formular"[^>]*hidden/,
@@ -111,27 +109,19 @@ test("der Loeschweg mit zweistufiger Rueckfrage bleibt erhalten", () => {
   assert.match(seite, /dataset\.sicher !== "ja"/);
 });
 
-test("das Kontomenue listet nur noch zwei Punkte", () => {
+test("das Kontomenue listet nur noch zwei persoenliche Punkte", () => {
   const ohne = ohneJsKommentare(seiteJs);
   const punkte = [...ohne.matchAll(/\{ text: "([^"]+)"/g)].map((t) => t[1]);
   assert.deepEqual(punkte, ["Mein Ausrüstungsbestand", "Meine Anliegen"],
     "Max: \"Wenn man auf diesen Konto-Button klickt, wird da nicht so viel aufgelistet.\"");
   assert.match(ohne, /punkt: true/,
     "Der blaue Neuigkeiten-Punkt ist verschwunden.");
-  assert.match(ohne, /oeffneMeineAnfragen\(\{ nurAnliegen: true \}\)/,
-    '"Meine Anliegen" oeffnet die vorhandene Liste, gefiltert auf Anliegen.');
+  assert.match(ohne, /window\.location\.href = "meine-anliegen\.html"/,
+    '"Meine Anliegen" oeffnet die eigene Seite statt eines kleinen Pop-ups.');
 });
 
-test('"Meine Anliegen" ist ein Filter der vorhandenen Liste, kein zweites Fenster', () => {
-  assert.match(anfragen, /async function oeffneMeineAnfragen\(optionen\)/,
-    "Die vorhandene Oeffnen-Funktion bekam einen optionalen Parameter.");
-  assert.match(anfragen, /anfrage\.typ === "anliegen"/,
-    "In der Anliegen-Sicht fehlt der Filter.");
-  assert.match(anfragen, /anfrage\.typ !== "anliegen"/,
-    "Die Ausruestungssicht darf sich nicht veraendern.");
-  assert.match(fenster, /id="meine-anfragen-anliegen-button"/,
-    "Aus der Anliegen-Liste heraus muss man ein neues Anliegen schreiben koennen.");
-  assert.ok(fenster.includes("Neues Anliegen schreiben"));
-  // Es bleibt bei EINEM Fenster fuer beide Sichten.
-  assert.equal((fenster.match(/id="meine-anfragen-overlay"/g) || []).length, 1);
+test('"Zum Quiz" wird im Kontomenue nicht doppelt angeboten', () => {
+  const konto = ohneJsKommentare(lies("src/ui/konto-bereich.js"));
+  assert.doesNotMatch(konto, /href="modus\.html"/,
+    "Der Quiz-Knopf steht bereits direkt neben dem Kontoknopf.");
 });

@@ -14,9 +14,11 @@
 //  Vielleicht wenn dann in die Oberleiste mit reinnehmen."
 //
 //  Genau so ist es jetzt: EIN Menue in der Kopfleiste jeder Vereinsseite,
-//  mit dem Namen, dem Weg ins Quiz, den Profil-Punkten und dem
-//  Abmelden. Der konzentrierte Quizfluss zeigt nur noch die angemeldete
-//  Person; Ausruestung, Anliegen und Anfragen werden dort nicht dupliziert.
+//  mit dem Namen, den persoenlichen Profil-Punkten und dem Abmelden.
+//  Der Weg ins Quiz steht bereits als eigener Knopf direkt daneben und
+//  wird hier nicht ein zweites Mal wiederholt. Der konzentrierte Quizfluss
+//  zeigt nur noch die angemeldete Person; Ausruestung, Anliegen und Anfragen
+//  werden dort nicht dupliziert.
 //
 //  Der Knopf wird eingesetzt und steht nicht im HTML: ein Anmeldeknopf,
 //  der ohne JavaScript sichtbar waere, aber nichts tun kann, waere
@@ -40,7 +42,6 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
     </button>
     <div class="konto-menue" data-konto-menue role="menu" hidden>
       <div class="konto-menue-kopf"><strong data-konto-name></strong><span>Angemeldet in diesem Tab</span></div>
-      <a href="modus.html" role="menuitem">Zum Quiz</a>
       <div data-profil-punkte></div>
       <button type="button" class="konto-abmelden" data-abmelden role="menuitem">Abmelden</button>
     </div>`;
@@ -56,8 +57,8 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
 
   // ---------- Profil-Punkte ----------
   //
-  // Sie stehen zwischen "Zum Quiz" und "Abmelden": das Abmelden bleibt der
-  // letzte Eintrag, damit es nicht versehentlich getroffen wird.
+  // Das Abmelden bleibt der letzte Eintrag, damit es nicht versehentlich
+  // statt eines persoenlichen Bereichs getroffen wird.
   let punktAnzeige = null;
   for (const aktion of profilAktionen) {
     const knopf = document.createElement("button");
