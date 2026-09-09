@@ -91,3 +91,14 @@
   .badge.typ-bild,
   .badge.typ-auswahl { color: #c4b5fd; }
 }
+
+/* Hinweis ueber den Optionen, wenn mehrere Antworten erlaubt sind.
+   Aus dem Nutzertest vom 08.09.2026: die Kaestchenform allein wurde nicht
+   als "mehrere moeglich" gelesen. Bewusst ruhig gehalten - er soll
+   informieren, nicht warnen. */
+.auswahl-hinweis {
+  margin: 0 0 10px;
+  font-size: .86rem;
+  font-weight: 600;
+  color: var(--blue-dark, #1d4ed8);
+}

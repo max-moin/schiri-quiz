@@ -52,6 +52,19 @@
       const liste = document.createElement("div");
       liste.className = "option-liste flexible-optionen";
       const mehrfach = frage.antworttyp === "mehrfachauswahl";
+
+      // Nutzertest 08.09.2026 (Feedback von Max' Vater): Dass hier mehrere
+      // Antworten erlaubt sind, war ausschliesslich an der eckigen statt
+      // runden Schaltflaeche zu erkennen - und der Hinweis "Bitte mindestens
+      // eine Antwort auswaehlen" kam erst NACH dem Absenden. Wer die Form
+      // nicht kennt, kreuzt eine an und wundert sich. Ein Satz vor den
+      // Optionen kostet nichts und nimmt die Ueberraschung heraus.
+      if (mehrfach && !beantwortet) {
+        const hinweis = document.createElement("p");
+        hinweis.className = "auswahl-hinweis";
+        hinweis.textContent = "Mehrere Antworten möglich – kreuze alles an, was zutrifft.";
+        karte.appendChild(hinweis);
+      }
       const gewaehlt = new Set(
         Array.isArray(antwort?.gegebene_auswahl)
           ? antwort.gegebene_auswahl
