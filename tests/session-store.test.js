@@ -7,6 +7,7 @@ const quelltext = readFileSync(new URL("../src/core/session-store.js", import.me
 
 function ladeModul({ wirfFehler = false } = {}) {
   const daten = new Map();
+  const dauerhaft = new Map();
   const sessionStorage = {
     setItem(schluessel, wert) {
       if (wirfFehler) throw new Error("gesperrt");
@@ -21,10 +22,15 @@ function ladeModul({ wirfFehler = false } = {}) {
       daten.delete(schluessel);
     },
   };
-  const kontext = { sessionStorage };
+  const localStorage = {
+    setItem: (schluessel, wert) => dauerhaft.set(schluessel, String(wert)),
+    getItem: (schluessel) => dauerhaft.has(schluessel) ? dauerhaft.get(schluessel) : null,
+    removeItem: (schluessel) => dauerhaft.delete(schluessel),
+  };
+  const kontext = { sessionStorage, localStorage };
   kontext.globalThis = kontext;
   vm.runInNewContext(quelltext, kontext);
-  return { ...kontext.SchiriQuizSessionStore, daten };
+  return { ...kontext.SchiriQuizSessionStore, daten, dauerhaft };
 }
 
 test("Sessionwerte werden als JSON gespeichert, gelesen und gelöscht", () => {
@@ -35,6 +41,35 @@ test("Sessionwerte werden als JSON gespeichert, gelesen und gelöscht", () => {
   speicher.loeschen();
   assert.equal(speicher.lesen(), null);
   assert.equal(daten.size, 0);
+});
+
+test("ein ausdrücklich gemerktes Gerät bleibt höchstens 30 Tage angemeldet", () => {
+  const { erstelleSessionSpeicher, daten, dauerhaft } = ladeModul();
+  const speicher = erstelleSessionSpeicher("mitglied", {
+    dauerhafterSchluessel: "geraet",
+    gueltigkeitMs: 1000,
+  });
+  speicher.speichern({ id: 7, pin: "1234" }, { dauerhaft: true });
+  daten.clear();
+  assert.deepEqual({ ...speicher.lesen() }, { id: 7, pin: "1234" });
+  assert.ok(daten.has("mitglied"), "wiederhergestellter Zugang fehlt in der laufenden Sitzung");
+
+  const paket = JSON.parse(dauerhaft.get("geraet"));
+  paket.gueltigBis = Date.now() - 1;
+  dauerhaft.set("geraet", JSON.stringify(paket));
+  daten.clear();
+  assert.equal(speicher.lesen(), null);
+  assert.equal(dauerhaft.has("geraet"), false);
+});
+
+test("Abmelden entfernt Sitzung und gemerktes Gerät gemeinsam", () => {
+  const { erstelleSessionSpeicher, dauerhaft } = ladeModul();
+  const speicher = erstelleSessionSpeicher("mitglied", { dauerhafterSchluessel: "geraet" });
+  speicher.speichern({ id: 7, pin: "1234" }, { dauerhaft: true });
+  assert.ok(dauerhaft.has("geraet"));
+  speicher.loeschen();
+  assert.equal(speicher.lesen(), null);
+  assert.equal(dauerhaft.has("geraet"), false);
 });
 
 test("alte unkodierte Vereinskennungen bleiben lesbar", () => {

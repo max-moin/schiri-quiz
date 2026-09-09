@@ -6,7 +6,8 @@ Das Projekt befindet sich im **aktiven Pilotbetrieb** in einem kleinen Verein. E
 
 ## Funktionen
 
-- Anmeldung über Vereinskennung, Name und persönliche PIN
+- Anmeldung über Vereinskennung, Name und persönliche PIN; auf privaten Geräten
+  kann die Anmeldung freiwillig für 30 Tage gemerkt werden
 - getrennte Wochenplanung für mehrere Vereine bei gemeinsamer Fragenbasis
 - Multiple-Choice-, Freitext- und Video-Fragen
 - KI-gestützte Freitextbewertung mit drei Zuständen:
@@ -97,6 +98,18 @@ ausdrücklich veröffentlichte Stände. Vor jedem erneuten Veröffentlichen wird
 der bisherige Inhaltsstand archiviert. Es gibt keine öffentliche Registrierung
 und keinen Secret Key im Browser.
 
+Spesenrechner und Regelübersicht lassen sich im Obmann-Bereich unter
+**Sichtbarkeit** unabhängig voneinander freischalten und wieder sperren. Ohne
+gespeicherte Freigabe bleiben beide Funktionen gesperrt; das gilt auch beim
+direkten Aufruf ihrer URL. Eine Änderung erfordert weiterhin die geschützte
+Obmann-Anmeldung mit TOTP/2FAS.
+
+Die Option **Dieses Gerät merken** ist eine Komfortfunktion des
+Schiedsrichter-Zugangs. Sie wird nur nach ausdrücklicher Auswahl aktiviert,
+läuft nach 30 Tagen ab und wird beim Abmelden entfernt. Da dabei die bestehende
+PIN-Anmeldung lokal wiederhergestellt wird, darf die Option nur auf einem
+privaten Gerät verwendet werden; sie ersetzt kein stärkeres Kontomodell.
+
 Bekannte Grenzen:
 
 - Die kurzen PINs sind für den kleinen vereinsinternen Pilotbetrieb gedacht und ersetzen kein vollständiges Benutzerkonto.
@@ -159,6 +172,11 @@ GEMINI_ERKLAERUNGS_MODELL
 `supabase-schema.sql` dokumentiert nur den **historischen ersten Prototyp**. Die Datei bildet die heutige Datenbank nicht vollständig ab und darf nicht als aktuelles Neuinstallationsskript oder als Migration für das laufende Projekt verwendet werden.
 
 Auch der Ordner `supabase/migrations/` enthält derzeit nur die neueren Änderungen und noch keine vollständige Baseline der gewachsenen Datenbank. Eine komplett reproduzierbare Neuinstallation ist deshalb eine offene technische Aufgabe. Für das bestehende Projekt gilt die Supabase-Produktionsdatenbank als aktueller Stand; neue Änderungen werden ab jetzt als Migration versioniert.
+
+V130 ergänzt die standardmäßig gesperrten Website-Funktionsfreigaben für
+Spesenrechner und Regelübersicht. V131 ergänzt den Index für die Zuordnung des
+zuletzt ändernden Redakteurs. Beide Migrationen sind im Produktionsprojekt
+angewendet.
 
 Der sichere Release-Ablauf steht in [ANLEITUNG.md](./ANLEITUNG.md).
 

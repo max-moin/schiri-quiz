@@ -12,6 +12,7 @@ import { erstelleRegelnEditor } from "./regeln-editor.js";
 import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
 import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
+import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
 const client = window.supabase.createClient(
   DATENBANK.adresse,
@@ -61,6 +62,10 @@ async function oeffneEditor() {
   zeige("editor");
   if (!editorenGestartet) {
     editorenGestartet = true;
+    erstelleFreigabenEditor({
+      wurzel: document.querySelector('[data-admin-bereich="sichtbarkeit"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
     erstelleSpesenEditor({
       wurzel: document.querySelector('[data-admin-bereich="spesen"]'),
       client, verein: VEREIN, fallback, benutzer: aktuellerBenutzer,

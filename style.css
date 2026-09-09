@@ -285,6 +285,26 @@ button {
   margin-bottom: 0;
 }
 
+.login-merken {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 16px 0 0;
+  cursor: pointer;
+}
+
+.login-merken input {
+  width: 22px;
+  height: 22px;
+  margin: 1px 0 0;
+  flex: none;
+  accent-color: var(--green);
+}
+
+.login-merken span { display: grid; gap: 2px; line-height: 1.35; }
+.login-merken strong { font-size: .9rem; }
+.login-merken small { color: var(--muted); font-size: .78rem; font-weight: 400; }
+
 .fehler {
   color: var(--red);
   font-weight: 600;

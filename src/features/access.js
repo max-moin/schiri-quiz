@@ -36,6 +36,7 @@
     const gastBereich = document.getElementById("gast-bereich");
     const gastNameEingabe = document.getElementById("gast-name-eingabe");
     const gastZurueckButton = document.getElementById("gast-zurueck-button");
+    const geraetMerken = document.getElementById("geraet-merken");
 
     let loginModus = "kennung";
     let aktuelleKennung = null;
@@ -300,7 +301,10 @@
       // sonst stünde bei abweichender Groß-/Kleinschreibung die Eingabe in der
       // Begrüßung statt der tatsächlich hinterlegte Name.
       const echterName = treffer.name || name;
-      mitgliedSession.speichern({ id: treffer.schiedsrichter_id, pin, name: echterName });
+      mitgliedSession.speichern(
+        { id: treffer.schiedsrichter_id, pin, name: echterName, kennung },
+        { dauerhaft: geraetMerken?.checked === true },
+      );
       zeigeAngemeldetenZustand(echterName);
 
       await beiAngemeldet(echterName);

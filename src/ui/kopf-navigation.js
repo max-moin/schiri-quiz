@@ -27,6 +27,8 @@ const NAVIGATION = [
   { href: "informationen.html", text: "Unterlagen", seiten: ["informationen.html"] },
   { href: "vorlagen.html", text: "Absagen", seiten: ["vorlagen.html"] },
   { href: "melden.html", text: "Etwas melden", seiten: ["melden.html"] },
+  { href: "spesenrechner.html", text: "Spesen", seiten: ["spesenrechner.html"], funktion: "spesen" },
+  { href: "regeluebersicht.html", text: "Regeln", seiten: ["regeluebersicht.html"], funktion: "regeln" },
 ];
 
 function dateiname() {
@@ -82,23 +84,24 @@ export function vereinheitlicheHauptnavigation(kopfInnen) {
   nav.replaceChildren();
   const aktuell = dateiname();
   for (const eintrag of NAVIGATION) {
+    if (eintrag.funktion) {
+      const inaktiv = document.createElement("span");
+      inaktiv.className = "nav-deaktiviert";
+      inaktiv.dataset.funktion = eintrag.funktion;
+      inaktiv.dataset.href = eintrag.href;
+      inaktiv.dataset.text = eintrag.text;
+      inaktiv.setAttribute("aria-disabled", "true");
+      if (eintrag.seiten.includes(aktuell)) inaktiv.setAttribute("aria-current", "page");
+      inaktiv.title = `${eintrag.text} wird noch fachlich geprüft`;
+      inaktiv.innerHTML = `${eintrag.text}<small>In Prüfung</small>`;
+      nav.appendChild(inaktiv);
+      continue;
+    }
     const link = document.createElement("a");
     link.href = eintrag.href;
     link.textContent = eintrag.text;
     if (eintrag.seiten.includes(aktuell)) link.setAttribute("aria-current", "page");
     nav.appendChild(link);
-  }
-
-  for (const [text, titel] of [
-    ["Spesen", "Spesenrechner wird noch fachlich geprüft"],
-    ["Regeln", "Regelübersicht wird noch fachlich geprüft"],
-  ]) {
-    const inaktiv = document.createElement("span");
-    inaktiv.className = "nav-deaktiviert";
-    inaktiv.setAttribute("aria-disabled", "true");
-    inaktiv.title = titel;
-    inaktiv.innerHTML = `${text}<small>In Prüfung</small>`;
-    nav.appendChild(inaktiv);
   }
 
   const quiz = document.createElement("a");
@@ -107,6 +110,29 @@ export function vereinheitlicheHauptnavigation(kopfInnen) {
   quiz.innerHTML = '<span class="nav-quiz-lang">Zum Quiz</span><span class="nav-quiz-kurz">Quiz</span>';
   nav.appendChild(quiz);
   return nav;
+}
+
+export function setzeFunktionsfreigaben(nav, freigaben = {}) {
+  if (!nav) return;
+  for (const element of Array.from(nav.querySelectorAll("[data-funktion]"))) {
+    const funktion = element.dataset.funktion;
+    const aktiv = freigaben[funktion] === true;
+    const ersatz = document.createElement(aktiv ? "a" : "span");
+    ersatz.dataset.funktion = funktion;
+    ersatz.dataset.href = element.dataset.href;
+    ersatz.dataset.text = element.dataset.text;
+    if (aktiv) {
+      ersatz.href = element.dataset.href;
+      ersatz.textContent = element.dataset.text;
+    } else {
+      ersatz.className = "nav-deaktiviert";
+      ersatz.setAttribute("aria-disabled", "true");
+      ersatz.title = `${element.dataset.text} wird noch fachlich geprüft`;
+      ersatz.innerHTML = `${element.dataset.text}<small>In Prüfung</small>`;
+    }
+    if (element.getAttribute("aria-current") === "page") ersatz.setAttribute("aria-current", "page");
+    element.replaceWith(ersatz);
+  }
 }
 
 // Der Aufruf-zum-Quiz sitzt im HTML in der Hauptnavigation. Auf breiten

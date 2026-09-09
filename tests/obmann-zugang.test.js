@@ -53,8 +53,8 @@ test("die RLS-Prüfung darf die eigene Redakteurszuordnung lesen", () => {
   assert.doesNotMatch(sql, /to anon/i);
 });
 
-test("der Editor trennt die vier Arbeitsbereiche statt sie als Endlosseite zu zeigen", () => {
-  for (const bereich of ["spesen", "regeln", "vorlagen", "unterlagen"]) {
+test("der Editor trennt Inhalte und Sichtbarkeit statt sie als Endlosseite zu zeigen", () => {
+  for (const bereich of ["sichtbarkeit", "spesen", "regeln", "vorlagen", "unterlagen"]) {
     assert.match(html, new RegExp(`data-bereich-knopf="${bereich}"`));
     assert.match(html, new RegExp(`data-admin-bereich="${bereich}"`));
   }

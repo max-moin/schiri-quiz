@@ -20,7 +20,9 @@
 
 import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
 import { montiereKontoBereich } from "./src/ui/konto-bereich.js";
+import { ladeFunktionsfreigaben } from "./src/website/funktionsfreigaben.js";
 import {
+  setzeFunktionsfreigaben,
   vereinheitlicheHauptnavigation,
   zeigeQuizKnopfImmer,
   zeigeSeitenname,
@@ -114,7 +116,40 @@ document.querySelectorAll(".seiten-fuss .fuss-innen").forEach((fuss) => {
 // ---------- Eine Navigation für alle öffentlichen Seiten ----------
 
 const kopfInnen = document.querySelector(".seiten-kopf .kopf-innen");
-vereinheitlicheHauptnavigation(kopfInnen);
+const hauptnavigation = vereinheitlicheHauptnavigation(kopfInnen);
+
+function zeigeGesperrteFunktion(inhalt, funktion) {
+  const name = funktion === "spesen" ? "Spesenrechner" : "Regelübersicht";
+  inhalt.hidden = false;
+  inhalt.classList.add("funktions-sperre");
+  inhalt.replaceChildren();
+  const kicker = document.createElement("span");
+  kicker.className = "kicker";
+  kicker.textContent = "Noch in Prüfung";
+  const titel = document.createElement("h1");
+  titel.className = "seiten-titel";
+  titel.textContent = name;
+  const text = document.createElement("p");
+  text.className = "seiten-unter";
+  text.textContent = "Dieser Bereich wird gerade fachlich geprüft und ist deshalb vorübergehend nicht freigeschaltet.";
+  const zurueck = document.createElement("a");
+  zurueck.className = "knopf knopf-haupt";
+  zurueck.href = "index.html";
+  zurueck.textContent = "Zur Startseite";
+  inhalt.append(kicker, titel, text, zurueck);
+}
+
+void ladeFunktionsfreigaben({
+  datenbank: DATENBANK,
+  seitenschluessel: VEREIN.seitenschluessel,
+}).then((freigaben) => {
+  setzeFunktionsfreigaben(hauptnavigation, freigaben);
+  const inhalt = document.querySelector("[data-funktionsinhalt]");
+  if (!inhalt) return;
+  const funktion = inhalt.dataset.funktionsinhalt;
+  if (freigaben[funktion] === true) inhalt.hidden = false;
+  else zeigeGesperrteFunktion(inhalt, funktion);
+});
 
 // ---------- Menü für schmale Bildschirme ----------
 

@@ -103,14 +103,17 @@
         <button class="knopf" type="button" data-abmelden>Abmelden</button>
       </div>
       <nav class="admin-bereich-nav" aria-label="Redaktionsbereiche">
-        <button type="button" data-bereich-knopf="spesen" aria-pressed="true"><span>€</span>Spesen</button>
+        <button type="button" data-bereich-knopf="sichtbarkeit" aria-pressed="true"><span>◉</span>Sichtbarkeit</button>
+        <button type="button" data-bereich-knopf="spesen" aria-pressed="false"><span>€</span>Spesen</button>
         <button type="button" data-bereich-knopf="regeln" aria-pressed="false"><span>§</span>Regeln</button>
         <button type="button" data-bereich-knopf="vorlagen" aria-pressed="false"><span>✉</span>Absagen</button>
         <button type="button" data-bereich-knopf="unterlagen" aria-pressed="false"><span>↗</span>Unterlagen</button>
         <button type="button" data-bereich-knopf="terminsuche" aria-pressed="false"><span>◷</span>Terminsuche</button>
       </nav>
 
-      <div data-admin-bereich="spesen">
+      <div data-admin-bereich="sichtbarkeit"></div>
+
+      <div data-admin-bereich="spesen" hidden>
         <div class="admin-bereich-einstieg"><div><h2>Spesen</h2><p>Spielklassen, Entschädigungen und Fahrtkosten.</p></div><span class="admin-bereich-status">Öffentlich nach Bestätigung</span></div>
         <div class="admin-meldung" data-bereich-status="spesen" role="status"></div>
 

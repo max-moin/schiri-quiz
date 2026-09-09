@@ -76,6 +76,11 @@
           </span>
         </label>
 
+        <label class="anmelde-merken">
+          <input data-feld="merken" type="checkbox" />
+          <span><strong>Dieses Gerät merken</strong><small>30 Tage angemeldet bleiben – nur auf deinem eigenen Gerät verwenden.</small></span>
+        </label>
+
         <button type="button" class="anmelde-haupt" data-anmelden disabled>Anmelden</button>
         <button type="button" class="anmelde-zurueck" data-kennung-aendern>Andere Vereinskennung</button>
       </div>
@@ -119,6 +124,7 @@
         auswahl: hole('[data-feld="name-auswahl"]'),
         nameEingabe: hole('[data-feld="name-eingabe"]'),
         pin: hole('[data-feld="pin"]'),
+        merken: hole('[data-feld="merken"]'),
         anmeldenKnopf: hole("[data-anmelden]"),
         kennungAendern: hole("[data-kennung-aendern]"),
         fehler: hole("[data-fehler]"),
@@ -291,7 +297,12 @@
 
       let stand = null;
       try {
-        stand = await anmeldung.meldeAn({ kennung, name, pin });
+        stand = await anmeldung.meldeAn({
+          kennung,
+          name,
+          pin,
+          geraetMerken: teile.merken.checked,
+        });
       } catch (fehler) {
         teile.anmeldenKnopf.textContent = vorher;
         teile.anmeldenKnopf.disabled = false;
@@ -347,6 +358,7 @@
       teile.grund.hidden = !grund;
       teile.gastbereich.hidden = !gastErlaubt;
       teile.pin.value = "";
+      teile.merken.checked = false;
       teile.auswahl.selectedIndex = 0;
       teile.nameEingabe.value = "";
       versteckeFehler();

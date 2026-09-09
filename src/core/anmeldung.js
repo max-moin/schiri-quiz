@@ -19,13 +19,10 @@
 //     oder Apple-Anmeldung waeren deshalb ein eigener, grosser Umbau -
 //     ausdruecklich auf spaeter verschoben.
 //
-//  2. Gespeichert wird in sessionStorage, nicht in localStorage. Beim
-//     Schliessen des Tabs ist man abgemeldet. Der uebliche Weg waere
-//     "angemeldet bleiben" - der hiesse hier aber, die PIN dauerhaft auf
-//     der Festplatte abzulegen, weil sie und nicht ein Sitzungsschluessel
-//     das Zugangsmittel ist. Solange das so ist, bleibt es beim Tab.
-//     Seitenwechsel innerhalb desselben Tabs behaelt die Anmeldung -
-//     genau das macht die seitenweite Anmeldung ueberhaupt moeglich.
+//  2. Normal bleibt die Anmeldung im sessionStorage und endet mit dem Tab.
+//     Nur nach ausdruecklicher Wahl "Dieses Gerät merken" liegt der Zugang
+//     fuer hoechstens 30 Tage im lokalen Browserspeicher. Der Hinweis im
+//     Dialog grenzt das auf private Geräte ein; Abmelden entfernt beides.
 //
 //  3. Die Schluesselnamen sind absichtlich dieselben wie bisher in
 //     app.js. Eine im Quiz begonnene Sitzung gilt damit auch auf der
@@ -37,6 +34,8 @@
 
   const SCHLUESSEL_SITZUNG = "schiriQuizSession";
   const SCHLUESSEL_KENNUNG = "schiriQuizVereinskennung";
+  const SCHLUESSEL_GERAET = "schiriQuizGemerktesGeraet";
+  const GERAET_GUELTIGKEIT = 30 * 24 * 60 * 60 * 1000;
 
   function leseRoh(schluessel, { altesRohformatLesen = false } = {}) {
     try {
@@ -72,6 +71,35 @@
     } catch {
       // Kein Abbruch noetig - die laufende Sitzung bleibt nutzbar.
     }
+  }
+
+  function leseGemerktesGeraet() {
+    try {
+      const paket = JSON.parse(global.localStorage.getItem(SCHLUESSEL_GERAET));
+      if (!paket?.wert || !Number.isFinite(paket.gueltigBis) || paket.gueltigBis <= Date.now()) {
+        global.localStorage.removeItem(SCHLUESSEL_GERAET);
+        return null;
+      }
+      return paket.wert;
+    } catch {
+      return null;
+    }
+  }
+
+  function merkeGeraet(wert) {
+    try {
+      global.localStorage.setItem(SCHLUESSEL_GERAET, JSON.stringify({
+        gueltigBis: Date.now() + GERAET_GUELTIGKEIT,
+        wert,
+      }));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function vergissGeraet() {
+    try { global.localStorage.removeItem(SCHLUESSEL_GERAET); } catch { /* nichts weiter */ }
   }
 
   function erstelleAnmeldung({ adresse, oeffentlicherSchluessel }) {
@@ -116,7 +144,14 @@
     // ---------- Zustand ----------
 
     function lesen() {
-      const stand = leseRoh(SCHLUESSEL_SITZUNG);
+      let stand = leseRoh(SCHLUESSEL_SITZUNG);
+      if (!stand) {
+        stand = leseGemerktesGeraet();
+        if (stand) {
+          schreibeRoh(SCHLUESSEL_SITZUNG, stand);
+          if (stand.kennung) schreibeRoh(SCHLUESSEL_KENNUNG, stand.kennung);
+        }
+      }
       if (!stand || !stand.id || !stand.pin) return null;
       return stand;
     }
@@ -137,6 +172,7 @@
 
     function abmelden() {
       loescheRoh(SCHLUESSEL_SITZUNG);
+      vergissGeraet();
       // Die Vereinskennung bleibt bewusst stehen. Sie ist kein
       // persoenliches Merkmal, und wer sich abmeldet, will sich in aller
       // Regel gleich als jemand anderes anmelden - nicht die Kennung des
@@ -175,7 +211,7 @@
     // Zugang antwortet der Server absichtlich gleich. Diese Funktion darf
     // die Faelle deshalb auch nicht auseinanderhalten - sonst liesse sich
     // durch Ausprobieren herausfinden, wer im Verein ueberhaupt dabei ist.
-    async function meldeAn({ kennung, name, pin }) {
+    async function meldeAn({ kennung, name, pin, geraetMerken = false }) {
       const daten = await rufe("schiri_anmelden", {
         p_kennung: String(kennung || "").trim(),
         p_name: String(name || "").trim(),
@@ -191,8 +227,11 @@
         id: treffer.schiedsrichter_id,
         pin: String(pin || "").trim(),
         name: treffer.name || String(name || "").trim(),
+        kennung: String(kennung || "").trim(),
       };
       schreibeRoh(SCHLUESSEL_SITZUNG, stand);
+      if (geraetMerken) merkeGeraet(stand);
+      else vergissGeraet();
       merkeKennung(String(kennung || "").trim());
       melde();
       return { ...stand };

@@ -22,7 +22,9 @@ const { erstelleZugang } = SchiriQuizAccess;
 const { montiereQuizVerlassen } = SchiriQuizVerlassenDialog;
 const { erstelleFrageMeldung } = SchiriQuizFrageMeldung;
 
-const mitgliedSession = erstelleSessionSpeicher("schiriQuizSession");
+const mitgliedSession = erstelleSessionSpeicher("schiriQuizSession", {
+  dauerhafterSchluessel: "schiriQuizGemerktesGeraet",
+});
 const kennungSession = erstelleSessionSpeicher("schiriQuizVereinskennung", {
   altesRohformatLesen: true,
 });

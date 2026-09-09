@@ -108,14 +108,18 @@ test("der Gastweg ist ein Knopf, kein Textlink", () => {
   assert.doesNotMatch(dialog, /<a[^>]*data-gast/);
 });
 
-test("die Anmeldung liegt in sessionStorage, nicht in localStorage", () => {
-  // Max' Entscheidung vom 29.08.2026: angemeldet bleiben ueber das
-  // Schliessen des Tabs hinaus hiesse hier, die PIN dauerhaft auf der
-  // Festplatte abzulegen - denn sie und nicht ein Sitzungsschluessel ist
-  // das Zugangsmittel. Solange das so ist, bleibt es beim Tab.
+test("dauerhafte Anmeldung gibt es nur nach ausdrücklicher Gerätewahl", () => {
   const anmeldung = ohneKommentare(lies("src/core/anmeldung.js"));
+  const dialog = lies("src/ui/login-dialog.js");
+  const quiz = lies("quiz.html");
   assert.match(anmeldung, /sessionStorage/);
-  assert.doesNotMatch(anmeldung, /localStorage/);
+  assert.match(anmeldung, /localStorage/);
+  assert.match(anmeldung, /30 \* 24 \* 60 \* 60 \* 1000/);
+  assert.match(anmeldung, /if \(geraetMerken\) merkeGeraet\(stand\)/);
+  assert.match(anmeldung, /vergissGeraet\(\)/);
+  assert.match(dialog, /data-feld="merken"/);
+  assert.match(dialog, /nur auf deinem eigenen Gerät verwenden/);
+  assert.match(quiz, /id="geraet-merken"/);
 });
 
 test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {

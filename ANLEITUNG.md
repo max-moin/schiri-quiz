@@ -166,9 +166,13 @@ für zugeordnete AAL2-Redakteure lesbare Versionshistorie. V89 gibt der
 RLS-Prüfung den minimal nötigen Zugriff auf die eigene Redakteurszuordnung;
 deren RLS lässt weiterhin weder fremde Konten noch anonyme Zugriffe zu.
 
-Die Redaktion ist in vier getrennte Arbeitsbereiche gegliedert: Spesen,
-Regeln, Absagen und Unterlagen. Änderungen bleiben zunächst nur im geöffneten
-Editor und werden erst nach einer ausdrücklichen Bestätigung öffentlich. Die
+Die Redaktion ist in fünf getrennte Arbeitsbereiche gegliedert: Sichtbarkeit,
+Spesen, Regeln, Absagen und Unterlagen. Unter **Sichtbarkeit** werden
+Spesenrechner und Regelübersicht unabhängig voneinander freigeschaltet oder
+wieder gesperrt. Fehlt der Datenbankeintrag oder ist die Datenbank nicht
+erreichbar, bleiben beide Seiten sicher gesperrt. Änderungen daran benötigen
+ebenfalls eine AAL2-Sitzung. Inhaltliche Änderungen bleiben zunächst nur im
+geöffneten Editor und werden erst nach einer ausdrücklichen Bestätigung öffentlich. Die
 letzten fünf vorherigen Inhaltsstände können in den Editor geladen werden;
 auch eine Wiederherstellung wird erst durch erneutes Veröffentlichen sichtbar.
 
@@ -182,6 +186,15 @@ bei einer leeren oder vorübergehend nicht erreichbaren Datenbank vollständig.
 Vor dem Veröffentlichen prüft der Browser Pflichtfelder und Weblinks. Das ist
 eine zusätzliche Bedienhilfe; die eigentliche Schreibberechtigung bleibt die
 RLS-Prüfung aus Vereinszuordnung und `aal2`.
+
+## Anmeldung auf einem privaten Gerät merken
+
+Im Schiedsrichter-Login kann **Dieses Gerät merken** freiwillig gewählt
+werden. Ohne Haken bleibt die Anmeldung wie bisher nur für die aktuelle
+Browser-Sitzung erhalten. Mit Haken wird sie höchstens 30 Tage lokal auf dem
+Gerät wiederhergestellt. **Abmelden** entfernt sowohl die laufende als auch die
+gemerkte Anmeldung. Die Option ist deshalb nur für private, gesperrte Geräte
+gedacht und nicht für Schul-, Vereins- oder gemeinsam genutzte Geräte.
 
 ## Noch offene technische Grundlage
 
