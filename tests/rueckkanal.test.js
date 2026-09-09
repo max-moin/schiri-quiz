@@ -664,8 +664,8 @@ test("das Melde-Fenster sperrt das Abschicken erst ueber der Grenze", () => {
    3. Der Meldebogen: je Art die richtigen Felder
    ============================================================ */
 
-test("es gibt genau die vier Meldungsarten der Datenbank", () => {
-  assert.deepEqual(MELDE_ARTEN.map((a) => a.art), ["regelfall", "vorfall", "gespraech", "website"]);
+test("die Treff-Idee und die vier Rueckmeldungsarten entsprechen der Datenbank", () => {
+  assert.deepEqual(MELDE_ARTEN.map((a) => a.art), ["treff", "regelfall", "vorfall", "gespraech", "website"]);
   // Jede Art traegt einen Satz in Max' Worten, kein blosses Schlagwort.
   for (const eintrag of MELDE_ARTEN) {
     assert.ok(eintrag.frage && eintrag.frage.length > 8, "der Art " + eintrag.art + " fehlt ihre Frage");
@@ -676,6 +676,7 @@ test("es gibt genau die vier Meldungsarten der Datenbank", () => {
 });
 
 test("jede Art zeigt genau ihre Felder", () => {
+  assert.deepEqual(felderFuer("treff"), ["situation", "unsicher_warum"]);
   assert.deepEqual(felderFuer("regelfall"),
     ["spielklasse", "situation", "eigene_entscheidung", "unsicher_warum", "veroeffentlichung"]);
   assert.deepEqual(felderFuer("vorfall"),
@@ -728,6 +729,7 @@ test("anonym gibt es bei Vorfall und Website, nicht bei Gesprächswünschen", ()
   // Beim Regelfall waere es sinnlos: "war das richtig so?" braucht eine
   // Antwort an jemanden. Beim Website-Hinweis ist nichts zu schuetzen.
   assert.equal(erlaubtAnonym("regelfall"), false);
+  assert.equal(erlaubtAnonym("treff"), false);
   assert.equal(erlaubtAnonym("website"), true);
 
   // Und ein untergeschobenes "anonym" bei einer Art, die es nicht
@@ -845,8 +847,10 @@ test("Gäste können Website-Feedback senden; andere Arten führen zur Anmeldung
   assert.ok(seitenModul.includes("Anmelden"), "der Knopf traegt keine Beschriftung");
   assert.match(seitenModul, /if \(!person\(\) && art !== "website"\)/,
     "nur Website-Feedback darf ohne Anmeldung zugänglich sein");
-  assert.match(seitenModul, /if \(!person\(\)\) waehleArt\("website"\)/,
-    "Gäste starten direkt mit Website-Feedback");
+  assert.match(seitenModul, /zeichneGeruest\(\)/,
+    "Gäste sehen nicht zuerst die Auswahl der Anliegen");
+  assert.doesNotMatch(seitenModul, /if \(!person\(\)\) waehleArt\("website"\)/,
+    "bei Gästen öffnet sich das Textfeld entgegen der Auswahl sofort");
 });
 
 /* ============================================================

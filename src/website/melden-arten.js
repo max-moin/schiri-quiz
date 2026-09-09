@@ -38,16 +38,29 @@
 export const GRENZE_SITUATION = 4000;
 
 /**
- * Die vier Arten in der Reihenfolge, in der sie auf der Seite stehen.
- *
- * Die Reihenfolge ist eine Entscheidung: "Regelfall" steht vorn, weil er
- * der haeufigste und harmloseste Fall ist. "Vorfall" direkt dahinter,
- * damit er nicht wie ein Sonderweg ganz unten wirkt, den man erst suchen
- * muss. "Website" steht zuletzt - Technik ist das kleinste Anliegen.
+ * Die Arten in der Reihenfolge ihrer beiden Aufgabenbereiche: erst den
+ * naechsten Treff mitgestalten, danach Rueckmeldungen und persoenliche
+ * Anliegen. Innerhalb des zweiten Bereichs steht der Regelfall vorn, weil
+ * er der haeufigste und harmloseste Fall ist. Der Vorfall bleibt direkt
+ * dahinter, damit er nicht wie ein versteckter Sonderweg wirkt.
  */
 export const MELDE_ARTEN = [
   {
+    art: "treff",
+    gruppe: "mitgestalten",
+    titel: "Thema für den Schiri-Treff",
+    frage: "Was sollen wir gemeinsam besprechen?",
+    beschreibung: "Eine Regelfrage, Spielsituation oder Idee für den nächsten vereinsinternen Treff.",
+    felder: ["situation", "unsicher_warum"],
+    anonymErlaubt: false,
+    beschriftungen: {
+      situation: "Thema oder Frage",
+      unsicher_warum: "Warum ist das für den Treff interessant? (optional)",
+    },
+  },
+  {
     art: "regelfall",
+    gruppe: "rueckmeldung",
     titel: "Regelfall",
     frage: "War das richtig so?",
     beschreibung: "Eine Spielsituation, bei der du dir nicht sicher bist.",
@@ -57,6 +70,7 @@ export const MELDE_ARTEN = [
   },
   {
     art: "vorfall",
+    gruppe: "rueckmeldung",
     titel: "Vorfall",
     frage: "Ich habe mich unwohl gefühlt",
     beschreibung: "Anfeindung, Bedrohung, Diskriminierung – alles, was nicht in Ordnung war.",
@@ -66,6 +80,7 @@ export const MELDE_ARTEN = [
   },
   {
     art: "gespraech",
+    gruppe: "rueckmeldung",
     titel: "Gespräch",
     frage: "Ich möchte einfach mal reden",
     beschreibung: "Kein Formular nötig – schreib in einem Satz, worum es geht.",
@@ -75,6 +90,7 @@ export const MELDE_ARTEN = [
   },
   {
     art: "website",
+    gruppe: "rueckmeldung",
     titel: "Website",
     frage: "An der Seite passt etwas nicht",
     beschreibung: "Fehler, Wunsch oder Hinweis zu dieser Website.",
@@ -152,7 +168,7 @@ export function felderFuer(art) {
 /**
  * Darf diese Art anonym abgegeben werden?
  *
- * Nur Vorfall und Gespraech. Beim Regelfall waere es sinnlos - die Frage
+ * Nur Vorfall und Website. Beim Treff-Thema und Regelfall waere es sinnlos - die Frage
  * "war das richtig so?" braucht eine Antwort an jemanden, und ohne Person
  * gibt es keine. Bei einem Website-Hinweis ist nichts zu schuetzen.
  */

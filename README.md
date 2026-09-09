@@ -19,6 +19,8 @@ Das Projekt befindet sich im **aktiven Pilotbetrieb** in einem kleinen Verein. E
 - statische Ersatzerklärung, falls das KI-Kontingent nicht verfügbar ist
 - Übungsmodus für ältere Fragen und separater Gastzugang
 - Anfragen an den Obmann, etwa für Ausrüstung oder allgemeine Anliegen
+- gemeinsamer Bereich „Ideen & Feedback“ für Treff-Themen, ausgearbeitete
+  Quizfragen, Regelfälle, Vorfälle, Gesprächswünsche und Website-Hinweise
 - responsive Oberfläche für Smartphone und Desktop
 - geschützte Website-Redaktion für Spesensätze, Regelübersicht,
   Absagevorlagen und Unterlagen mit Supabase Auth, TOTP/2FAS,
@@ -177,6 +179,13 @@ V130 ergänzt die standardmäßig gesperrten Website-Funktionsfreigaben für
 Spesenrechner und Regelübersicht. V131 ergänzt den Index für die Zuordnung des
 zuletzt ändernden Redakteurs. Beide Migrationen sind im Produktionsprojekt
 angewendet.
+
+V132 ergänzt kurze Themen- und Fragenideen für den nächsten vereinsinternen
+Schiri-Treff als eigenen Typ des bestehenden Meldebogens. Dadurch erscheinen
+sie im vorhandenen Obmann-Eingang und verwenden dieselbe Status-,
+Aufbewahrungs- und Löschlogik. Vollständig ausgearbeitete Quizfragen bleiben
+getrennte Fragenvorschläge mit fachlichem Prüfablauf. V133 ergänzt die
+eindeutige Beschriftung in der Detailansicht des Eingangs.
 
 Der sichere Release-Ablauf steht in [ANLEITUNG.md](./ANLEITUNG.md).
 

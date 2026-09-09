@@ -26,7 +26,7 @@ const NAVIGATION = [
   { href: "termine.html", text: "Termine", seiten: ["termine.html"] },
   { href: "informationen.html", text: "Unterlagen", seiten: ["informationen.html"] },
   { href: "vorlagen.html", text: "Absagen", seiten: ["vorlagen.html"] },
-  { href: "melden.html", text: "Etwas melden", seiten: ["melden.html"] },
+  { href: "melden.html", text: "Ideen & Feedback", seiten: ["melden.html", "frage-vorschlagen.html"] },
   { href: "spesenrechner.html", text: "Spesen", seiten: ["spesenrechner.html"], funktion: "spesen" },
   { href: "regeluebersicht.html", text: "Regeln", seiten: ["regeluebersicht.html"], funktion: "regeln" },
 ];

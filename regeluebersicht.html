@@ -58,8 +58,8 @@
   <main class="inhalt" id="inhalt" tabindex="-1" data-funktionsinhalt="regeln" hidden>
     <h1 class="seiten-titel">Regeln auf einen Blick</h1>
     <p class="seiten-unter">
-      Spielzeit, Spielfeld, Spielerzahl und Wechselregeln – für beide Ebenen,
-      auf denen unsere Schiedsrichter angesetzt werden.
+      Das Wichtigste zuerst: Spielzeit, Feldtyp, Spieler und Wechsel. Weitere
+      Sonderregeln stehen platzsparend direkt an der jeweiligen Spielklasse.
     </p>
 
     <!-- ============================================================
@@ -204,21 +204,12 @@
     const SFV_RUECKWECHSEL = REGELN.sfvRueckwechsel;
     const BEREICHE = REGELN.bereiche;
 
-    /* Erklärungen für Fachbegriffe in den Tabellen-Spaltenköpfen (Desktop
-       ab 761px, siehe Regeln-Variante C). Nur Begriffe, die wirklich
-       Vorwissen brauchen - "Tore" oder "Spielball" erklären sich selbst,
-       "Wiedereinwechslung" oder "Matchstrafe" nicht unbedingt. */
-    const ERKLAERUNGEN = {
-      "Wechsler": "Wie viele Spielerwechsel während des Spiels erlaubt sind.",
-      "Wiedereinwechslung": "Ob ein bereits ausgewechselter Spieler später erneut eingewechselt werden darf.",
-      "Gelb/Rot": "Was bei einer zweiten Gelben oder einer Roten Karte passiert – Zeitstrafe oder Feldverweis.",
-      "Abbruch ab": "Ab welcher Temperatur das Spiel wegen Hitze abgebrochen bzw. nicht angesetzt wird.",
-      "Wechselspieler": "Wie viele Spieler zusätzlich zur Startformation im Kader stehen dürfen.",
-      "Rückwechsel": "Ob ein ausgewechselter Spieler auf derselben Position zurückwechseln darf.",
-      "Matchstrafe (Gelb-Rot)": "Folge einer Gelb-Roten Karte für den Rest des Spiels.",
-      "Strafstoß": "Regelung zum Elfmeter bzw. Neuner-/Siebenmeter je nach Altersklasse.",
-      "Strafstoßschießen": "Wie die Entscheidung fällt, wenn nach Verlängerung kein Sieger feststeht.",
-    };
+    const IKONEN = Object.freeze({
+      zeit: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
+      feld: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="1.5"/><path d="M12 5v14M3 9h3v6H3m18-6h-3v6h3"/><circle cx="12" cy="12" r="2.2"/></svg>',
+      spieler: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6.5 19c.5-4 2.3-6 5.5-6s5 2 5.5 6"/></svg>',
+      wechsel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v13m0 0-3-3m3 3 3-3M17 20V7m0 0-3 3m3-3 3 3"/></svg>',
+    });
     let ebene = "svfd", art = "meister", bereich = "alle";
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
@@ -234,14 +225,14 @@
       if (ebene === "sfv") {
         const liste = [
           ["Spielzeit", r.zeit],
-          r.verl ? ["Verlängerung", r.verl] : null,
           ["Spielfeld", r.feld],
-          ["Strafraum", r.sr],
-          ["Tore", r.tore],
-          ["Spielball", r.ball],
           ["Spieler", r.spieler],
           ["Wechselspieler", SFV_WECHSELSPIELER],
           ["Rückwechsel", SFV_RUECKWECHSEL],
+          r.verl ? ["Verlängerung", r.verl] : null,
+          ["Strafraum", r.sr],
+          ["Tore", r.tore],
+          ["Spielball", r.ball],
           ["Abseits", r.abseits],
           ["Strafstoß", r.elfer],
           ["Matchstrafe (Gelb-Rot)", r.match],
@@ -274,49 +265,71 @@
       ];
     }
 
-    /* ---------- Regelübersicht: Tabelle ab Desktop-Breite (29.08.2026) ----------
-       Max wollte für Desktop eine echte Tabelle statt der Kartenraster, um
-       mehrere Spielklassen einer Altersgruppe nebeneinander vergleichen zu
-       können (Regeln-Variante C). Jede Zeile bringt aber ihre eigene
-       Werteliste mit (siehe werteFuer oben) - die Spalten müssen also pro
-       Altersklasse-Gruppe aus der Vereinigung aller vorkommenden Labels
-       gebildet werden, nicht aus einer festen Liste. */
-    function tabelleFuerGruppe(zeilen) {
-      const spalten = [];
-      zeilen.forEach((r) => werteFuer(r).forEach(([label]) => {
-        if (!spalten.includes(label)) spalten.push(label);
-      }));
-      /* Warnhinweis und Fußnote bekommen eine eigene, immer letzte Spalte -
-         nur wenn in dieser Gruppe überhaupt eine Zeile etwas zu sagen hat.
-         Sonst stünde eine leere "Hinweis"-Spalte in jeder Tabelle. */
-      const hatHinweis = zeilen.some((r) => r.warnung || r.fuss || r.bes);
+    function feldAngaben(roherWert) {
+      const wert = String(roherWert || "").trim();
+      if (!/^\d/.test(wert)) return { haupt: wert || "–", rand: "" };
+      if (wert.startsWith("90×45")) return { haupt: "Großfeld", rand: wert };
+      if (wert.startsWith("65×45")) return { haupt: "verkleinertes Großfeld", rand: wert };
+      if (wert.startsWith("50×30")) return { haupt: "Kleinfeld", rand: wert };
+      return { haupt: "Spielfeld", rand: wert };
+    }
 
-      const kopf = [
-        '<th scope="col">Spielklasse</th>',
-        ...spalten.map((label) => {
-          const erklaerung = ERKLAERUNGEN[label];
-          return erklaerung
-            ? `<th scope="col"><abbr title="${sicher(erklaerung)}">${sicher(label)}</abbr></th>`
-            : `<th scope="col">${sicher(label)}</th>`;
-        }),
-        ...(hatHinweis ? ['<th scope="col">Hinweis</th>'] : []),
-      ].join("");
+    function spielerAngaben(r) {
+      if (ebene === "sfv") {
+        const anzahl = String(r.spieler || "").match(/\d+/)?.[0] || "–";
+        return { haupt: anzahl, rand: "Startspieler" };
+      }
+      return {
+        haupt: String(r.max ?? "–"),
+        rand: r.min == null ? "pro Mannschaft" : `mindestens ${r.min}`,
+      };
+    }
 
-      const rumpf = zeilen.map((r) => {
-        const werte = new Map(werteFuer(r));
-        const zellen = spalten.map((label) => {
-          const wert = werte.get(label);
-          return `<td>${wert == null || wert === "" ? "–" : sicher(wert)}</td>`;
-        }).join("");
-        const hinweisZelle = hatHinweis
-          ? `<td class="rk-tabelle-hinweis">${
-              r.warnung ? `<span class="sym-wort">Achtung</span> ${sicher(r.warnung)}` : sicher(r.fuss || r.bes || "–")
-            }</td>`
-          : "";
-        return `<tr><th scope="row">${sicher(r.k)}</th>${zellen}${hinweisZelle}</tr>`;
-      }).join("");
+    function wechselAngaben(r) {
+      if (ebene === "sfv") {
+        const anzahl = String(SFV_WECHSELSPIELER).match(/\d+/)?.[0] || "–";
+        return { haupt: anzahl, rand: "auf dem Spielbericht" };
+      }
+      return { haupt: String(r.w ?? "–"), rand: "Wechsel" };
+    }
 
-      return `<div class="rk-tabelle-wrap"><table class="rk-tabelle"><thead><tr>${kopf}</tr></thead><tbody>${rumpf}</tbody></table></div>`;
+    function wiedereinwechslung(r) {
+      const wert = String(ebene === "sfv" ? SFV_RUECKWECHSEL : r.wieder || "").toLowerCase();
+      return !wert.startsWith("nicht") && (wert.includes("möglich") || wert.includes("unbegrenzt"));
+    }
+
+    function kernwerteFuer(r) {
+      const feld = feldAngaben(r.feld);
+      const spieler = spielerAngaben(r);
+      const wechsel = wechselAngaben(r);
+      const basis = [
+        { typ: "zeit", label: "Spielzeit", haupt: r.zeit, rand: "" },
+      ];
+      if (r.feld) basis.push({ typ: "feld", label: "Spielfeld", ...feld });
+      if (r.spieler || r.max != null) basis.push({ typ: "spieler", label: "Spieler", ...spieler });
+      if (r.w != null || ebene === "sfv") basis.push({ typ: "wechsel", label: "Wechsel", ...wechsel });
+      if (r.wieder != null || ebene === "sfv") {
+        basis.push({ typ: "wieder", label: "Wiedereinwechslung", jaNein: wiedereinwechslung(r) });
+      }
+      return basis;
+    }
+
+    function kernwertHtml(eintrag) {
+      const inhalt = eintrag.jaNein === undefined
+        ? `<strong>${sicher(eintrag.haupt || "–")}</strong>${eintrag.rand ? `<small>${sicher(eintrag.rand)}</small>` : ""}`
+        : `<span class="rk-ja-nein ${eintrag.jaNein ? "ja" : "nein"}" aria-label="${eintrag.jaNein ? "Ja" : "Nein"}">${eintrag.jaNein ? "✓" : "×"}</span>`;
+      const symbol = IKONEN[eintrag.typ]
+        ? `<span class="rk-symbol">${IKONEN[eintrag.typ]}</span>`
+        : "";
+      return `<div class="rk-kernwert rk-${eintrag.typ}">
+        ${symbol}
+        <span class="rk-kerntext"><span>${sicher(eintrag.label)}</span>${inhalt}</span>
+      </div>`;
+    }
+
+    function weitereWerteFuer(r) {
+      const kernLabels = new Set(["Spielzeit", "Spielfeld", "Spieler", "Wechsler", "Wechselspieler", "Wiedereinwechslung", "Rückwechsel"]);
+      return werteFuer(r).filter(([label]) => !kernLabels.has(label));
     }
 
     function baueBereichFilter() {
@@ -396,10 +409,10 @@
 
       $("regelBereich").innerHTML = reihenfolge.map((alter) => {
         const zeilenGruppe = treffer.filter((r) => r.a === alter);
-        const tabelle = tabelleFuerGruppe(zeilenGruppe);
         const karten = zeilenGruppe.map((r) => {
-          const felder = werteFuer(r).map(([label, wert]) =>
-            `<div class="wert"><div class="l">${sicher(label)}</div><div class="v">${sicher(wert)}</div></div>`
+          const kernwerte = kernwerteFuer(r).map(kernwertHtml).join("");
+          const weitere = weitereWerteFuer(r).map(([label, wert]) =>
+            `<div class="rk-zusatzwert"><span>${sicher(label)}</span><strong>${sicher(wert)}</strong></div>`
           ).join("");
 
           /* "warnung" steht an genau den Zeilen, bei denen sich die beiden
@@ -412,7 +425,8 @@
 
           return `<article class="rk">
               <div class="rk-kopf"><div class="klasse">${sicher(r.k)}</div></div>
-              <div class="rk-werte">${felder}</div>
+              <div class="rk-kernwerte">${kernwerte}</div>
+              ${weitere ? `<details class="rk-mehr"><summary>Weitere Regeln</summary><div class="rk-zusatzwerte">${weitere}</div></details>` : ""}
               ${konflikt}
               ${(r.fuss || r.bes) ? `<div class="rk-fuss">${sicher(r.fuss || r.bes)}</div>` : ""}
             </article>`;
@@ -420,7 +434,6 @@
 
         return `<section class="regelgruppe">
             <h2 class="regelgruppe-titel">${sicher(alter)}</h2>
-            ${tabelle}
             <div class="regelkarten">${karten}</div>
           </section>`;
       }).join("");

@@ -196,6 +196,19 @@ Gerät wiederhergestellt. **Abmelden** entfernt sowohl die laufende als auch die
 gemerkte Anmeldung. Die Option ist deshalb nur für private, gesperrte Geräte
 gedacht und nicht für Schul-, Vereins- oder gemeinsam genutzte Geräte.
 
+## Ideen, Feedback und Treff-Themen
+
+Kurze Fragen, Spielsituationen oder Themenideen für den nächsten
+vereinsinternen Schiri-Treff werden auf der Vereinsseite unter
+**Ideen & Feedback → Treff mitgestalten** eingereicht. Sie landen als
+Meldebogen im vorhandenen Eingang der Obmann-App und können dort mit den
+üblichen Status- und Löschfunktionen bearbeitet werden.
+
+Eine bereits vollständig ausgearbeitete Quizfrage wird über
+**Quizfrage ausarbeiten** eingereicht. Sie bleibt bewusst ein
+Fragenvorschlag mit eigener fachlicher Prüfung, Regelbeleg und
+Änderungsverlauf. Im Quiz-Menü gibt es dafür keine zusätzliche Kachel mehr.
+
 ## Noch offene technische Grundlage
 
 Für eine wirklich reproduzierbare Weiterentwicklung fehlen noch:

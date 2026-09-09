@@ -627,7 +627,7 @@ test("die Seiten hinter der Leiste tragen ihren Namen am body", () => {
     "obmann.html": "Obmann-Zugang",
     // Erreichbar von der Startseite und aus der Modus-Auswahl, aber ohne
     // eigenen Reiter - genau der Fall, fuer den data-seitenname da ist.
-    "melden.html": "Etwas melden",
+    "melden.html": "Ideen &amp; Feedback",
   };
   for (const [seite, name] of Object.entries(ERWARTET)) {
     assert.match(lies(seite), new RegExp(`<body[^>]*data-seitenname="${name}"`),

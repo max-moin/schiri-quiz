@@ -133,14 +133,6 @@ function uebenKachel(freigeschaltet) {
       </a>`;
 }
 
-function vorschlagKachel() {
-  return `<a class="modus-kachel" href="frage-vorschlagen.html">
-      <div class="modus-kopf"><span class="modus-name">Frage vorschlagen</span><span class="modus-pille neu">Mitgestalten</span></div>
-      <p class="modus-text">Eine Regelfrage vollständig ausarbeiten, belegen und zur Prüfung einreichen.</p>
-      <span class="modus-fuss">Du siehst später Status und Änderungen</span>
-    </a>`;
-}
-
 function gastKachel() {
   return `
     <a class="modus-kachel hervorgehoben" href="quiz.html#gast">
@@ -160,8 +152,8 @@ function zeichne({ woche, statistik, angemeldet }) {
 
   const kacheln = angemeldet
     ? (wochenfragenFertig
-        ? [entscheidenKachel(statistik, true), wochenKachel(woche), uebenKachel(true), duellKachel(), vorschlagKachel()]
-        : [wochenKachel(woche), uebenKachel(false), entscheidenKachel(statistik, false), duellKachel(), vorschlagKachel()])
+        ? [entscheidenKachel(statistik, true), wochenKachel(woche), uebenKachel(true), duellKachel()]
+        : [wochenKachel(woche), uebenKachel(false), entscheidenKachel(statistik, false), duellKachel()])
     : [gastKachel(), duellKachel()];
 
   bereich.innerHTML = `
@@ -173,9 +165,9 @@ function zeichne({ woche, statistik, angemeldet }) {
     </p>
     <div class="modus-liste">${kacheln.join("")}</div>
     <p class="modus-nachsatz">
-      Etwas erlebt, das nicht ins Quiz gehört – ein Regelfall, ein Vorfall
-      oder einfach ein Gesprächswunsch? Dafür gibt es den
-      <a href="melden.html">Meldebogen</a>.
+      Eine Idee für den nächsten Schiri-Treff, eine fertige Quizfrage oder
+      eine Rückmeldung? Das gehört gesammelt zu
+      <a href="melden.html">Ideen &amp; Feedback</a>.
     </p>`;
 
 }

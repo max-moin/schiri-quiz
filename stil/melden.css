@@ -42,6 +42,32 @@
 
 /* ---------- Erst die Art waehlen ---------- */
 
+.melden-auswahlgruppe {
+  margin-top: 26px;
+}
+
+.melden-gruppenkopf {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 10px;
+}
+
+.melden-gruppenkopf h2 {
+  margin: 0;
+  font-family: var(--font-titel);
+  font-size: 1.05rem;
+}
+
+.melden-gruppenkopf p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+
 /* Vier grosse Flaechen statt eines Ausklappmenues: Die Wahl der Art ist
    die eigentliche Entscheidung dieser Seite, und in einem Menue steht
    von den vier Angeboten immer nur eines sichtbar da. */
@@ -67,6 +93,11 @@
   color: var(--text);
   cursor: pointer;
   transition: border-color .15s, box-shadow .15s, transform .15s;
+}
+
+.melden-art-link {
+  min-height: 44px;
+  text-decoration: none;
 }
 
 .melden-art:hover {
@@ -281,6 +312,8 @@
 }
 
 @media (max-width: 560px) {
+  .melden-gruppenkopf { display: block; }
+  .melden-gruppenkopf p { margin-top: 4px; }
   .melden-formular,
   .melden-karte {
     padding: 16px 14px;

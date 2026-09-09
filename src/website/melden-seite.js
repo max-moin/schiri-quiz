@@ -1,9 +1,9 @@
 // ============================================================
 //  melden.html - der Meldebogen
 // ============================================================
-//  Vier Dinge, die bisher alle im selben Kanal gelandet waeren ("schreib
-//  dem Obmann eine WhatsApp"): ein Regelfall, ein Vorfall, ein
-//  Gespraechswunsch und ein Hinweis zur Website. Sie brauchen
+//  Rückmeldungen und Ideen, die bisher alle im selben Kanal gelandet waeren
+//  ("schreib dem Obmann eine WhatsApp"): Treff-Themen, Regelfaelle,
+//  Vorfaelle, Gespraechswuensche und Hinweise zur Website. Sie brauchen
 //  unterschiedliche Angaben und vor allem unterschiedliche Zusagen -
 //  deshalb erst die Art, dann die Felder (siehe melden-arten.js).
 //
@@ -82,9 +82,9 @@ function absatz(klasse, text) {
 function zeichneAnmeldeAufforderung() {
   bereich.replaceChildren();
   bereich.append(
-    el("h1", "seiten-titel", "Etwas melden"),
+    el("h1", "seiten-titel", "Ideen & Feedback"),
     absatz("seiten-unter",
-      "Regelfall, Vorfall, Gesprächswunsch oder ein Hinweis zur Website – "
+      "Treff-Idee, Regelfall, Vorfall, Gesprächswunsch oder Website-Feedback – "
       + "hier kommt es beim Schiedsrichter-Obmann an.")
   );
 
@@ -118,29 +118,50 @@ function zeichneAnmeldeAufforderung() {
 function zeichneGeruest() {
   bereich.replaceChildren();
   bereich.append(
-    el("h1", "seiten-titel", "Etwas melden"),
-    absatz("seiten-unter", "Such zuerst aus, worum es geht. Danach kommen nur die Felder, die dazu passen.")
+    el("h1", "seiten-titel", "Ideen & Feedback"),
+    absatz("seiten-unter", "Möchtest du etwas mitgestalten oder eine Rückmeldung geben? Wähle zuerst den passenden Weg.")
   );
 
-  const liste = el("div", "melden-arten");
-  liste.setAttribute("role", "group");
-  liste.setAttribute("aria-label", "Art der Meldung");
+  function baueAuswahlgruppe(titel, beschreibung, gruppe, mitFragenvorschlag = false) {
+    const abschnitt = el("section", "melden-auswahlgruppe");
+    const kopf = el("div", "melden-gruppenkopf");
+    kopf.append(el("h2", null, titel), absatz(null, beschreibung));
+    const liste = el("div", "melden-arten");
+    liste.setAttribute("role", "group");
+    liste.setAttribute("aria-label", titel);
 
-  for (const eintrag of MELDE_ARTEN) {
-    const knopf = el("button", "melden-art");
-    knopf.type = "button";
-    knopf.dataset.art = eintrag.art;
-    knopf.setAttribute("aria-pressed", "false");
-    knopf.append(
-      el("span", "melden-art-titel", eintrag.titel),
-      el("span", "melden-art-frage", "„" + eintrag.frage + "“"),
-      el("span", "melden-art-text", eintrag.beschreibung)
-    );
-    knopf.addEventListener("click", () => waehleArt(eintrag.art));
-    liste.appendChild(knopf);
+    for (const eintrag of MELDE_ARTEN.filter((wert) => wert.gruppe === gruppe)) {
+      const knopf = el("button", "melden-art");
+      knopf.type = "button";
+      knopf.dataset.art = eintrag.art;
+      knopf.setAttribute("aria-pressed", "false");
+      knopf.append(
+        el("span", "melden-art-titel", eintrag.titel),
+        el("span", "melden-art-frage", "„" + eintrag.frage + "“"),
+        el("span", "melden-art-text", eintrag.beschreibung)
+      );
+      knopf.addEventListener("click", () => waehleArt(eintrag.art));
+      liste.appendChild(knopf);
+    }
+
+    if (mitFragenvorschlag) {
+      const link = el("a", "melden-art melden-art-link");
+      link.href = "frage-vorschlagen.html";
+      link.append(
+        el("span", "melden-art-titel", "Quizfrage ausarbeiten"),
+        el("span", "melden-art-frage", "„Ich habe eine fertige Frage“"),
+        el("span", "melden-art-text", "Fragestellung, Lösung und Regelbeleg vollständig zur Prüfung einreichen.")
+      );
+      liste.appendChild(link);
+    }
+    abschnitt.append(kopf, liste);
+    return abschnitt;
   }
 
-  bereich.appendChild(liste);
+  bereich.append(
+    baueAuswahlgruppe("Treff mitgestalten", "Für eine kurze Idee reicht ein Satz. Eine fertige Quizfrage kannst du ausführlich ausarbeiten.", "mitgestalten", true),
+    baueAuswahlgruppe("Rückmeldung oder Anliegen", "Regelfall, Vorfall, Gespräch oder Feedback zur Website.", "rueckmeldung")
+  );
   bereich.appendChild(el("div", "melden-formular-halter"));
 }
 
@@ -278,6 +299,7 @@ function zeichneFormular(art) {
     form.querySelector('[data-feld="situation"]').maxLength = 3800;
   }
   if (art === "gespraech") form.appendChild(absatz("melden-hinweis-leise", "Damit der Obmann dich ansprechen kann, wird dein Name mitgesendet."));
+  if (art === "treff") form.appendChild(absatz("melden-hinweis-leise", "Dein Vorschlag erscheint beim Obmann im Eingang und kann für den nächsten vereinsinternen Treff eingeplant werden."));
 
   const meldung = absatz("melden-rueckmeldung");
   meldung.setAttribute("role", "status");
@@ -403,8 +425,7 @@ function zeigeDank(art, anonym) {
 function starte() {
   if (!bereich) return;
   zeichneGeruest();
-  if (!person()) waehleArt("website");
-  else if (gewaehlteArt) waehleArt(gewaehlteArt);
+  if (gewaehlteArt) waehleArt(gewaehlteArt);
 }
 
 // abonniere() ruft sofort einmal auf - deshalb hier KEIN zusaetzliches
