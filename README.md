@@ -57,6 +57,8 @@ können.
 |---|---|
 | `index.html` | öffentliche Startseite des Vereins |
 | `schiri-werden.html`, `regeluebersicht.html`, `spesenrechner.html`, `vorlagen.html`, `informationen.html` | die übrigen offenen Seiten; `informationen.html` heißt in der Navigation „Unterlagen" |
+| `installieren.html`, `app.webmanifest` | Anleitung und Metadaten, um die Website mit Kickers-Wappen zum Home-Bildschirm von iPhone, iPad oder Android hinzuzufügen |
+| `bilder/app-icon-192.png`, `bilder/app-icon-512.png`, `bilder/apple-touch-icon.png` | Home-Bildschirm-Symbole; jede neue HTML-Seite muss Manifest, Apple-Touch-Icon und Theme-Farbe im Kopf einbinden |
 | `seite.css`, `seite.js`, `verein.config.js` | Gestaltung, gemeinsames Skript und Vereinsdaten des offenen Teils |
 | `obmann.html`, `src/admin/` | geschützte Website-Redaktion; E-Mail/Passwort plus TOTP, getrennte Arbeitsbereiche und explizites Veröffentlichen |
 | `src/website/` | öffentliche Datenlader und kanonische statische Ausgangsstände; Fallback bei leerer/nicht erreichbarer Datenbank |

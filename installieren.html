@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Website installieren – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="So legst du die Schiedsrichter-Website auf dem Home-Bildschirm von iPhone, iPad oder Android ab." />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="manifest" href="app.webmanifest" />
+  <link rel="apple-touch-icon" href="bilder/apple-touch-icon.png" />
+  <meta name="theme-color" content="#1f2937" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Kickers SR" />
+  <link rel="stylesheet" href="stil/basis.css" /><link rel="stylesheet" href="stil/kopf-fuss.css" /><link rel="stylesheet" href="stil/bausteine.css" /><link rel="stylesheet" href="stil/anmeldung.css" /><link rel="stylesheet" href="stil/profil.css" /><link rel="stylesheet" href="stil/installieren.css" />
+</head>
+<body data-seitenname="App installieren">
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf"><div class="kopf-innen"><a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" /><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a><button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button><nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><span class="nav-deaktiviert" aria-disabled="true">Spesen<small>In Prüfung</small></span><span class="nav-deaktiviert" aria-disabled="true">Regeln<small>In Prüfung</small></span><a href="informationen.html">Unterlagen</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav></div></header>
+  <main class="inhalt installieren-seite" id="inhalt" tabindex="-1">
+    <span class="kicker">Schneller wiederfinden</span><h1 class="seiten-titel">Website auf den Home-Bildschirm</h1>
+    <p class="installieren-einstieg">Danach öffnest du Quiz, Termine und Unterlagen direkt über das Kickers-Wappen – fast wie eine normale App. Eine Anmeldung im App Store oder Play Store ist nicht nötig.</p>
+    <section id="installieren-direkt" class="installieren-direkt" hidden aria-live="polite"><img src="bilder/app-icon-192.png" alt="Kickers-App-Symbol" /><div><h2>Direkt installieren</h2><p id="installieren-stand">Dein Browser kann die Seite direkt installieren.</p></div><button id="installieren-knopf" class="installieren-knopf" type="button">Jetzt installieren</button></section>
+    <div class="installieren-raster">
+      <section class="installieren-karte"><h2>iPhone oder iPad · Safari</h2><ol class="installieren-schritte"><li>Öffne diese Website in <strong>Safari</strong>.</li><li>Tippe auf <span class="installieren-symbol" aria-label="Teilen">↑</span> <strong>Teilen</strong>. Je nach Safari-Ansicht liegt die Taste oben oder unten.</li><li>Scrolle und wähle <strong>„Zum Home-Bildschirm“</strong>. Fehlt der Punkt, findest du ihn unter „Aktionen bearbeiten“.</li><li>Aktiviere, falls angeboten, <strong>„Als Web-App öffnen“</strong> und tippe auf <strong>„Hinzufügen“</strong>.</li></ol><p class="installieren-hinweis">Das Kickers-Wappen erscheint anschließend auf deinem Home-Bildschirm. Die Installation gilt nur für dieses Gerät.</p></section>
+      <section class="installieren-karte"><h2>Android · Chrome</h2><ol class="installieren-schritte"><li>Öffne diese Website in <strong>Chrome</strong>.</li><li>Tippe rechts oben auf <span class="installieren-symbol" aria-label="Drei-Punkte-Menü">⋮</span>.</li><li>Wähle <strong>„Zum Startbildschirm hinzufügen“</strong> oder <strong>„App installieren“</strong>. Die Bezeichnung hängt vom Gerät und der Chrome-Version ab.</li><li>Bestätige mit <strong>„Installieren“</strong> oder <strong>„Hinzufügen“</strong>.</li></ol><p class="installieren-hinweis">Auf unterstützten Android-Geräten erscheint oben zusätzlich der direkte Installieren-Knopf.</p></section>
+    </div>
+    <p class="installieren-quellen">Offizielle Anleitungen: <a href="https://support.apple.com/de-de/guide/iphone/iph42ab2f3a7/ios" target="_blank" rel="noopener noreferrer">Apple Support</a> · <a href="https://support.google.com/chrome/answer/9658361?co=GENIE.Platform%3DAndroid" target="_blank" rel="noopener noreferrer">Google Chrome-Hilfe</a></p>
+  </main>
+  <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a><a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/core/rpc.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script src="src/website/installieren-seite.js"></script>
+</body>
+</html>

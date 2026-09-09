@@ -1,0 +1,35 @@
+.installieren-seite { max-width: 900px; }
+.installieren-einstieg { max-width: 64ch; color: var(--muted); line-height: 1.6; }
+.installieren-direkt {
+  display: flex; align-items: center; justify-content: space-between; gap: 18px;
+  margin: 24px 0; padding: 18px; border: 1px solid var(--border);
+  border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
+}
+.installieren-direkt img { width: 64px; height: 64px; border-radius: 14px; }
+.installieren-direkt h2 { margin: 0 0 4px; font: 700 1.05rem var(--font-titel); }
+.installieren-direkt p { margin: 0; color: var(--muted); font-size: .86rem; }
+.installieren-knopf {
+  min-height: 44px; padding: 10px 18px; border: 0; border-radius: 999px;
+  background: var(--marke); color: #fff; font: 700 .88rem var(--font-text); cursor: pointer;
+  white-space: nowrap;
+}
+.installieren-raster { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 24px; }
+.installieren-karte { padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+.installieren-karte h2 { margin: 0 0 16px; font: 700 1.15rem var(--font-titel); }
+.installieren-schritte { margin: 0; padding: 0; list-style: none; counter-reset: schritt; display: grid; gap: 14px; }
+.installieren-schritte li { position: relative; min-height: 40px; padding-left: 48px; color: var(--muted); line-height: 1.45; }
+.installieren-schritte li::before {
+  counter-increment: schritt; content: counter(schritt); position: absolute; left: 0; top: 0;
+  display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%;
+  background: var(--marke-lighter); color: var(--marke); font-weight: 800;
+}
+.installieren-schritte strong { color: var(--text); }
+.installieren-symbol { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; margin: 0 2px; border: 1px solid var(--border); border-radius: 7px; color: var(--marke); font-weight: 800; }
+.installieren-hinweis { margin-top: 18px; padding: 14px; border-radius: var(--radius-sm); background: var(--marke-lighter); color: var(--muted); font-size: .82rem; line-height: 1.5; }
+.installieren-quellen { margin-top: 28px; color: var(--muted); font-size: .78rem; }
+.installieren-quellen a { color: var(--marke); }
+@media (max-width: 700px) {
+  .installieren-raster { grid-template-columns: 1fr; }
+  .installieren-direkt { align-items: flex-start; flex-wrap: wrap; }
+  .installieren-direkt .installieren-knopf { width: 100%; }
+}
