@@ -93,11 +93,13 @@ test("das Markup der Profil-Fenster gibt es nur noch einmal", () => {
   // erreichbar. Max: "Das hat ja mit dem Quiz gar nichts mehr zu tun."
   const fenster = lies("src/ui/profil-fenster.js");
   const quizHtml = ohneHtmlKommentare(lies("quiz.html"));
-  for (const kennung of ["anfrage-formular-overlay", "anliegen-formular-overlay",
-                         "meine-anfragen-overlay", "rechnung-upload-overlay"]) {
+  for (const kennung of ["anfrage-formular-overlay", "rechnung-upload-overlay"]) {
     assert.match(fenster, new RegExp(`id="${kennung}"`), kennung + " fehlt im Modul");
     assert.doesNotMatch(quizHtml, new RegExp(`id="${kennung}"`),
       kennung + " steht wieder fest in quiz.html");
+  }
+  for (const veraltet of ["anliegen-formular-overlay", "meine-anfragen-overlay"]) {
+    assert.doesNotMatch(fenster, new RegExp(`id="${veraltet}"`), veraltet + " ist als altes Pop-up uebrig");
   }
 });
 
@@ -172,7 +174,7 @@ test("das Kontomenue der Vereinsseite benutzt das gemeinsame Profilmodul", () =>
   const anfragen = ohneJsKommentare(lies("src/features/profile-requests.js"));
   const rueckgabe = anfragen.match(/return Object\.freeze\(\{([\s\S]*?)\}\);/);
   assert.ok(rueckgabe, "profile-requests.js gibt nichts mehr heraus");
-  for (const name of ["oeffneAusruestungsAnfrage", "oeffneAnliegen", "oeffneMeineAnfragen"]) {
+  for (const name of ["oeffneAusruestungsAnfrage", "oeffneRechnungUpload"]) {
     assert.ok(rueckgabe[1].includes(name), name + " wird nicht bereitgestellt");
   }
 });

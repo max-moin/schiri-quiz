@@ -109,11 +109,10 @@ test("der Loeschweg mit zweistufiger Rueckfrage bleibt erhalten", () => {
   assert.match(seite, /dataset\.sicher !== "ja"/);
 });
 
-test("das Kontomenue listet nur noch zwei persoenliche Punkte", () => {
+test("das Kontomenue trennt die vier persoenlichen Bereiche", () => {
   const ohne = ohneJsKommentare(seiteJs);
   const punkte = [...ohne.matchAll(/\{ text: "([^"]+)"/g)].map((t) => t[1]);
-  assert.deepEqual(punkte, ["Mein Ausrüstungsbestand", "Meine Anliegen"],
-    "Max: \"Wenn man auf diesen Konto-Button klickt, wird da nicht so viel aufgelistet.\"");
+  assert.deepEqual(punkte, ["Meine Daten", "Meine Quizstatistik", "Mein Ausrüstungsbestand", "Meine Anliegen"]);
   assert.match(ohne, /punkt: true/,
     "Der blaue Neuigkeiten-Punkt ist verschwunden.");
   assert.match(ohne, /window\.location\.href = "meine-anliegen\.html"/,

@@ -71,57 +71,9 @@
       </div>
 
       <div id="anfrage-formular-erfolg" hidden>
-        <p>Danke, deine Anfrage ist raus! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
+        <p>Danke, deine Anfrage ist raus! Den Status siehst du unter „Mein Ausrüstungsbestand“.</p>
         <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
       </div>
-    </div>
-  </div>
-
-  <!-- Anliegen-Formular (12.07.2026, Baustein 5c: Baustein E der
-       Backlog-Spec, dort "Sorgenkasten" genannt - hier bewusst "Anliegen",
-       Max' eigene Wortwahl beim Anfordern dieses Bausteins) - freier Text
-       statt eines Formulars mit festen Feldern, damit die Hürde niedrig
-       bleibt (jedes Anliegen, nicht nur Ausrüstung). -->
-  <div id="anliegen-formular-overlay" class="erklaerung-overlay profil-fenster" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="anliegen-formular-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="anliegen-formular-titel">Anliegen melden 💬</h3>
-        <button id="anliegen-formular-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="anliegen-formular-inhalt">
-        <p class="hinweis">Egal ob große oder kleine Sache - schreib einfach, was los ist. Nur der Schiri-Obmann sieht das hier.</p>
-        <label for="anliegen-text-eingabe">Was möchtest du uns wissen lassen?</label>
-        <textarea id="anliegen-text-eingabe" rows="5" placeholder="Schreib hier, was dich beschäftigt ..."></textarea>
-
-        <p id="anliegen-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anliegen-absenden-button" type="button">Absenden</button>
-      </div>
-
-      <div id="anliegen-formular-erfolg" hidden>
-        <p>Danke, deine Nachricht ist angekommen! Den Status siehst du jederzeit unter „Meine Anfragen“.</p>
-        <button id="anliegen-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Meine-Anfragen-Übersicht (12.07.2026, Baustein 5a; erweitert 5c um
-       Anliegen + Rechnungs-Upload) - eigene gestellte Anfragen/Anliegen mit
-       Status, erreichbar über das Profil-Panel. -->
-  <div id="meine-anfragen-overlay" class="erklaerung-overlay profil-fenster" hidden>
-    <div class="erklaerung-popup" role="dialog" aria-modal="true" aria-labelledby="meine-anfragen-titel">
-      <div class="erklaerung-kopf">
-        <h3 id="meine-anfragen-titel">Meine Anfragen 📦</h3>
-        <button id="meine-anfragen-schliessen-button" class="erklaerung-schliessen-button" type="button" aria-label="Schließen">✕</button>
-      </div>
-
-      <div id="meine-anfragen-liste"></div>
-      <p id="meine-anfragen-leer-hinweis" class="hinweis" hidden>Du hast noch keine Anfragen gestellt.</p>
-      <!-- Nur in der Sicht "Meine Anliegen" sichtbar (08.09.2026): von der
-           Liste aus soll man auch ein neues Anliegen schreiben koennen,
-           ohne vorher das Fenster zu schliessen. Wort plus Zeichen -
-           ein Zeichen allein waere hier zu wenig. -->
-      <button id="meine-anfragen-anliegen-button" class="sekundaer-button" type="button" hidden>+ Neues Anliegen schreiben</button>
     </div>
   </div>
 

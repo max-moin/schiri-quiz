@@ -1,9 +1,9 @@
 // ============================================================
 //  Meine Anliegen: persoenlicher, datensparsamer Rueckkanal
 // ============================================================
-//  Diese Seite fuehrt nur Daten zusammen, fuer die bereits persoenlich
-//  gefilterte RPCs existieren. Sie fragt keine Obmann-Funktion ab und zeigt
-//  insbesondere keine internen Notizen, Stammdaten oder fremden Vorgaenge.
+//  Diese Seite fuehrt nur persoenlich gefilterte RPCs zusammen. Antworten
+//  des Obmanns werden als solche angezeigt; interne Verwaltungsnotizen,
+//  Stammdaten und fremde Vorgaenge bleiben ausgeschlossen.
 
 import { DATENBANK } from "../../verein.config.js";
 
@@ -120,6 +120,14 @@ function vorgangElement(vorgang) {
     const element = detailZeile(zeile[0], zeile[1]);
     if (element) inhalt.appendChild(element);
   }
+  if (vorgang.bearbeiten) {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "meine-bearbeiten";
+    button.textContent = "Eigenen Hinweis bearbeiten";
+    button.addEventListener("click", () => vorgang.bearbeiten(inhalt));
+    inhalt.appendChild(button);
+  }
   if (vorgang.link) {
     const a = document.createElement("a");
     a.className = "meine-textlink";
@@ -181,18 +189,80 @@ function ausQuizFeedback(zeilen) {
   return zeilen.map((m) => {
     const eintraege = alsListe(m.eintraege);
     const letzter = eintraege.at(-1);
+    const frage = text(m.frage_text) || "Rückmeldung zu einer Quizfrage";
+    const nummer = Number.isFinite(Number(m.frage_nummer)) ? `Frage ${m.frage_nummer}: ` : "";
+    const editierbar = letzter?.id && ["offen", "gelesen"].includes(letzter?.status || m.status);
     return {
       art: "quiz",
       artName: "Quiz-Feedback",
-      titel: text(letzter?.text) || "Rückmeldung zu einer Quizfrage",
+      titel: nummer + frage,
       status: m.status,
       zeit: m.aktualisiert_am || m.erstellt_am,
-      details: eintraege.map((e, index) => [
-        eintraege.length > 1 ? `Dein Hinweis ${index + 1}` : "Dein Hinweis",
-        e.text,
-      ]),
+      details: [
+        ["Woche", m.runde_bezeichnung],
+        ...eintraege.flatMap((e, index) => {
+          const basis = [[eintraege.length > 1 ? `Dein Hinweis ${index + 1}` : "Dein Hinweis", e.text]];
+          if (e.rueckmeldung_obmann) basis.push(["Antwort des Obmanns", e.rueckmeldung_obmann]);
+          return basis;
+        }),
+      ],
+      bearbeiten: editierbar ? (inhalt) => oeffneFeedbackBearbeitung(inhalt, m, letzter) : null,
     };
   });
+}
+
+function oeffneFeedbackBearbeitung(inhalt, meldung, eintrag) {
+  if (inhalt.querySelector(".meine-bearbeitungsformular")) return;
+  const formular = document.createElement("form");
+  formular.className = "meine-bearbeitungsformular";
+  const label = document.createElement("label");
+  label.textContent = "Dein korrigierter Hinweis";
+  const feld = document.createElement("textarea");
+  feld.maxLength = 1000;
+  feld.rows = 4;
+  feld.value = text(eintrag.text);
+  label.appendChild(feld);
+  const aktionen = document.createElement("div");
+  aktionen.className = "meine-formular-aktionen";
+  const speichern = document.createElement("button");
+  speichern.type = "submit";
+  speichern.className = "meine-hauptknopf";
+  speichern.textContent = "Änderung speichern";
+  const abbrechen = document.createElement("button");
+  abbrechen.type = "button";
+  abbrechen.className = "meine-bearbeiten";
+  abbrechen.textContent = "Abbrechen";
+  abbrechen.addEventListener("click", () => formular.remove());
+  const hinweis = document.createElement("p");
+  hinweis.className = "meine-formular-hinweis";
+  aktionen.append(speichern, abbrechen);
+  formular.append(label, aktionen, hinweis);
+  formular.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const person = anmeldung.lesen();
+    const neuerText = feld.value.trim();
+    if (!person || !neuerText) {
+      hinweis.textContent = "Der Hinweis darf nicht leer sein.";
+      return;
+    }
+    speichern.disabled = true;
+    const { error } = await rpc.rpc("meine_frage_meldung_bearbeiten", {
+      p_schiedsrichter_id: person.id,
+      p_pin: person.pin,
+      p_meldung_id: meldung.meldung_id,
+      p_eintrag_id: eintrag.id,
+      p_text: neuerText,
+    });
+    if (error) {
+      speichern.disabled = false;
+      hinweis.textContent = error.message || "Die Änderung konnte nicht gespeichert werden.";
+      return;
+    }
+    hinweis.textContent = "Gespeichert.";
+    await ladeVorgaenge(person);
+  });
+  inhalt.appendChild(formular);
+  feld.focus();
 }
 
 function ausFragen(zeilen) {
@@ -263,54 +333,6 @@ async function ladeVorgaenge(person) {
   });
 }
 
-async function ladeQuiz(person) {
-  const { data, error } = await rpc.rpc("meine_antworten_v2", {
-    p_schiedsrichter_id: person.id,
-    p_pin: person.pin,
-  });
-  const ziel = $("meine-quiz-stand");
-  if (error) {
-    ziel.textContent = "Der Wochenstand konnte gerade nicht geladen werden.";
-    return;
-  }
-  const fragen = Array.isArray(data) ? data : [];
-  const beantwortet = fragen.filter((f) => f.beantwortet);
-  const richtig = beantwortet.filter((f) => f.korrekt === true || f.bewertungsstatus === "richtig").length;
-  const nachbessern = beantwortet.filter((f) => f.bewertungsstatus === "nachbessern").length;
-  const falsch = beantwortet.filter((f) => f.korrekt === false && f.bewertungsstatus !== "nachbessern").length;
-  const werte = [
-    [beantwortet.length, `von ${fragen.length} beantwortet`, ""],
-    [richtig, "richtig", "richtig"],
-    [nachbessern, "zweite Chance", "nachbessern"],
-    [falsch, "falsch", "falsch"],
-  ];
-  ziel.replaceChildren(...werte.map(([zahl, label, klasse]) => {
-    const k = document.createElement("div");
-    k.className = "meine-kennzahl" + (klasse ? " " + klasse : "");
-    const stark = document.createElement("strong");
-    stark.textContent = String(zahl);
-    const beschriftung = document.createElement("span");
-    beschriftung.textContent = label;
-    k.append(stark, beschriftung);
-    return k;
-  }));
-}
-
-async function ladeProfil(person) {
-  $("meine-name").textContent = person.name || "Vereinsmitglied";
-  const kennung = anmeldung.leseKennung();
-  if (!kennung) {
-    $("meine-verein").textContent = "Dein Verein";
-    return;
-  }
-  try {
-    const verein = await anmeldung.pruefeKennung(kennung);
-    $("meine-verein").textContent = verein?.vereinName || "Dein Verein";
-  } catch {
-    $("meine-verein").textContent = "Dein Verein";
-  }
-}
-
 function starte() {
   const person = anmeldung.lesen();
   if (!person) {
@@ -320,7 +342,7 @@ function starte() {
   }
   $("meine-zugang").hidden = true;
   $("meine-inhalt").hidden = false;
-  void Promise.all([ladeProfil(person), ladeQuiz(person), ladeVorgaenge(person)]);
+  void ladeVorgaenge(person);
 }
 
 $("meine-anmelden")?.addEventListener("click", async () => {

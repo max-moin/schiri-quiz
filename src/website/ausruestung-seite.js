@@ -234,6 +234,7 @@ async function ladeAnfragen() {
     if (a.groesse) merkmale.push(plakette("Größe " + a.groesse));
     if (a.farbe) merkmale.push(plakette(a.farbe));
     if (a.aermellaenge) merkmale.push(plakette(AERMEL_WORT[a.aermellaenge] || a.aermellaenge));
+    const rechnungMoeglich = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt" && !a.rechnung_hochgeladen_am;
     return '<article class="bestand-anfrage">'
       + '<div class="bestand-anfrage-kopf">'
       + `<span class="bestand-anfrage-titel">${esc(name)}</span>`
@@ -242,8 +243,17 @@ async function ladeAnfragen() {
       + "</div>"
       + (merkmale.length ? `<div class="bestand-plaketten">${merkmale.join("")}</div>` : "")
       + (a.anmerkung ? `<p class="bestand-anfrage-anmerkung">„${esc(a.anmerkung)}“</p>` : "")
+      + (rechnungMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">Rechnung hochladen</button>` : "")
       + "</article>";
   }).join("");
+  const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;
+  $("bestand-anfragen").querySelectorAll("[data-rechnung]").forEach((knopf) => {
+    if (!profil?.oeffneRechnungUpload) {
+      knopf.hidden = true;
+      return;
+    }
+    knopf.addEventListener("click", () => profil.oeffneRechnungUpload(knopf.dataset.rechnung));
+  });
 }
 
 // Der Knopf oeffnet die vorhandene Maske aus dem Profil-Modul. Gibt es

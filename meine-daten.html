@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meine Daten – FV Löbtauer Kickers</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
+  <link rel="stylesheet" href="stil/meine-anliegen.css" />
+</head>
+<body data-seitenname="Meine Daten">
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf"><div class="kopf-innen">
+    <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" /><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
+    <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+    <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><span class="nav-deaktiviert" aria-disabled="true">Spesen<small>In Prüfung</small></span><span class="nav-deaktiviert" aria-disabled="true">Regeln<small>In Prüfung</small></span><a href="informationen.html">Unterlagen</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
+  </div></header>
+  <main class="inhalt meine-seite" id="inhalt" tabindex="-1">
+    <section id="meine-zugang" class="meine-zugang" hidden><h1>Meine Daten</h1><p>Melde dich an, um die Daten zu sehen, die für deinen Zugang verwendet werden.</p><button id="meine-anmelden" type="button" class="meine-hauptknopf">Als Vereinsmitglied anmelden</button></section>
+    <div id="meine-inhalt" hidden>
+      <header class="meine-kopf"><h1>Meine Daten</h1><p>Eine transparente Übersicht deines Zugangs – bewusst ohne unnötige persönliche Angaben.</p></header>
+      <section class="meine-karte meine-daten-seite" aria-labelledby="meine-daten-titel">
+        <h2 id="meine-daten-titel">Für dich sichtbar</h2>
+        <dl class="meine-datenliste"><div><dt>Name</dt><dd id="meine-name">–</dd></div><div><dt>Verein</dt><dd id="meine-verein">Wird geladen …</dd></div></dl>
+        <div class="meine-daten-hinweis"><h2>Welche Daten erscheinen hier?</h2><p>Diese Seite zeigt nur deinen Anmeldenamen und deinen Verein. Quizantworten findest du getrennt unter „Meine Quizstatistik“, selbst eingereichte Rückmeldungen unter „Meine Anliegen“. Interne Verwaltungsnotizen und Angaben anderer Personen werden nicht angezeigt.</p></div>
+      </section>
+    </div>
+  </main>
+  <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a><a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/meine-daten-seite.js"></script>
+</body>
+</html>
