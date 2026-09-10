@@ -7,6 +7,7 @@ const regeln = lies("regeluebersicht.html");
 const regelCss = lies("stil/regeln.css");
 const melden = lies("src/website/melden-seite.js");
 const modus = lies("src/website/modus-seite.js");
+const vorlagenEditor = lies("src/admin/vorlagen-editor.js");
 const migration = lies("supabase/migrations/20260910001000_v132_treff_themenvorschlaege.sql");
 const detailsMigration = lies("supabase/migrations/20260910003500_v133_treff_details_beschriften.sql");
 
@@ -62,10 +63,22 @@ test("Absagen erklaert erst den Ablauf und bietet danach die Vorlage", () => {
   const ablauf = absagen.indexOf('class="weg absage-weg"');
   const vorlage = absagen.indexOf('id="email-spiel"');
   assert.ok(ablauf > -1 && vorlage > ablauf);
-  for (const text of ["Spieldaten bereithalten", "Absage per E-Mail senden",
+  for (const text of ["Ansetzung bestätigen und öffnen", "Absage per E-Mail senden",
     "Absetzung kontrollieren", "Nach 24 Stunden anrufen"]) {
     assert.match(absagen, new RegExp(text));
   }
+  assert.match(absagen, /täglich zwischen 19 und 20 Uhr/);
+  assert.match(absagen, /auch dann, wenn du sie anschließend\s+absagen musst/);
+});
+
+test("Regellehrabend wird nicht mehr mit einer ueberholten Absage-Mail angeboten", () => {
+  const absagen = lies("vorlagen.html");
+  assert.match(absagen, /schriftliche Abmeldung ist seit dem 20\.08\.2026 nicht\s+mehr erforderlich/);
+  assert.match(absagen, /Pflichtveranstaltungen/);
+  assert.match(absagen, /Anwesenheitsliste/);
+  assert.doesNotMatch(absagen, /Betreff: Absage Regellehrabend/);
+  assert.doesNotMatch(absagen, /id="text-lehrabend"/);
+  assert.doesNotMatch(vorlagenEditor, /\["lehrabend", "Regellehrabend"\]/);
 });
 
 test("Treff-Idee und ausfuehrlicher Fragenvorschlag liegen in einem gemeinsamen Bereich", () => {

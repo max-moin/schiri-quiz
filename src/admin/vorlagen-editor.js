@@ -6,15 +6,18 @@ export function erstelleVorlagenEditor({ wurzel, client, verein, benutzer }) {
   let zustand = kopie(VORLAGEN_STANDARD);
   const speicher = erstelleInhaltsSpeicher({ client, verein, benutzer, bereich: "vorlagen", fallback: VORLAGEN_STANDARD });
   wurzel.innerHTML = bereichsGeruest({
-    titel: "Absagevorlagen",
-    untertitel: "Texte und Hinweise bearbeiten und direkt als fertige Mail prüfen.",
-    kennung: "Vorlagen",
+    titel: "Spielabsage",
+    untertitel: "E-Mail und Hinweis für angesetzte Spiele bearbeiten und als fertige Mail prüfen.",
+    kennung: "Absagen",
   });
   const editor = wurzel.querySelector("[data-inhalt-editor]");
 
   function rendern() {
     editor.replaceChildren();
-    for (const [schluessel, ueberschrift] of [["spiel", "Spielabsage"], ["lehrabend", "Regellehrabend"]]) {
+    /* Für Regellehrabende ist seit 20.08.2026 ausdrücklich keine
+       schriftliche Abmeldung mehr erforderlich. Der alte Entwurf darf
+       deshalb nicht mehr über die Redaktion veröffentlicht werden. */
+    for (const [schluessel, ueberschrift] of [["spiel", "Spielabsage"]]) {
       const wert = zustand[schluessel];
       const panel = document.createElement("section");
       panel.className = "admin-panel admin-text-panel";
@@ -45,7 +48,7 @@ export function erstelleVorlagenEditor({ wurzel, client, verein, benutzer }) {
   }
 
   bindeInhaltsAktionen({
-    wurzel, speicher, bereichName: "Diese Absagevorlagen",
+    wurzel, speicher, bereichName: "Diese Spielabsage",
     aktuellerStand: () => zustand,
     setzeStand: (wert) => { zustand = wert; },
     rendern,

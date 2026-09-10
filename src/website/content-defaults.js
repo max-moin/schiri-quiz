@@ -673,11 +673,11 @@ export const VORLAGEN_STANDARD = {
     "entwurf": false
   },
   "lehrabend": {
-    "titel": "E-Mail an den Obmann",
-    "text": "An: [E-Mail eures Obmanns]\nBetreff: Absage Regellehrabend am [TT.MM.JJJJ]\n\nHallo,\n\nich kann am Regellehrabend am [TT.MM.JJJJ] leider nicht teilnehmen.\n\nGrund: [kurz und konkret]\n\nViele Grüße\n[Vorname Nachname]",
-    "hinweis": "Entwurf – Wortlaut noch nicht abgestimmt. Ob und bis wann eine Absage eingereicht werden muss, steht in der Einladung zum jeweiligen Abend.",
-    "quelle": "",
-    "entwurf": true
+    "titel": "Regellehrabend",
+    "text": "Eine schriftliche Abmeldung ist seit dem 20.08.2026 nicht mehr erforderlich.",
+    "hinweis": "Regellehrabende bleiben Pflichtveranstaltungen und werden nur bei persönlichem Eintrag mit Unterschrift in der Anwesenheitsliste angerechnet.",
+    "quelle": "Anweisung des Stadtverbands Fußball Dresden e. V. ab 20.08.2026, Ergänzung SRO §8 Punkt 4.",
+    "entwurf": false
   }
 };
 

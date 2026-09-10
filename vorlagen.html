@@ -77,9 +77,11 @@
 
       <ol class="weg absage-weg" aria-label="Ablauf einer Spielabsage">
         <li class="weg-schritt" data-nr="1">
-          <h3>Spieldaten bereithalten</h3>
-          <p>Öffne die Ansetzung im DFBnet. Du brauchst Begegnung, Spielkennung,
-             Datum, Uhrzeit, Wettbewerb, Liga und deine Funktion.</p>
+          <h3>Ansetzung bestätigen und öffnen</h3>
+          <p>Prüfe deine Ansetzungen täglich zwischen 19 und 20 Uhr und bestätige
+             eine neue Ansetzung sofort – auch dann, wenn du sie anschließend
+             absagen musst. Halte Begegnung, Spielkennung, Datum, Uhrzeit,
+             Wettbewerb, Liga und deine Funktion bereit.</p>
         </li>
         <li class="weg-schritt" data-nr="2">
           <h3>Absage per E-Mail senden</h3>
@@ -157,34 +159,21 @@ Viele Grüße</pre>
       </details>
     </section>
 
-    <!-- Für den Regellehrabend liegt noch kein abgestimmter Text vor.
-         Dieser Entwurf ist bewusst als solcher gekennzeichnet, damit er
-         nicht versehentlich als verbindlich gelesen wird. -->
+    <!-- Punkt 4 der Anweisung ab 20.08.2026 hebt die frühere schriftliche
+         Abmeldung ausdrücklich auf. Deshalb steht hier bewusst keine
+         kopierbare Mail mehr. -->
     <section id="lehrabend" class="abschnitt">
-      <div class="abschnitt-kopf"><h2>Regellehrabend absagen</h2></div>
-
-      <div class="vorlage">
-        <div class="vorlage-kopf">
-          <span class="vorlage-titel" id="titel-lehrabend">E-Mail an den Obmann <span class="entwurf">Entwurf</span></span>
-          <button class="kopieren" type="button" data-ziel="text-lehrabend">Text kopieren</button>
-        </div>
-        <pre class="vorlage-text" id="text-lehrabend">An: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
-Betreff: Absage Regellehrabend am [TT.MM.JJJJ]
-
-Hallo,
-
-ich kann am Regellehrabend am [TT.MM.JJJJ] leider nicht teilnehmen.
-
-Grund: [kurz und konkret]
-
-Viele Grüße
-[Vorname Nachname]</pre>
+      <div class="abschnitt-kopf"><h2>Regellehrabend</h2></div>
+      <div class="hinweisbalken ruhig lehrabend-hinweis">
+        <span class="sym-wort">Hinweis</span>
+        <span><strong>Eine schriftliche Abmeldung ist seit dem 20.08.2026 nicht
+          mehr erforderlich.</strong> Regellehrabende bleiben Pflichtveranstaltungen.
+          Angerechnet wird der Abend nur, wenn du dich vor Ort persönlich in die
+          Anwesenheitsliste einträgst und unterschreibst.</span>
       </div>
-
-      <p class="abschnitt-hinweis" id="hinweis-lehrabend" style="margin-top:12px">
-        Entwurf – Wortlaut noch nicht abgestimmt. Ob und bis wann eine Absage
-        eingereicht werden muss, steht in der Einladung zum jeweiligen Abend.
-      </p>
+      <p class="quelle">Anweisung des Stadtverbands Fußball Dresden e. V. an
+        Schiedsrichter*innen, Beobachter und Paten ab 20.08.2026,
+        Ergänzung SRO §8 Punkt 4.</p>
     </section>
 
   </main>
@@ -231,9 +220,6 @@ Viele Grüße
     document.getElementById("text-spiel").textContent = fuelleMail(VORLAGEN.spiel.text);
     document.getElementById("hinweis-spiel").lastElementChild.textContent = VORLAGEN.spiel.hinweis;
     document.getElementById("quelle-spiel").textContent = VORLAGEN.spiel.quelle;
-    document.getElementById("titel-lehrabend").textContent = VORLAGEN.lehrabend.titel + (VORLAGEN.lehrabend.entwurf ? " · Entwurf" : "");
-    document.getElementById("text-lehrabend").textContent = fuelleMail(VORLAGEN.lehrabend.text);
-    document.getElementById("hinweis-lehrabend").textContent = VORLAGEN.lehrabend.hinweis;
 
     /* Kopierknopf. navigator.clipboard gibt es nur in sicheren Kontexten
        (https oder localhost) - deshalb ein Rückfallweg über ein
