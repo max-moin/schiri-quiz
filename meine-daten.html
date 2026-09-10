@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="stil/anmeldung.css" />
   <link rel="stylesheet" href="stil/profil.css" />
   <link rel="stylesheet" href="stil/meine-anliegen.css" />
+  <link rel="stylesheet" href="stil/meine-daten.css" />
 </head>
 <body data-seitenname="Meine Daten">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
@@ -29,12 +30,17 @@
   <main class="inhalt meine-seite" id="inhalt" tabindex="-1">
     <section id="meine-zugang" class="meine-zugang" hidden><h1>Meine Daten</h1><p>Melde dich an, um die Daten zu sehen, die für deinen Zugang verwendet werden.</p><button id="meine-anmelden" type="button" class="meine-hauptknopf">Als Vereinsmitglied anmelden</button></section>
     <div id="meine-inhalt" hidden>
-      <header class="meine-kopf"><h1>Meine Daten</h1><p>Eine transparente Übersicht deines Zugangs – bewusst ohne unnötige persönliche Angaben.</p></header>
-      <section class="meine-karte meine-daten-seite" aria-labelledby="meine-daten-titel">
-        <h2 id="meine-daten-titel">Für dich sichtbar</h2>
-        <dl class="meine-datenliste"><div><dt>Name</dt><dd id="meine-name">–</dd></div><div><dt>Verein</dt><dd id="meine-verein">Wird geladen …</dd></div></dl>
-        <div class="meine-daten-hinweis"><h2>Welche Daten erscheinen hier?</h2><p>Diese Seite zeigt nur deinen Anmeldenamen und deinen Verein. Quizantworten findest du getrennt unter „Meine Quizstatistik“, selbst eingereichte Rückmeldungen unter „Meine Anliegen“. Interne Verwaltungsnotizen und Angaben anderer Personen werden nicht angezeigt.</p></div>
+      <header class="meine-kopf"><h1>Meine Daten</h1><p>Dein persönlicher Bereich – übersichtlich und bewusst auf das Nötige begrenzt.</p></header>
+      <section class="daten-profil" aria-labelledby="meine-daten-titel">
+        <div id="meine-initiale" class="daten-avatar" aria-hidden="true">–</div>
+        <div class="daten-identitaet"><span class="daten-status"><i aria-hidden="true"></i> Vereinszugang aktiv</span><h2 id="meine-daten-titel"><span id="meine-name">–</span></h2><p id="meine-verein">Wird geladen …</p></div>
       </section>
+      <section class="daten-bereiche" aria-label="Dein persönlicher Bereich">
+        <a href="meine-statistik.html"><span class="daten-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V9m7 10V5m7 14v-7"/></svg></span><span><strong>Meine Quizstatistik</strong><small>Ergebnisse und Verlauf ansehen</small></span><b aria-hidden="true">›</b></a>
+        <a href="meine-anliegen.html"><span class="daten-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 5h14v11H9l-4 3Zm4 5h6"/></svg></span><span><strong>Meine Anliegen</strong><small>Rückmeldungen und Vorschläge verfolgen</small></span><b aria-hidden="true">›</b></a>
+        <a href="ausruestung.html"><span class="daten-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 6 5 8l2 4 2-1v8h6v-8l2 1 2-4-3-2c-.6 1-1.4 1.5-3 1.5S10.6 7 10 6Z"/></svg></span><span><strong>Meine Ausrüstung</strong><small>Bestand pflegen und Ausstattung anfragen</small></span><b aria-hidden="true">›</b></a>
+      </section>
+      <aside class="daten-transparenz"><span aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 5 6v5c0 5 3 8 7 10 4-2 7-5 7-10V6Zm0 6v4m0 3h.01"/></svg></span><div><h2>Bewusst datensparsam</h2><p>Hier erscheinen nur dein Anmeldename und dein Verein. Interne Verwaltungsnotizen und Angaben anderer Personen werden nicht angezeigt.</p></div></aside>
     </div>
   </main>
   <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a><a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>

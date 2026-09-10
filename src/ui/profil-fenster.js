@@ -42,17 +42,19 @@
         <label for="anfrage-kategorie-auswahl">Was brauchst du?</label>
         <select id="anfrage-kategorie-auswahl">
           <option value="">– bitte auswählen –</option>
-          <option value="trikot">Trikot</option>
-          <option value="hose">Hose</option>
-          <option value="stutzen">Stutzen</option>
-          <option value="schuhe">Schuhe</option>
         </select>
 
-        <label for="anfrage-farbe-eingabe">Farbe (optional)</label>
-        <input id="anfrage-farbe-eingabe" type="text" autocomplete="off" placeholder="z.B. Grün" />
+        <fieldset id="anfrage-farbe-bereich" class="ausruestungs-farbblock" hidden>
+          <legend>Farbe (optional)</legend>
+          <div id="anfrage-farbwahl" class="ausruestungs-farbwahl"></div>
+          <input id="anfrage-andere-farbe" type="text" autocomplete="off" placeholder="Andere Farbe" hidden />
+          <input id="anfrage-farbe-eingabe" type="hidden" />
+        </fieldset>
 
-        <label for="anfrage-groesse-eingabe">Größe (optional)</label>
-        <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z.B. L" />
+        <div id="anfrage-groesse-bereich" hidden>
+          <label for="anfrage-groesse-eingabe">Größe (optional)</label>
+          <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z. B. L oder 42" />
+        </div>
 
         <div id="anfrage-aermellaenge-bereich" hidden>
           <label for="anfrage-aermellaenge-auswahl">Ärmellänge</label>

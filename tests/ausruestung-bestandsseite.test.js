@@ -22,6 +22,7 @@ const ohneJsKommentare = (text) =>
 const html = lies("ausruestung.html");
 const seite = lies("src/website/ausruestung-seite.js");
 const stil = lies("stil/ausruestung.css");
+const katalog = lies("src/features/profile-requests.js");
 const seiteJs = lies("seite.js");
 
 test("beim Oeffnen steht nur der Bestand da - das Formular kommt auf Wunsch", () => {
@@ -39,17 +40,16 @@ test("beim Oeffnen steht nur der Bestand da - das Formular kommt auf Wunsch", ()
     "Das Bestandsformular soll inline erscheinen, nicht als Pop-up.");
 });
 
-test("der Bestand ist wie ein Kleiderschrank nach Kategorien geordnet", () => {
-  for (const schluessel of ["trikot", "hose", "stutzen", "schuhe", "sonstiges"]) {
-    assert.match(seite, new RegExp('schluessel: "' + schluessel + '"'),
+test("Bestand und Anfrage teilen sich den nach Bereichen geordneten Katalog", () => {
+  for (const schluessel of ["trikot", "hose", "stutzen", "schuhe", "spielnotizkarten", "spesenquittungen", "pfeife", "funkfahnen", "schiedsrichterfahnen", "sporttasche", "sonstiges"]) {
+    assert.match(katalog, new RegExp('schluessel: "' + schluessel + '"'),
       "Kategorie fehlt im Schrank: " + schluessel);
   }
-  for (const wort of ["Trikots", "Hosen", "Stutzen", "Schuhe", "Sonstiges"]) {
-    assert.ok(seite.includes(wort), "Das Wort zur Gruppe fehlt: " + wort);
-  }
+  assert.match(seite, /AUS\.KATEGORIEN/);
+  assert.match(seite, /\["Bekleidung", "Equipment"\]/);
   assert.match(seite, /bestand-gruppe-symbol/,
     "Jede Gruppe traegt ein Symbol - aber immer neben dem Wort.");
-  assert.match(seite, /Stück/, "Die Stueckzahl der Gruppe fehlt.");
+  assert.match(seite, /bestand-gruppe-zahl/, "Die Stueckzahl der Gruppe fehlt.");
   // Der Zustand muss auf einen Blick lesbar sein.
   for (const zustand of ["einsatzbereit", "ersatz", "verschlissen", "fehlt"]) {
     assert.match(stil, new RegExp("zustand-" + zustand),
@@ -107,6 +107,34 @@ test("der Loeschweg mit zweistufiger Rueckfrage bleibt erhalten", () => {
   assert.doesNotMatch(seite, /\b(confirm|alert|prompt)\s*\(/,
     "Hausregel: keine Browserdialoge - der Knopf fragt selbst nach.");
   assert.match(seite, /dataset\.sicher !== "ja"/);
+});
+
+test("das Formular zeigt nur Angaben, die zum Gegenstand passen", () => {
+  assert.match(katalog, /schluessel: "trikot"[^\n]+aermel: true/);
+  assert.doesNotMatch(katalog, /schluessel: "hose"[^\n]+aermel: true/);
+  assert.match(katalog, /schluessel: "spielnotizkarten"[^\n]+verbrauch: true/);
+  assert.match(seite, /bestand-aermel-bereich/);
+  assert.match(seite, /kategorie\.aermel/);
+  assert.match(seite, /kategorie\.verbrauch/);
+  assert.match(html, /Speichern &amp; weiteres hinzufügen/);
+});
+
+test("Farbe ist eine sichtbare Auswahl und bleibt trotzdem zugänglich beschriftet", () => {
+  assert.match(katalog, /const FARBEN/);
+  for (const farbe of ["Schwarz", "Weiß", "Gelb", "Rot", "Grün", "Blau"]) {
+    assert.ok(katalog.includes(`wert: "${farbe}"`));
+  }
+  assert.match(html, /id="bestand-farbwahl"/);
+  assert.match(seite, /bestand-farbplakette/);
+});
+
+test("v134 erlaubt denselben Katalog fuer Bestand und Anfrage", () => {
+  const migration = lies("supabase/migrations/20260910143000_v134_ausruestungskatalog.sql");
+  for (const kategorie of ["spielnotizkarten", "spesenquittungen", "pfeife", "headset", "funkfahnen", "schiedsrichterfahnen", "sporttasche"]) {
+    assert.ok(migration.includes(`'${kategorie}'`));
+  }
+  assert.match(migration, /p_kategorie <> 'trikot'/,
+    "Auch der Server muss Aermellaengen bei Hosen und Equipment ablehnen.");
 });
 
 test("das Kontomenue trennt die vier persoenlichen Bereiche", () => {

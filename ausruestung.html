@@ -18,7 +18,7 @@
   <div id="bestand-inhalt" hidden>
     <div class="bestand-kopf">
       <h1>Mein Ausrüstungsbestand</h1>
-      <p>Dein Kleiderschrank: was du hast, in welcher Größe und in welchem Zustand. Diese Liste sieht nur du.</p>
+      <p>Deine Bekleidung und dein Equipment auf einen Blick. Diese Liste sieht nur du.</p>
     </div>
 
     <div class="bestand-leiste">
@@ -33,32 +33,30 @@
       <h2 id="bestand-formular-titel">Neuer Eintrag</h2>
       <div class="bestand-raster">
         <label class="bestand-feld">Kategorie
-          <select id="bestand-kategorie">
-            <option value="trikot">Trikot</option>
-            <option value="hose">Hose</option>
-            <option value="stutzen">Stutzen</option>
-            <option value="schuhe">Schuhe</option>
-            <option value="sonstiges">Sonstiges</option>
-          </select>
+          <select id="bestand-kategorie"></select>
         </label>
-        <label class="bestand-feld">Bezeichnung
-          <input id="bestand-bezeichnung" placeholder="z. B. Heimtrikot">
+        <label id="bestand-bezeichnung-bereich" class="bestand-feld" hidden>Bezeichnung
+          <input id="bestand-bezeichnung" placeholder="Welches Equipment ist es?">
         </label>
-        <label class="bestand-feld">Farbe
-          <input id="bestand-farbe" placeholder="z. B. Schwarz">
+        <fieldset id="bestand-farbe-bereich" class="bestand-feld bestand-farbblock">
+          <legend>Farbe</legend>
+          <div id="bestand-farbwahl" class="ausruestungs-farbwahl"></div>
+          <input id="bestand-andere-farbe" placeholder="Andere Farbe" hidden>
+          <input id="bestand-farbe" type="hidden">
+        </fieldset>
+        <label id="bestand-groesse-bereich" class="bestand-feld">Größe
+          <input id="bestand-groesse" placeholder="z. B. L oder 42">
         </label>
-        <label class="bestand-feld">Größe
-          <input id="bestand-groesse" placeholder="z. B. L">
-        </label>
-        <label class="bestand-feld">Ärmellänge
+        <label id="bestand-aermel-bereich" class="bestand-feld">Ärmellänge
           <select id="bestand-aermel">
             <option value="">Nicht relevant</option>
             <option value="kurz">Kurzarm</option>
             <option value="lang">Langarm</option>
           </select>
         </label>
-        <label class="bestand-feld">Anzahl
+        <label id="bestand-anzahl-bereich" class="bestand-feld" hidden>Anzahl
           <input id="bestand-anzahl" type="number" min="1" max="20" value="1">
+          <small>Für Verbrauchsmaterial, das du gesammelt erfassen möchtest.</small>
         </label>
         <label class="bestand-feld">Zustand
           <select id="bestand-zustand">
@@ -75,6 +73,7 @@
       <p id="bestand-meldung" class="bestand-meldung" aria-live="polite"></p>
       <div class="bestand-formular-aktionen">
         <button type="submit" class="bestand-knopf-haupt">Speichern</button>
+        <button id="bestand-speichern-weiter" type="submit" class="bestand-knopf" name="weiter" value="ja">Speichern &amp; weiteres hinzufügen</button>
         <button id="bestand-abbrechen" type="button" class="bestand-knopf">Abbrechen</button>
         <button id="bestand-loeschen" type="button" class="bestand-knopf bestand-knopf-gefahr" hidden>Eintrag löschen</button>
       </div>

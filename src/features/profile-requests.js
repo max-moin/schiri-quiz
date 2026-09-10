@@ -1,6 +1,57 @@
 (function stelleProfilAnfragenBereit(global) {
   "use strict";
 
+  // Eine gemeinsame Fachliste fuer Bestand UND Anfrage. Neue Gegenstaende
+  // werden hier einmal beschrieben; beide Oberflaechen leiten daraus ihre
+  // Felder ab. So kann z. B. eine Hose niemals versehentlich nach einer
+  // Aermellaenge fragen.
+  const KATEGORIEN = Object.freeze([
+    { schluessel: "trikot", gruppe: "Bekleidung", wort: "Trikot", mehrzahl: "Trikots", icon: "shirt", farbe: true, groesse: true, aermel: true },
+    { schluessel: "hose", gruppe: "Bekleidung", wort: "Schiedsrichterhose", mehrzahl: "Hosen", icon: "shorts", farbe: true, groesse: true },
+    { schluessel: "stutzen", gruppe: "Bekleidung", wort: "Stutzen", mehrzahl: "Stutzen", icon: "socks", farbe: true, groesse: true },
+    { schluessel: "schuhe", gruppe: "Bekleidung", wort: "Schuhe", mehrzahl: "Schuhe", icon: "shoe", farbe: true, groesse: true },
+    { schluessel: "spielnotizkarten", gruppe: "Equipment", wort: "Spielnotizkarten", mehrzahl: "Spielnotizkarten", icon: "notes", verbrauch: true },
+    { schluessel: "spesenquittungen", gruppe: "Equipment", wort: "Spesenformulare", mehrzahl: "Spesenformulare", icon: "receipt", verbrauch: true },
+    { schluessel: "schiedsrichtermappe", gruppe: "Equipment", wort: "Schiedsrichtermappe", mehrzahl: "Schiedsrichtermappen", icon: "folder", farbe: true },
+    { schluessel: "gelbe_karte", gruppe: "Equipment", wort: "Gelbe Karte", mehrzahl: "Gelbe Karten", icon: "card-yellow" },
+    { schluessel: "rote_karte", gruppe: "Equipment", wort: "Rote Karte", mehrzahl: "Rote Karten", icon: "card-red" },
+    { schluessel: "pfeife", gruppe: "Equipment", wort: "Pfeife", mehrzahl: "Pfeifen", icon: "whistle", farbe: true },
+    { schluessel: "headset", gruppe: "Equipment", wort: "Schiedsrichter-Headset", mehrzahl: "Headsets", icon: "headset", farbe: true },
+    { schluessel: "funkfahnen", gruppe: "Equipment", wort: "Funkfahnen", mehrzahl: "Funkfahnen", icon: "flag" },
+    { schluessel: "schiedsrichterfahnen", gruppe: "Equipment", wort: "Schiedsrichterfahnen", mehrzahl: "Schiedsrichterfahnen", icon: "flag" },
+    { schluessel: "sporttasche", gruppe: "Equipment", wort: "Sporttasche", mehrzahl: "Sporttaschen", icon: "bag", farbe: true },
+    { schluessel: "sonstiges", gruppe: "Equipment", wort: "Sonstiges Equipment", mehrzahl: "Sonstiges Equipment", icon: "equipment", farbe: true, bezeichnung: true },
+  ]);
+
+  const FARBEN = Object.freeze([
+    { wert: "Schwarz", hex: "#171717" }, { wert: "Weiß", hex: "#ffffff" },
+    { wert: "Grau", hex: "#8b9098" }, { wert: "Gelb", hex: "#ffd43b" },
+    { wert: "Orange", hex: "#f28c28" }, { wert: "Rot", hex: "#dc3545" },
+    { wert: "Grün", hex: "#258a4b" }, { wert: "Blau", hex: "#2474d2" },
+    { wert: "Violett", hex: "#7b4cc9" }, { wert: "Pink", hex: "#d94f9d" },
+  ]);
+
+  function findeKategorie(schluessel) {
+    return KATEGORIEN.find((x) => x.schluessel === schluessel) || KATEGORIEN.at(-1);
+  }
+
+  function kategorienOptionen() {
+    return ["Bekleidung", "Equipment"].map((gruppe) => `<optgroup label="${gruppe}">${KATEGORIEN
+      .filter((x) => x.gruppe === gruppe)
+      .map((x) => `<option value="${x.schluessel}">${x.wort}</option>`).join("")}</optgroup>`).join("");
+  }
+
+  function farbwahlHtml(name) {
+    return FARBEN.map((farbe) => `<label class="ausruestungs-farbe" title="${farbe.wert}">
+      <input type="radio" name="${name}" value="${farbe.wert}">
+      <span style="--ausruestungs-farbe:${farbe.hex}" aria-hidden="true"></span><small>${farbe.wert}</small>
+    </label>`).join("") + `<label class="ausruestungs-farbe ausruestungs-farbe-eigen">
+      <input type="radio" name="${name}" value="__andere__"><span aria-hidden="true">+</span><small>Andere</small>
+    </label>`;
+  }
+
+  global.SchiriAusruestung = Object.freeze({ KATEGORIEN, FARBEN, findeKategorie, kategorienOptionen, farbwahlHtml });
+
   // Seit dem 30.08.2026 laeuft dieses Modul in zwei Welten: im Quiz (mit
   // dem Supabase-Client als "sb") und auf den Vereinsseiten (mit dem
   // schlanken fetch-Ersatz aus src/core/rpc.js). Das Markup der Fenster
@@ -26,7 +77,11 @@
     const anfrageFormularErfolgSchliessenButton = document.getElementById("anfrage-formular-erfolg-schliessen-button");
     const anfrageKategorieAuswahl = document.getElementById("anfrage-kategorie-auswahl");
     const anfrageFarbeEingabe = document.getElementById("anfrage-farbe-eingabe");
+    const anfrageFarbeBereich = document.getElementById("anfrage-farbe-bereich");
+    const anfrageFarbwahl = document.getElementById("anfrage-farbwahl");
+    const anfrageAndereFarbe = document.getElementById("anfrage-andere-farbe");
     const anfrageGroesseEingabe = document.getElementById("anfrage-groesse-eingabe");
+    const anfrageGroesseBereich = document.getElementById("anfrage-groesse-bereich");
     const anfrageAermellaengeBereich = document.getElementById("anfrage-aermellaenge-bereich");
     const anfrageAermellaengeAuswahl = document.getElementById("anfrage-aermellaenge-auswahl");
     const anfrageAnmerkungEingabe = document.getElementById("anfrage-anmerkung-eingabe");
@@ -41,6 +96,38 @@
     const rechnungVorschauBild = document.getElementById("rechnung-vorschau-bild");
     const rechnungUploadHinweis = document.getElementById("rechnung-upload-hinweis");
     const rechnungHochladenButton = document.getElementById("rechnung-hochladen-button");
+
+    anfrageKategorieAuswahl.insertAdjacentHTML("beforeend", kategorienOptionen());
+    anfrageFarbwahl.innerHTML = farbwahlHtml("anfrage-farbton");
+
+    function aktualisiereAnfrageFelder() {
+      const kategorie = findeKategorie(anfrageKategorieAuswahl.value);
+      anfrageFarbeBereich.hidden = !anfrageKategorieAuswahl.value || !kategorie.farbe;
+      anfrageGroesseBereich.hidden = !anfrageKategorieAuswahl.value || !kategorie.groesse;
+      anfrageAermellaengeBereich.hidden = !anfrageKategorieAuswahl.value || !kategorie.aermel;
+      if (anfrageFarbeBereich.hidden) anfrageFarbeEingabe.value = "";
+      if (anfrageGroesseBereich.hidden) anfrageGroesseEingabe.value = "";
+      if (anfrageAermellaengeBereich.hidden) anfrageAermellaengeAuswahl.value = "";
+      if (kategorie.schluessel === "sonstiges") {
+        anfrageAnmerkungEingabe.placeholder = "Bitte beschreibe genau, welches Equipment du brauchst.";
+      } else {
+        anfrageAnmerkungEingabe.placeholder = "Sonstiges, was wir wissen sollten …";
+      }
+    }
+
+    anfrageFarbwahl.addEventListener("change", (event) => {
+      const wert = event.target?.value;
+      if (!wert) return;
+      const eigeneFarbe = wert === "__andere__";
+      anfrageAndereFarbe.hidden = !eigeneFarbe;
+      if (eigeneFarbe) {
+        anfrageFarbeEingabe.value = "";
+        anfrageAndereFarbe.focus();
+      } else {
+        anfrageFarbeEingabe.value = wert;
+      }
+    });
+    anfrageAndereFarbe.addEventListener("input", () => { anfrageFarbeEingabe.value = anfrageAndereFarbe.value.trim(); });
 
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape") return;
@@ -84,19 +171,19 @@
     function setzeAnfrageFormularZurueck() {
       anfrageKategorieAuswahl.value = "";
       anfrageFarbeEingabe.value = "";
+      anfrageAndereFarbe.value = "";
+      anfrageAndereFarbe.hidden = true;
+      anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
       anfrageGroesseEingabe.value = "";
       anfrageAermellaengeAuswahl.value = "";
-      anfrageAermellaengeBereich.hidden = true;
+      aktualisiereAnfrageFelder();
       anfrageAnmerkungEingabe.value = "";
       anfrageFormularHinweis.hidden = true;
       anfrageFormularInhalt.hidden = false;
       anfrageFormularErfolg.hidden = true;
     }
 
-    // Ärmellänge ist nur bei Trikots eine sinnvolle Angabe.
-    anfrageKategorieAuswahl.addEventListener("change", () => {
-      anfrageAermellaengeBereich.hidden = anfrageKategorieAuswahl.value !== "trikot";
-    });
+    anfrageKategorieAuswahl.addEventListener("change", aktualisiereAnfrageFelder);
 
     function oeffneAusruestungsAnfrage() {
       schliesseProfilPanel();
@@ -123,6 +210,12 @@
       if (!kategorie) {
         anfrageFormularHinweis.textContent = "Bitte wähle aus, was du brauchst.";
         anfrageFormularHinweis.hidden = false;
+        return;
+      }
+      if (kategorie === "sonstiges" && anfrageAnmerkungEingabe.value.trim().length < 2) {
+        anfrageFormularHinweis.textContent = "Bitte beschreibe kurz, welches Equipment du brauchst.";
+        anfrageFormularHinweis.hidden = false;
+        anfrageAnmerkungEingabe.focus();
         return;
       }
 

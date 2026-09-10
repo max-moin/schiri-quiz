@@ -333,3 +333,16 @@ body { overflow-x: hidden; }
 /* Ausgeblendete, aber im Dokument verbleibende Auflösung. "hidden" hätte
    sie aus dem Barrierefreiheitsbaum genommen - siehe Kommentar im Markup. */
 .probe-aufloesung.leer { display: none; }
+/* Wiederverwendbare Farbauswahl fuer Ausruestungsbestand und -anfrage. */
+.ausruestungs-farbblock { min-width: 0; margin: 0 0 14px; padding: 0; border: 0; }
+.ausruestungs-farbblock legend { margin-bottom: 8px; font-size: .84rem; font-weight: 700; }
+.ausruestungs-farbwahl { display: grid; grid-template-columns: repeat(6, minmax(44px, 1fr)); gap: 7px; }
+.ausruestungs-farbe { position: relative; display: grid; justify-items: center; gap: 3px; min-width: 0; cursor: pointer; }
+.ausruestungs-farbe input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.ausruestungs-farbe span { display: grid; place-items: center; width: 38px; height: 38px; box-sizing: border-box; border: 2px solid var(--border); border-radius: 50%; background: var(--ausruestungs-farbe, var(--marke-lighter)); color: var(--marke); font-size: 1.25rem; font-weight: 800; }
+.ausruestungs-farbe input:checked + span { border-color: var(--marke); box-shadow: 0 0 0 3px color-mix(in srgb, var(--marke) 22%, transparent); }
+.ausruestungs-farbe input:focus-visible + span { outline: 3px solid var(--marke-hell); outline-offset: 2px; }
+.ausruestungs-farbe small { max-width: 100%; overflow: hidden; color: var(--muted); font-size: .64rem; text-overflow: ellipsis; }
+.ausruestungs-farbe-eigen span { background: var(--card); }
+.ausruestungs-farbblock > input:not([type="hidden"]) { margin-top: 10px; }
+@media (max-width: 420px) { .ausruestungs-farbwahl { grid-template-columns: repeat(4, 1fr); } }

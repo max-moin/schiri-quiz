@@ -14,6 +14,7 @@ async function starte() {
   $("meine-inhalt").hidden = !person;
   if (!person) return;
   $("meine-name").textContent = person.name || "Vereinsmitglied";
+  $("meine-initiale").textContent = (person.name || "V").trim().charAt(0).toLocaleUpperCase("de");
   const kennung = anmeldung.leseKennung();
   if (!kennung) {
     $("meine-verein").textContent = "Dein Verein";

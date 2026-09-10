@@ -141,10 +141,14 @@
   font-size: .85rem;
   font-weight: 700;
 }
+.bestand-feld small { color: var(--muted); font-size: .72rem; font-weight: 400; line-height: 1.4; }
+.bestand-farbblock { margin: 0; }
+.bestand-farbblock legend { margin-bottom: 6px; font-size: .85rem; font-weight: 700; }
+.bestand-farbblock > input:not([type="hidden"]) { margin-top: 8px; }
 
 .bestand-feld-breit { margin-top: 12px; }
 
-.bestand-feld input,
+.bestand-feld input:not([type="radio"]):not([type="hidden"]),
 .bestand-feld select,
 .bestand-feld textarea {
   width: 100%;
@@ -192,6 +196,16 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
 }
+.bestand-bereich-titel {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-family: var(--font-text);
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.bestand-fach + .bestand-fach { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
 
 .bestand-gruppe-kopf {
   display: flex;
@@ -203,7 +217,19 @@
   font-weight: 700;
 }
 
-.bestand-gruppe-symbol { font-size: 1.35rem; line-height: 1; }
+.bestand-gruppe-symbol {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+}
+.bestand-gruppe-symbol svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.bestand-karten-symbol { width: 13px; height: 20px; border-radius: 2px; box-shadow: 0 1px 2px rgba(0,0,0,.18); }
+.bestand-karten-symbol.card-yellow { background: var(--karte-gelb); }
+.bestand-karten-symbol.card-red { background: var(--red); }
 
 .bestand-gruppe-zahl {
   margin-left: auto;
@@ -245,6 +271,15 @@
   font-size: .75rem;
   font-weight: 700;
 }
+.bestand-farbplakette { display: inline-flex; align-items: center; gap: 6px; }
+.bestand-farbplakette i {
+  width: 12px;
+  height: 12px;
+  flex: none;
+  border: 1px solid color-mix(in srgb, var(--text) 24%, transparent);
+  border-radius: 50%;
+  background: var(--ausruestungs-farbe, linear-gradient(135deg, var(--red), var(--marke-hell)));
+}
 
 /* Der Zustand ist die einzige Angabe, die man auf einen Blick sehen
    muss - "verschlissen" und "fehlt" sind der Grund, warum man ueberhaupt
@@ -275,7 +310,8 @@
   border-radius: var(--radius);
 }
 
-.bestand-leer-symbol { margin: 0; font-size: 1.9rem; line-height: 1.2; }
+.bestand-leer-symbol { display: flex; justify-content: center; gap: 8px; margin: 0; color: var(--marke); }
+.bestand-leer-symbol svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 
 .bestand-leer h2 {
   margin: 10px 0 6px;

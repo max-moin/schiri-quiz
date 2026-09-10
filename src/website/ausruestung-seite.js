@@ -47,16 +47,11 @@ const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({
 }[c]));
 
 let eintraege = [];
+const AUS = globalThis.SchiriAusruestung;
 
 // Der Schrank: feste Reihenfolge, damit die Seite bei jedem Laden gleich
 // aussieht. Die Schluessel sind die Werte, die die Datenbank erlaubt.
-const SCHRANK = [
-  { schluessel: "trikot", wort: "Trikots", einzeln: "Trikot", symbol: "\u{1F455}" },
-  { schluessel: "hose", wort: "Hosen", einzeln: "Hose", symbol: "\u{1FA73}" },
-  { schluessel: "stutzen", wort: "Stutzen", einzeln: "Stutzen", symbol: "\u{1F9E6}" },
-  { schluessel: "schuhe", wort: "Schuhe", einzeln: "Schuhe", symbol: "\u{1F45F}" },
-  { schluessel: "sonstiges", wort: "Sonstiges", einzeln: "Sonstiges", symbol: "\u{1F392}" },
-];
+const SCHRANK = AUS.KATEGORIEN;
 
 const ZUSTAND_WORT = {
   einsatzbereit: "Einsatzbereit",
@@ -68,7 +63,64 @@ const AERMEL_WORT = { kurz: "Kurzarm", lang: "Langarm" };
 const STATUS_WORT = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
 
 const datum = (iso) => globalThis.SchiriQuizUtils?.formatiereAnfrageDatum?.(iso) || "";
-const fach = (schluessel) => SCHRANK.find((g) => g.schluessel === schluessel);
+const fach = (schluessel) => AUS.findeKategorie(schluessel);
+
+function symbolHtml(icon) {
+  const innen = {
+    shirt: '<path d="M8 6 5 8l2 4 2-1v8h6v-8l2 1 2-4-3-2c-.6 1-1.4 1.5-3 1.5S10.6 7 10 6Z"/>',
+    shorts: '<path d="M7 6h10l1 12-5-2-1 2-1-2-5 2Z"/>',
+    socks: '<path d="M8 5v8l-2 3c-.5 1 0 2 1.5 2H11l2-3V5m2 0v8l-1 2"/>',
+    shoe: '<path d="M5 14c3 0 5-2 6-5 1 3 3 5 7 6v3H6c-2 0-2-4-1-4Z"/>',
+    notes: '<path d="M7 4h10v16H7zM10 8h4m-4 4h4m-4 4h3"/>',
+    receipt: '<path d="M7 4h10v16l-2-1-2 1-2-1-2 1-2-1Zm3 5h4m-4 4h4"/>',
+    folder: '<path d="M4 7h6l2 2h8v10H4Z"/>',
+    whistle: '<circle cx="15" cy="13" r="4"/><path d="M11 13H5l2-5h5m7 3 2-1"/>',
+    headset: '<path d="M5 14v-3a7 7 0 0 1 14 0v3M5 13h3v6H6c-1 0-1-1-1-2Zm14 0h-3v6h2c1 0 1-1 1-2Z"/>',
+    flag: '<path d="M7 21V4m1 1h10l-2 4 2 4H8"/>',
+    bag: '<path d="M5 9h14v11H5Zm4 0V7c0-2 6-2 6 0v2"/>',
+    equipment: '<circle cx="12" cy="12" r="8"/><path d="M12 8v8m-4-4h8"/>',
+  }[icon];
+  if (icon === "card-yellow" || icon === "card-red") {
+    return `<span class="bestand-karten-symbol ${icon}" aria-hidden="true"></span>`;
+  }
+  return `<svg viewBox="0 0 24 24" aria-hidden="true">${innen || innen === "" ? innen : '<circle cx="12" cy="12" r="8"/>'}</svg>`;
+}
+
+function setzeFarbe(wert) {
+  const bekannt = AUS.FARBEN.find((x) => x.wert.toLocaleLowerCase("de") === String(wert || "").toLocaleLowerCase("de"));
+  const radio = document.querySelector(`input[name="bestand-farbton"][value="${bekannt ? bekannt.wert : "__andere__"}"]`);
+  document.querySelectorAll('input[name="bestand-farbton"]').forEach((input) => { input.checked = false; });
+  if (wert && radio) radio.checked = true;
+  $("bestand-andere-farbe").hidden = !wert || !!bekannt;
+  $("bestand-andere-farbe").value = bekannt ? "" : (wert || "");
+  $("bestand-farbe").value = wert || "";
+}
+
+function aktualisiereFormularFelder() {
+  const kategorie = fach($("bestand-kategorie").value);
+  $("bestand-bezeichnung-bereich").hidden = !kategorie.bezeichnung;
+  $("bestand-farbe-bereich").hidden = !kategorie.farbe;
+  $("bestand-groesse-bereich").hidden = !kategorie.groesse;
+  $("bestand-aermel-bereich").hidden = !kategorie.aermel;
+  $("bestand-anzahl-bereich").hidden = !kategorie.verbrauch;
+  if (!kategorie.bezeichnung) $("bestand-bezeichnung").value = "";
+  if (!kategorie.farbe) setzeFarbe("");
+  if (!kategorie.groesse) $("bestand-groesse").value = "";
+  if (!kategorie.aermel) $("bestand-aermel").value = "";
+  if (!kategorie.verbrauch) $("bestand-anzahl").value = "1";
+}
+
+$("bestand-kategorie").innerHTML = AUS.kategorienOptionen();
+$("bestand-farbwahl").innerHTML = AUS.farbwahlHtml("bestand-farbton");
+$("bestand-kategorie").addEventListener("change", aktualisiereFormularFelder);
+$("bestand-farbwahl").addEventListener("change", (event) => {
+  if (!event.target?.value) return;
+  const andere = event.target.value === "__andere__";
+  $("bestand-andere-farbe").hidden = !andere;
+  $("bestand-farbe").value = andere ? "" : event.target.value;
+  if (andere) $("bestand-andere-farbe").focus();
+});
+$("bestand-andere-farbe").addEventListener("input", () => { $("bestand-farbe").value = $("bestand-andere-farbe").value.trim(); });
 
 // ---------- Das Formular ----------
 
@@ -87,6 +139,8 @@ function neu() {
   $("bestand-formular").reset();
   $("bestand-id").value = "";
   $("bestand-anzahl").value = "1";
+  setzeFarbe("");
+  aktualisiereFormularFelder();
   $("bestand-meldung").textContent = "";
   $("bestand-meldung").classList.remove("bestand-fehler");
   loeschStandZuruecksetzen();
@@ -113,6 +167,7 @@ function oeffneNeuenEintrag() {
   zeigeFormular("Neuer Eintrag");
   $("bestand-formular").scrollIntoView({ behavior: "smooth", block: "start" });
   $("bestand-kategorie").focus();
+  $("bestand-speichern-weiter").hidden = false;
 }
 
 function oeffneEintrag(id) {
@@ -121,15 +176,17 @@ function oeffneEintrag(id) {
   $("bestand-id").value = x.id;
   $("bestand-kategorie").value = x.kategorie;
   $("bestand-bezeichnung").value = x.bezeichnung || "";
-  $("bestand-farbe").value = x.farbe || "";
+  setzeFarbe(x.farbe || "");
   $("bestand-groesse").value = x.groesse || "";
   $("bestand-aermel").value = x.aermellaenge || "";
   $("bestand-anzahl").value = x.anzahl || 1;
   $("bestand-zustand").value = x.zustand;
   $("bestand-anmerkung").value = x.anmerkung || "";
+  aktualisiereFormularFelder();
   meldung("", false);
   loeschStandZuruecksetzen();
   zeigeFormular("Eintrag bearbeiten");
+  $("bestand-speichern-weiter").hidden = true;
   $("bestand-formular").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
@@ -139,14 +196,20 @@ function plakette(text, klasse) {
   return `<span class="bestand-plakette${klasse ? " " + esc(klasse) : ""}">${esc(text)}</span>`;
 }
 
+function farbPlakette(farbe) {
+  const eintrag = AUS.FARBEN.find((x) => x.wert.toLocaleLowerCase("de") === String(farbe).toLocaleLowerCase("de"));
+  const stil = eintrag ? ` style="--ausruestungs-farbe:${eintrag.hex}"` : "";
+  return `<span class="bestand-plakette bestand-farbplakette"><i${stil} aria-hidden="true"></i>${esc(farbe)}</span>`;
+}
+
 function eintragHtml(x) {
   const plaketten = [];
   if (x.groesse) plaketten.push(plakette("Größe " + x.groesse));
-  if (x.farbe) plaketten.push(plakette(x.farbe));
+  if (x.farbe) plaketten.push(farbPlakette(x.farbe));
   if (x.aermellaenge) plaketten.push(plakette(AERMEL_WORT[x.aermellaenge] || x.aermellaenge));
   if (Number(x.anzahl) > 1) plaketten.push(plakette(x.anzahl + "×"));
   plaketten.push(plakette(ZUSTAND_WORT[x.zustand] || x.zustand, "zustand-" + x.zustand));
-  const name = x.bezeichnung || fach(x.kategorie)?.einzeln || x.kategorie;
+  const name = x.bezeichnung || fach(x.kategorie)?.wort || x.kategorie;
   return `<button type="button" class="bestand-eintrag" data-id="${esc(x.id)}">`
     + `<span class="bestand-eintrag-name">${esc(name)}</span>`
     + `<span class="bestand-plaketten">${plaketten.join("")}</span>`
@@ -159,19 +222,19 @@ function eintragHtml(x) {
 const BEKANNT = new Set(SCHRANK.map((g) => g.schluessel));
 
 function schrankHtml() {
-  return SCHRANK.map((gruppe) => {
-    const stuecke = eintraege.filter((x) => x.kategorie === gruppe.schluessel
-      || (gruppe.schluessel === "sonstiges" && !BEKANNT.has(x.kategorie)));
-    if (!stuecke.length) return "";
-    const anzahl = stuecke.reduce((summe, x) => summe + (Number(x.anzahl) || 0), 0);
-    return '<section class="bestand-gruppe">'
-      + '<h2 class="bestand-gruppe-kopf">'
-      + `<span class="bestand-gruppe-symbol" aria-hidden="true">${gruppe.symbol}</span>`
-      + `${esc(gruppe.wort)}`
-      + `<span class="bestand-gruppe-zahl">${anzahl} Stück</span>`
-      + "</h2>"
-      + stuecke.map(eintragHtml).join("")
-      + "</section>";
+  return ["Bekleidung", "Equipment"].map((bereich) => {
+    const faecher = SCHRANK.filter((x) => x.gruppe === bereich).map((gruppe) => {
+      const stuecke = eintraege.filter((x) => x.kategorie === gruppe.schluessel
+        || (gruppe.schluessel === "sonstiges" && !BEKANNT.has(x.kategorie)));
+      if (!stuecke.length) return "";
+      const anzahl = stuecke.reduce((summe, x) => summe + (Number(x.anzahl) || 0), 0);
+      return '<div class="bestand-fach"><h3 class="bestand-gruppe-kopf">'
+        + `<span class="bestand-gruppe-symbol">${symbolHtml(gruppe.icon)}</span>${esc(gruppe.mehrzahl)}`
+        + `<span class="bestand-gruppe-zahl">${anzahl}</span></h3>`
+        + stuecke.map(eintragHtml).join("") + "</div>";
+    }).join("");
+    if (!faecher) return "";
+    return `<section class="bestand-gruppe"><h2 class="bestand-bereich-titel">${bereich}</h2>${faecher}</section>`;
   }).join("");
 }
 
@@ -179,10 +242,9 @@ function schrankHtml() {
 // stehen, sondern vor einer Einladung - mit dem Plus gleich daneben.
 function leerHtml() {
   return '<div class="bestand-leer">'
-    + `<p class="bestand-leer-symbol" aria-hidden="true">${SCHRANK[0].symbol} ${SCHRANK[1].symbol} ${SCHRANK[3].symbol}</p>`
+    + `<div class="bestand-leer-symbol" aria-hidden="true">${symbolHtml("shirt")}${symbolHtml("whistle")}${symbolHtml("flag")}</div>`
     + "<h2>Dein Schrank ist noch leer</h2>"
-    + "<p>Trag ein, was du schon hast - Trikots, Hosen, Stutzen, Schuhe. "
-    + "Dann siehst du auf einen Blick, was fehlt oder verschlissen ist.</p>"
+    + "<p>Trag Bekleidung und Equipment ein. Dann siehst du auf einen Blick, was vorhanden, knapp oder verschlissen ist.</p>"
     + '<button id="bestand-leer-hinzufuegen" type="button" class="bestand-knopf-haupt">'
     + '<span class="bestand-plus" aria-hidden="true">+</span> Eintrag hinzufügen</button>'
     + "</div>";
@@ -229,10 +291,10 @@ async function ladeAnfragen() {
     return;
   }
   $("bestand-anfragen").innerHTML = anfragen.map((a) => {
-    const name = fach(a.kategorie)?.einzeln || a.kategorie || "Ausrüstung";
+    const name = fach(a.kategorie)?.wort || a.kategorie || "Ausrüstung";
     const merkmale = [];
     if (a.groesse) merkmale.push(plakette("Größe " + a.groesse));
-    if (a.farbe) merkmale.push(plakette(a.farbe));
+    if (a.farbe) merkmale.push(farbPlakette(a.farbe));
     if (a.aermellaenge) merkmale.push(plakette(AERMEL_WORT[a.aermellaenge] || a.aermellaenge));
     const rechnungMoeglich = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt" && !a.rechnung_hochgeladen_am;
     return '<article class="bestand-anfrage">'
@@ -280,6 +342,14 @@ function richteAnfrageKnopfEin() {
 
 $("bestand-formular").onsubmit = async (e) => {
   e.preventDefault();
+  const weiterenAnlegen = e.submitter?.id === "bestand-speichern-weiter";
+  const ausgewaehlteKategorie = $("bestand-kategorie").value;
+  const kategorie = fach(ausgewaehlteKategorie);
+  if (kategorie.bezeichnung && $("bestand-bezeichnung").value.trim().length < 2) {
+    meldung("Bitte beschreibe, welches Equipment du eintragen möchtest.", true);
+    $("bestand-bezeichnung").focus();
+    return;
+  }
   const p = ich();
   meldung("Wird gespeichert …", false);
   const { error } = await rpc.rpc("schiri_ausruestungsbestand_speichern", {
@@ -289,8 +359,8 @@ $("bestand-formular").onsubmit = async (e) => {
     p_bezeichnung: $("bestand-bezeichnung").value.trim() || null,
     p_farbe: $("bestand-farbe").value.trim() || null,
     p_groesse: $("bestand-groesse").value.trim() || null,
-    p_aermellaenge: $("bestand-aermel").value || null,
-    p_anzahl: Number($("bestand-anzahl").value),
+    p_aermellaenge: kategorie.aermel ? ($("bestand-aermel").value || null) : null,
+    p_anzahl: kategorie.verbrauch ? Number($("bestand-anzahl").value) : 1,
     p_zustand: $("bestand-zustand").value,
     p_anmerkung: $("bestand-anmerkung").value.trim() || null,
     p_id: $("bestand-id").value || null,
@@ -300,8 +370,16 @@ $("bestand-formular").onsubmit = async (e) => {
     return;
   }
   neu();
-  verbergeFormular();
   await ladeBestand();
+  if (weiterenAnlegen) {
+    $("bestand-kategorie").value = ausgewaehlteKategorie;
+    aktualisiereFormularFelder();
+    zeigeFormular("Weiteren Eintrag hinzufügen");
+    const erstesFeld = kategorie.bezeichnung ? $("bestand-bezeichnung") : (kategorie.farbe ? $("bestand-farbwahl") : $("bestand-zustand"));
+    erstesFeld.focus();
+  } else {
+    verbergeFormular();
+  }
 };
 
 $("bestand-hinzufuegen").onclick = oeffneNeuenEintrag;
