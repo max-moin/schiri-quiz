@@ -59,3 +59,22 @@
 /* Verweise innerhalb des Hinweisbalkens: gleiche Farbfamilie, damit der
    Balken nicht durch ein blaues Link-Blau auseinanderfällt. */
 .hinweisbalken a { color: #713f12; font-weight: 700; }
+
+/* Der Ablauf ist die Hauptinformation, die Vorlage erst das Werkzeug dazu.
+   Die senkrechte Linie bleibt auch auf dem Handy leicht zu verfolgen. */
+.absage-weg {
+  max-width: 760px;
+  margin: 6px 0 24px;
+}
+
+.absage-sprung {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  margin-top: 8px;
+  color: var(--marke);
+  font-weight: 700;
+  text-underline-offset: 3px;
+}
+
+#email-spiel { scroll-margin-top: 110px; }

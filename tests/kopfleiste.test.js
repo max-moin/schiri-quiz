@@ -55,8 +55,10 @@ const SEITEN_MIT_LEISTE = [
   "schiri-werden.html", "melden.html",
 ];
 
-// Die verbindliche Reihenfolge, in Max' Worten: Termine, Spesen, Regeln,
-// Unterlagen, und ganz hinten der Aufruf zum Quiz.
+// Die verbindliche Reihenfolge folgt dem typischen Spielauftrag: Termin
+// ansehen, bei Bedarf dringend absagen, Regeln vorbereiten, danach Spesen.
+// Unterlagen und Beteiligung sind nachgelagerte Wege; der Quizaufruf bleibt
+// als eigener letzter Knopf stehen.
 // 08.09.2026: Spesen und Regeln stehen weiter an ihrer Stelle in der Leiste,
 // sind aber bis zur fachlichen Pruefung nicht anklickbar (Max' Entscheidung
 // vor dem Start am 14.09.). Sie haben deshalb kein Ziel, sondern die
@@ -64,9 +66,11 @@ const SEITEN_MIT_LEISTE = [
 // selbst dann nicht erreichbar sind, wenn das Skript nicht laedt.
 const REITER = [
   { ziel: "termine.html", text: "Termine" },
-  { ziel: null, text: "Spesen" },
+  { ziel: "vorlagen.html", text: "Absagen" },
   { ziel: null, text: "Regeln" },
+  { ziel: null, text: "Spesen" },
   { ziel: "informationen.html", text: "Unterlagen" },
+  { ziel: "melden.html", text: "Ideen &amp; Feedback" },
   { ziel: "modus.html", text: "Zum Quiz" },
 ];
 
@@ -123,17 +127,17 @@ test("alle neun Seiten tragen dieselbe Reiterleiste in derselben Reihenfolge", (
   }
 });
 
-test("die Leiste ist kuerzer geworden: kein Start, keine Vorlagen", () => {
+test("die Leiste benennt Aufgaben statt Sammelbegriffe", () => {
   // "Start" faellt weg, weil das Wappen daneben schon zur Startseite fuehrt -
   // zwei Wege zum selben Ziel nebeneinander sind einer zu viel.
-  // "Vorlagen" faellt weg, weil die Seite jetzt unter Unterlagen steht.
+  // "Vorlagen" bleibt als technischer Dateiname bestehen, heißt fuer Nutzer
+  // aber aufgabenbezogen "Absagen".
   for (const seite of SEITEN_MIT_LEISTE) {
     const zeilen = leiste(seite);
     for (const zeile of zeilen) {
       const ist = reiterAus(zeile);
       assert.notEqual(ist.text, "Start", seite + ' hat wieder einen Reiter "Start"');
       assert.notEqual(ist.text, "Vorlagen", seite + ' hat wieder einen Reiter "Vorlagen"');
-      assert.notEqual(ist.ziel, "vorlagen.html", seite + " verlinkt vorlagen.html wieder in der Leiste");
       assert.notEqual(ist.ziel, "index.html", seite + " verlinkt index.html wieder in der Leiste");
     }
   }
@@ -207,14 +211,9 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
     // "page" - eine Behauptung, die Vorleseprogramme als "aktuelle Seite"
     // vorlesen. Wo man ist, sagt dort jetzt das data-seitenname.
     "entscheiden.html": ["modus.html", "true"],
-    // Die Vorlagen haben keinen eigenen Reiter mehr. "true" statt "page"
-    // sagt: du bist in diesem Bereich, aber nicht auf dieser Seite. Ein
-    // "page" waere hier schlicht gelogen.
-    "vorlagen.html": ["informationen.html", "true"],
+    "vorlagen.html": ["vorlagen.html", "page"],
     "schiri-werden.html": null,
-    // melden.html haengt an keinem Reiter: Der Meldebogen ist weder Quiz
-    // noch Unterlage. Wo man ist, sagt dort das data-seitenname.
-    "melden.html": null,
+    "melden.html": ["melden.html", "page"],
   };
 
   for (const seite of SEITEN_MIT_LEISTE) {
@@ -348,14 +347,13 @@ test("es gibt keinen Zurueck-Knopf mehr", () => {
    5. Unterlagen: eigene Sachen zuerst und als eigene erkennbar
    ============================================================ */
 
-test("die Unterlagen trennen eigene Sachen von fremden", () => {
-  // Max: "Bei Unterlagen wuerde ich das irgendwie als Erstes so verlinken,
-  // dass das auch von uns ist bzw. von mir als Vorlage."
+test("die Unterlagen trennen eigene Sachen von fremden, ohne Absagen zu doppeln", () => {
   //
   // Stehen eigene Vorlagen und fremde Weiterleitungen ununterschieden
   // untereinander, weiss niemand mehr, wer fuer welchen Inhalt
   // geradesteht - und das macht beide Sorten weniger vertrauenswuerdig.
   const html = lies("informationen.html");
+  const inhalt = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
   const eigen = html.indexOf('class="eigene-sachen"');
   const fremd = html.indexOf("Von den Verbänden");
   assert.ok(eigen > -1, "die eigene Gruppe fehlt auf informationen.html");
@@ -366,11 +364,13 @@ test("die Unterlagen trennen eigene Sachen von fremden", () => {
   assert.match(html, /class="wappen eigen-wappen"/, "der eigenen Gruppe fehlt das Wappen");
   assert.match(html, /Von uns – <span data-verein="name">/, "der eigenen Gruppe fehlt die Wortmarke");
 
-  // Die Vorlagen haben ihren Reiter verloren und muessen hier stehen.
-  assert.ok(html.indexOf('class="lz" href="vorlagen.html"') > -1,
-    "vorlagen.html ist von den Unterlagen aus nicht verlinkt");
-  assert.ok(html.indexOf('class="lz" href="vorlagen.html"') < fremd,
-    "die Vorlagen stehen unter den Verbandsdokumenten statt darueber");
+  // Absagen besitzen inzwischen einen eigenen, aufgabenbezogenen Reiter.
+  // Ein zweiter Weg unter "Unterlagen" war im Elterntest missverständlich.
+  assert.doesNotMatch(inhalt, /href="vorlagen\.html"/,
+    "die Absageseite wird unter Unterlagen erneut angeboten");
+  const navigation = lies("src/ui/kopf-navigation.js");
+  assert.match(navigation, /href: "vorlagen\.html", text: "Absagen"/,
+    "die entfernte Unterlagen-Dublette fehlt nun auch in der Hauptnavigation");
 });
 
 /* ============================================================
@@ -625,9 +625,6 @@ test("die Seiten hinter der Leiste tragen ihren Namen am body", () => {
     "entscheiden.html": "Entscheiden",
     // Hinter der Fusszeile. <title> und <h1> heissen beide so.
     "obmann.html": "Obmann-Zugang",
-    // Erreichbar von der Startseite und aus der Modus-Auswahl, aber ohne
-    // eigenen Reiter - genau der Fall, fuer den data-seitenname da ist.
-    "melden.html": "Ideen &amp; Feedback",
   };
   for (const [seite, name] of Object.entries(ERWARTET)) {
     assert.match(lies(seite), new RegExp(`<body[^>]*data-seitenname="${name}"`),
@@ -639,7 +636,7 @@ test("die Seiten mit eigenem Reiter tragen KEIN data-seitenname", () => {
   // Sonst gaebe es zwei Namen fuer dieselbe Seite, und der zweite faellt
   // beim Umbenennen des Reiters hinten runter.
   for (const seite of SEITEN_MIT_LEISTE) {
-    if (seite === "modus.html" || seite === "entscheiden.html" || seite === "melden.html") continue;
+    if (seite === "modus.html" || seite === "entscheiden.html") continue;
     assert.doesNotMatch(lies(seite), /data-seitenname/,
       seite + " hat einen zweiten Namen am body, obwohl es einen Reiter gibt");
   }

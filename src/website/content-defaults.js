@@ -38,18 +38,6 @@ export const REGELN_STANDARD = {
       "t": "< −9 °C"
     },
     {
-      "a": "Herren",
-      "k": "Freizeitliga/-klassen SVFD",
-      "zeit": "2×45 min",
-      "feld": "Großfeld",
-      "max": 11,
-      "min": 7,
-      "w": 5,
-      "wieder": "möglich",
-      "gr": "ja",
-      "t": "< −9 °C"
-    },
-    {
       "a": "Frauen",
       "k": "Landesliga",
       "zeit": "2×45 min",
@@ -953,4 +941,3 @@ export const UNTERLAGEN_STANDARD = {
     }
   ]
 };
-

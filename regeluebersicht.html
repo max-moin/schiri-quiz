@@ -47,19 +47,21 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="termine.html">Termine</a>
-        <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
+        <a href="vorlagen.html">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft" aria-current="page">Regeln<small>In Prüfung</small></span>
+        <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
         <a href="informationen.html">Unterlagen</a>
+        <a href="melden.html">Ideen &amp; Feedback</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
   </header>
 
   <main class="inhalt" id="inhalt" tabindex="-1" data-funktionsinhalt="regeln" hidden>
-    <h1 class="seiten-titel">Regeln auf einen Blick</h1>
+    <h1 class="seiten-titel">Regeln für mein Spiel</h1>
     <p class="seiten-unter">
-      Das Wichtigste zuerst: Spielzeit, Feldtyp, Spieler und Wechsel. Weitere
-      Sonderregeln stehen platzsparend direkt an der jeweiligen Spielklasse.
+      Wähle die Angaben aus deiner Ansetzung. Danach siehst du nur die Regeln,
+      die du für dieses Spiel brauchst.
     </p>
 
     <!-- ============================================================
@@ -80,25 +82,57 @@
          entscheidet allein die Ebene des Spiels.
          ============================================================ -->
 
-    <div class="segment" id="ebeneFilter" role="group" aria-label="Ebene wählen">
-      <button type="button" data-ebene="svfd" aria-pressed="true">Stadtverband Dresden</button>
-      <button type="button" data-ebene="sfv" aria-pressed="false">Landesebene Sachsen</button>
-    </div>
+    <section class="regel-finder" aria-label="Passende Spielregeln auswählen">
+      <div class="regel-finder-schritt">
+        <span class="regel-finder-nr" aria-hidden="true">1</span>
+        <div>
+          <h2>Auf welcher Ebene findet das Spiel statt?</h2>
+          <div class="segment" id="ebeneFilter" role="group" aria-label="Ebene wählen">
+            <button type="button" data-ebene="svfd" aria-pressed="true">Stadtverband Dresden</button>
+            <button type="button" data-ebene="sfv" aria-pressed="false">Landesebene Sachsen</button>
+          </div>
+        </div>
+      </div>
+      <div class="regel-finder-schritt">
+        <span class="regel-finder-nr" aria-hidden="true">2</span>
+        <div>
+          <h2>Was für ein Spiel ist es?</h2>
+          <div class="segment" id="artFilter" role="group" aria-label="Spielart wählen">
+            <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
+            <button type="button" data-art="pokal" aria-pressed="false">Pokal</button>
+            <button type="button" data-art="freundschaft" aria-pressed="false">Freundschaftsspiel</button>
+          </div>
+        </div>
+      </div>
+      <div class="regel-finder-schritt">
+        <span class="regel-finder-nr" aria-hidden="true">3</span>
+        <div>
+          <h2>Welche Mannschaft oder Spielklasse?</h2>
+          <label class="nur-vorlesen" for="spielklasseFilter">Mannschaft oder Spielklasse wählen</label>
+          <select id="spielklasseFilter" class="regel-auswahl">
+            <option value="">Bitte auswählen</option>
+          </select>
+        </div>
+      </div>
+    </section>
 
     <div id="standHinweis" aria-live="polite"></div>
-
-    <div class="segment" id="artFilter" role="group" aria-label="Wettbewerb wählen">
-      <button type="button" data-art="meister" aria-pressed="true">Meisterschaft</button>
-      <button type="button" data-art="pokal" aria-pressed="false">Pokal</button>
+    <div class="hinweisbalken ruhig freundschaft-hinweis" id="freundschaftHinweis" hidden>
+      <span class="sym-wort">Vor dem Spiel</span>
+      <span>
+        Die angezeigte Spielklasse ist deine Orientierung. Prüfe Einladung und
+        Absprachen und kläre vor dem Anstoß insbesondere mögliche Abweichungen bei
+        Spielzeit, Feld und Spielerzahl sowie die Höchstzahl der Auswechslungen.
+        Rückwechsel sind nur zulässig, wenn der zuständige Verband sie für diese
+        Spielart erlaubt. Bei sonstigen Spielen dürfen die Teams mehr als sechs
+        Auswechslungen nur vereinbaren, wenn der Schiedsrichter vorher informiert wird.
+        <a href="https://www.theifab.com/de/laws/latest/the-players/#number-of-substitutions"
+           target="_blank" rel="noopener noreferrer">IFAB-Regel 3 ↗</a>
+      </span>
     </div>
-
-    <div class="werkzeugleiste" style="margin-top:14px">
-      <div class="filterleiste" id="gruppeFilter" role="group" aria-label="Altersbereich filtern"></div>
-      <div class="suchzeile">
-        <label class="nur-vorlesen" for="regelSuche">Regeln durchsuchen</label>
-        <input id="regelSuche" type="search" placeholder="Suchen, z. B. „Kleinfeld&quot; oder „4×20&quot; …" />
-      </div>
-    </div>
+    <p class="regel-grenze">Die Übersicht hilft bei der Spieldurchführung. Ob ein
+      Spieler spielberechtigt ist, prüfst du weiterhin anhand des Spielberichts und
+      der für den Wettbewerb geltenden Bestimmungen.</p>
 
     <p class="trefferzahl" id="trefferzahl" aria-live="polite"></p>
 
@@ -202,7 +236,6 @@
     const SFV_POKAL = REGELN.sfvPokal;
     const SFV_WECHSELSPIELER = REGELN.sfvWechselspieler;
     const SFV_RUECKWECHSEL = REGELN.sfvRueckwechsel;
-    const BEREICHE = REGELN.bereiche;
 
     const IKONEN = Object.freeze({
       zeit: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/></svg>',
@@ -210,14 +243,20 @@
       spieler: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3"/><path d="M6.5 19c.5-4 2.3-6 5.5-6s5 2 5.5 6"/></svg>',
       wechsel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v13m0 0-3-3m3 3 3-3M17 20V7m0 0-3 3m3-3 3 3"/></svg>',
     });
-    let ebene = "svfd", art = "meister", bereich = "alle";
+    let ebene = "svfd", art = "meister", spielklasse = "";
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
     function daten() {
-      if (ebene === "svfd") return art === "meister" ? SVFD_MEISTER : SVFD_POKAL;
-      return art === "meister" ? SFV_MEISTER : SFV_POKAL;
+      const pokal = art === "pokal";
+      const quelle = ebene === "svfd"
+        ? (pokal ? SVFD_POKAL : SVFD_MEISTER)
+        : (pokal ? SFV_POKAL : SFV_MEISTER);
+      /* Die Freizeitliga wird im Stadtverband nicht mehr angeboten. Alte,
+         bereits veröffentlichte Redaktionsdaten dürfen sie deshalb nicht
+         wieder in die Auswahl zurückbringen. */
+      return quelle.filter((r) => !/freizeitliga/i.test(String(r.k || "")));
     }
 
     /* Jede Zeile bringt ihre eigene Werteliste mit - siehe Kommentar oben. */
@@ -240,7 +279,7 @@
         ];
         return liste.filter(Boolean);
       }
-      if (art === "meister") {
+      if (art !== "pokal") {
         return [
           ["Spielzeit", r.zeit],
           ["Spielfeld", r.feld],
@@ -332,40 +371,36 @@
       return werteFuer(r).filter(([label]) => !kernLabels.has(label));
     }
 
-    function baueBereichFilter() {
-      const leiste = $("gruppeFilter");
-      leiste.innerHTML = "";
-      const vorhanden = new Set(daten().map((r) => r.a));
-      const auswahl = [
-        { id: "alle", titel: "Alle" },
-        /* Ein Bereich taucht nur auf, wenn im aktuellen Datensatz etwas
-           darin steht - auf Landesebene gibt es z.B. gar keine
-           Juniorinnen-Zeilen. Leere Filter, die auf "keine Treffer"
-           führen, sind schlimmer als gar keine. */
-        ...BEREICHE.filter((b) => b.klassen.some((k) => vorhanden.has(k))),
-      ];
-      if (!auswahl.some((b) => b.id === bereich)) bereich = "alle";
-
-      auswahl.forEach((b) => {
-        const knopf = document.createElement("button");
-        knopf.type = "button";
-        knopf.textContent = b.titel;
-        knopf.dataset.bereich = b.id;
-        /* Nur markieren, nicht neu bauen: ein neu erzeugter Knopf nimmt den
-           Fokus mit ins Nichts - man landet nach jedem Klick per Tastatur
-           wieder ganz oben. Gefunden im Review am 18.08.2026. */
-        knopf.addEventListener("click", () => { bereich = b.id; markiereBereich(); zeichne(); });
-        leiste.appendChild(knopf);
-      });
-      markiereBereich();
+    function kategorieFuer(alter) {
+      const text = String(alter || "");
+      if (/juniorinnen/i.test(text)) return "Juniorinnen";
+      if (/junioren/i.test(text)) return "Junioren";
+      if (/frauen/i.test(text)) return "Frauen";
+      if (/senior|alte herren/i.test(text)) return "Senioren";
+      if (/herren/i.test(text)) return "Herren";
+      return "Weitere";
     }
 
-    function markiereBereich() {
-      $("gruppeFilter").querySelectorAll("button").forEach((b) => {
-        const an = b.dataset.bereich === bereich;
-        b.setAttribute("aria-pressed", String(an));
-        b.classList.toggle("an", an);
+    function baueSpielklassenAuswahl() {
+      const auswahl = $("spielklasseFilter");
+      auswahl.replaceChildren(new Option("Bitte auswählen", ""));
+      const gruppen = new Map();
+      daten().forEach((r, index) => {
+        const kategorie = kategorieFuer(r.a);
+        if (!gruppen.has(kategorie)) gruppen.set(kategorie, []);
+        gruppen.get(kategorie).push({ r, index });
       });
+      for (const [kategorie, eintraege] of gruppen) {
+        const gruppe = document.createElement("optgroup");
+        gruppe.label = kategorie;
+        eintraege.forEach(({ r, index }) => {
+          gruppe.appendChild(new Option(`${r.a} · ${r.k}`, String(index)));
+        });
+        auswahl.appendChild(gruppe);
+      }
+      auswahl.appendChild(new Option("Alle Spielklassen dieser Auswahl anzeigen", "alle"));
+      spielklasse = "";
+      auswahl.value = "";
     }
 
     function zeichneStand() {
@@ -381,26 +416,16 @@
     }
 
     function zeichne() {
-      const suche = $("regelSuche").value.trim().toLowerCase();
-      const gewaehlt = BEREICHE.find((b) => b.id === bereich);
       const alle = daten();
+      const index = Number(spielklasse);
+      const treffer = spielklasse === "alle"
+        ? alle
+        : (spielklasse !== "" && Number.isInteger(index) && alle[index] ? [alle[index]] : []);
 
-      const treffer = alle.filter((r) => {
-        if (gewaehlt && !gewaehlt.klassen.includes(r.a)) return false;
-        if (!suche) return true;
-        /* Auch das durchsuchen, was erst beim Zeichnen entsteht. Sonst
-           findet "Rückwechsel" nichts, obwohl das Wort auf jeder Karte der
-           Landesebene steht - es kommt aus werteFuer(), nicht aus der
-           Datenzeile. Gefunden im Review am 21.08.2026. */
-        const text = (Object.values(r).join(" ") + " " +
-                      werteFuer(r).map(([l, w]) => l + " " + w).join(" ")).toLowerCase();
-        return text.includes(suche);
-      });
-
-      $("keineTreffer").hidden = treffer.length > 0;
-      $("trefferzahl").textContent = treffer.length === alle.length
-        ? `${alle.length} Spielklassen`
-        : `${treffer.length} von ${alle.length} Spielklassen`;
+      $("keineTreffer").hidden = true;
+      $("trefferzahl").textContent = spielklasse === ""
+        ? "Wähle noch deine Mannschaft oder Spielklasse."
+        : (spielklasse === "alle" ? `${alle.length} Spielklassen` : "Deine Angaben für dieses Spiel");
 
       /* Nach Altersklasse gruppiert ausgeben. Ohne Gruppierung müsste man
          die Kopfzeile jeder einzelnen Karte lesen, um sich zurechtzufinden. */
@@ -456,23 +481,23 @@
 
     segmentBinden("ebeneFilter", "ebene", (wert) => {
       ebene = wert;
-      /* Suchbegriff zurücksetzen. Sonst steht nach dem Umschalten
-         "0 von 8 Spielklassen" da und der Grund - das noch gefüllte
-         Suchfeld - liegt weiter oben außerhalb des Blicks. */
-      $("regelSuche").value = "";
       zeichneStand();
-      baueBereichFilter();
+      baueSpielklassenAuswahl();
       zeichne();
     });
     segmentBinden("artFilter", "art", (wert) => {
       art = wert;
-      baueBereichFilter();
+      $("freundschaftHinweis").hidden = art !== "freundschaft";
+      baueSpielklassenAuswahl();
       zeichne();
     });
 
-    $("regelSuche").addEventListener("input", zeichne);
+    $("spielklasseFilter").addEventListener("change", (event) => {
+      spielklasse = event.currentTarget.value;
+      zeichne();
+    });
     zeichneStand();
-    baueBereichFilter();
+    baueSpielklassenAuswahl();
     zeichne();
   </script>
 </body>

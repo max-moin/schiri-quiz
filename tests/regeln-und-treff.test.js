@@ -40,6 +40,34 @@ test("Wiedereinwechslung wird nur als gruener Haken oder rotes X dargestellt", (
   assert.match(regelCss, /\.rk-ja-nein\.nein\s*\{[^}]*#b91c1c/s);
 });
 
+test("Regelfinder fuehrt mit drei Entscheidungen zu genau einem Spiel", () => {
+  assert.match(regeln, /Auf welcher Ebene findet das Spiel statt\?/);
+  assert.match(regeln, /Was für ein Spiel ist es\?/);
+  assert.match(regeln, /Welche Mannschaft oder Spielklasse\?/);
+  assert.match(regeln, /id="spielklasseFilter"/);
+  assert.match(regeln, /spielklasse !== ""[\s\S]*\[alle\[index\]\]/);
+  assert.doesNotMatch(regeln, /id="gruppeFilter"/);
+  assert.doesNotMatch(regeln, /id="regelSuche"/);
+});
+
+test("Freundschaftsspiele werden eingeordnet und Freizeitliga bleibt entfernt", () => {
+  assert.match(regeln, /data-art="freundschaft"/);
+  assert.match(regeln, /IFAB-Regel 3/);
+  assert.match(regeln, /\/freizeitliga\/i/);
+  assert.doesNotMatch(lies("src/website/content-defaults.js"), /Freizeitliga\/\-klassen SVFD/);
+});
+
+test("Absagen erklaert erst den Ablauf und bietet danach die Vorlage", () => {
+  const absagen = lies("vorlagen.html");
+  const ablauf = absagen.indexOf('class="weg absage-weg"');
+  const vorlage = absagen.indexOf('id="email-spiel"');
+  assert.ok(ablauf > -1 && vorlage > ablauf);
+  for (const text of ["Spieldaten bereithalten", "Absage per E-Mail senden",
+    "Absetzung kontrollieren", "Nach 24 Stunden anrufen"]) {
+    assert.match(absagen, new RegExp(text));
+  }
+});
+
 test("Treff-Idee und ausfuehrlicher Fragenvorschlag liegen in einem gemeinsamen Bereich", () => {
   assert.match(melden, /Treff mitgestalten/);
   assert.match(melden, /gruppe === gruppe/);

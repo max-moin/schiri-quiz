@@ -9,8 +9,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="default" />
   <meta name="apple-mobile-web-app-title" content="Kickers SR" />
-  <title>Vorlagen – Schiedsrichter FV Löbtauer Kickers</title>
-  <meta name="description" content="Fertige E-Mail-Vorlagen für die Spielabsage und die Absage des Regellehrabends." />
+  <title>Absagen – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Schritt für Schritt ein angesetztes Spiel absagen und die passende E-Mail-Vorlage verwenden." />
   <link rel="icon" href="bilder/logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,19 +44,21 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
         <a href="termine.html">Termine</a>
-        <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
+        <a href="vorlagen.html" aria-current="page">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
-        <a href="informationen.html" aria-current="true">Unterlagen</a>
+        <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
+        <a href="informationen.html">Unterlagen</a>
+        <a href="melden.html">Ideen &amp; Feedback</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
   </header>
 
   <main class="inhalt" id="inhalt" tabindex="-1">
-    <h1 class="seiten-titel">Vorlagen</h1>
+    <h1 class="seiten-titel">Absagen</h1>
     <p class="seiten-unter">
-      Die beiden E-Mails, die tatsächlich regelmäßig anfallen. Kopieren, eckige
-      Klammern ausfüllen, abschicken.
+      So sagst du ein angesetztes Spiel richtig ab. Die Vorlage hilft beim Schreiben –
+      erledigt ist die Absage erst, wenn du im DFBnet wirklich abgesetzt wurdest.
     </p>
 
     <!-- ============================================================
@@ -71,7 +73,31 @@
          Ergänzung SRO §8 Punkt 7.
          ============================================================ -->
     <section id="spiel" class="abschnitt">
-      <div class="abschnitt-kopf"><h2>Spielabsage</h2></div>
+      <div class="abschnitt-kopf"><h2>Ein angesetztes Spiel absagen</h2></div>
+
+      <ol class="weg absage-weg" aria-label="Ablauf einer Spielabsage">
+        <li class="weg-schritt" data-nr="1">
+          <h3>Spieldaten bereithalten</h3>
+          <p>Öffne die Ansetzung im DFBnet. Du brauchst Begegnung, Spielkennung,
+             Datum, Uhrzeit, Wettbewerb, Liga und deine Funktion.</p>
+        </li>
+        <li class="weg-schritt" data-nr="2">
+          <h3>Absage per E-Mail senden</h3>
+          <p>Schreibe den konkreten Grund dazu und sende die E-Mail an das
+             Ansetzer-Team – den Obmann beziehungsweise die Vereinsadresse immer in Kopie.</p>
+          <a class="absage-sprung" href="#email-spiel">Zur E-Mail-Vorlage</a>
+        </li>
+        <li class="weg-schritt" data-nr="3">
+          <h3>Absetzung kontrollieren</h3>
+          <p>Prüfe anschließend im DFBnet, ob du tatsächlich vom Spiel abgesetzt wurdest.
+             Nur das Absenden der E-Mail beendet deine Zuständigkeit nicht.</p>
+        </li>
+        <li class="weg-schritt" data-nr="4">
+          <h3>Nach 24 Stunden anrufen</h3>
+          <p>Stehst du nach 24 Stunden noch in der Ansetzung, hake telefonisch beim
+             Ansetzer nach. Bis zur tatsächlichen Absetzung bleibst du zuständig.</p>
+        </li>
+      </ol>
 
       <div class="hinweisbalken" id="hinweis-spiel">
         <span class="sym-wort">Achtung</span>
@@ -83,9 +109,9 @@
         </span>
       </div>
 
-      <div class="vorlage">
+      <div class="vorlage" id="email-spiel">
         <div class="vorlage-kopf">
-          <span class="vorlage-titel" id="titel-spiel">E-Mail an den Ansetzer</span>
+          <span class="vorlage-titel" id="titel-spiel">E-Mail-Vorlage für die Spielabsage</span>
           <button class="kopieren" type="button" data-ziel="text-spiel">Text kopieren</button>
         </div>
         <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
