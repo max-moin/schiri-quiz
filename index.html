@@ -24,6 +24,7 @@
   <link rel="stylesheet" href="stil/kopf-fuss.css" />
   <link rel="stylesheet" href="stil/startseite.css" />
   <link rel="stylesheet" href="stil/termine.css" />
+  <link rel="stylesheet" href="stil/aktuelles.css" />
   <link rel="stylesheet" href="stil/regeln.css" />
   <link rel="stylesheet" href="stil/bausteine.css" />
   <link rel="stylesheet" href="stil/hinweise.css" />
@@ -104,6 +105,15 @@
         </div>
       </div>
     </section>
+
+    <!-- ---------- "Das steht an" ----------
+         Das wechselnde Band. Es zeigt AUSSCHLIESSLICH Termine, die
+         wirklich anstehen - keine Dauerwerbung als Fuellmaterial.
+         Steht nichts an, bleibt der Abschnitt ausgeblendet; das ist
+         keine Luecke, sondern die Aussage. Aufgebaut von
+         src/website/aktuelles.js. -->
+    <section class="abschnitt aktuelles" id="aktuelles" hidden
+             aria-label="Das steht an"></section>
 
     <!-- Drei eindeutige Wege. Quiz bleibt als hervorgehobener Knopf im
          Seitenkopf und wird hier nicht ein zweites Mal angeboten. -->
@@ -192,6 +202,7 @@
   <script src="src/ui/profil-fenster.js"></script>
   <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
+  <script type="module" src="src/website/startseite-aktuelles.js"></script>
 
   <script type="module">
     /* ============================================================
@@ -209,7 +220,8 @@
        bleibt ausgeblendet. Die Startseite darf nicht davon abhängen,
        dass ein fremder Dienst antwortet.
        ============================================================ */
-    import { VEREIN, DATENBANK } from "./verein.config.js";
+    import { VEREIN } from "./verein.config.js";
+    import { holeOeffentlicheTermine } from "./src/website/oeffentliche-termine.js";
 
     const MONATE = ["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"];
 
@@ -224,21 +236,11 @@
          unbehandelten Fehler geworfen, entgegen der Zusage im
          Kopfkommentar. Gefunden im Review am 22.08.2026. */
       try {
-        const antwort = await fetch(
-          `${DATENBANK.adresse}/rest/v1/rpc/oeffentliche_termine`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              apikey: DATENBANK.oeffentlicherSchluessel,
-              Authorization: `Bearer ${DATENBANK.oeffentlicherSchluessel}`,
-            },
-            body: JSON.stringify({ p_seitenschluessel: VEREIN.seitenschluessel }),
-          }
-        );
-        if (!antwort.ok) return;
-
-        const termine = await antwort.json();
+        /* Seit dem 12.09.2026 holt src/website/oeffentliche-termine.js
+           die Liste EINMAL fuer die ganze Seite - das Band oben braucht
+           sie auch. Zwei Abfragen koennten ausserdem zwei verschiedene
+           Staende zeigen, wenn dazwischen jemand etwas freigibt. */
+        const termine = await holeOeffentlicheTermine();
         if (!Array.isArray(termine) || termine.length === 0) return;
 
         termine.forEach((t) => {

@@ -84,7 +84,9 @@ const OEFFENTLICHE_SEITEN = [
 // haengt, und beide duerfen von den seitenspezifischen Teilen dahinter
 // noch ueberschrieben werden.
 const REIHENFOLGE = [
-  "basis", "kopf-fuss", "startseite", "termine", "regeln",
+  // "aktuelles" steht hinter "termine": das Band der Startseite benutzt
+  // dieselben Bausteine und darf sie ueberschreiben, nicht umgekehrt.
+  "basis", "kopf-fuss", "startseite", "termine", "aktuelles", "regeln",
   "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "obmann", "spesen",
   "modus", "entscheiden", "melden",
 ];

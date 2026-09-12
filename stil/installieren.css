@@ -49,3 +49,18 @@
   .installieren-direkt { align-items: flex-start; flex-wrap: wrap; }
   .installieren-direkt .installieren-knopf { width: 100%; }
 }
+
+/* Benachrichtigungen (12.09.2026)
+   Der Abschnitt bleibt versteckt, solange in verein.config.js kein
+   oeffentlicher Schluessel steht - das "hidden" im HTML ist die Sperre,
+   das Modul nimmt es erst weg, wenn es wirklich etwas anzubieten hat. */
+.push-karte[hidden] { display: none; }
+.push-erklaerung { margin: 6px 0 12px; }
+.push-stand { margin: 0 0 12px; font-weight: 650; }
+.push-knopf {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 48px; padding: 12px 20px; border: 0; border-radius: 11px;
+  background: var(--marke); color: #fff; font: 650 1rem var(--font-text); cursor: pointer;
+}
+.push-knopf:disabled { opacity: .55; cursor: default; }
+.push-kleingedruckt { margin: 0; color: var(--muted); font-size: .88rem; }

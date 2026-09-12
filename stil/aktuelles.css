@@ -1,0 +1,146 @@
+/* ============================================================
+   "Das steht an" - das wechselnde Band der Startseite (12.09.2026)
+   ============================================================
+   Die Karte ist absichtlich ruhig gebaut: Bild links, Text rechts,
+   auf dem Handy untereinander. Ein Band, das lauter ist als der
+   Aufmacher darueber, zieht die Aufmerksamkeit vom Einstieg weg -
+   es soll erinnern, nicht ueberbieten. */
+
+.aktuelles[hidden] { display: none; }
+.aktuelles { margin-top: 26px; }
+
+.aktuelles-buehne {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  overflow: hidden;
+}
+
+.aktuelles-karte {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: stretch;
+}
+.aktuelles-karte[hidden] { display: none; }
+
+.aktuelles-bild {
+  background: var(--marke-lighter);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  /* Feste Hoehe, damit die Buehne beim Wechsel nicht springt - ein
+     springendes Band ist der schnellste Weg, dass jemand danebentippt. */
+  min-height: 150px;
+}
+.aktuelles-bild img { max-width: 100%; max-height: 150px; height: auto; }
+
+.aktuelles-text {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.aktuelles-wann {
+  margin: 0;
+  font: 700 .78rem/1 var(--font-text);
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--marke);
+}
+.aktuelles-pflicht {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--red-hell, #fdeaea);
+  color: var(--red, #b91c1c);
+  letter-spacing: 0;
+  text-transform: none;
+}
+.aktuelles-text h3 { margin: 0; font-size: 1.25rem; line-height: 1.25; }
+.aktuelles-wo { margin: 0; color: var(--muted); font-size: .93rem; }
+.aktuelles-weg {
+  align-self: flex-start;
+  margin-top: 8px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--marke);
+  color: #fff;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+/* Bewegung abgelehnt: alle Karten stehen untereinander. Nicht eine
+   zeigen und den Rest verstecken - dann fehlte Inhalt. */
+.aktuelles-gestapelt .aktuelles-karte { display: grid !important; }
+.aktuelles-gestapelt .aktuelles-karte + .aktuelles-karte {
+  border-top: 1px solid var(--border);
+}
+
+.aktuelles-leiste {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 10px;
+}
+.aktuelles-leiste[hidden] { display: none; }
+
+/* Der Pause-Knopf traegt ein Wort, kein Symbol: WCAG 2.2.2 verlangt
+   eine Pause fuer alles, was laenger als fuenf Sekunden von selbst
+   laeuft - und ein Pausenzeichen allein wird auf einer Vereinsseite
+   nicht gesucht. */
+.aktuelles-schalter {
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: 650 .88rem var(--font-text);
+  cursor: pointer;
+}
+.aktuelles-schalter:hover { border-color: var(--marke); color: var(--marke); }
+
+.aktuelles-punkte { display: flex; gap: 6px; }
+/* 44px Trefferflaeche, obwohl der Punkt klein aussieht: der
+   Innenabstand ist durchsichtig, nur der Kern ist zu sehen. */
+.aktuelles-punkt {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+.aktuelles-punkt::after {
+  content: "";
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--border);
+}
+.aktuelles-punkt.ist-jetzt::after {
+  background: var(--marke);
+  width: 24px;
+  border-radius: 999px;
+}
+.aktuelles-punkt:focus-visible { outline: 2px solid var(--marke); outline-offset: -8px; border-radius: 10px; }
+
+@media (min-width: 720px) {
+  .aktuelles-karte { grid-template-columns: 260px 1fr; }
+  .aktuelles-bild { min-height: 190px; }
+  .aktuelles-bild img { max-height: 170px; }
+  .aktuelles-text { padding: 24px 26px; justify-content: center; }
+  .aktuelles-text h3 { font-size: 1.5rem; }
+}

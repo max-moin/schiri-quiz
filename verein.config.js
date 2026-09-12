@@ -31,6 +31,23 @@ export const VEREIN = {
   kontakt: { obmann: "Max M.", email: null },
 
   // ============================================================
+  // Benachrichtigungen (Web Push).
+  //
+  // Solange hier kein oeffentlicher Schluessel steht, erscheint der
+  // Schalter auf installieren.html GAR NICHT. Das ist die Sperre - es
+  // gibt bewusst kein zweites Ja/Nein-Feld, das man vergessen koennte.
+  //
+  // Der Schluessel ist der OEFFENTLICHE Teil des VAPID-Paares und darf
+  // im Browser stehen; er ist die Absenderkennung, kein Geheimnis. Der
+  // private Teil gehoert ausschliesslich in die Vercel-Umgebung
+  // (VAPID_PRIVATER_SCHLUESSEL) und niemals in diese Datei - sie wird
+  // an jeden Besucher ausgeliefert.
+  //
+  // Erzeugen mit:  node server/vapid-schluessel.mjs
+  // ============================================================
+  push: { oeffentlicherSchluessel: "" },
+
+  // ============================================================
   // Schlüssel für die Terminabfrage der Startseite.
   //
   // ACHTUNG, hier stand am 22.08.2026 kurzzeitig die Vereinskennung.

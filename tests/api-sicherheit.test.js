@@ -52,11 +52,28 @@ test("die Startseite spricht nur die eine öffentliche Termin-Funktion an", () =
   assert.doesNotMatch(html, /eyJ[A-Za-z0-9_-]{20,}/); // alter JWT-Schluessel
 
   // Und genau ein RPC-Aufruf, naemlich der lesende.
-  const rpcAufrufe = html.match(/\/rest\/v1\/rpc\/[a-z_]+/g) || [];
+  //
+  // 12.09.2026: Der Aufruf ist aus dem HTML in ein Modul gewandert -
+  // das Band "Das steht an" und der Abschnitt "Naechste Termine"
+  // brauchen dieselbe Liste, und zwei Abfragen koennten zwei
+  // verschiedene Staende zeigen. Geprueft wird deshalb der ganze
+  // Datenweg der Startseite, nicht mehr nur die eine Datei. Haette ich
+  // hier weiter nur index.html angesehen, waere der Test gruen und
+  // wertlos geworden.
+  const datenweg = [
+    "index.html",
+    "src/website/oeffentliche-termine.js",
+    "src/website/aktuelles.js",
+    "src/website/startseite-aktuelles.js",
+  ].map((pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf8")).join("\n");
+
+  const rpcAufrufe = datenweg.match(/\/rest\/v1\/rpc\/[a-z_]+/g) || [];
   assert.deepEqual(rpcAufrufe, ["/rest/v1/rpc/oeffentliche_termine"]);
 
   // Kein direkter Tabellenzugriff an der Funktion vorbei.
-  assert.doesNotMatch(html, /\/rest\/v1\/(?!rpc\/)/);
+  assert.doesNotMatch(datenweg, /\/rest\/v1\/(?!rpc\/)/);
+  // Und kein zweiter Schluessel neben dem veroeffentlichbaren.
+  assert.doesNotMatch(datenweg, /sb_secret_|service_role/);
 });
 
 /* Kommentare wegwerfen, bevor geprueft wird.
