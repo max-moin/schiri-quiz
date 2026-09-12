@@ -21,6 +21,7 @@
 import { VEREIN, BILDER, DATENBANK } from "./verein.config.js";
 import { montiereKontoBereich } from "./src/ui/konto-bereich.js";
 import { ladeFunktionsfreigaben } from "./src/website/funktionsfreigaben.js";
+import { waehleBildmotiv } from "./src/website/bild-motive.js";
 import {
   setzeFunktionsfreigaben,
   vereinheitlicheHauptnavigation,
@@ -88,16 +89,65 @@ if (VEREIN.logo) {
 // blieben Kacheln leer, weil geratene Foto-Adressen ins Leere zeigten -
 // so kann daraus höchstens noch "kein Foto" werden, nie "kein Bild".
 
-document.querySelectorAll("img[data-bild]").forEach((el) => {
-  const eintrag = BILDER[el.dataset.bild];
-  if (!eintrag) return;
-  // Ersatzmotiv nachtragen, falls im HTML doch keins steht.
-  if (!el.getAttribute("src") && eintrag.ersatz) el.src = eintrag.ersatz;
-  if (!eintrag.foto) return;
-  const probe = new Image();
-  probe.onload = () => { el.src = eintrag.foto; };
-  probe.src = eintrag.foto;
-});
+// Seit dem 12.09.2026 tauscht die Redaktion diese Motive selbst aus
+// (Obmann-Bereich "Bilder"). Welche der drei Quellen gewinnt, entscheidet
+// src/website/bild-motive.js: veroeffentlichtes Bild, sonst das Foto aus
+// verein.config.js, sonst das SVG, das schon im HTML steht.
+
+let bilderRunde = 0;
+
+function setzeBilder(motive = {}) {
+  // Jeder Durchgang bekommt eine Nummer. Der zweite - der mit den
+  // veroeffentlichten Bildern - startet spaeter, seine Adresse kann aber
+  // schneller geladen sein als das Foto aus dem ersten. Ohne die Nummer
+  // wuerde das langsamere, aeltere Bild das neuere wieder ueberschreiben.
+  bilderRunde += 1;
+  const runde = bilderRunde;
+  document.querySelectorAll("img[data-bild]").forEach((el) => {
+    const eintrag = BILDER[el.dataset.bild];
+    if (!eintrag) return;
+    const wahl = waehleBildmotiv(eintrag, motive[el.dataset.bild]);
+    // Ersatzmotiv nachtragen, falls im HTML doch keins steht.
+    if (!el.getAttribute("src") && wahl.ersatz) el.src = wahl.ersatz;
+    // Einen Alternativtext gibt es nur, wenn die Redaktion einen gesetzt
+    // hat. Sonst bleibt das alt="" der Seite stehen - die Motive
+    // schmuecken, und fuer Schmuckbilder ist das die richtige Angabe.
+    if (wahl.alt) el.alt = wahl.alt;
+    if (!wahl.quelle) return;
+    const probe = new Image();
+    probe.onload = () => { if (runde === bilderRunde) el.src = wahl.quelle; };
+    probe.src = wahl.quelle;
+  });
+}
+
+setzeBilder();
+
+// Den veroeffentlichten Stand holen nur Seiten, die ueberhaupt ein Motiv
+// zeigen - sonst schickte jede Unterseite eine Abfrage fuer nichts.
+//
+// Nachgeladen statt oben importiert: content-defaults.js traegt die
+// Ausgangsstaende aller Redaktionsbereiche und hat im ersten Bildaufbau
+// jeder Vereinsseite nichts zu suchen. Geht dabei etwas schief, bleibt
+// die Seite genau so, wie sie ohne diesen Bereich waere.
+if (document.querySelector("img[data-bild]")) {
+  void (async () => {
+    try {
+      const [{ ladeWebsiteInhalt }, { BILDER_STANDARD }] = await Promise.all([
+        import("./src/website/content-config.js"),
+        import("./src/website/content-defaults.js"),
+      ]);
+      const stand = await ladeWebsiteInhalt({
+        datenbank: DATENBANK,
+        seitenschluessel: VEREIN.seitenschluessel,
+        bereich: "bilder",
+        fallback: BILDER_STANDARD,
+      });
+      setzeBilder(stand.konfiguration.motive);
+    } catch (fehler) {
+      console.warn("Bilder: veroeffentlichter Stand nicht erreichbar, ausgeliefertes Motiv bleibt.", fehler);
+    }
+  })();
+}
 
 // Der Redaktionszugang ist kein Sicherheitsgeheimnis und wird deshalb nicht
 // durch einen kryptischen URL-Trick versteckt. Er bleibt im Footer bewusst

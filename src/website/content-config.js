@@ -1,6 +1,15 @@
 const kopie = (wert) => JSON.parse(JSON.stringify(wert));
 
-export const INHALTSBEREICHE = Object.freeze(["regeln", "vorlagen", "unterlagen"]);
+export const INHALTSBEREICHE = Object.freeze(["regeln", "vorlagen", "unterlagen", "bilder"]);
+
+/**
+ * Die Motive der Startseite. Die Liste steht hier und nicht in den
+ * Ausgangsdaten, weil sie an den data-bild-Haken im HTML haengt: ein
+ * Motiv, das die Seite nicht kennt, waere im Editor eine leere Zeile.
+ */
+export const BILD_MOTIVE = Object.freeze([
+  "aufmacher", "schiriWerden", "quiz", "spesen", "vorlagen", "unterlagen", "melden",
+]);
 
 const text = (wert, fallback = "", max = 12000) => {
   const kandidat = typeof wert === "string" ? wert.trim() : "";
@@ -43,6 +52,21 @@ function normalisiereVorlagen(roh, fallback) {
     };
   };
   return { schemaVersion: 1, spiel: normalisiere("spiel"), lehrabend: normalisiere("lehrabend") };
+}
+
+/**
+ * Bildadressen sind bewusst strenger als sonstige Links: nur https, kein
+ * http. Ein Bild aus fremder Quelle wuerde sonst bei jedem Seitenaufruf
+ * die Adresse unserer Besucher an diese Quelle melden.
+ */
+function bildAdresse(wert, fallback = "") {
+  const kandidat = text(wert, "", 2000);
+  if (!kandidat) return fallback;
+  try {
+    return new URL(kandidat).protocol === "https:" ? kandidat : fallback;
+  } catch {
+    return fallback;
+  }
 }
 
 function istText(wert) {
@@ -89,6 +113,15 @@ export function validiereWebsiteInhalt(bereich, roh) {
       if (!istText(dokument?.titel)) fehler.push(`Unterlagen, Eintrag ${index + 1}: Titel fehlt.`);
       if (!gruppenIds.includes(dokument?.g)) fehler.push(`${name}: Anlass ist ungültig.`);
       if (!istLink(dokument?.href)) fehler.push(`${name}: Link muss vollständig mit https:// oder http:// beginnen.`);
+    }
+  }
+
+  if (bereich === "bilder") {
+    for (const name of BILD_MOTIVE) {
+      const url = roh.motive?.[name]?.url;
+      if (istText(url) && bildAdresse(url) === "") {
+        fehler.push(`Motiv „${name}“: Die Bildadresse muss mit https:// beginnen.`);
+      }
     }
   }
 
@@ -190,11 +223,32 @@ function normalisiereRegeln(roh, fallback) {
   };
 }
 
+/**
+ * Nur die bekannten Motive, nur zwei Felder je Motiv. Alles andere faellt
+ * weg: was aus der Datenbank kommt, landet als src und alt direkt im
+ * HTML der Startseite.
+ */
+function normalisiereBilder(roh, fallback) {
+  const motive = {};
+  for (const name of BILD_MOTIVE) {
+    const wert = roh?.motive?.[name] || {};
+    const standard = fallback.motive?.[name] || { url: "", alt: "" };
+    motive[name] = {
+      url: bildAdresse(wert.url, standard.url || ""),
+      // Leer ist hier der Normalfall: die Motive schmuecken nur, und ein
+      // leerer Alternativtext ist fuer Schmuckbilder die richtige Angabe.
+      alt: optionalerText(wert.alt, standard.alt || "", 300),
+    };
+  }
+  return { schemaVersion: 1, motive };
+}
+
 export function normalisiereWebsiteInhalt(bereich, roh, fallback) {
   if (!INHALTSBEREICHE.includes(bereich) || !fallback) throw new Error("Unbekannter Inhaltsbereich.");
   if (!roh || typeof roh !== "object" || Array.isArray(roh)) return kopie(fallback);
   if (bereich === "vorlagen") return normalisiereVorlagen(roh, fallback);
   if (bereich === "unterlagen") return normalisiereUnterlagen(roh, fallback);
+  if (bereich === "bilder") return normalisiereBilder(roh, fallback);
   return normalisiereRegeln(roh, fallback);
 }
 

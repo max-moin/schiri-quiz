@@ -1,5 +1,5 @@
 /**
- * Statische, mit dem Code ausgelieferte Ausgangsdaten der drei redaktionellen
+ * Statische, mit dem Code ausgelieferte Ausgangsdaten der redaktionellen
  * Website-Bereiche. Veröffentlichte Supabase-Daten dürfen diese Werte
  * ersetzen; bei leerer oder gestörter Datenbank bleiben sie der Fallback.
  */
@@ -940,4 +940,30 @@ export const UNTERLAGEN_STANDARD = {
       "q": "dfb"
     }
   ]
+};
+
+/**
+ * Ausgangsstand der Startseiten-Motive.
+ *
+ * Alle Adressen sind leer, und das ist Absicht: solange die Redaktion
+ * nichts hochgeladen hat, gilt genau das, was heute schon gilt - das
+ * ausgelieferte SVG aus BILDER in verein.config.js, beziehungsweise das
+ * dort hinterlegte Foto. Dieser Bereich nimmt nichts weg, er legt nur
+ * eine Ebene darueber.
+ *
+ * Auch "alt" ist ueberall leer. Die Motive schmuecken die Startseite,
+ * sie tragen keine Information - fuer solche Bilder ist alt="" die
+ * richtige Angabe, kein Versaeumnis.
+ */
+export const BILDER_STANDARD = {
+  "schemaVersion": 1,
+  "motive": {
+    "aufmacher": { "url": "", "alt": "" },
+    "schiriWerden": { "url": "", "alt": "" },
+    "quiz": { "url": "", "alt": "" },
+    "spesen": { "url": "", "alt": "" },
+    "vorlagen": { "url": "", "alt": "" },
+    "unterlagen": { "url": "", "alt": "" },
+    "melden": { "url": "", "alt": "" }
+  }
 };

@@ -307,3 +307,33 @@
 .admin-freigabe-zeile input {
   width: 24px; height: 24px; flex: none; accent-color: var(--green);
 }
+
+/* ---------- Redaktionsbereich "Bilder" ----------
+   Die Vorschau ist absichtlich gross genug, um zu erkennen, was auf dem
+   Bild zu sehen ist. Ein Briefmarken-Vorschaubild haette den Zweck
+   verfehlt: man tauscht ein Motiv aus, um es anzusehen. */
+.admin-bild-liste { display: grid; gap: 12px; padding: 12px; }
+.admin-bild-zeile {
+  display: grid; grid-template-columns: 168px minmax(0, 1fr) auto; gap: 16px; align-items: start;
+  min-width: 0; padding: 15px; border: 1px solid #e8eaed; border-radius: 11px; background: #fafbfc;
+}
+.admin-bild-vorschau {
+  display: grid; place-items: center; overflow: hidden;
+  aspect-ratio: 16 / 10; border: 1px solid var(--border); border-radius: 10px; background: #fff;
+}
+.admin-bild-vorschau img { width: 100%; height: 100%; object-fit: cover; }
+.admin-bild-text { min-width: 0; display: grid; gap: 6px; }
+.admin-bild-text strong { font-size: .96rem; }
+.admin-bild-text small { color: var(--muted); line-height: 1.4; }
+.admin-bild-quelle { margin: 0; color: var(--marke-hell); font-size: .78rem; font-weight: 700; }
+.admin-bild-text label { display: grid; gap: 6px; margin-top: 6px; color: var(--marke-hell); font-size: .78rem; font-weight: 700; }
+.admin-bild-text input { box-sizing: border-box; width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px; font: inherit; font-weight: 400; background: #fff; }
+.admin-bild-hinweis { margin: 0; color: var(--muted); font-size: .76rem; line-height: 1.5; }
+.admin-bild-aktionen { display: grid; gap: 8px; justify-items: stretch; align-content: start; }
+.admin-bild-fortschritt { margin: 0; max-width: 220px; color: var(--muted); font-size: .76rem; line-height: 1.45; }
+.admin-bild-fortschritt[data-art="fehler"] { color: #b91c1c; font-weight: 650; }
+
+@media (max-width: 760px) {
+  .admin-bild-zeile { grid-template-columns: 1fr; }
+  .admin-bild-fortschritt { max-width: none; }
+}

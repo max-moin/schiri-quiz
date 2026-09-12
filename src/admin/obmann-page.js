@@ -11,6 +11,7 @@ import { erstelleSpesenEditor } from "./spesen-editor.js";
 import { erstelleRegelnEditor } from "./regeln-editor.js";
 import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
 import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
+import { erstelleBilderEditor } from "./bilder-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
@@ -80,6 +81,13 @@ async function oeffneEditor() {
     });
     erstelleUnterlagenEditor({
       wurzel: document.querySelector('[data-admin-bereich="unterlagen"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    // Die Bilder brauchen zusaetzlich den Storage-Teil des Clients: die
+    // Datei geht in den Bucket, nur die fertige Adresse wandert spaeter
+    // ueber dieselbe Veroeffentlichung wie die anderen Bereiche.
+    erstelleBilderEditor({
+      wurzel: document.querySelector('[data-admin-bereich="bilder"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
     });
     // Die Terminsuche braucht weder verein noch benutzer: sie arbeitet
