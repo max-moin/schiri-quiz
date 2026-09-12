@@ -56,6 +56,20 @@
    naechste dazu - vier feste Felder A-D hatten dazu verfuehrt, alle vier
    zu fuellen, obwohl drei reichten. */
 .antwort-hinzufuegen { margin:4px 0 8px; padding:10px 14px; font-size:.88rem; }
+.antwort-feld { position:relative; display:grid; grid-template-columns:minmax(0,1fr) 44px; gap:8px; align-items:end; }
+.antwort-feld > label { min-width:0; }
+.antwort-entfernen {
+  display:grid; place-items:center; width:44px; height:44px; margin-bottom:11px;
+  border:1px solid var(--border); border-radius:10px; background:var(--card);
+  color:var(--red); cursor:pointer;
+}
+.antwort-entfernen svg { width:20px; height:20px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.vorschlag-karte input.ist-fehlerhaft,.vorschlag-karte textarea.ist-fehlerhaft { border-color:var(--red); outline:2px solid color-mix(in srgb,var(--red) 22%,transparent); }
+.feld-zaehler { justify-self:end; margin-top:-3px; color:var(--red); font-size:.75rem; font-weight:700; }
+.entwurf-dialog { max-width:min(420px,calc(100vw - 32px)); padding:24px; border:1px solid var(--border); border-radius:var(--radius); background:var(--card); color:var(--text); box-shadow:0 24px 80px rgba(0,0,0,.28); }
+.entwurf-dialog::backdrop { background:rgba(17,24,39,.52); }
+.entwurf-dialog h2 { margin:0 0 8px; }
+.entwurf-dialog p { margin:0 0 18px; color:var(--muted); line-height:1.5; }
 
 /* Mindestlaengen und Beispiele stehen vorab am Feld statt erst in der
    Fehlermeldung (ISO 9241-110: Selbstbeschreibungsfaehigkeit). */

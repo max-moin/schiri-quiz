@@ -16,19 +16,34 @@ function feld(id,label,placeholder="",hinweis=""){return `<label>${label}${hinwe
 // deshalb drei; weitere holt man sich einzeln dazu.
 const MC_BUCHSTABEN=["A","B","C","D","E","F","G","H"];
 const MC_START=3;
-let mcAnzahl=MC_START;
 const mcFeldId=(buchstabe)=>"option-"+buchstabe.toLocaleLowerCase("de");
+
+function antwortFeld(buchstabe, loeschbar=false){
+  return `<div class="antwort-feld" data-antwort="${buchstabe}">${feld(mcFeldId(buchstabe),`Antwort ${buchstabe}`)}${loeschbar?`<button type="button" class="antwort-entfernen" data-entfernen="${buchstabe}" aria-label="Antwort ${buchstabe} entfernen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3m-8 0 1 13h8l1-13M10 11v5m4-5v5"/></svg></button>`:""}</div>`;
+}
+
+function aktualisiereAntwortKnopf(){
+  const knopf=$("antwort-hinzufuegen");
+  if(knopf)knopf.hidden=MC_BUCHSTABEN.every((b)=>Boolean($(mcFeldId(b))));
+}
 
 // Das neue Feld wird angehaengt statt den Block neu zu zeichnen -
 // sonst waeren die schon getippten Antworten wieder weg.
 function fuegeAntwortHinzu(){
-  if(mcAnzahl>=MC_BUCHSTABEN.length)return;
-  const buchstabe=MC_BUCHSTABEN[mcAnzahl];
-  mcAnzahl++;
+  const buchstabe=MC_BUCHSTABEN.find((b)=>!$(mcFeldId(b)));
+  if(!buchstabe)return;
   const knopf=$("antwort-hinzufuegen");
-  knopf.insertAdjacentHTML("beforebegin",feld(mcFeldId(buchstabe),`Antwort ${buchstabe}`));
-  knopf.hidden=mcAnzahl>=MC_BUCHSTABEN.length;
+  knopf.insertAdjacentHTML("beforebegin",antwortFeld(buchstabe,true));
+  aktualisiereAntwortKnopf();
   $(mcFeldId(buchstabe)).focus();
+}
+
+function entferneAntwort(buchstabe){
+  if(MC_BUCHSTABEN.indexOf(buchstabe)<MC_START)return;
+  document.querySelector(`[data-antwort="${buchstabe}"]`)?.remove();
+  const richtig=$("richtig");
+  if(richtig)richtig.value=richtig.value.split(",").map((x)=>x.trim()).filter((x)=>x.toUpperCase()!==buchstabe).join(",");
+  aktualisiereAntwortKnopf();
 }
 function zeichneMedium(){
   const medium=$("medium").value;
@@ -38,13 +53,14 @@ function zeichneLoesung(antworten=MC_START){
   const typ=$("antworttyp").value;
   const ziel=$("loesung-felder");
   if(typ==="multiple_choice"||typ==="mehrfachauswahl"){
-    mcAnzahl=Math.min(MC_BUCHSTABEN.length,Math.max(MC_START,antworten));
+    const anzahl=Math.min(MC_BUCHSTABEN.length,Math.max(MC_START,antworten));
     const mehrfach=typ==="mehrfachauswahl";
-    ziel.innerHTML=MC_BUCHSTABEN.slice(0,mcAnzahl).map(x=>feld(mcFeldId(x),`Antwort ${x}`)).join("")
+    ziel.innerHTML=MC_BUCHSTABEN.slice(0,anzahl).map((x,i)=>antwortFeld(x,i>=MC_START)).join("")
       +'<button type="button" id="antwort-hinzufuegen" class="neben-knopf antwort-hinzufuegen">Weitere Antwort hinzufügen</button>'
       +feld("richtig",mehrfach?"Welche Antworten sind richtig?":"Welche Antwort ist richtig?",mehrfach?"z. B. A,C":"z. B. B",mehrfach?"Pflichtfeld. Die Buchstaben der richtigen Antworten, mit Komma getrennt.":"Pflichtfeld. Der Buchstabe der richtigen Antwort.");
-    $("antwort-hinzufuegen").hidden=mcAnzahl>=MC_BUCHSTABEN.length;
     $("antwort-hinzufuegen").addEventListener("click",fuegeAntwortHinzu);
+    ziel.querySelectorAll("[data-entfernen]").forEach((knopf)=>knopf.addEventListener("click",()=>entferneAntwort(knopf.dataset.entfernen)));
+    aktualisiereAntwortKnopf();
   }
   else if(typ==="freitext") ziel.innerHTML='<label>Musterantwort<textarea id="musterantwort" rows="4"></textarea></label><label>Zwingende Kernaussagen / Bewertungshinweise<textarea id="bewertung" rows="4"></textarea></label>';
   else if(typ==="zahl") ziel.innerHTML=feld("zahl","Richtige Zahl")+feld("einheit","Einheit","z. B. Meter oder Sekunden")+feld("toleranz","Zulässige Toleranz","optional");
@@ -66,6 +82,23 @@ function loesungGueltig(typ,wert){
 function inhalt(){return {kurztitel:$("kurztitel").value.trim(),frage_text:$("fragetext").value.trim(),medium:$("medium").value,antworttyp:$("antworttyp").value,regel_nummer:$("regelnummer").value.trim()||null,medium_url:$("medium-url")?.value.trim()||null,medium_hinweis:$("medium-ausschnitt")?.value.trim()||$("medium-alt")?.value.trim()||null,loesung:loesung()};}
 function setzeMeldung(text,fehler=false){$("formular-meldung").textContent=text;$("formular-meldung").style.color=fehler?"#b91c1c":"";}
 
+function leereFeldfehler(id){
+  const feld=$(id); if(!feld)return;
+  feld.classList.remove("ist-fehlerhaft");
+  feld.removeAttribute("aria-invalid");
+  feld.closest("label")?.querySelector(".feld-zaehler")?.remove();
+}
+function markiereFeldfehler(id,mindest,ist){
+  const feld=$(id); if(!feld)return;
+  leereFeldfehler(id);
+  feld.classList.add("ist-fehlerhaft");
+  feld.setAttribute("aria-invalid","true");
+  const zaehler=document.createElement("span");
+  zaehler.className="feld-zaehler";
+  zaehler.textContent=`${ist} von ${mindest} Zeichen`;
+  feld.insertAdjacentElement("afterend",zaehler);
+}
+
 async function speichern(einreichen){
   const ich=person(); if(!ich)return;
   const body=inhalt();
@@ -75,7 +108,7 @@ async function speichern(einreichen){
   const zuKurz=[["fragetext","Die Frage selbst",10,body.frage_text.length],
     ["begruendung","Warum ist diese Lösung richtig?",40,$("begruendung").value.trim().length],
     ["beleg","Beleg / Quelle",20,$("beleg").value.trim().length]].find(([,,mindest,ist])=>ist<mindest);
-  if(zuKurz){setzeMeldung(`„${zuKurz[1]}“ braucht mindestens ${zuKurz[2]} Zeichen – bisher sind es ${zuKurz[3]}.`,true);$(zuKurz[0]).focus();return;}
+  if(zuKurz){markiereFeldfehler(zuKurz[0],zuKurz[2],zuKurz[3]);setzeMeldung("Bitte prüfe das rot markierte Feld.",true);$(zuKurz[0]).focus();return;}
   if(body.medium!=="text"&&!body.medium_url){setzeMeldung("Bitte das Bild oder Video verlinken.",true);return;}
   if(!loesungGueltig(body.antworttyp,body.loesung)){setzeMeldung("Bitte die zum Antworttyp gehörende Lösung vollständig ausfüllen.",true);return;}
   setzeMeldung("Wird gespeichert …");
@@ -83,7 +116,10 @@ async function speichern(einreichen){
   if(error){setzeMeldung("Speichern fehlgeschlagen: "+error.message,true);return;}
   await ladeListe();
   if(einreichen){zeigeErfolg();return;}
-  setzeMeldung("Entwurf gespeichert. Du kannst ihn jederzeit weiterbearbeiten.");
+  setzeMeldung("");
+  const dialog=$("entwurf-bestaetigung");
+  if(typeof dialog?.showModal==="function")dialog.showModal();
+  else dialog?.setAttribute("open","");
 }
 
 // Nach dem Einreichen stand frueher das komplette Formular unveraendert
@@ -119,6 +155,8 @@ function zeichneVersionen(versionen){const bereich=$("versionen-bereich");bereic
 function neu(){verbergeErfolg();$("vorschlag-formular").reset();$("vorschlag-id").value="";document.querySelectorAll("#vorschlag-formular input,#vorschlag-formular select,#vorschlag-formular textarea,#vorschlag-formular button").forEach(el=>el.disabled=false);zeichneMedium();zeichneLoesung();setzeMeldung("");$("versionen-bereich").hidden=true;}
 
 $("medium").addEventListener("change",zeichneMedium);$("antworttyp").addEventListener("change",()=>zeichneLoesung());$("vorschlag-formular").addEventListener("submit",e=>{e.preventDefault();speichern(true)});$("entwurf-speichern").addEventListener("click",()=>speichern(false));$("neuer-vorschlag").addEventListener("click",neu);
+$("entwurf-ok").addEventListener("click",()=>{const dialog=$("entwurf-bestaetigung");if(typeof dialog.close==="function")dialog.close();else dialog.removeAttribute("open");});
+["fragetext","begruendung","beleg"].forEach((id)=>$(id).addEventListener("input",()=>leereFeldfehler(id)));
 $("erfolg-neue-frage").addEventListener("click",()=>{neu();$("fragetext").focus();});
 if(person()){
   $("vorschlag-inhalt").hidden=false;

@@ -69,6 +69,13 @@ export const VEREIN = {
   // ============================================================
   seitenschluessel: "loebtauer-kickers",
 
+  // Das aufmerksamkeitsstarke Terminband bleibt zum Start bewusst aus.
+  // Die Termine selbst stehen weiterhin am festen Platz am Seitenende und
+  // auf termine.html. Der Schalter liegt absichtlich in der Konfiguration,
+  // damit die fertige Funktion nicht geloescht werden muss. Nach dem Start
+  // soll derselbe Wert ueber den Obmann-Zugang gepflegt werden.
+  startseite: { aktuellesAktiv: false },
+
   // Vorbelegung im Spesenrechner. Max, 21.08.2026: "Ich weiß auch nicht,
   // warum standardmäßig die 01159 hinterlegt ist." Sie stand fest im HTML -
   // 01159 ist Löbtau, also die Gegend des Vereins. Jetzt steht sie hier, wo

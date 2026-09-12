@@ -38,6 +38,9 @@ test("beim Oeffnen steht nur der Bestand da - das Formular kommt auf Wunsch", ()
   // als Fenster darueber gelegt.
   assert.doesNotMatch(seite, /overlay/i,
     "Das Bestandsformular soll inline erscheinen, nicht als Pop-up.");
+  const oeffnen = seite.slice(seite.indexOf("function oeffneNeuenEintrag"), seite.indexOf("function oeffneEintrag"));
+  assert.doesNotMatch(oeffnen, /bestand-kategorie"\)\.focus/,
+    "Das Kategorienfeld darf auf iOS nicht beim Öffnen automatisch aufklappen.");
 });
 
 test("Bestand und Anfrage teilen sich den nach Bereichen geordneten Katalog", () => {
@@ -117,6 +120,10 @@ test("das Formular zeigt nur Angaben, die zum Gegenstand passen", () => {
   assert.match(seite, /kategorie\.aermel/);
   assert.match(seite, /kategorie\.verbrauch/);
   assert.match(html, /Speichern &amp; weiteres hinzufügen/);
+  assert.match(katalog, /schluessel: "hose"[^\n]+wort: "Hose"/);
+  assert.doesNotMatch(html, /<option value="fehlt">/,
+    "Fehlende Ausrüstung wird angefragt und nicht als Bestandsstück angelegt.");
+  assert.match(html, /<option value="ersatz">Stark gebraucht<\/option>/);
 });
 
 test("Farbe ist eine sichtbare Auswahl und bleibt trotzdem zugänglich beschriftet", () => {

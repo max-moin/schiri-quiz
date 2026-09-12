@@ -55,9 +55,11 @@ const SCHRANK = AUS.KATEGORIEN;
 
 const ZUSTAND_WORT = {
   einsatzbereit: "Einsatzbereit",
-  ersatz: "Ersatz",
+  ersatz: "Stark gebraucht",
   verschlissen: "Verschlissen",
-  fehlt: "Fehlt",
+  // Altdaten bleiben lesbar. Neu kann dieser missverstaendliche Zustand
+  // nicht mehr gewaehlt werden; fehlende Ausruestung wird angefragt.
+  fehlt: "Nicht mehr vorhanden",
 };
 const AERMEL_WORT = { kurz: "Kurzarm", lang: "Langarm" };
 const STATUS_WORT = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
@@ -194,7 +196,10 @@ function oeffneNeuenEintrag() {
   neu();
   zeigeFormular("Neuer Eintrag");
   $("bestand-formular").scrollIntoView({ behavior: "smooth", block: "start" });
-  $("bestand-kategorie").focus();
+  // Ein fokussiertes <select> klappt auf Safari/iOS je nach Eingabegeraet
+  // sofort auf. Der Fokus liegt deshalb auf der Ueberschrift; die Person
+  // oeffnet „Bitte wählen“ erst durch ihr eigenes Tippen.
+  $("bestand-formular-titel").focus({ preventScroll: true });
   $("bestand-speichern-weiter").hidden = false;
 }
 

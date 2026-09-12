@@ -78,6 +78,13 @@ test("die Terminseite lädt die Anmeldung vor ihrem eigenen Skript", () => {
   assert.ok(seiteJs < terminSkript, "termine-seite.js steht vor seite.js");
 });
 
+test("die Einzelansicht benutzt den einen Zurueckweg zur Terminliste", () => {
+  const js = ohneKommentare(lies("src/website/termine-seite.js"));
+  assert.match(js, /link\.href = "termine\.html"/);
+  assert.match(js, /ziel\.textContent = "Alle Termine"/);
+  assert.doesNotMatch(js, /class="zurueck-link"/);
+});
+
 test("ohne Anmeldung wird nur die öffentliche Abfrage benutzt", () => {
   // Die Datenschutz-Auflage aus dem Backlog: auf der oeffentlichen Seite
   // stehen keine vereinsinternen Termine. Das haengt daran, dass der

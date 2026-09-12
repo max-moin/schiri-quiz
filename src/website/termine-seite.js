@@ -21,6 +21,19 @@ const zugriff = erstelleTerminZugriff({
 
 const gewaehlteId = new URLSearchParams(location.search).get("termin");
 
+// In der Einzelansicht ist die naechste Ebene nicht die Startseite,
+// sondern die Terminliste. Dadurch braucht es keinen zweiten Textlink
+// „Alle Termine“ direkt unter dem Wegweiser.
+function richteDetailRueckwegEin() {
+  if (!gewaehlteId) return;
+  const link = document.querySelector?.(".wegweiser-zurueck");
+  if (!link) return;
+  link.href = "termine.html";
+  link.setAttribute("aria-label", "Zurück zu allen Terminen");
+  const ziel = link.querySelector(".wegweiser-ziel");
+  if (ziel) ziel.textContent = "Alle Termine";
+}
+
 // Die Anmeldung stellt seite.js bereit. Sie kann fehlen, wenn ein
 // Skript nicht geladen hat - dann laeuft die Seite im oeffentlichen
 // Modus weiter, statt gar nichts zu zeigen.
@@ -254,7 +267,6 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
 
   const protokollHtml = protokoll ? `<section class="termin-protokoll"><span class="wortmarke blau">Für Mitglieder</span><h2>${sicher(protokoll.titel || "Protokoll")}</h2><div class="protokoll-text">${sicher(protokoll.inhalt).replace(/\n/g,"<br>")}</div></section>` : "";
   bereich.innerHTML = `
-    <a class="zurueck-link" href="termine.html">← Alle Termine</a>
     <article class="termindetail">
       <header class="td-kopf">
         <p class="td-wann">${sicher(datumLang(termin.datum))}</p>
@@ -360,6 +372,7 @@ function bindeAnmeldeKnoepfe() {
 }
 
 async function start() {
+  richteDetailRueckwegEin();
   let termine;
   try {
     termine = await ladeTermine();
@@ -385,7 +398,6 @@ async function start() {
     const termin = termine.find((t) => t.id === gewaehlteId);
     if (!termin) {
       bereich.innerHTML = `
-        <a class="zurueck-link" href="termine.html">← Alle Termine</a>
         <div class="hinweisbalken ruhig">
           <span class="sym-wort">Hinweis</span>
           <span>Diesen Termin gibt es nicht (mehr) – oder er ist nicht öffentlich.

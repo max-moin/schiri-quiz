@@ -94,10 +94,14 @@ export function baueMeldungen(termine, heute = new Date()) {
         pflicht: t.pflicht === true,
         bild: motivFuer(t),
         ziel: t.id ? `termine.html#termin-${t.id}` : "termine.html",
+        // Fuer die Reihenfolge nie den sichtbaren deutschen Datumstext
+        // vergleichen ("Dienstag" kaeme sonst vor "Montag"), sondern den
+        // echten Zeitpunkt. Der Wert wird nur intern zum Sortieren benutzt.
+        sortierwert: tagesbeginn.getTime(),
       };
     })
     .filter(Boolean)
-    .sort((a, b) => (a.datum > b.datum ? 1 : -1))
+    .sort((a, b) => a.sortierwert - b.sortierwert)
     .slice(0, HOECHSTENS);
 }
 

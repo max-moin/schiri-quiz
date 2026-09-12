@@ -68,7 +68,8 @@ test("Vorgaenge bleiben kompakt und zeigen Details erst nach dem Oeffnen", () =>
   assert.match(js, /document\.createElement\("details"\)/);
   assert.match(js, /document\.createElement\("summary"\)/);
   assert.match(css, /min-height: 44px/);
-  assert.match(html, /Anonym gesendetes Website-Feedback erscheint hier nicht/);
+  assert.doesNotMatch(html, /Anonym gesendetes Website-Feedback erscheint hier nicht/);
+  assert.match(html, /aria-label="Neue Idee oder Rückmeldung"/);
 });
 
 test("Ausruestungsanfragen stehen mit unter den eigenen Vorgaengen", () => {
@@ -79,9 +80,9 @@ test("Ausruestungsanfragen stehen mit unter den eigenen Vorgaengen", () => {
   assert.match(js, /ausAusruestung\(aufrufe\[0\]\.value\)/);
 });
 
-test("die Seite sagt selbst, was auf ihr steht, und zeigt Fall und Verlauf", () => {
-  // Testperson B hielt die Liste fuer die Antwort des Obmanns.
-  assert.match(html, /eine Nachricht des Obmanns an dich ist das nicht/);
+test("die Uebersicht bleibt kurz und zeigt Fall und Verlauf erst im Eintrag", () => {
+  assert.match(html, /Deine Rückmeldungen, Vorschläge und Anfragen/);
+  assert.doesNotMatch(html, /eine Nachricht des Obmanns an dich ist das nicht/);
   assert.match(js, /Das hast du geschildert/);
   assert.match(js, /textContent = "Verlauf"/);
   assert.match(js, /function standSchritt/);

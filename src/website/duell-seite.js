@@ -383,7 +383,11 @@ function warteraumAnsicht(neu = false) {
 // ---------- Fortschritt + Frage-Karte ----------
 
 function baueFortschrittHtml(f) {
-  setzeKopf({ untertitel: "Wie im Wochenquiz – diesmal im direkten Vergleich.", position: f.position, gesamt: f.gesamt });
+  // Im laufenden Duell braucht der knappe Kopf Platz fuer Fortschritt und
+  // Rueckweg. Der wiederholte Erklaersatz hat auf dem iPhone den
+  // Quiz-Zurueck-Knopf bedrängt und wird deshalb nur in der Uebersicht
+  // erklaert, nicht an jeder Frage.
+  setzeKopf({ untertitel: "", position: f.position, gesamt: f.gesamt });
   return `<div class="historie-kopf duell-spiel-kopf"><button class="sekundaer-button" type="button" data-duell-uebersicht>Zwischenstand</button><button class="historie-neu-laden-button" type="button" data-duell-verlassen>Duell verlassen</button></div>`;
 }
 

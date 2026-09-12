@@ -140,13 +140,6 @@ a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--
 
 /* ---------- Einzelansicht ---------- */
 
-.zurueck-link {
-  display: inline-flex; align-items: center; min-height: 44px;
-  color: var(--muted); text-decoration: none; font-size: .84rem; font-weight: 600;
-  margin-bottom: 8px;
-}
-.zurueck-link:hover { color: var(--text); }
-
 .termindetail {
   background: var(--card);
   border: 1px solid var(--border);

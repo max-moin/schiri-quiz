@@ -365,30 +365,22 @@ test("es gibt keinen Zurueck-Knopf mehr", () => {
 });
 
 /* ============================================================
-   5. Unterlagen: eigene Sachen zuerst und als eigene erkennbar
+   5. Unterlagen: keine Doppelwege
    ============================================================ */
 
-test("die Unterlagen trennen eigene Sachen von fremden, ohne Absagen zu doppeln", () => {
-  //
-  // Stehen eigene Vorlagen und fremde Weiterleitungen ununterschieden
-  // untereinander, weiss niemand mehr, wer fuer welchen Inhalt
-  // geradesteht - und das macht beide Sorten weniger vertrauenswuerdig.
+test("die Unterlagen zeigen Verbandsquellen, ohne andere Hauptwege zu doppeln", () => {
   const html = lies("informationen.html");
   const inhalt = html.slice(html.indexOf("<main"), html.indexOf("</main>"));
-  const eigen = html.indexOf('class="eigene-sachen"');
-  const fremd = html.indexOf("Von den Verbänden");
-  assert.ok(eigen > -1, "die eigene Gruppe fehlt auf informationen.html");
-  assert.ok(fremd > -1, "die Verbandsgruppe ist nicht mehr benannt");
-  assert.ok(eigen < fremd, "die eigenen Sachen stehen nicht mehr zuerst");
+  assert.match(html, /Von den Verbänden/, "die Verbandsgruppe ist nicht mehr benannt");
+  assert.match(html, /const HERKUNFT = UNTERLAGEN\.herkunft/,
+    "die farbige Herkunft der Unterlagen ist nicht mehr angebunden");
 
-  // Als eigene erkennbar: Wappen UND Wortmarke, nicht nur ein Symbol.
-  assert.match(html, /class="wappen eigen-wappen"/, "der eigenen Gruppe fehlt das Wappen");
-  assert.match(html, /Von uns – <span data-verein="name">/, "der eigenen Gruppe fehlt die Wortmarke");
-
-  // Absagen besitzen inzwischen einen eigenen, aufgabenbezogenen Reiter.
-  // Ein zweiter Weg unter "Unterlagen" war im Elterntest missverständlich.
+  // Absagen und Installation besitzen bereits feste Hauptwege. Die
+  // Elterntests zeigten, dass ihre Wiederholung hier verwirrt.
   assert.doesNotMatch(inhalt, /href="vorlagen\.html"/,
     "die Absageseite wird unter Unterlagen erneut angeboten");
+  assert.doesNotMatch(inhalt, /href="installieren\.html"/,
+    "die Installationsanleitung wird unter Unterlagen erneut angeboten");
   const navigation = lies("src/ui/kopf-navigation.js");
   assert.match(navigation, /href: "vorlagen\.html", text: "Absagen"/,
     "die entfernte Unterlagen-Dublette fehlt nun auch in der Hauptnavigation");
@@ -407,6 +399,16 @@ test("Impressum, Datenschutz und Nutzungsbedingungen stehen in jeder Fusszeile",
       if (seite === ziel) continue;
       assert.ok(html.includes(`href="${ziel}"`), `${seite} verlinkt ${ziel} nicht`);
     }
+  }
+});
+
+test("die Fusszeile bleibt auf Rechtliches, Installation und Obmann-Zugang begrenzt", () => {
+  const seiten = [...SEITEN_MIT_LEISTE, "ausruestung.html", "frage-vorschlagen.html",
+    "installieren.html", "meine-anliegen.html", "meine-daten.html", "meine-statistik.html"];
+  for (const seite of seiten) {
+    const html = lies(seite);
+    const fuss = html.slice(html.indexOf('<footer class="seiten-fuss"'), html.indexOf("</footer>") + 9);
+    assert.doesNotMatch(fuss, /svf-dresden|dfbnet/i, `${seite}: externer Link steht wieder in der Fußzeile`);
   }
 });
 

@@ -7,7 +7,7 @@
   // Aermellaenge fragen.
   const KATEGORIEN = Object.freeze([
     { schluessel: "trikot", gruppe: "Bekleidung", wort: "Trikot", mehrzahl: "Trikots", icon: "shirt", farbe: true, groesse: true, aermel: true },
-    { schluessel: "hose", gruppe: "Bekleidung", wort: "Schiedsrichterhose", mehrzahl: "Hosen", icon: "shorts", farbe: true, groesse: true },
+    { schluessel: "hose", gruppe: "Bekleidung", wort: "Hose", mehrzahl: "Hosen", icon: "shorts", farbe: true, groesse: true },
     { schluessel: "stutzen", gruppe: "Bekleidung", wort: "Stutzen", mehrzahl: "Stutzen", icon: "socks", farbe: true, groesse: true },
     { schluessel: "schuhe", gruppe: "Bekleidung", wort: "Schuhe", mehrzahl: "Schuhe", icon: "shoe", farbe: true, groesse: true },
     { schluessel: "spielnotizkarten", gruppe: "Equipment", wort: "Spielnotizkarten", mehrzahl: "Spielnotizkarten", icon: "notes", verbrauch: true },

@@ -34,6 +34,11 @@ test("hoechstens fuenf Meldungen - danach ist es keine Erinnerung mehr", () => {
   assert.equal(baueMeldungen(viele, HEUTE).length, 5);
 });
 
+test("Termine werden chronologisch und nicht nach dem sichtbaren Datumstext sortiert", () => {
+  const meldungen = baueMeldungen([termin(10), termin(1), termin(4)], HEUTE);
+  assert.deepEqual(meldungen.map((m) => m.id), ["t1", "t4", "t10"]);
+});
+
 test("keine Termine heisst kein Band - das ist die Aussage, keine Luecke", () => {
   assert.deepEqual(baueMeldungen([], HEUTE), []);
   assert.deepEqual(baueMeldungen(null, HEUTE), []);
@@ -97,4 +102,6 @@ test("die Startseite haengt das Band ein und laedt die Termine nur einmal", () =
   // Der Abschnitt weiter unten holt die Liste jetzt aus demselben Modul.
   assert.match(html, /holeOeffentlicheTermine\(\)/);
   assert.doesNotMatch(html, /rpc\/oeffentliche_termine/);
+  assert.match(lies("src/website/startseite-aktuelles.js"), /aktuellesAktiv === true/);
+  assert.match(lies("verein.config.js"), /startseite: \{ aktuellesAktiv: false \}/);
 });
