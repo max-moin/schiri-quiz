@@ -33,30 +33,47 @@
       <a class="primaer-link" href="modus.html">Zum Anmelden</a>
     </div>
     <div id="vorschlag-inhalt" hidden>
+      <!-- Der Zurueck-Link muss hier in der Seite stehen: den Knopf oben im
+           Kopf entfernt src/ui/kopf-navigation.js beim Laden wieder
+           (jeder "a.sekundaer-button" mit "zurueck" im Text). Im
+           Usability-Test hatte die Seite deshalb gar keinen Rueckweg. -->
+      <a class="vorschlag-zurueck" href="melden.html">Zurück zu Ideen &amp; Feedback</a>
       <div class="vorschlag-kopf">
         <div><h1>Frage vorschlagen</h1><p>Arbeite die Frage mit Lösung und belastbarem Regelbeleg aus. Veröffentlicht wird sie erst nach Prüfung durch den Obmann.</p></div>
-        <button id="neuer-vorschlag" type="button" class="sekundaer-button">Neue Frage</button>
+        <button id="neuer-vorschlag" type="button" class="neben-knopf">Neue Frage</button>
       </div>
       <section class="vorschlag-layout">
         <form id="vorschlag-formular" class="vorschlag-karte">
           <input id="vorschlag-id" type="hidden" />
           <h2>1. Frage</h2>
+          <label>Die Frage selbst<small class="feld-hinweis">Wortlaut, wie er später im Quiz steht. Mindestens 10 Zeichen.</small><textarea id="fragetext" required minlength="10" rows="5" placeholder="z. B. Beim Einwurf stellt sich ein Gegenspieler einen Meter vor den einwerfenden Spieler. Wie entscheidest du?"></textarea></label>
+          <label>Kurztitel<small class="feld-hinweis">Nur die Überschrift für die Liste, 3–6 Wörter – nicht die ganze Frage. Beispiel: „Einwurf – Gegner zu nah“.</small><input id="kurztitel" maxlength="120" placeholder="Einwurf – Gegner zu nah" /></label>
           <div class="formular-raster">
-            <label>Kurztitel<input id="kurztitel" maxlength="120" placeholder="z. B. Einwurf – Gegner zu nah" /></label>
-            <label>Medium<select id="medium"><option value="text">Text</option><option value="video">Video</option><option value="bild">Bild</option></select></label>
-            <label>Antworttyp<select id="antworttyp"><option value="multiple_choice">Multiple Choice</option><option value="mehrfachauswahl">Mehrfachauswahl</option><option value="freitext">Freitext</option><option value="zahl">Zahl</option><option value="entscheidung">Entscheidung</option></select></label>
-            <label>Regelnummer<input id="regelnummer" inputmode="numeric" placeholder="z. B. 12" /></label>
+            <label>Womit wird die Frage gestellt?<select id="medium"><option value="text">Nur Text</option><option value="bild">Mit Bild</option><option value="video">Mit Video</option></select></label>
+            <label>Wie wird geantwortet?<select id="antworttyp"><option value="multiple_choice">Multiple Choice</option><option value="mehrfachauswahl">Mehrfachauswahl</option><option value="freitext">Freitext</option><option value="zahl">Zahl</option><option value="entscheidung">Entscheidung</option></select></label>
           </div>
-          <label>Fragestellung<textarea id="fragetext" required minlength="10" rows="5"></textarea></label>
           <div id="medium-zusatz"></div>
           <h2>2. Lösung</h2>
           <div id="loesung-felder"></div>
           <h2>3. Begründung und Beleg</h2>
-          <label>Warum ist diese Lösung richtig?<textarea id="begruendung" required minlength="40" rows="5" placeholder="Erkläre die Regelauslegung und wende sie auf die Situation an."></textarea></label>
-          <label>Beleg / Quelle<textarea id="beleg" required minlength="20" rows="3" placeholder="IFAB-/DFB-Regel, Ausgabe, Seite oder direkter Link"></textarea></label>
+          <label>Warum ist diese Lösung richtig?<small class="feld-hinweis">Mindestens 40 Zeichen. Erkläre die Regelauslegung und wende sie auf die Situation an.</small><textarea id="begruendung" required minlength="40" rows="5"></textarea></label>
+          <label>Beleg / Quelle<small class="feld-hinweis">Mindestens 20 Zeichen, z. B. „IFAB-Regel 15, Ausgabe 2025/26, Seite 98“ oder ein direkter Link.</small><textarea id="beleg" required minlength="20" rows="3"></textarea></label>
+          <h2>4. Regelnummer <span class="feld-marke">Optional</span></h2>
+          <label>Regelnummer<small class="feld-hinweis">Du weißt die Nummer nicht? Dann lass das Feld leer – der Obmann ergänzt sie bei der Prüfung.</small><input id="regelnummer" inputmode="numeric" placeholder="z. B. 12" /></label>
           <p id="formular-meldung" class="vorschlag-meldung" aria-live="polite"></p>
-          <div class="formular-aktionen"><button id="entwurf-speichern" type="button" class="sekundaer-button">Als Entwurf speichern</button><button id="einreichen" type="submit">Zur Prüfung einreichen</button></div>
+          <div class="formular-aktionen"><button id="entwurf-speichern" type="button" class="neben-knopf">Als Entwurf speichern</button><button id="einreichen" type="submit" class="haupt-knopf">Zur Prüfung einreichen</button></div>
         </form>
+        <div id="vorschlag-erfolg" class="vorschlag-karte vorschlag-erfolg" hidden tabindex="-1">
+          <p class="erfolg-marke">Eingereicht</p>
+          <h2>Deine Frage liegt jetzt beim Obmann</h2>
+          <p>Du musst nichts weiter tun. Sobald der Obmann sie angenommen, abgelehnt oder eine Änderung erbeten hat, siehst du das unter „Meine Anliegen“. In der Liste „Meine Vorschläge“ auf dieser Seite steht dein Vorschlag ab sofort mit dem Stand <strong>Eingereicht</strong>.</p>
+          <h3>Wie es weitergeht</h3>
+          <div class="erfolg-wege">
+            <button id="erfolg-neue-frage" type="button" class="haupt-knopf">Noch eine Frage vorschlagen</button>
+            <a class="neben-knopf" href="meine-anliegen.html">Zu meinen Anliegen</a>
+            <a class="neben-knopf" href="melden.html">Zurück zu Ideen &amp; Feedback</a>
+          </div>
+        </div>
         <aside class="vorschlag-karte"><h2>Meine Vorschläge</h2><div id="vorschlag-liste"><p>Wird geladen …</p></div></aside>
       </section>
       <section id="versionen-bereich" class="vorschlag-karte" hidden><h2>Änderungsverlauf</h2><p>Hier siehst du auch, welche Inhalte der Obmann verändert hat.</p><div id="versionen-liste"></div></section>
@@ -66,7 +83,7 @@
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
-      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
       <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>

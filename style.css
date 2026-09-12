@@ -870,8 +870,29 @@ button {
 .option.ist-richtig .option-marke { color: var(--green-dark); }
 .option.ist-falsch .option-marke { color: var(--red); }
 
+/* Trefferflaeche des Absende-Knopfes (Usability-Test Runde 3, iPhone: die
+   Testperson hat ihn zweimal hintereinander verfehlt und dachte, es passiere
+   nichts).
+
+   Gemessen war die Breite nie das Problem - "width: 100%" heisst hier volle
+   Kartenbreite. Zwei andere Dinge schon:
+
+   1. Die Hoehe hing allein an "padding: 13px 18px" der Grundregel fuer
+      button. Das ergibt rund 45 px, solange die Schrift genau so gerendert
+      wird wie erwartet - bei groesserer Systemschrift oder einer
+      Ersatzschrift kann die Zeilenbox kleiner ausfallen und der Knopf unter
+      44 px rutschen. "min-height" macht daraus einen garantierten Boden
+      (WCAG 2.5.5).
+   2. Ueber dem Knopf lagen nur 14 px Abstand zur letzten Antwortzeile - und
+      die ist selbst ein tippbares <label>. Ein Tipp knapp zu hoch landete
+      also nicht ins Leere, sondern wechselte still die ausgewaehlte Antwort:
+      es "passierte nichts" Sichtbares, und die Auswahl war trotzdem eine
+      andere. Der groessere Abstand macht den Fehlgriff folgenlos
+      (WCAG 2.5.8, Target Spacing). */
 .frage-karte .absenden-button {
   width: 100%;
+  min-height: 48px;
+  margin-top: 10px;
   background: var(--marke);
   color: white;
 }
@@ -975,6 +996,9 @@ button {
 .sammel-absenden-button {
   background: var(--blue);
   color: white;
+  /* Gleicher Boden wie beim Absende-Knopf der einzelnen Frage - er haengt
+     sonst ebenfalls allein am Innenabstand. */
+  min-height: 48px;
   padding: 13px 22px;
   border-radius: var(--radius-sm);
   font-weight: 700;
@@ -2289,8 +2313,12 @@ select:focus-visible,
   top: 0;
   right: 0;
   z-index: 30;
-  width: 44px;
-  height: 44px;
+  gap: 5px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 12px 0 8px;
+  font: 650 .88rem/1 var(--font-text, inherit);
+  text-decoration: none;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2795,9 +2823,50 @@ input.maskiert.sichtbar {
 }
 
 /* Der "Warum?"-Knopf bringt seinen eigenen Abstand mit. In der Zeile
-   wuerde er die beiden Knoepfe gegeneinander verschieben. */
+   wuerde er die beiden Knoepfe gegeneinander verschieben.
+
+   Usability-Test Runde 1, in Runde 3 bestaetigt: Steht die Antwort auf
+   "falsch", schiesst die Frustration hoch und man sucht eine BEGRUENDUNG -
+   nicht den Meldeweg. Vorher standen beide Knoepfe nebeneinander in einer
+   Zeile, und ausgerechnet der kleinere war die Erklaerung: "Warum?" war
+   rund 30 px hoch und nur ein Umriss, "Feedback geben" 44 px mit Icon. Das
+   Gewicht zeigte damit auf das Beschwerdeformular.
+
+   Ab jetzt steht die Erklaerung allein in der ersten Zeile, in voller
+   Breite und gefuellt - sie ist das Erste nach dem Ergebnis. Geaendert sind
+   nur Reihenfolge und Gewichtung; wie die Erklaerung entsteht, bleibt
+   unberuehrt (src/ui/explanation-dialog.js). */
 .loesung-aktionen .warum-button {
+  flex: 1 0 100%;
+  justify-content: center;
+  /* Vorher ergab sich die Hoehe allein aus 7 px Innenabstand und 0,82 rem
+     Schrift - rund 30 px und damit unter der Mindest-Trefferflaeche. */
+  min-height: 44px;
   margin-top: 0;
+  border-color: var(--blue);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+
+/* Voll ausgefuellt genau dort, wo der Test die Frustration gemessen hat:
+   bei falscher (und bei teilweise richtiger) Antwort. Auf richtig
+   beantworteten Karten bleibt derselbe Knopf ein Umriss - sonst leuchtete
+   auf einer abgearbeiteten Wochenliste hinter jeder Frage ein blauer
+   Balken, und die Betonung waere wieder keine. */
+.frage-karte.falsch-karte .loesung-aktionen .warum-button,
+.frage-karte.teilweise-karte .loesung-aktionen .warum-button {
+  background: var(--blue);
+  color: #fff;
+}
+
+.loesung-aktionen .warum-button:hover {
+  border-color: var(--blue-dark);
+  background: var(--blue-lighter);
+}
+
+.frage-karte.falsch-karte .loesung-aktionen .warum-button:hover,
+.frage-karte.teilweise-karte .loesung-aktionen .warum-button:hover {
+  background: var(--blue-dark);
 }
 
 .melde-knopf {
@@ -2830,6 +2899,17 @@ input.maskiert.sichtbar {
 .melde-knopf:focus-visible {
   outline: 3px solid var(--karte-gelb);
   outline-offset: 2px;
+}
+
+/* Gegenstueck zur Aufwertung des "Warum?"-Knopfes: Der Meldeweg bleibt
+   vollstaendig erhalten, steht aber jetzt in der zweiten Zeile und ohne
+   sichtbaren Rahmen da. Leiser heisst ausdruecklich nicht kleiner - die
+   44 px Trefferflaeche aus der Grundregel oben bleiben unangetastet
+   (WCAG 2.5.5), und beim Ueberfahren/Fokussieren kommt der Rahmen zurueck. */
+.loesung-aktionen .melde-knopf {
+  border-color: transparent;
+  color: var(--muted);
+  font-weight: 600;
 }
 
 .melde-symbol {
@@ -2906,6 +2986,11 @@ body.melde-dialog-offen {
 
 .melde-karte {
   box-sizing: border-box;
+  /* Die eigenen Innenabstaende als Variable, weil die klebende Knopfzeile
+     weiter unten genau sie wieder herausrechnen muss. Mobil werden beide
+     Werte im @media-Block ueberschrieben. */
+  --melde-rand: 22px;
+  --melde-rand-unten: 22px;
   width: min(100%, 460px);
   max-height: min(85dvh, 720px);
   overflow-y: auto;
@@ -2925,6 +3010,14 @@ body.melde-dialog-offen {
   gap: 12px;
 }
 
+/* Usability-Test Runde 3: "Das Kreuz ist zu klein und sieht anders aus als
+   die anderen Schliessen-Knoepfe." Nachgemessen war die Trefferflaeche
+   bereits 44 x 44 px - zu klein WIRKTE der Knopf, weil er keine hatte:
+   durchsichtiger Grund, nur ein duennes Kreuz. Der Erklaerungs-Dialog
+   nebenan zeigt an derselben Stelle einen gefuellten grauen Kreis
+   (.erklaerung-schliessen-button). Der Knopf bekommt deshalb dieselbe
+   Bauart - Kreisflaeche, gedaempftes Grau, rot beim Ueberfahren - und
+   behaelt die 44 px (WCAG 2.5.5). */
 .melde-schliessen {
   display: inline-flex;
   align-items: center;
@@ -2935,12 +3028,13 @@ body.melde-dialog-offen {
   margin: -4px -4px 0 0;
   border: 0;
   border-radius: 50%;
-  background: transparent;
+  background: var(--bg-end);
   color: var(--muted);
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 
-.melde-schliessen:hover { background: var(--bg-end); color: var(--text); }
+.melde-schliessen:hover { background: var(--red-light); color: var(--red); }
 .melde-schliessen:focus-visible {
   outline: 3px solid var(--karte-gelb);
   outline-offset: 1px;
@@ -3050,6 +3144,8 @@ body.melde-dialog-offen {
   }
 
   .melde-karte {
+    --melde-rand: 16px;
+    --melde-rand-unten: 18px;
     width: 100%;
     max-height: calc(100dvh - max(24px, env(safe-area-inset-top)) - max(12px, env(safe-area-inset-bottom)));
     border-radius: 20px;
@@ -3099,11 +3195,29 @@ body.melde-dialog-offen {
   color: var(--green-dark);
 }
 
+/* Usability-Test Runde 3: "Zum Absende-Knopf muss man scrollen, obwohl
+   genug Platz auf dem Bildschirm war." Die Ursache war nicht die
+   Fenstergroesse, sondern der Ablauf: Erst mit der Wahl einer Kategorie
+   klappt die Texteingabe auf, und sie schiebt die Knopfzeile in einem Zug
+   unter den unteren Rand der scrollbaren Karte - sichtbar bleibt nur das
+   Textfeld, in das der Fokus gerade gesprungen ist. Wer tippt, sieht also
+   nie, wohin er als Naechstes soll.
+
+   Die Zeile klebt deshalb am unteren Rand der Karte. "bottom: 0" bezieht
+   sich auf den sichtbaren Ausschnitt der Karte; die negativen Aussenabstaende
+   ziehen die Zeile bis an deren Innenkanten, damit darunter kein Text
+   durchscrollt. */
 .melde-aktionen {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: 16px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin: 16px calc(var(--melde-rand) * -1) calc(var(--melde-rand-unten) * -1);
+  padding: 12px var(--melde-rand) 14px;
+  background: var(--card-bg);
+  border-top: 1px solid var(--border);
 }
 
 .melde-knopf-senden,
@@ -3139,3 +3253,26 @@ body.melde-dialog-offen {
   outline: 3px solid var(--karte-gelb);
   outline-offset: 2px;
 }
+
+/* ============================================================
+   Wegweiser auf den rechtlichen Seiten (12.09.2026)
+   ============================================================
+   impressum/datenschutz/nutzungsbedingungen laden AUSSCHLIESSLICH diese
+   Datei - kein basis.css, kein kopf-fuss.css, kein JavaScript. Der
+   Wegweiser steht dort als festes HTML, also braucht er seine paar
+   Regeln auch hier. Bewusst eine Dublette und kein gemeinsamer Import:
+   ein zweites Stylesheet nur fuer drei Zeilen waere auf jeder dieser
+   Seiten ein zusaetzlicher Netzaufruf vor dem ersten Bild. */
+.wegweiser { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; margin: 0 0 18px; }
+.wegweiser-zurueck {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 44px;
+  padding: 8px 15px 8px 11px; border: 1px solid var(--border); border-radius: 999px;
+  background: var(--card); color: var(--text); font-weight: 650; font-size: .93rem; text-decoration: none;
+}
+.wegweiser-pfeil { font-size: 1.25rem; line-height: 1; }
+.wegweiser-pfad { display: none; margin: 0; padding: 0; list-style: none; font-size: .85rem; color: var(--muted); }
+.wegweiser-pfad li { display: inline; }
+.wegweiser-pfad li + li::before { content: "\203A"; margin: 0 7px; color: var(--border); }
+.wegweiser-pfad a { color: var(--muted); }
+.wegweiser-pfad [aria-current="page"] { color: var(--text); font-weight: 650; }
+@media (min-width: 640px) { .wegweiser-pfad { display: block; } }

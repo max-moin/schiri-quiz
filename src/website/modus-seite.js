@@ -45,6 +45,21 @@ const sicher = (t) => String(t ?? "").replace(/[&<>"']/g,
 
 // ---------- Kacheln ----------
 
+// Usability-Test Runde 3 (iPhone): Die Testperson tippte in der Kopfleiste
+// auf "Zum Quiz", landete hier - und wartete. Dass erst ein Tipp auf die
+// Kachel die Runde startet, stand nirgends: "Fragen dieser Woche" nennt ein
+// Thema, keine Handlung. Diese Zeile spricht die Handlung aus (ISO 9241-110,
+// Selbstbeschreibungsfaehigkeit) und sagt bei einer angefangenen Runde
+// gleich, bei welcher Frage es weitergeht. Der Zustand steht damit zweimal
+// da - in der Pille oben ("3 offen") und hier als naechster Schritt.
+function wochenAktionsText({ offen, gesamt, unbekannt, fertig }) {
+  if (fertig) return "Antworten ansehen";
+  // Solange die Zahlen noch nicht da sind, verspricht die Zeile nur das,
+  // was in jedem Fall stimmt: ein Tipp startet die Runde.
+  if (unbekannt || gesamt === 0 || offen >= gesamt) return "Fragen dieser Woche starten";
+  return `Weiter – Frage ${gesamt - offen + 1} von ${gesamt}`;
+}
+
 function wochenKachel({ offen, gesamt, unbekannt }) {
   const fertig = !unbekannt && gesamt > 0 && offen === 0;
   const anteil = gesamt > 0 ? Math.round(((gesamt - offen) / gesamt) * 100) : 0;
@@ -69,10 +84,43 @@ function wochenKachel({ offen, gesamt, unbekannt }) {
           <span style="width:${anteil}%"></span>
         </div>
         <span class="modus-fuss">${gesamt - offen} von ${gesamt} beantwortet</span>`}
+      <span class="modus-aktion">${wochenAktionsText({ offen, gesamt, unbekannt, fertig })}<span aria-hidden="true">→</span></span>
     </a>`;
 }
 
+/* Runde 2 und 3 des Usability-Tests: beide Personen sind in "Entscheiden"
+   gelandet und standen vor einer leeren Seite - der Modus hat noch keine
+   Szenen. Gesperrt wird aber nur, wenn die Statistik wirklich geladen
+   wurde und null Szenarien meldet. Faellt die Abfrage aus (statistik ===
+   null), ist "keine Fragen" nicht bewiesen: dann bleibt der Weg offen,
+   sonst sperrt eine schlechte Verbindung einen fertigen Modus weg. */
+function entscheidenOhneInhalt(statistik) {
+  return Boolean(statistik) && Number(statistik.szenarien_gesamt) === 0;
+}
+
 function entscheidenKachel(statistik, hervorgehoben) {
+  /* Kein <a>, sondern eine tote Flaeche mit aria-disabled - dasselbe
+     Muster, mit dem die Kopfleiste Spesenrechner und Regeluebersicht als
+     noch nicht verfuegbar markiert (.nav-deaktiviert). Und ein Satz,
+     warum hier gerade nichts geht: ein toter Knopf ohne Begruendung ist
+     schlimmer als gar keiner. */
+  if (entscheidenOhneInhalt(statistik)) {
+    return `
+      <div class="modus-kachel modus-vorbereitung" aria-disabled="true"
+           title="Für „Entscheiden“ sind noch keine Szenen freigegeben">
+        <div class="modus-kopf">
+          <span class="modus-name">Entscheiden</span>
+          <span class="modus-pille vorbereitung">In Vorbereitung</span>
+        </div>
+        <p class="modus-text">
+          Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?
+        </p>
+        <span class="modus-fuss">
+          Noch keine Szenen freigegeben. Sobald die ersten fertig sind, kannst du hier starten.
+        </span>
+      </div>`;
+  }
+
   if (!statistik) {
     return `
       <a class="modus-kachel${hervorgehoben ? " hervorgehoben" : ""}" href="entscheiden.html">
@@ -114,7 +162,7 @@ function duellKachel() {
         <span class="modus-name">Quiz-Duell</span>
         <span class="modus-pille neu">Neu</span>
       </div>
-      <p class="modus-text">Fünf frühere Wochenfragen. Erstelle einen Code oder tritt als Gast bei.</p>
+      <p class="modus-text">Fünf frühere Wochenfragen. Eröffne eine Runde und lade jemanden per Link ein – oder tritt einer Einladung bei.</p>
       <span class="modus-fuss">Asynchron · ohne Einfluss aufs Scoreboard</span>
     </a>`;
 }
@@ -142,6 +190,7 @@ function gastKachel() {
       </div>
       <p class="modus-text">Ein paar freigegebene Fragen unverbindlich ausprobieren.</p>
       <span class="modus-fuss">Ohne Wochenstand · ohne Scoreboard</span>
+      <span class="modus-aktion">Gastquiz starten<span aria-hidden="true">→</span></span>
     </a>`;
 }
 
@@ -150,10 +199,17 @@ function gastKachel() {
 function zeichne({ woche, statistik, angemeldet }) {
   const wochenfragenFertig = woche && !woche.unbekannt && woche.gesamt > 0 && woche.offen === 0;
 
+  /* Nach erledigter Wochenrunde uebernimmt "Entscheiden" sonst die
+     Hervorhebung und die erste Stelle. Ein Modus ohne Inhalt darf das
+     nicht: die Reihenfolge soll zum naechsten sinnvollen Schritt fuehren,
+     und eine gesperrte Kachel ganz oben ist das Gegenteil davon. Dann
+     rutscht sie nach hinten, und "Üben" bleibt trotzdem frei. */
+  const entscheidenFuehrt = wochenfragenFertig && !entscheidenOhneInhalt(statistik);
+
   const kacheln = angemeldet
-    ? (wochenfragenFertig
+    ? (entscheidenFuehrt
         ? [entscheidenKachel(statistik, true), wochenKachel(woche), uebenKachel(true), duellKachel()]
-        : [wochenKachel(woche), uebenKachel(false), entscheidenKachel(statistik, false), duellKachel()])
+        : [wochenKachel(woche), uebenKachel(wochenfragenFertig), entscheidenKachel(statistik, false), duellKachel()])
     : [gastKachel(), duellKachel()];
 
   bereich.innerHTML = `

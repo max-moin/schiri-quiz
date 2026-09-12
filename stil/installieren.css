@@ -5,6 +5,13 @@
   margin: 24px 0; padding: 18px; border: 1px solid var(--border);
   border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow);
 }
+/* Die Kachel traegt im HTML "hidden" und wird erst durch
+   beforeinstallprompt eingeblendet. Ohne diese Zeile blieb sie trotzdem
+   sichtbar: die Browserregel fuer [hidden] ist "display: none", und das
+   "display: flex" darueber schlaegt sie. Auf dem iPhone stand damit
+   dauerhaft "Dein Browser kann die Seite direkt installieren" - was dort
+   gerade nicht stimmt, denn Safari kennt beforeinstallprompt nicht. */
+.installieren-direkt[hidden] { display: none; }
 .installieren-direkt img { width: 64px; height: 64px; border-radius: 14px; }
 .installieren-direkt h2 { margin: 0 0 4px; font: 700 1.05rem var(--font-titel); }
 .installieren-direkt p { margin: 0; color: var(--muted); font-size: .86rem; }
@@ -25,6 +32,15 @@
 }
 .installieren-schritte strong { color: var(--text); }
 .installieren-symbol { display: inline-flex; align-items: center; justify-content: center; min-width: 28px; min-height: 28px; margin: 0 2px; border: 1px solid var(--border); border-radius: 7px; color: var(--marke); font-weight: 800; }
+
+/* Das iPhone-Teilen-Symbol ist gezeichnet, nicht getippt (Runde 3: die
+   Testperson suchte im Safari-Menue nach dem abgebildeten blossen Pfeil
+   nach oben und fand ihn nicht). Das SVG erbt die Farbe ueber
+   currentColor, damit es sich nicht vom Rest der Schrittliste loest.
+   Die feste Groesse steht hier und nicht im HTML, damit ein zweites
+   Symbol spaeter automatisch gleich gross wird. */
+.installieren-symbol svg { display: block; width: 20px; height: 20px; }
+.installieren-symbol:has(svg) { padding: 3px; }
 .installieren-hinweis { margin-top: 18px; padding: 14px; border-radius: var(--radius-sm); background: var(--marke-lighter); color: var(--muted); font-size: .82rem; line-height: 1.5; }
 .installieren-quellen { margin-top: 28px; color: var(--muted); font-size: .78rem; }
 .installieren-quellen a { color: var(--marke); }

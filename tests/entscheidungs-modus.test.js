@@ -220,6 +220,30 @@ test("die beiden neuen Seiten laden ihre eigenen Bausteine", () => {
   assert.match(entscheiden, /name="robots" content="noindex"/);
 });
 
+test("ein Modus ohne Szenen sieht nicht aus wie ein spielbarer", () => {
+  // Runde 2 und 3 der Usability-Tests: beide Personen sind in
+  // "Entscheiden" gelandet und standen vor einer leeren Seite.
+  const modus = jsOhneKommentare(lies("src/website/modus-seite.js"));
+  const stil = jsOhneKommentare(lies("stil/modus.css"));
+
+  // Gesperrt wird nur bei BEWIESENER Leere. Faellt die Statistikabfrage
+  // aus (statistik === null), ist "keine Fragen" nicht bewiesen - dann
+  // darf eine schlechte Verbindung keinen fertigen Modus wegsperren.
+  assert.match(modus, /Boolean\(statistik\) && Number\(statistik\.szenarien_gesamt\) === 0/);
+
+  // Dieselbe Sprache wie die gesperrten Punkte der Kopfleiste
+  // (.nav-deaktiviert): kein Link, aria-disabled, ein Wort statt eines
+  // Schlosses - und ein Satz, warum hier gerade nichts geht.
+  assert.match(modus, /<div class="modus-kachel modus-vorbereitung" aria-disabled="true"/);
+  assert.match(modus, /In Vorbereitung/);
+  assert.match(modus, /Noch keine Szenen freigegeben/);
+  assert.match(stil, /\.modus-kachel\.modus-vorbereitung/);
+
+  // Und sie fuehrt die Liste nicht an: die Reihenfolge soll zum
+  // naechsten sinnvollen Schritt fuehren.
+  assert.match(modus, /const entscheidenFuehrt = wochenfragenFertig && !entscheidenOhneInhalt\(statistik\)/);
+});
+
 test("der Modus liegt hinter der Anmeldung, ohne Gastweg", () => {
   const v94 = sqlOhneKommentare(migration("v94_szenario_spielerseite"));
 

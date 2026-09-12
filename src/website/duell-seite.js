@@ -121,7 +121,25 @@ function fehler(error) {
 }
 function versteckeFehler() { root.querySelector("[data-fehler]")?.remove(); }
 
+
 // ---------- Einstiegsbildschirm ----------
+//
+// Umbau am 11.09.2026 nach drei moderierten Tests. "Ein Duell starten"
+// ist in ALLEN DREI Sitzungen gescheitert, jedes Mal an derselben
+// Stelle. Beobachtet wurde:
+//   - Die zwei Karten "Neues Duell" und "Beitreten" sahen gleich
+//     wichtig aus. Welche der beiden der eigene Weg ist, war nicht
+//     erkennbar; zwei Personen haben ueber "Beitreten" versucht, sich
+//     SELBST einen Code zu erzeugen.
+//   - Die alte Knopfbeschriftung klang nach einer Pflichtuebung vor
+//     dem Spiel, nicht nach "ich eroeffne hier eine Runde".
+//   - Wer ueber einen geteilten Link kam, sah trotzdem beide Karten und
+//     baute sich daneben einen zweiten, leeren Raum.
+//   - Danach war nie sichtbar, ob ueberhaupt jemand beigetreten ist.
+//     Der Wunsch nach einem Warteraum stand schon im ersten Test woertlich.
+// Deshalb: der Einladungsfall bekommt einen eigenen Bildschirm, die
+// beiden Wege sind unterschiedlich gewichtet, die Wortwahl sagt was
+// passiert, und aus dem Code-Bildschirm wird ein echter Warteraum.
 
 function relativeZeit(zeitstempel) {
   const minuten = Math.round((Date.now() - zeitstempel) / 60000);
@@ -129,6 +147,10 @@ function relativeZeit(zeitstempel) {
   const stunden = Math.round(minuten / 60);
   if (stunden < 24) return `vor ${stunden} Std.`;
   return `vor ${Math.round(stunden / 24)} Tagen`;
+}
+
+function leseCodeAusAdresse() {
+  return new URLSearchParams(location.search).get("code")?.toUpperCase().replace(/[^A-F0-9]/g, "").slice(0, 6) || "";
 }
 
 async function baueLetzteDuelleHtml(person) {
@@ -141,48 +163,34 @@ async function baueLetzteDuelleHtml(person) {
     if (!liste?.length) return "";
     const zeilen = liste.slice(0, LETZTE_DUELLE_MAX).map((d) => `<button type="button" class="duell-liste-eintrag" data-code="${esc(d.code)}" data-zugang="${esc(d.zugang)}">
       <span class="duell-liste-code">${esc(d.code)}</span>
-      <span class="duell-liste-info">${d.ich_richtig}/${d.ich_beantwortet} richtig · ${d.status === "offen" ? "läuft" : "beendet"}</span></button>`).join("");
-    return `<div class="duell-letzte-duelle"><h2>Deine letzten Duelle</h2><div class="duell-liste">${zeilen}</div></div>`;
+      <span class="duell-liste-info">${d.ich_richtig}/${d.ich_beantwortet} richtig · ${d.status === "offen" ? "läuft noch" : "beendet"}</span></button>`).join("");
+    return `<section class="card duell-letzte-duelle"><h2>Deine Duelle</h2>
+      <p class="duell-kleingedruckt">Tipp auf ein Duell, um dort weiterzumachen oder die Auswertung zu sehen.</p>
+      <div class="duell-liste">${zeilen}</div></section>`;
   }
   const lokal = leseLetzteDuelle();
   if (!lokal.length) return "";
   const zeilen = lokal.map((d) => `<button type="button" class="duell-liste-eintrag" data-code="${esc(d.code)}" data-zugang="${esc(d.zugang)}">
     <span class="duell-liste-code">${esc(d.code)}</span>
     <span class="duell-liste-info">${esc(relativeZeit(d.zuletztGesehenAm))}</span></button>`).join("");
-  return `<div class="duell-letzte-duelle"><h2>Zuletzt gespielt</h2><div class="duell-liste">${zeilen}</div></div>`;
+  return `<section class="card duell-letzte-duelle"><h2>Zuletzt gespielt</h2>
+    <p class="duell-kleingedruckt">Tipp auf ein Duell, um dort weiterzumachen.</p>
+    <div class="duell-liste">${zeilen}</div></section>`;
 }
 
-async function startAnsicht() {
-  setzeKopf();
-  const person = anmeldung?.lesen();
-  const code = new URLSearchParams(location.search).get("code")?.toUpperCase().replace(/[^A-F0-9]/g, "").slice(0, 6) || "";
-  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
-    <section class="card duell-einstiegskarte"><h2>Quiz-Duell</h2><p class="duell-einstieg">Fünf frühere Wochenfragen – ohne Einfluss auf euren normalen Quizstand.</p></section>
-    <div class="duell-start">
-      <section class="card duell-karte"><span class="duell-symbol">⚔️</span><h2>Neues Duell</h2><p>Du erhältst einen Code zum Teilen. Maximal drei offene Duelle.</p>
-        ${person ? '<button class="duell-haupt" data-erstellen>Code erstellen</button>' : '<button class="duell-haupt" data-login>Als Vereinsmitglied anmelden</button>'}</section>
-      <section class="card duell-karte"><span class="duell-symbol">🔑</span><h2>Beitreten</h2><form data-beitreten>
-        <label>Session-Code<input name="code" value="${esc(code)}" maxlength="6" autocomplete="off" required></label>
-        ${person ? `<p>Du spielst als <strong>${esc(person.name)}</strong>.</p>` : '<label>Dein Anzeigename<input name="name" minlength="2" maxlength="30" autocomplete="nickname" required></label>'}
-        <button class="duell-haupt" type="submit">Duell öffnen</button></form></section>
-    </div>
-    <div data-letzte-duelle></div>`;
+function beitretenFormularHtml(person, code) {
+  return `<form data-beitreten>
+      <label>Code des Duells<input name="code" value="${esc(code)}" maxlength="6" autocomplete="off" required></label>
+      ${person
+        ? `<p class="duell-als">Du spielst als <strong>${esc(person.name)}</strong>.</p>`
+        : '<label>Dein Anzeigename<input name="name" minlength="2" maxlength="30" autocomplete="nickname" required></label>'}
+      <button class="duell-haupt" type="submit">Duell beitreten</button></form>`;
+}
 
-  root.querySelector("[data-login]")?.addEventListener("click", async () => {
-    const e = await loginDialog?.oeffne({ grund: "Nur angemeldete Vereinsmitglieder können einen Code erstellen.", gastErlaubt: false });
-    if (e?.status === "angemeldet") startAnsicht();
-  });
-  root.querySelector("[data-erstellen]")?.addEventListener("click", async (event) => {
-    event.currentTarget.disabled = true;
-    try {
-      const d = await api.erstellen(person);
-      speichernSitzung({ code: d.code, zugang: d.zugang });
-      merkeLetztesDuell(d.code, d.zugang);
-      codeAnsicht(true);
-    } catch (e) { event.currentTarget.disabled = false; fehler(e); }
-  });
-  root.querySelector("[data-beitreten]").addEventListener("submit", async (event) => {
+function verdrahteBeitreten(person) {
+  root.querySelector("[data-beitreten]")?.addEventListener("submit", async (event) => {
     event.preventDefault();
+    versteckeFehler();
     const form = new FormData(event.currentTarget);
     const knopf = event.currentTarget.querySelector("button");
     knopf.disabled = true;
@@ -193,7 +201,82 @@ async function startAnsicht() {
       await einstiegInLaufendesDuell();
     } catch (e) { knopf.disabled = false; fehler(e); }
   });
+}
 
+// Wer ueber einen geteilten Link kommt, will genau eines: beitreten.
+// "Neues Duell" daneben hat in Runde 3 dazu gefuehrt, dass die
+// Testperson sich selbst einen zweiten Raum gebaut hat, waehrend der
+// Gegner im ersten wartete. Also hier nur der eine Weg - und ein
+// ausgeschriebener Nebenweg fuer alle, die es doch anders wollen.
+function einladungsAnsicht(code) {
+  stoppeWarteUhr();
+  const person = anmeldung?.lesen();
+  setzeKopf({ untertitel: "Du wurdest zu einem Duell eingeladen." });
+  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
+    <section class="card duell-karte duell-karte-haupt">
+      <span class="duell-symbol">✉️</span>
+      <h2>Du bist eingeladen</h2>
+      <p>Jemand hat ein Duell eröffnet und dir den Link geschickt. Trag deinen Namen ein – dann spielt ihr dieselben fünf Fragen.</p>
+      ${beitretenFormularHtml(person, code)}
+    </section>
+    <p class="duell-anderer-weg">
+      <button type="button" class="duell-textknopf" data-selbst>Ich möchte stattdessen selbst ein Duell eröffnen</button>
+    </p>`;
+  verdrahteBeitreten(person);
+  root.querySelector("[data-selbst]").addEventListener("click", () => {
+    history.replaceState({}, "", location.pathname);
+    startAnsicht();
+  });
+}
+
+async function startAnsicht() {
+  stoppeWarteUhr();
+  const eingeladen = leseCodeAusAdresse();
+  if (eingeladen) return einladungsAnsicht(eingeladen);
+
+  setzeKopf();
+  const person = anmeldung?.lesen();
+  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
+    <div data-letzte-duelle></div>
+    <section class="card duell-karte duell-karte-haupt">
+      <span class="duell-symbol">⚔️</span>
+      <h2>Neues Duell eröffnen</h2>
+      <p>So läuft es ab:</p>
+      <ol class="duell-ablauf">
+        <li>Du eröffnest ein Duell und bist zunächst allein darin.</li>
+        <li>Du schickst den Link weiter – zum Beispiel per WhatsApp.</li>
+        <li>Sobald jemand beigetreten ist, startest du die Runde.</li>
+      </ol>
+      ${person
+        ? '<button class="duell-haupt" data-erstellen>Duell eröffnen</button><p class="duell-kleingedruckt">Höchstens drei offene Duelle gleichzeitig.</p>'
+        : '<button class="duell-haupt" data-login>Als Vereinsmitglied anmelden</button><p class="duell-kleingedruckt">Eröffnen können nur angemeldete Vereinsmitglieder. Beitreten geht auch ohne Anmeldung.</p>'}
+    </section>
+    <section class="card duell-karte duell-karte-zweit">
+      <span class="duell-symbol">🔑</span>
+      <h2>Einem Duell beitreten</h2>
+      <p>Hat dir jemand einen Code oder einen Link geschickt? Dann kommst du hier hinein.</p>
+      ${beitretenFormularHtml(person, "")}
+    </section>`;
+
+  root.querySelector("[data-login]")?.addEventListener("click", async () => {
+    const e = await loginDialog?.oeffne({ grund: "Ein Duell eröffnen können nur angemeldete Vereinsmitglieder.", gastErlaubt: false });
+    if (e?.status === "angemeldet") startAnsicht();
+  });
+  root.querySelector("[data-erstellen]")?.addEventListener("click", async (event) => {
+    event.currentTarget.disabled = true;
+    versteckeFehler();
+    try {
+      const d = await api.erstellen(person);
+      speichernSitzung({ code: d.code, zugang: d.zugang });
+      merkeLetztesDuell(d.code, d.zugang);
+      warteraumAnsicht(true);
+    } catch (e) { event.currentTarget.disabled = false; fehler(e); }
+  });
+  verdrahteBeitreten(person);
+
+  // Die eigenen Duelle standen bisher ganz unten und wurden in Runde 3
+  // schlicht nie gesehen - auch nicht von jemandem, der selbst gerade
+  // eines eroeffnet hatte. Sie stehen jetzt oben.
   const letzteHtml = await baueLetzteDuelleHtml(person).catch(() => "");
   const halter = root.querySelector("[data-letzte-duelle]");
   if (halter && letzteHtml) {
@@ -205,27 +288,116 @@ async function startAnsicht() {
   }
 }
 
-function codeAnsicht(neu = false) {
-  setzeKopf({ untertitel: "Code teilen – danach startet dein Duell." });
+// ---------- Warteraum ----------
+//
+// Vorher hiess dieser Bildschirm nur "Session-Code" und zeigte Code,
+// "Link kopieren" und "Jetzt spielen" - ohne jede Auskunft darueber, ob
+// jemand da ist. Jetzt: ausgeschriebener Ablauf, eine Teilnehmerliste,
+// die sich selbst nachlaedt, und ein Start, der nachfragt, solange man
+// allein im Raum ist.
+let warteUhr = null;
+function stoppeWarteUhr() {
+  if (warteUhr) { clearInterval(warteUhr); warteUhr = null; }
+}
+
+function warteraumAnsicht(neu = false) {
+  stoppeWarteUhr();
+  setzeKopf({ untertitel: "Warteraum – erst teilen, dann starten." });
   const url = `${location.origin}${location.pathname}?code=${sitzung.code}`;
-  root.innerHTML = `<section class="duell-code card duell-karte"><span class="duell-symbol">${neu ? "🎯" : "⚔️"}</span><p>Session-Code</p><strong>${esc(sitzung.code)}</strong>
-    <p>Teile den Code oder den Link. Jede Person braucht nur einen Anzeigenamen.</p>
-    <div class="duell-aktionen"><button data-kopieren>Link kopieren</button><button class="duell-haupt" data-start>Jetzt spielen</button><button data-neu>Anderes Duell</button></div></section>`;
-  root.querySelector("[data-kopieren]").addEventListener("click", async (e) => { await navigator.clipboard?.writeText(url); e.currentTarget.textContent = "Kopiert ✓"; });
-  root.querySelector("[data-start]").addEventListener("click", laden);
-  root.querySelector("[data-neu]").addEventListener("click", neuesDuellStarten);
+  root.innerHTML = `<div class="historie-kopf">
+      <button type="button" class="sekundaer-button duell-zurueck" data-zurueck>← Meine Duelle</button>
+    </div>
+    <section class="card duell-karte duell-warteraum">
+      <span class="duell-symbol">${neu ? "🎯" : "⚔️"}</span>
+      <h2>${neu ? "Dein Duell ist eröffnet" : "Warteraum"}</h2>
+      <p class="duell-code-label">Code des Duells</p>
+      <strong class="duell-code-wert">${esc(sitzung.code)}</strong>
+      <ol class="duell-ablauf">
+        <li>Schick den Link an die Person, gegen die du spielen willst.</li>
+        <li>Warte, bis sie unten in der Liste auftaucht.</li>
+        <li>Dann startest du die Runde.</li>
+      </ol>
+      <div class="duell-aktionen">
+        <button type="button" data-teilen>Link teilen</button>
+      </div>
+      <div class="duell-warteliste">
+        <h3>Bisher dabei</h3>
+        <ul class="duell-namen" data-namen><li>Du</li></ul>
+        <p class="duell-kleingedruckt" data-warte-hinweis aria-live="polite">Noch ist niemand beigetreten. Die Liste aktualisiert sich von selbst.</p>
+      </div>
+      <button class="duell-haupt" type="button" data-start>Duell starten</button>
+    </section>`;
+
+  const startKnopf = root.querySelector("[data-start]");
+  let alleine = true;
+  let startScharf = false;
+
+  root.querySelector("[data-zurueck]").addEventListener("click", () => { stoppeWarteUhr(); startAnsicht(); });
+
+  // Auf dem Handy ist das systemeigene Teilen der kuerzeste Weg nach
+  // WhatsApp - genau der Weg, den die Testperson gesucht hat. Ohne
+  // Unterstuetzung faellt es auf die Zwischenablage zurueck.
+  root.querySelector("[data-teilen]").addEventListener("click", async (event) => {
+    const knopf = event.currentTarget;
+    const text = `Ich fordere dich zu einem Quiz-Duell heraus. Code ${sitzung.code}.`;
+    try {
+      if (navigator.share) { await navigator.share({ title: "Quiz-Duell", text, url }); return; }
+      await navigator.clipboard?.writeText(url);
+      knopf.textContent = "Link kopiert ✓";
+    } catch { /* Abbrechen ist kein Fehler */ }
+  });
+
+  startKnopf.addEventListener("click", () => {
+    if (alleine && !startScharf) {
+      startScharf = true;
+      startKnopf.textContent = "Noch ist niemand da – trotzdem starten?";
+      return;
+    }
+    stoppeWarteUhr();
+    laden();
+  });
+
+  async function aktualisiereWarteliste() {
+    const liste = root.querySelector("[data-namen]");
+    if (!liste) return stoppeWarteUhr();
+    const stand = await api.stand(sitzung.zugang).catch(() => null);
+    const teilnehmer = stand?.teilnehmer || [];
+    if (!teilnehmer.length) return;
+    liste.innerHTML = teilnehmer
+      .map((t) => `<li>${esc(t.name)}${t.name === stand.ich ? " (du)" : ""}</li>`).join("");
+    const andere = teilnehmer.filter((t) => t.name !== stand.ich).length;
+    alleine = andere === 0;
+    const hinweis = root.querySelector("[data-warte-hinweis]");
+    if (hinweis) {
+      hinweis.textContent = andere
+        ? `${andere === 1 ? "Eine Person ist" : `${andere} Personen sind`} beigetreten. Du kannst starten.`
+        : "Noch ist niemand beigetreten. Die Liste aktualisiert sich von selbst.";
+    }
+    if (!alleine && !startScharf) startKnopf.textContent = "Duell starten";
+  }
+
+  aktualisiereWarteliste();
+  warteUhr = setInterval(aktualisiereWarteliste, 4000);
 }
 
 // ---------- Fortschritt + Frage-Karte ----------
 
 function baueFortschrittHtml(f) {
   setzeKopf({ untertitel: "Wie im Wochenquiz – diesmal im direkten Vergleich.", position: f.position, gesamt: f.gesamt });
-  return `<div class="historie-kopf duell-spiel-kopf"><button class="sekundaer-button" type="button" data-duell-uebersicht>Duellübersicht</button><button class="historie-neu-laden-button" type="button" data-neues-duell>Neues Duell</button></div>`;
+  return `<div class="historie-kopf duell-spiel-kopf"><button class="sekundaer-button" type="button" data-duell-uebersicht>Zwischenstand</button><button class="historie-neu-laden-button" type="button" data-duell-verlassen>Duell verlassen</button></div>`;
 }
 
+// Das alte "Neues Duell" warf mitten im Spiel ohne Rueckfrage alles weg -
+// das war der beobachtete "springt ganz zurueck"-Fehler. Jetzt fragt der
+// Knopf selbst nach; ein Browserdialog kommt hier nicht in Frage.
 function verdrahteSpielKopf() {
   root.querySelector("[data-duell-uebersicht]")?.addEventListener("click", () => uebersichtAnsicht(true));
-  root.querySelector("[data-neues-duell]")?.addEventListener("click", neuesDuellStarten);
+  const verlassen = root.querySelector("[data-duell-verlassen]");
+  let scharf = false;
+  verlassen?.addEventListener("click", () => {
+    if (!scharf) { scharf = true; verlassen.textContent = "Wirklich verlassen? Nochmal tippen."; return; }
+    neuesDuellStarten();
+  });
 }
 
 function scoreboardHtml(stand) {

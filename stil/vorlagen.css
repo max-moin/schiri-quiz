@@ -35,7 +35,7 @@
   font: inherit; font-size: .8rem; font-weight: 600;
   padding: 9px 16px; border-radius: 999px;
   border: 1px solid var(--border); background: var(--card); color: var(--marke-hell);
-  cursor: pointer; min-height: 40px;
+  cursor: pointer; min-height: 44px;
 }
 .kopieren:hover { border-color: var(--marke-hell); }
 .kopieren.fertig { background: var(--green-light); border-color: var(--green); color: var(--green-dark); }
@@ -79,3 +79,94 @@
 
 #email-spiel { scroll-margin-top: 110px; }
 .lehrabend-hinweis { margin-bottom: 10px; }
+
+/* ---------- Die drei Fragen vor dem Ablauf ---------- */
+
+/* Runde 1 des Usability-Tests liess drei Fragen offen: wen benachrichtige
+   ich, worueber, bis wann. Als Fliesstext gingen sie beim Ueberfliegen
+   unter - deshalb je eine eigene Flaeche mit der Frage als Ueberschrift.
+   Der farbige Streifen links bindet die drei zu einer Gruppe zusammen,
+   ohne dass ueber ihnen noch eine Zwischenueberschrift stehen muss. */
+.absage-kurz {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+  margin: 14px 0 22px;
+  padding: 0;
+}
+
+.absage-kurz-punkt {
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-left: 4px solid var(--marke);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.absage-kurz dt {
+  margin-bottom: 4px;
+  font-family: var(--font-titel);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.absage-kurz dd {
+  margin: 0;
+  font-size: .9rem;
+  line-height: 1.55;
+  color: var(--muted);
+}
+
+/* ---------- Zwei Wege aus derselben Vorlage ---------- */
+
+/* Kopieren und Mail-App stehen als Paar zusammen. Der Auto-Rand sitzt
+   jetzt an der Gruppe statt am Kopierknopf, sonst schoebe er die beiden
+   im Kopf auseinander. */
+.vorlage-knoepfe {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-left: auto;
+}
+
+.vorlage-knoepfe .kopieren { margin-left: 0; }
+
+/* Der Weg in die Mail-App ist der erwartete (Runde 2 und 3) und deshalb
+   der gefuellte Knopf. Ein <a> und kein <button>: es ist ein Verweis auf
+   mailto:, und nur so bietet der Browser "Link kopieren" und das Oeffnen
+   in einem anderen Programm an. */
+.vorlage-mailto {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 9px 16px;
+  border: 1px solid var(--marke);
+  border-radius: 999px;
+  background: var(--marke);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.vorlage-mailto:hover,
+.vorlage-mailto:focus-visible { background: var(--marke-dunkel); border-color: var(--marke-dunkel); }
+
+/* Ohne diese Zeile bliebe der Knopf sichtbar, auch wenn das Skript ihn
+   versteckt: die Browserregel fuer [hidden] ist "display: none", und ein
+   display aus dem Stylesheet der Seite schlaegt sie. Genau deshalb muss
+   jedes display: ... neben einem hidden-Schalter diese Regel bekommen. */
+.vorlage-mailto[hidden] { display: none; }
+
+/* Steht unter dem Vorlagentext, nicht ueber den Knoepfen: gelesen wird
+   der Hinweis erst, wenn der erste Weg nicht funktioniert hat. */
+.vorlage-fuss {
+  margin: 0;
+  padding: 12px 17px 15px;
+  border-top: 1px solid var(--border);
+  font-size: .82rem;
+  line-height: 1.55;
+  color: var(--muted);
+}

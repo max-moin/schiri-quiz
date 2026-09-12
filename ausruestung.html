@@ -32,8 +32,11 @@
       <input id="bestand-id" type="hidden">
       <h2 id="bestand-formular-titel">Neuer Eintrag</h2>
       <div class="bestand-raster">
-        <label class="bestand-feld">Kategorie
-          <select id="bestand-kategorie"></select>
+        <!-- Ohne Vorauswahl: stand hier "Trikot", nahm die Testperson das
+             Feld gar nicht als Auswahl wahr. Die Liste beginnt deshalb mit
+             "Bitte wählen" und das Speichern besteht auf einer Wahl. -->
+        <label class="bestand-feld">Kategorie <span class="bestand-pflicht">Pflicht</span>
+          <select id="bestand-kategorie" aria-required="true"></select>
         </label>
         <label id="bestand-bezeichnung-bereich" class="bestand-feld" hidden>Bezeichnung
           <input id="bestand-bezeichnung" placeholder="Welches Equipment ist es?">
@@ -43,6 +46,9 @@
           <div id="bestand-farbwahl" class="ausruestungs-farbwahl"></div>
           <input id="bestand-andere-farbe" placeholder="Andere Farbe" hidden>
           <input id="bestand-farbe" type="hidden">
+          <!-- Die gewählte Farbe zusätzlich im Klartext: der Zustand darf
+               nicht allein an Rahmen und Größe hängen (WCAG 1.4.1). -->
+          <p id="bestand-farbe-gewaehlt" class="bestand-farbe-gewaehlt" aria-live="polite">Noch keine Farbe gewählt</p>
         </fieldset>
         <label id="bestand-groesse-bereich" class="bestand-feld">Größe
           <input id="bestand-groesse" placeholder="z. B. L oder 42">
@@ -95,7 +101,7 @@
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
-      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
       <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>

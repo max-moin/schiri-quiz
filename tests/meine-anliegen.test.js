@@ -71,6 +71,31 @@ test("Vorgaenge bleiben kompakt und zeigen Details erst nach dem Oeffnen", () =>
   assert.match(html, /Anonym gesendetes Website-Feedback erscheint hier nicht/);
 });
 
+test("Ausruestungsanfragen stehen mit unter den eigenen Vorgaengen", () => {
+  // Testperson A, 10.09.2026: Anfrage abgeschickt, hier gesucht, nicht
+  // gefunden. Die Zeilen kamen immer schon mit derselben RPC mit.
+  assert.match(js, /artName: "Ausrüstungsanfrage"/);
+  assert.match(js, /\["ausruestung", "Ausrüstung"\]/);
+  assert.match(js, /ausAusruestung\(aufrufe\[0\]\.value\)/);
+});
+
+test("die Seite sagt selbst, was auf ihr steht, und zeigt Fall und Verlauf", () => {
+  // Testperson B hielt die Liste fuer die Antwort des Obmanns.
+  assert.match(html, /eine Nachricht des Obmanns an dich ist das nicht/);
+  assert.match(js, /Das hast du geschildert/);
+  assert.match(js, /textContent = "Verlauf"/);
+  assert.match(js, /function standSchritt/);
+  assert.match(css, /\.meine-schritt \{/);
+});
+
+test("die Statistik benennt die Schwaeche in Worten statt in einer weiteren Zahl", () => {
+  assert.match(statistikHtml, /id="statistik-deutung"/);
+  assert.match(statistikJs, /Am häufigsten danebengelegen hast du/);
+  // Ohne Themendaten darf die Seite keine Themenschwaeche behaupten.
+  assert.match(statistikJs, /Nach Themengebieten kann diese Übersicht nicht auswerten/);
+  assert.doesNotMatch(statistikJs, /kategorie|regel_nummer/);
+});
+
 test("ein Fragenvorschlag kann aus dem persoenlichen Verlauf geoeffnet werden", () => {
   assert.match(js, /frage-vorschlagen\.html\?vorschlag=/);
   assert.match(lies("src/website/frage-vorschlagen.js"), /URLSearchParams\(location\.search\)\.get\("vorschlag"\)/);

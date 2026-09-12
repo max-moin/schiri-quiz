@@ -27,6 +27,7 @@ import {
   zeigeQuizKnopfImmer,
   zeigeSeitenname,
 } from "./src/ui/kopf-navigation.js";
+import { montiereWegweiser } from "./src/ui/wegweiser.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -379,3 +380,8 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
 // "wie komme ich weg" - dafuer gibt es das Wappen, das zur Startseite fuehrt.
 // Die offene Frage war die davor: "wo bin ich".
 zeigeSeitenname(kopfInnen);
+
+// Der Weg eine Ebene hoch. Zwingend, sobald die Seite als App vom
+// Home-Bildschirm laeuft: dann gibt es keine Browserleiste, und ohne
+// diesen Weg kommt man aus einer Unterseite nicht mehr heraus.
+montiereWegweiser(document.querySelector("main.inhalt"));

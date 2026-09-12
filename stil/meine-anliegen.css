@@ -154,6 +154,23 @@
 .meine-kennzahl.nachbessern strong { color: #9a6700; }
 .meine-kennzahl.falsch strong { color: var(--red); }
 
+/* Die Deutung steht direkt unter den Kennzahlen und in Saetzen - zwei
+   Testpersonen konnten aus den Zahlen allein keine Schwaeche ablesen. */
+.statistik-deutung {
+  margin-top: 4px;
+  padding: 14px 16px;
+  border-radius: var(--radius-sm);
+  background: var(--marke-lighter);
+}
+.statistik-deutung h3 {
+  margin: 0 0 6px;
+  font-family: var(--font-titel);
+  font-size: .95rem;
+}
+.statistik-deutung p { margin: 6px 0 0; font-size: .86rem; line-height: 1.55; }
+.statistik-deutung p:first-of-type { margin-top: 0; font-weight: 700; }
+.statistik-deutung p:last-child { color: var(--muted); font-size: .78rem; }
+
 .statistik-verlauf { display: grid; gap: 9px; }
 .statistik-woche {
   padding: 14px;
@@ -279,6 +296,57 @@
 .meine-vorgang-inhalt p { margin: 11px 0 0; white-space: pre-wrap; }
 .meine-vorgang-inhalt strong { color: var(--text); }
 .meine-vorgang-inhalt .meine-textlink { margin-top: 12px; color: #fff; }
+/* Beide Knoepfe folgen jetzt auf den Verlaufsblock statt auf einen
+   Absatz und brauchen den Abstand deshalb selbst. */
+.meine-vorgang-inhalt .meine-bearbeiten { margin-top: 12px; }
+.meine-vorgang-inhalt .meine-bearbeiten + .meine-textlink { margin-left: 8px; }
+
+/* Aufgeklappter Vorgang: erst der eigene Fall, dann der Verlauf. Die
+   beiden Ueberschriften tragen die Erklaerung - ohne sie hat eine
+   Testperson die Angaben fuer die Antwort des Obmanns gehalten. */
+.meine-fall h3,
+.meine-verlauf h3 {
+  margin: 16px 0 0;
+  font-family: var(--font-titel);
+  font-size: .82rem;
+  letter-spacing: .02em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.meine-verlauf { margin-top: 4px; }
+.meine-verlauf ol { margin: 8px 0 0; padding: 0; list-style: none; }
+
+/* Der senkrechte Faden macht aus den Schritten sichtbar eine Abfolge. */
+.meine-schritt {
+  position: relative;
+  padding: 0 0 12px 20px;
+  border-left: 2px solid var(--border);
+}
+.meine-schritt:last-child { padding-bottom: 0; border-left-color: transparent; }
+.meine-schritt::before {
+  content: "";
+  position: absolute;
+  top: 6px;
+  left: -6px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+}
+.meine-schritt.du::before { background: var(--marke); }
+.meine-schritt.obmann::before { background: var(--green-dark); }
+/* Die Auszeichnung mit .meine-verlauf davor ist noetig, weil
+   ".meine-vorgang-inhalt p" sonst die Abstaende gewinnen wuerde. */
+.meine-verlauf .meine-schritt-kopf {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  margin: 0;
+}
+.meine-verlauf .meine-schritt-kopf span { color: var(--muted); font-size: .74rem; }
+.meine-verlauf .meine-schritt-text { margin: 4px 0 0; }
+.meine-verlauf .meine-verlauf-hinweis { margin: 12px 0 0; color: var(--muted); font-size: .76rem; font-style: italic; }
 .meine-leer {
   margin: 0;
   padding: 22px;

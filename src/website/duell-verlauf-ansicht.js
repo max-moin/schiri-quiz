@@ -183,7 +183,7 @@ export function baueUebersicht(verlauf, {
 
   const kopf = document.createElement("div");
   kopf.className = "duell-uebersicht-kopf";
-  kopf.innerHTML = `<div class="historie-kopf"><button type="button" class="sekundaer-button" data-duell-liste>Duellübersicht</button>
+  kopf.innerHTML = `<div class="historie-kopf"><button type="button" class="sekundaer-button" data-duell-liste>Meine Duelle</button>
     <button type="button" class="historie-neu-laden-button" data-neues-duell>Neues Duell</button></div>
     <h1>Auswertung</h1><p>Duell ${esc(verlauf.code)} · Runde für Runde im Vergleich.</p>`;
   wrap.appendChild(kopf);

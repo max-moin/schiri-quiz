@@ -46,6 +46,7 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft" aria-current="page">Regeln<small>In Prüfung</small></span>
@@ -91,6 +92,20 @@
             <button type="button" data-ebene="svfd" aria-pressed="true">Stadtverband Dresden</button>
             <button type="button" data-ebene="sfv" aria-pressed="false">Landesebene Sachsen</button>
           </div>
+          <!-- Runde 3: Oben stand "Stadtverband Dresden", in der Liste
+               darunter standen trotzdem Landesklassen und Landesligen - die
+               Testperson hielt die Auswahl für wirkungslos. Sie wirkt, aber
+               anders als erwartet: Sie tauscht die QUELLE (siehe daten()),
+               und die Kurzübersicht des Stadtverbands führt eben auch die
+               Klassen oberhalb der Stadtebene auf. Das steht jetzt dabei,
+               statt dass man es sich aus der Liste zusammenreimen muss.
+               Herausgefiltert wird nichts - die Frauen-Landesliga etwa
+               steht NUR in dieser Quelle und wäre sonst unerreichbar. -->
+          <p class="regel-finder-erklaerung">
+            Das entscheidet, aus welchem Regelwerk die Angaben stammen. Die Liste
+            darunter zeigt alle Spielklassen dieser Quelle – in der Kurzübersicht
+            des Stadtverbands stehen auch Landesklassen und Landesligen.
+          </p>
         </div>
       </div>
       <div class="regel-finder-schritt">
@@ -197,7 +212,7 @@
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
-      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
       <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
@@ -371,48 +386,118 @@
       return werteFuer(r).filter(([label]) => !kernLabels.has(label));
     }
 
-    function kategorieFuer(alter) {
-      const text = String(alter || "");
-      if (/juniorinnen/i.test(text)) return "Juniorinnen";
-      if (/junioren/i.test(text)) return "Junioren";
-      if (/frauen/i.test(text)) return "Frauen";
-      if (/senior|alte herren/i.test(text)) return "Senioren";
-      if (/herren/i.test(text)) return "Herren";
-      return "Weitere";
+    /* ------------------------------------------------------------------
+       Reihenfolge der Altersklassen (Testrunde 3)
+       ------------------------------------------------------------------
+       Die Liste stand vorher in der Reihenfolge der Quelle und war nach
+       einer groben Kategorie gruppiert ("Junioren" für A bis F). Bei
+       zwanzig Einträgen sucht man darin. Sortiert wird jetzt so, wie ein
+       Schiedsrichter seine Ansetzung liest: erst der Aktivenbereich,
+       dann Alte Herren und Ü-Klassen, danach die Jugend von alt nach
+       jung; Juniorinnen direkt hinter den gleichaltrigen Junioren.
+
+       Sortiert wird NUR - kein Eintrag wird verändert oder entfernt. Was
+       sich nicht einordnen lässt (eine später ergänzte Redaktionszeile
+       etwa), bekommt einen Rang hinter allem anderen und steht am Ende,
+       statt stillschweigend zu verschwinden.
+       ------------------------------------------------------------------ */
+    function altersRang(alter) {
+      const text = String(alter || "").trim().toLowerCase();
+      const jugend = /^([a-g])-junior(inn)?en/.exec(text);
+      /* Zwei Schritte je Buchstabe: dazwischen passen die Juniorinnen. */
+      if (jugend) return 100 + (jugend[1].charCodeAt(0) - 97) * 2 + (jugend[2] ? 1 : 0);
+      const ue = /^ü\s*(\d+)/.exec(text);
+      if (ue) return 50 + Number(ue[1]) / 100;
+      if (/altherren|alte herren|senior/.test(text)) return 40;
+      if (/^frauen/.test(text)) return 11;
+      if (/^herren/.test(text)) return 10;
+      return 900;
+    }
+
+    /* Auswahlfeld und Karten benutzen dieselbe Reihenfolge - sonst sucht
+       man die Klasse zweimal an verschiedenen Stellen. Bei gleichem Rang
+       bleibt die Reihenfolge der Quelle erhalten (stabil sortiert). */
+    function nachAlter(liste, alterVon) {
+      return liste
+        .map((posten, platz) => ({ posten, platz }))
+        .sort((a, b) =>
+          altersRang(alterVon(a.posten)) - altersRang(alterVon(b.posten)) || a.platz - b.platz)
+        .map(({ posten }) => posten);
+    }
+
+    /* Dasselbe Abzeichen wie in der Quellenliste am Seitenende: blau für
+       den Stadtverband, violett für den Landesverband. Es steht an jeder
+       Karte, weil die Auswahl in Schritt 1 genau das umschaltet. Ohne
+       diese Marke sah die Liste aus, als ignoriere sie die Auswahl. */
+    function quellenAbzeichen() {
+      return ebene === "svfd"
+        ? '<span class="abzeichen abz-extern">Stadtverband</span>'
+        : '<span class="abzeichen abz-land">Landesverband</span>';
     }
 
     function baueSpielklassenAuswahl() {
       const auswahl = $("spielklasseFilter");
       auswahl.replaceChildren(new Option("Bitte auswählen", ""));
+      /* Steht oben statt hinter zwanzig Einträgen: Das ist der Weg für
+         den, der seine Klasse gerade NICHT kennt - der soll ihn nicht
+         erst erscrollen müssen. */
+      auswahl.appendChild(new Option("Alle Spielklassen dieser Auswahl anzeigen", "alle"));
+
+      /* Gruppiert wird nach Altersklasse, nicht mehr nach grober
+         Kategorie. Runde 3: Die beiden D-Junioren-Einträge lagen unter
+         der Sammelüberschrift "Junioren" und begannen beide mit
+         "D-Junioren · " - unterschieden hat sie erst das Ende der Zeile,
+         und genau das wurde überlesen. Jetzt ist die Altersklasse die
+         Gruppenüberschrift, und im Eintrag steht nur noch das, was die
+         beiden tatsächlich unterscheidet: die Spielklasse.
+
+         Der Wert der Option bleibt der Index in daten(), nicht die
+         Position in der sortierten Liste - zeichne() liest genau den. */
       const gruppen = new Map();
-      daten().forEach((r, index) => {
-        const kategorie = kategorieFuer(r.a);
-        if (!gruppen.has(kategorie)) gruppen.set(kategorie, []);
-        gruppen.get(kategorie).push({ r, index });
-      });
-      for (const [kategorie, eintraege] of gruppen) {
+      nachAlter(daten().map((r, index) => ({ r, index })), (x) => x.r.a)
+        .forEach((x) => {
+          if (!gruppen.has(x.r.a)) gruppen.set(x.r.a, []);
+          gruppen.get(x.r.a).push(x);
+        });
+      for (const [alter, eintraege] of gruppen) {
         const gruppe = document.createElement("optgroup");
-        gruppe.label = kategorie;
+        gruppe.label = alter;
         eintraege.forEach(({ r, index }) => {
-          gruppe.appendChild(new Option(`${r.a} · ${r.k}`, String(index)));
+          gruppe.appendChild(new Option(r.k, String(index)));
         });
         auswahl.appendChild(gruppe);
       }
-      auswahl.appendChild(new Option("Alle Spielklassen dieser Auswahl anzeigen", "alle"));
       spielklasse = "";
       auswahl.value = "";
     }
 
+    /* ------------------------------------------------------------------
+       Der Stand-Hinweis, jetzt kompakt (Testrunde 3)
+       ------------------------------------------------------------------
+       Der Balken war acht Zeilen hoch und stand zwischen Auswahl und
+       Ergebnis. Die Testperson hat ihn gelesen und danach nicht mehr
+       weitergescrollt - sie wusste gar nicht, dass darunter noch die
+       Antwort steht, und hat sie deshalb nicht gefunden.
+
+       Der Hinweis ist richtig und muss bleiben, solange die Angaben
+       fachlich ungeprüft sind. Weg darf er also nicht - aber er darf
+       auch nicht den Inhalt verdecken. Deshalb: Warnwort und Stand
+       bleiben offen sichtbar (eine Zeile), die Begründung klappt auf.
+       ------------------------------------------------------------------ */
     function zeichneStand() {
       const q = QUELLEN[ebene];
       $("standHinweis").innerHTML = `
-        <div class="hinweisbalken${q.warnung ? "" : " ruhig"}">
-          <span class="sym-wort">${q.warnung ? "Achtung" : "Hinweis"}</span>
-          <span>
-            <strong>${sicher(q.stand)}.</strong> ${sicher(q.hinweis)}
+        <details class="hinweisbalken hinweis-falt${q.warnung ? "" : " ruhig"}">
+          <summary>
+            <span class="sym-wort">${q.warnung ? "Achtung" : "Hinweis"}</span>
+            <span class="hinweis-kurz"><strong>${sicher(q.stand)}</strong></span>
+            <span class="hinweis-mehr" aria-hidden="true"></span>
+          </summary>
+          <div class="hinweis-text">
+            ${sicher(q.hinweis)}
             <a href="${sicher(q.link)}" target="_blank" rel="noopener noreferrer">${sicher(q.linkText)} ↗</a>
-          </span>
-        </div>`;
+          </div>
+        </details>`;
     }
 
     function zeichne() {
@@ -423,17 +508,25 @@
         : (spielklasse !== "" && Number.isInteger(index) && alle[index] ? [alle[index]] : []);
 
       $("keineTreffer").hidden = true;
+      /* Die Quelle steht in der Ergebniszeile, weil sie das Ergebnis
+         bestimmt - und weil in der Liste des Stadtverbands eben auch
+         Landesklassen stehen (siehe die Erklärung an Schritt 1). */
+      const quellenName = QUELLEN[ebene].titel;
       $("trefferzahl").textContent = spielklasse === ""
         ? "Wähle noch deine Mannschaft oder Spielklasse."
-        : (spielklasse === "alle" ? `${alle.length} Spielklassen` : "Deine Angaben für dieses Spiel");
+        : (spielklasse === "alle"
+            ? `${alle.length} Spielklassen · Quelle: ${quellenName}`
+            : `Deine Angaben für dieses Spiel · Quelle: ${quellenName}`);
 
-      /* Nach Altersklasse gruppiert ausgeben. Ohne Gruppierung müsste man
-         die Kopfzeile jeder einzelnen Karte lesen, um sich zurechtzufinden. */
+      /* Nach Altersklasse gruppiert ausgeben, in derselben Reihenfolge wie
+         im Auswahlfeld. Ohne Gruppierung müsste man die Kopfzeile jeder
+         einzelnen Karte lesen, um sich zurechtzufinden. */
+      const sortierteTreffer = nachAlter(treffer, (r) => r.a);
       const reihenfolge = [];
-      treffer.forEach((r) => { if (!reihenfolge.includes(r.a)) reihenfolge.push(r.a); });
+      sortierteTreffer.forEach((r) => { if (!reihenfolge.includes(r.a)) reihenfolge.push(r.a); });
 
       $("regelBereich").innerHTML = reihenfolge.map((alter) => {
-        const zeilenGruppe = treffer.filter((r) => r.a === alter);
+        const zeilenGruppe = sortierteTreffer.filter((r) => r.a === alter);
         const karten = zeilenGruppe.map((r) => {
           const kernwerte = kernwerteFuer(r).map(kernwertHtml).join("");
           const weitere = weitereWerteFuer(r).map(([label, wert]) =>
@@ -448,8 +541,20 @@
             ? `<div class="rk-konflikt"><strong>Achtung, zwei Fassungen:</strong> ${sicher(r.warnung)}</div>`
             : "";
 
+          /* Der Kartenkopf nennt beides: Altersklasse und Spielklasse.
+             Vorher stand die Altersklasse nur in der Gruppenüberschrift -
+             wer mitten in der Liste landete oder eine Karte für sich
+             ansah, las nur "Landesklasse (Landesebene)" und wusste nicht,
+             wozu das gehört. Das Abzeichen daneben sagt, aus welcher
+             Quelle die Zeile stammt. */
           return `<article class="rk">
-              <div class="rk-kopf"><div class="klasse">${sicher(r.k)}</div></div>
+              <div class="rk-kopf">
+                <div class="rk-kopfzeile">
+                  <span class="rk-alter">${sicher(r.a)}</span>
+                  ${quellenAbzeichen()}
+                </div>
+                <div class="klasse">${sicher(r.k)}</div>
+              </div>
               <div class="rk-kernwerte">${kernwerte}</div>
               ${weitere ? `<details class="rk-mehr"><summary>Weitere Regeln</summary><div class="rk-zusatzwerte">${weitere}</div></details>` : ""}
               ${konflikt}

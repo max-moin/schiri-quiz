@@ -49,6 +49,38 @@ test("jede HTML-Seite bindet Manifest und iPhone-Symbol ein", () => {
   }
 });
 
+test("das iPhone-Teilen-Symbol ist gezeichnet und steht neben dem Wort", () => {
+  // Runde 3 des Usability-Tests, iPhone: "Die Anleitung ist gut, aber das
+  // abgebildete Symbol ist nur ein Pfeil nach oben." Im Safari-Menue gibt
+  // es keinen blossen Pfeil - der Teilen-Knopf ist ein oben offenes
+  // Rechteck mit einem Pfeil, der herausragt.
+  const seite = lies("installieren.html");
+  const anfang = seite.indexOf("<li>Tippe auf");
+  assert.ok(anfang > -1, "der Teilen-Schritt fehlt");
+  const schritt = seite.slice(anfang, seite.indexOf("</li>", anfang));
+
+  assert.match(schritt, /<svg /, "das Teilen-Symbol ist nicht gezeichnet");
+  assert.doesNotMatch(schritt, /↑/, "der blosse Pfeil ist zurueck");
+  // "Woerter statt blosser Icons": das Bild ist Beiwerk, das Wort traegt.
+  assert.match(schritt, /<strong>Teilen<\/strong>/);
+  assert.match(schritt, /aria-hidden="true"/);
+});
+
+test("die Anleitung haengt nicht nur tief unter den Unterlagen", () => {
+  // Runde 3: die Testperson suchte die Anleitung ueber ein Hilfemenue und
+  // kam nicht darauf, dass sie unter "Unterlagen" liegt. Sie steht jetzt
+  // zusaetzlich im Fuss jeder Seite.
+  //
+  // quiz.html fehlt hier bewusst: an der Datei arbeitet gerade jemand
+  // anderes, sie wurde in dieser Runde nicht angefasst.
+  const seiten = readdirSync(wurzel, { encoding: "utf8" })
+    .filter((name) => name.endsWith(".html") && name !== "quiz.html");
+  for (const seite of seiten) {
+    assert.match(lies(seite), /<a href="installieren\.html"[^>]*>App installieren<\/a>/,
+      `${seite}: der Fusseintrag zur Installationsanleitung fehlt`);
+  }
+});
+
 test("die Anleitung deckt iPhone, iPad und Android ohne Zwangsdialog ab", () => {
   const seite = lies("installieren.html");
   const skript = lies("src/website/installieren-seite.js");
@@ -65,4 +97,10 @@ test("die Anleitung deckt iPhone, iPad und Android ohne Zwangsdialog ab", () => 
   assert.match(skript, /knopf\?\.addEventListener\("click"/);
   assert.doesNotMatch(skript, /(?:alert|confirm|window\.prompt)\s*\(/);
   assert.doesNotMatch(skript, /installEreignis\.prompt\(\)[\s\S]*addEventListener\("beforeinstallprompt"/);
+
+  // Die Kachel "Direkt installieren" traegt im HTML hidden. Ohne eigene
+  // [hidden]-Regel schlaegt das display: flex aus dem Stylesheet die
+  // Browserregel, und auf dem iPhone stand dauerhaft "Dein Browser kann
+  // die Seite direkt installieren" - was dort gerade nicht stimmt.
+  assert.match(lies("stil/installieren.css"), /\.installieren-direkt\[hidden\]\s*\{\s*display: none;\s*\}/);
 });

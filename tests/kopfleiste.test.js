@@ -64,7 +64,11 @@ const SEITEN_MIT_LEISTE = [
 // vor dem Start am 14.09.). Sie haben deshalb kein Ziel, sondern die
 // Kennzeichnung "In Pruefung" - auch im statischen Rueckfallstand, damit sie
 // selbst dann nicht erreichbar sind, wenn das Skript nicht laedt.
+// 11.09.2026: "Start" steht wieder vorn - siehe die Begruendung in
+// src/ui/kopf-navigation.js. Der Test darunter, der "Start" frueher
+// verboten hat, ist deshalb umgedreht worden.
 const REITER = [
+  { ziel: "index.html", text: "Start" },
   { ziel: "termine.html", text: "Termine" },
   { ziel: "vorlagen.html", text: "Absagen" },
   { ziel: null, text: "Regeln" },
@@ -128,18 +132,32 @@ test("alle neun Seiten tragen dieselbe Reiterleiste in derselben Reihenfolge", (
 });
 
 test("die Leiste benennt Aufgaben statt Sammelbegriffe", () => {
-  // "Start" faellt weg, weil das Wappen daneben schon zur Startseite fuehrt -
-  // zwei Wege zum selben Ziel nebeneinander sind einer zu viel.
-  // "Vorlagen" bleibt als technischer Dateiname bestehen, heißt fuer Nutzer
-  // aber aufgabenbezogen "Absagen".
+  // "Vorlagen" bleibt als technischer Dateiname bestehen, heisst fuer
+  // Nutzer aber aufgabenbezogen "Absagen".
   for (const seite of SEITEN_MIT_LEISTE) {
-    const zeilen = leiste(seite);
-    for (const zeile of zeilen) {
-      const ist = reiterAus(zeile);
-      assert.notEqual(ist.text, "Start", seite + ' hat wieder einen Reiter "Start"');
-      assert.notEqual(ist.text, "Vorlagen", seite + ' hat wieder einen Reiter "Vorlagen"');
-      assert.notEqual(ist.ziel, "index.html", seite + " verlinkt index.html wieder in der Leiste");
+    for (const zeile of leiste(seite)) {
+      assert.notEqual(reiterAus(zeile).text, "Vorlagen",
+        seite + ' hat wieder einen Reiter "Vorlagen"');
     }
+  }
+});
+
+test('"Start" steht als erster Reiter auf jeder Seite', () => {
+  // Umgedreht am 11.09.2026. Vorher stand hier das Gegenteil, begruendet
+  // damit, dass das Wappen schon zur Startseite fuehrt. Der dritte
+  // moderierte Test hat das widerlegt: die Testperson kam auf das Wappen
+  // nur, weil sie es vorher gesagt bekommen hatte. Ein Weg, den man
+  // kennen muss, ist kein Weg.
+  for (const seite of SEITEN_MIT_LEISTE) {
+    const erster = reiterAus(leiste(seite)[0]);
+    assert.equal(erster.text, "Start", seite + ': erster Reiter ist nicht "Start"');
+    assert.equal(erster.ziel, "index.html", seite + ': "Start" fuehrt nicht zur Startseite');
+  }
+  // Und auch dort, wo die Leiste nur als einzeiliger Rueckfall im HTML
+  // steht - sonst fehlt er genau auf den Seiten des eigenen Bereichs.
+  for (const seite of ["installieren.html", "meine-daten.html", "meine-statistik.html"]) {
+    assert.match(lies(seite), /<a href="index\.html">Start<\/a>/,
+      seite + ': "Start" fehlt im Rueckfallstand');
   }
 });
 
@@ -199,7 +217,10 @@ test('"Schiri werden" bleibt aus der Leiste heraus, steht aber auf der Startseit
 
 test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
   const ERWARTET = {
-    "index.html": null,
+    // Seit "Start" wieder in der Leiste steht, markiert die Startseite
+    // ihren eigenen Reiter. Oben steht trotzdem kein Seitenname - dafuer
+    // sorgt leseSeitenname, siehe den Test weiter unten.
+    "index.html": ["index.html", "page"],
     "termine.html": ["termine.html", "page"],
     // Seit dem 08.09.2026 sind diese beiden Reiter gesperrt und haben
     // deshalb kein Ziel mehr. Erkannt werden sie hier an der Beschriftung.
@@ -274,10 +295,10 @@ test("auf der Startseite steht kein Seitenname", () => {
   // Dort ist man zu Hause. Ein Schild "Start" unter dem Vereinsnamen sagt
   // nichts, was das Wappen daneben nicht schon sagt.
   //
-  // Zwei Schloesser, weil eins zu leicht aufgeht: index.html markiert gar
-  // keinen Reiter mehr, UND die Funktion lehnt index.html ausdruecklich ab.
-  assert.equal(leiste("index.html").map(reiterAus).filter((r) => r.strom).length, 0,
-    "index.html markiert wieder einen Reiter");
+  // Das erste Schloss ("index.html markiert gar keinen Reiter") ist am
+  // 11.09.2026 entfallen: die Startseite markiert jetzt ihren eigenen
+  // Reiter "Start". Uebrig bleibt das Schloss, auf das es ankommt - die
+  // Funktion lehnt index.html ausdruecklich ab, egal was markiert ist.
   const nav = ohneJsKommentare(lies("src/ui/kopf-navigation.js"));
   assert.match(nav, /"index\.html"/,
     "zeigeSeitenname erkennt die Startseite nicht mehr als Sonderfall");

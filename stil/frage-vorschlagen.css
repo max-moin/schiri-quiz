@@ -21,7 +21,91 @@
 .vorschlag-karte input,.vorschlag-karte select,.vorschlag-karte textarea { width:100%; box-sizing:border-box; border:1px solid var(--border); border-radius:10px; padding:11px 12px; background:var(--surface); color:inherit; font:inherit; }
 .vorschlag-karte textarea { resize:vertical; line-height:1.45; }
 .formular-aktionen { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:10px; margin-top:18px; }
-.formular-aktionen button,.primaer-link { min-height:44px; padding:10px 16px; border-radius:10px; font-weight:700; }
+.formular-aktionen button,.primaer-link,.haupt-knopf,.neben-knopf { min-height:44px; padding:10px 16px; border-radius:10px; font-weight:700; }
+
+/* ------------------------------------------------------------------
+   Knoepfe (11.09.2026)
+   ------------------------------------------------------------------
+   "Zur Pruefung einreichen" hatte gar keine eigene Gestaltung - der
+   Browser malte dunkelgraue Schrift auf hellgrauen Grund, im
+   Usability-Test als "schwer lesbar" genannt. Und ".sekundaer-button"
+   existiert nur in style.css, dem alten Quiz-Buendel, das diese Seite
+   nicht laedt: "Als Entwurf speichern" war deshalb ebenso nackt.
+   Beide bekommen hier Farbe - und zwei klar verschiedene Bauarten,
+   damit man Haupt- und Nebenaktion auseinanderhaelt. Kontrast auf
+   Weiss: Schrift 16,9:1, Umriss 14,7:1 (WCAG AA verlangt 4,5:1
+   bzw. 3:1). */
+.haupt-knopf,.neben-knopf {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  box-sizing:border-box;
+  border-radius:10px;
+  font:inherit;
+  font-weight:700;
+  text-decoration:none;
+  cursor:pointer;
+}
+.haupt-knopf { border:2px solid var(--marke-dunkel); background:var(--marke-dunkel); color:#fff; }
+.haupt-knopf:hover { border-color:#000; background:#000; }
+.neben-knopf { border:2px solid var(--marke); background:var(--card); color:var(--marke-dunkel); }
+.neben-knopf:hover { background:var(--marke-lighter); }
+.haupt-knopf:disabled,.neben-knopf:disabled { opacity:.55; cursor:not-allowed; }
+
+/* Der Knopf steht unter den drei sichtbaren Antwortfeldern und holt das
+   naechste dazu - vier feste Felder A-D hatten dazu verfuehrt, alle vier
+   zu fuellen, obwohl drei reichten. */
+.antwort-hinzufuegen { margin:4px 0 8px; padding:10px 14px; font-size:.88rem; }
+
+/* Mindestlaengen und Beispiele stehen vorab am Feld statt erst in der
+   Fehlermeldung (ISO 9241-110: Selbstbeschreibungsfaehigkeit). */
+.feld-hinweis { color:var(--muted); font-size:.78rem; font-weight:400; line-height:1.45; }
+.feld-marke {
+  display:inline-block;
+  padding:2px 9px;
+  border-radius:999px;
+  background:var(--marke-lighter);
+  color:var(--marke);
+  font-size:.72rem;
+  font-weight:700;
+  letter-spacing:.03em;
+  vertical-align:middle;
+}
+
+/* Der Rueckweg. Muss in der Seite stehen: den Knopf oben im Kopf
+   entfernt src/ui/kopf-navigation.js beim Laden wieder. */
+.vorschlag-zurueck {
+  display:inline-flex;
+  align-items:center;
+  min-height:44px;
+  margin-top:16px;
+  color:var(--marke-dunkel);
+  font-weight:650;
+  font-size:.9rem;
+  text-decoration:underline;
+  text-underline-offset:3px;
+}
+
+/* Nach dem Einreichen: das Formular weicht dieser Tafel, damit der
+   Abschluss sichtbar ist und die naechsten Wege danebenstehen. */
+.vorschlag-erfolg { border-color:var(--green); }
+.vorschlag-erfolg:focus-visible { outline:3px solid var(--marke); outline-offset:2px; }
+.vorschlag-erfolg h2 { margin:10px 0 8px; font-size:1.25rem; }
+.vorschlag-erfolg h3 { margin:20px 0 10px; font-size:.95rem; }
+.vorschlag-erfolg p { margin:0; line-height:1.6; }
+.erfolg-marke {
+  display:inline-block;
+  margin:0;
+  padding:4px 12px;
+  border-radius:999px;
+  background:var(--green-light);
+  color:var(--green-dark);
+  font-size:.78rem;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+}
+.erfolg-wege { display:flex; flex-wrap:wrap; gap:10px; }
 .primaer-link {
   display:inline-flex;
   align-items:center;

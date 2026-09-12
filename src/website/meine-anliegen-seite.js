@@ -33,10 +33,28 @@ const STATUS = {
 const FILTER = [
   ["alle", "Alle"],
   ["anliegen", "Anliegen"],
+  ["ausruestung", "Ausrüstung"],
   ["quiz", "Quiz-Feedback"],
   ["frage", "Fragenideen"],
   ["termin", "Termine"],
 ];
+
+// Die Gegenstandsliste kommt aus src/features/profile-requests.js, das
+// diese Seite ohnehin laedt. Ein zweiter Katalog hier wuerde beim naechsten
+// neuen Gegenstand auseinander laufen; faellt das Modul aus, steht statt
+// eines Wortes der rohe Schluessel - das ist immer noch lesbar.
+const AUSRUESTUNG = globalThis.SchiriAusruestung || null;
+const AERMEL_WORT = { kurz: "Kurzarm", lang: "Langarm" };
+const WEG_WORT = {
+  weg1_obmann_besorgt: "Der Verein besorgt es",
+  weg2_schiri_besorgt: "Du besorgst es und reichst die Rechnung ein",
+};
+
+// Ausruestungsanfragen und persoenliche Anliegen liegen in derselben
+// Tabelle. Geprueft wird auf "nicht anliegen" statt auf "ausruestung",
+// weil aeltere Zeilen keinen Typ tragen muessen - genauso filtern
+// src/website/ausruestung-seite.js und src/features/profile-requests.js.
+const istAnliegen = (zeile) => zeile.typ === "anliegen";
 
 let vorgaenge = [];
 let aktiverFilter = "alle";
@@ -86,6 +104,85 @@ function detailZeile(titel, wert) {
   return p;
 }
 
+// Ein Vorgang wird bewusst in zwei Teile zerlegt. Testperson B suchte beim
+// Aufklappen zuerst ihren eigenen Fall und danach den Verlauf; die frühere
+// gemischte Liste aus Angaben und Antworten hat sie nicht als Verlauf
+// gelesen, sondern fuer die Antwort des Obmanns gehalten.
+function fallBlock(vorgang) {
+  const block = document.createElement("div");
+  block.className = "meine-fall";
+  const titel = document.createElement("h3");
+  titel.textContent = "Das hast du geschildert";
+  block.appendChild(titel);
+  let leer = true;
+  for (const zeile of vorgang.fall || []) {
+    const element = detailZeile(zeile[0], zeile[1]);
+    if (element) {
+      block.appendChild(element);
+      leer = false;
+    }
+  }
+  if (leer) {
+    const p = document.createElement("p");
+    p.textContent = "Du hast dazu keinen eigenen Text mitgeschickt.";
+    block.appendChild(p);
+  }
+  return block;
+}
+
+// Auch ein Verlauf ohne Antwort wird gezeigt: "noch keine Antwort" ist eine
+// ehrliche Auskunft, eine leere Flaeche waere keine.
+function verlaufBlock(vorgang) {
+  const block = document.createElement("div");
+  block.className = "meine-verlauf";
+  const titel = document.createElement("h3");
+  titel.textContent = "Verlauf";
+  block.appendChild(titel);
+  const liste = document.createElement("ol");
+  for (const schritt of vorgang.verlauf || []) {
+    const eintrag = document.createElement("li");
+    eintrag.className = "meine-schritt " + (schritt.wer || "stand");
+    const kopf = document.createElement("p");
+    kopf.className = "meine-schritt-kopf";
+    const wer = document.createElement("strong");
+    wer.textContent = schritt.titel;
+    kopf.appendChild(wer);
+    const zeitpunkt = datum(schritt.zeit);
+    if (zeitpunkt) {
+      const zeit = document.createElement("span");
+      zeit.textContent = zeitpunkt;
+      kopf.appendChild(zeit);
+    }
+    eintrag.appendChild(kopf);
+    if (text(schritt.text)) {
+      const inhalt = document.createElement("p");
+      inhalt.className = "meine-schritt-text";
+      inhalt.textContent = text(schritt.text);
+      eintrag.appendChild(inhalt);
+    }
+    liste.appendChild(eintrag);
+  }
+  block.appendChild(liste);
+  if (text(vorgang.hinweis)) {
+    const hinweis = document.createElement("p");
+    hinweis.className = "meine-verlauf-hinweis";
+    hinweis.textContent = text(vorgang.hinweis);
+    block.appendChild(hinweis);
+  }
+  return block;
+}
+
+// Der letzte Schritt sagt immer, wie es gerade steht - auch dann, wenn der
+// Obmann noch gar nicht reagiert hat.
+function standSchritt(status, wartetext) {
+  const offen = ["offen", "eingereicht", "gelesen", "entwurf"].includes(status);
+  return {
+    wer: "stand",
+    titel: "Aktueller Stand: " + statusVon(status)[0],
+    text: offen ? wartetext : "",
+  };
+}
+
 function vorgangElement(vorgang) {
   const details = document.createElement("details");
   details.className = "meine-vorgang";
@@ -116,10 +213,7 @@ function vorgangElement(vorgang) {
 
   const inhalt = document.createElement("div");
   inhalt.className = "meine-vorgang-inhalt";
-  for (const zeile of vorgang.details || []) {
-    const element = detailZeile(zeile[0], zeile[1]);
-    if (element) inhalt.appendChild(element);
-  }
+  inhalt.append(fallBlock(vorgang), verlaufBlock(vorgang));
   if (vorgang.bearbeiten) {
     const button = document.createElement("button");
     button.type = "button";
@@ -174,15 +268,70 @@ function zeichneVorgaenge() {
   sichtbar.forEach((v) => liste.appendChild(vorgangElement(v)));
 }
 
-function ausAnfragen(zeilen) {
-  return zeilen.filter((a) => a.typ === "anliegen").map((a) => ({
+// Zu Anliegen und Ausruestungsanfragen liefert die Datenbank keinen fuer
+// den Schiedsrichter sichtbaren Antworttext - nur den Stand. Statt das zu
+// verschweigen, sagt der Hinweis unter dem Verlauf es offen.
+const OHNE_ANTWORTTEXT = "Auf diesem Weg meldet sich der Obmann über den Bearbeitungsstand zurück, nicht mit einem geschriebenen Text.";
+
+function ausAnliegen(zeilen) {
+  return zeilen.filter(istAnliegen).map((a) => ({
     art: "anliegen",
     artName: "Persönliches Anliegen",
     titel: text(a.anmerkung) || "Anliegen an den Obmann",
     status: a.status,
     zeit: a.erstellt_am,
-    details: [["Dein Text", a.anmerkung]],
+    fall: [["Dein Text", a.anmerkung]],
+    verlauf: [
+      { wer: "du", titel: "Von dir eingereicht", zeit: a.erstellt_am, text: a.anmerkung },
+      standSchritt(a.status, "Der Obmann hat dein Anliegen noch nicht entschieden."),
+    ],
+    hinweis: OHNE_ANTWORTTEXT,
   }));
+}
+
+// Testperson A hat ihre gerade abgeschickte Ausruestungsanfrage hier
+// gesucht und nicht gefunden. Die Zeilen kamen schon immer mit - sie wurden
+// nur weggefiltert, weil "Meine Anliegen" ausschliesslich den Typ
+// "anliegen" gezeigt hat.
+function ausAusruestung(zeilen) {
+  return zeilen.filter((a) => !istAnliegen(a)).map((a) => {
+    const wort = AUSRUESTUNG?.findeKategorie?.(a.kategorie)?.wort || text(a.kategorie) || "Ausrüstung";
+    const merkmale = [
+      text(a.groesse) ? "Größe " + text(a.groesse) : "",
+      text(a.farbe),
+      AERMEL_WORT[a.aermellaenge] || text(a.aermellaenge),
+    ].filter(Boolean).join(" · ");
+    const verlauf = [{
+      wer: "du",
+      titel: "Von dir angefragt",
+      zeit: a.erstellt_am,
+      text: [wort, merkmale].filter(Boolean).join(" · "),
+    }];
+    if (a.rechnung_hochgeladen_am) {
+      verlauf.push({ wer: "du", titel: "Rechnung von dir hochgeladen", zeit: a.rechnung_hochgeladen_am });
+    }
+    verlauf.push(standSchritt(a.status, "Der Obmann hat die Anfrage noch nicht entschieden."));
+    if (a.erstattet) {
+      verlauf.push({ wer: "stand", titel: "Erstattet", text: "Der Verein hat dir die Kosten erstattet." });
+    }
+    return {
+      art: "ausruestung",
+      artName: "Ausrüstungsanfrage",
+      titel: wort + (merkmale ? " · " + merkmale : ""),
+      status: a.status,
+      zeit: a.erstellt_am,
+      fall: [
+        ["Angefragt", wort],
+        ["Merkmale", merkmale],
+        ["Dein Text", a.anmerkung],
+        ["Beschaffung", WEG_WORT[a.beschaffungsweg]],
+      ],
+      verlauf,
+      hinweis: OHNE_ANTWORTTEXT,
+      link: "ausruestung.html",
+      linkText: "Zu meinem Ausrüstungsbestand",
+    };
+  });
 }
 
 function ausQuizFeedback(zeilen) {
@@ -198,13 +347,24 @@ function ausQuizFeedback(zeilen) {
       titel: nummer + frage,
       status: m.status,
       zeit: m.aktualisiert_am || m.erstellt_am,
-      details: [
+      fall: [
+        ["Die Frage", m.frage_text],
         ["Woche", m.runde_bezeichnung],
+      ],
+      verlauf: [
         ...eintraege.flatMap((e, index) => {
-          const basis = [[eintraege.length > 1 ? `Dein Hinweis ${index + 1}` : "Dein Hinweis", e.text]];
-          if (e.rueckmeldung_obmann) basis.push(["Antwort des Obmanns", e.rueckmeldung_obmann]);
-          return basis;
+          const schritte = [{
+            wer: "du",
+            titel: eintraege.length > 1 ? `Dein Hinweis ${index + 1}` : "Dein Hinweis",
+            zeit: e.erstellt_am,
+            text: e.text,
+          }];
+          if (text(e.rueckmeldung_obmann)) {
+            schritte.push({ wer: "obmann", titel: "Antwort des Obmanns", text: e.rueckmeldung_obmann });
+          }
+          return schritte;
         }),
+        standSchritt(m.status, "Der Obmann hat auf deinen Hinweis noch nicht geantwortet."),
       ],
       bearbeiten: editierbar ? (inhalt) => oeffneFeedbackBearbeitung(inhalt, m, letzter) : null,
     };
@@ -272,10 +432,17 @@ function ausFragen(zeilen) {
     titel: text(v.frage_text) || "Frage ohne Kurztitel",
     status: v.status,
     zeit: v.aktualisiert_am || v.erstellt_am,
-    details: [
+    fall: [
+      ["Deine Frage", v.frage_text],
       ["Deine Begründung", v.begruendung],
       ["Dein Regelbeleg", v.beleg],
-      ["Rückmeldung", v.rueckmeldung_obmann],
+    ],
+    verlauf: [
+      { wer: "du", titel: "Von dir vorgeschlagen", zeit: v.erstellt_am, text: v.frage_text },
+      ...(text(v.rueckmeldung_obmann)
+        ? [{ wer: "obmann", titel: "Antwort des Obmanns", zeit: v.aktualisiert_am, text: v.rueckmeldung_obmann }]
+        : []),
+      standSchritt(v.status, "Der Obmann hat den Vorschlag noch nicht beantwortet."),
     ],
     link: `frage-vorschlagen.html?vorschlag=${encodeURIComponent(v.id)}`,
     linkText: ["entwurf", "aenderung_erbeten"].includes(v.status) ? "Vorschlag weiterbearbeiten" : "Vorschlag ansehen",
@@ -289,10 +456,16 @@ function ausTerminen(zeilen) {
     titel: text(v.titel) || "Terminvorschlag",
     status: v.status,
     zeit: v.erstellt_am,
-    details: [
+    fall: [
       ["Vorgeschlagen für", [datum(v.datum), text(v.beginn_zeit).slice(0, 5), v.ort].filter(Boolean).join(" · ")],
       ["Deine Begründung", v.begruendung],
-      ["Rückmeldung", v.obmann_rueckmeldung],
+    ],
+    verlauf: [
+      { wer: "du", titel: "Von dir vorgeschlagen", zeit: v.erstellt_am, text: v.begruendung },
+      ...(text(v.obmann_rueckmeldung)
+        ? [{ wer: "obmann", titel: "Antwort des Obmanns", text: v.obmann_rueckmeldung }]
+        : []),
+      standSchritt(v.status, "Der Obmann hat den Terminvorschlag noch nicht beantwortet."),
     ],
     link: "termine.html",
     linkText: "Zu den Terminen",
@@ -308,7 +481,8 @@ async function ladeVorgaenge(person) {
   ]);
 
   vorgaenge = [
-    ...(aufrufe[0].status === "fulfilled" ? ausAnfragen(aufrufe[0].value) : []),
+    ...(aufrufe[0].status === "fulfilled" ? ausAnliegen(aufrufe[0].value) : []),
+    ...(aufrufe[0].status === "fulfilled" ? ausAusruestung(aufrufe[0].value) : []),
     ...(aufrufe[1].status === "fulfilled" ? ausQuizFeedback(aufrufe[1].value) : []),
     ...(aufrufe[2].status === "fulfilled" ? ausFragen(aufrufe[2].value) : []),
     ...(aufrufe[3].status === "fulfilled" ? ausTerminen(aufrufe[3].value) : []),

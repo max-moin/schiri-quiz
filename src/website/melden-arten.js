@@ -50,7 +50,7 @@ export const MELDE_ARTEN = [
     gruppe: "mitgestalten",
     titel: "Thema für den Schiri-Treff",
     frage: "Was sollen wir gemeinsam besprechen?",
-    beschreibung: "Eine Regelfrage, Spielsituation oder Idee für den nächsten vereinsinternen Treff.",
+    beschreibung: "Eine Regelfrage, Spielsituation oder Idee für den nächsten vereinsinternen Treff. Willst du einen eigenen Termin dafür vorschlagen, geht das in der Terminliste.",
     felder: ["situation", "unsicher_warum"],
     anonymErlaubt: false,
     beschriftungen: {

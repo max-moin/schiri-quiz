@@ -45,6 +45,32 @@
   box-shadow: none;
 }
 
+/* Ein Modus, der noch keinen Inhalt hat, darf nicht wie ein spielbarer
+   aussehen (Usability-Test Runde 2 und 3: beide Personen landeten in
+   "Entscheiden" und standen vor einer leeren Seite). Die Kachel spricht
+   deshalb dieselbe Sprache wie die gesperrten Punkte der Kopfleiste
+   (.nav-deaktiviert in stil/kopf-fuss.css): graue Flaeche, gestrichelter
+   Rand, cursor: not-allowed - und ein Wort statt eines Schlosses.
+   Unterschied zu .gesperrt: dort fehlt dem Nutzer noch ein Schritt, hier
+   fehlt uns noch der Inhalt. */
+.modus-kachel.modus-vorbereitung {
+  background: #f3f4f6;
+  border-style: dashed;
+  box-shadow: none;
+  color: #4b5563;
+  cursor: not-allowed;
+}
+
+/* Ohne diese Regel hebt sich auch die tote Kachel beim Zeigen an und
+   verspricht damit genau die Bedienbarkeit, die sie nicht hat. */
+.modus-kachel.modus-vorbereitung:hover,
+.modus-kachel.modus-vorbereitung:focus-visible {
+  transform: none;
+  box-shadow: none;
+}
+
+.modus-pille.vorbereitung { background: var(--karte-gelb-hell); color: #8b5e00; }
+
 .modus-kopf {
   display: flex;
   align-items: center;
@@ -123,6 +149,45 @@
 }
 
 .hervorgehoben .modus-fuss { color: rgba(255, 255, 255, .75); }
+
+/* Die Handlungszeile am Fuss einer Start-Kachel (Usability-Test Runde 3).
+   Sie ist kein eigener Knopf, sondern die sichtbare Zusage der Kachel: ein
+   Tipp startet die Runde. Deshalb liegt sie INNERHALB des Kachel-Links -
+   ein <button> in einem <a> waere ungueltiges HTML und haette zwei
+   konkurrierende Ziele auf derselben Flaeche erzeugt.
+   44 px Mindesthoehe, damit sie auch als Ziel taugt, wenn jemand genau sie
+   antippt statt die Kachel (WCAG 2.5.5). */
+.modus-aktion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 44px;
+  margin-top: 14px;
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--marke);
+  color: #fff;
+  font-size: .95rem;
+  font-weight: 700;
+}
+
+/* Auf der hervorgehobenen (dunklen) Kachel dreht sich das Verhaeltnis um -
+   sonst verschwindet der anthrazitfarbene Knopf im anthrazitfarbenen Grund. */
+.hervorgehoben .modus-aktion {
+  background: #fff;
+  color: var(--marke-dunkel);
+}
+
+/* Die gesperrte Ueben-Kachel startet nichts und darf deshalb auch nicht so
+   aussehen: Umriss statt Flaeche. Der Unterschied liegt nicht in der Farbe
+   allein - die Kachel traegt zusaetzlich den gestrichelten Rand und die
+   Pille "Noch gesperrt". */
+.gesperrt .modus-aktion {
+  background: transparent;
+  border: 1.5px solid var(--border);
+  color: var(--muted);
+}
 
 .modus-anmelden {
   margin-top: 14px;

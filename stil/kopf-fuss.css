@@ -297,3 +297,51 @@
    unter der WCAG-AA-Schwelle von 4,5:1. */
 .fuss-zeile { margin-top: 11px; }
 .fuss-obmann { opacity: .72; }
+
+/* ============================================================
+   Wegweiser: der Weg eine Ebene hoch (12.09.2026)
+   ============================================================
+   Auf dem Handy ist NUR der Zurueck-Weg zu sehen. Der Name der
+   aktuellen Seite steht schon oben im Kopf; ihn hier zu wiederholen
+   waere eine zweite Zeile, die nichts Neues sagt. Ab 640px passt der
+   volle Pfad daneben - dort ist Platz, und der Pfad zeigt die ganze
+   Baumtiefe auf einen Blick. */
+.wegweiser {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  margin: 0 0 18px;
+}
+.wegweiser-zurueck {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 8px 15px 8px 11px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font-weight: 650;
+  font-size: .93rem;
+  text-decoration: none;
+}
+.wegweiser-zurueck:hover { border-color: var(--marke); color: var(--marke); }
+.wegweiser-pfeil { font-size: 1.25rem; line-height: 1; }
+.wegweiser-pfad {
+  display: none;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: .85rem;
+  color: var(--muted);
+}
+.wegweiser-pfad li { display: inline; }
+.wegweiser-pfad li + li::before { content: "›"; margin: 0 7px; color: var(--border); }
+.wegweiser-pfad a { color: var(--muted); }
+.wegweiser-pfad [aria-current="page"] { color: var(--text); font-weight: 650; }
+@media (min-width: 640px) {
+  .wegweiser-pfad { display: block; }
+}
+@media print { .wegweiser { display: none; } }

@@ -202,6 +202,24 @@
     .q-gesamt b:last-child { color: var(--green-dark); }
     .q-haftung { font-size: .74rem; color: #713f12; padding: 13px 18px; background: #fffbeb; border-top: 1px solid #fde68a; line-height: 1.55; margin: 0; }
 
+    /* ---------- Sichtbarer Abschluss (Testrunde 2) ----------
+       Woertlich: "Man wusste nicht, wann man fertig ist." Der Rechner
+       hoerte nach dem letzten Eingabefeld einfach auf. Der Abschluss
+       traegt deshalb denselben gruenen Grund wie .q-gesamt direkt
+       darueber und hat nach oben keine Trennlinie: Summe und "was jetzt
+       zu tun ist" sollen als EIN Block gelesen werden, nicht als zwei. */
+    .q-abschluss { padding: 0 18px 18px; background: var(--green-light); }
+    .q-abschluss-titel { margin: 0 0 4px; font-size: .88rem; font-weight: 700; font-family: var(--font-titel); color: var(--green-dark); }
+    .q-abschluss-text { margin: 0 0 12px; font-size: .8rem; line-height: 1.55; color: var(--marke-hell); }
+    .q-drucken {
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: 44px; padding: 10px 18px;
+      font: inherit; font-size: .86rem; font-weight: 700;
+      border: 1px solid var(--marke); border-radius: 11px;
+      background: var(--marke); color: #fff; cursor: pointer;
+    }
+    .q-drucken:hover { background: var(--marke-dunkel); border-color: var(--marke-dunkel); }
+
     .lage-marker { display: inline-block; font-size: .72rem; font-weight: 700; padding: 3px 9px; border-radius: 999px; margin-left: 6px; }
     .lm-dd { background: var(--green-light); color: var(--green-dark); }
     .lm-aus { background: var(--karte-gelb-hell); color: #854d0e; }
@@ -301,4 +319,55 @@
   .q-zeile > span:first-child { min-width: 0; overflow-wrap: anywhere; }
   .q-gesamt { padding: 16px; }
   .q-haftung .linkknopf { display: inline-block; padding: 8px 0; }
+}
+
+/* ============================================================
+   Der Ausdruck der Quittung (Testrunde 1)
+   ============================================================
+   Die Testperson hat "Zur Quittung" gedrueckt, weil sie die
+   ausgefuellte Quittung ausdrucken wollte - der Knopf ist aber nur
+   nach unten gesprungen, und sie hielt ihn fuer kaputt. Es gibt jetzt
+   beides: die ehrlich benannte Sprungmarke und einen echten
+   Druckknopf unten in der Quittung.
+
+   Gedruckt wird ausschliesslich die Quittung. Das Formular daneben ist
+   die Eingabe und nicht das Ergebnis; Kopfleiste, Fussleiste und die
+   klebende Ergebniszeile sind reine Bildschirmbedienung. Die
+   Betragsfelder verlieren ihren Rahmen - mit Rahmen sieht das Blatt
+   aus wie ein Formular, das noch auszufuellen waere.
+
+   Es kommen bewusst KEINE neuen Angaben aufs Blatt. Was die Quittung
+   nicht kennt (Datum, Spielkennung, Unterschrift), steht auf dem
+   Papierformular des Verbands - hier waere es erfunden.
+
+   spesen.css laedt auch obmann.html. Diese Regeln greifen dort nur
+   beim Drucken und blenden dabei dieselbe Kopf- und Fussleiste aus;
+   alles Uebrige haengt an Klassen, die es nur hier gibt.
+   ============================================================ */
+@media print {
+  .sprungmarke,
+  .seiten-kopf,
+  .seiten-fuss,
+  .seiten-unter,
+  .ergebnis-leiste,
+  .rechner-formular,
+  .q-abschluss { display: none !important; }
+
+  .rechner { display: block; }
+  .quittung {
+    position: static;
+    box-shadow: none;
+    border: 1px solid #999;
+    break-inside: avoid;
+  }
+  .q-kopf { background: #fff; color: #000; border-bottom: 1px solid #999; }
+  .q-kopf .sub { opacity: 1; }
+  .q-gesamt { background: #fff; border-top: 1px solid #999; }
+  .q-haftung { background: #fff; color: #000; }
+  /* Eingabefeld auf dem Papier: nur noch die Zahl. */
+  .q-eingabe {
+    width: 78px; min-height: 0; padding: 0;
+    border: 0; background: transparent; color: #000;
+  }
+  .q-eingabe.geaendert { background: transparent; }
 }

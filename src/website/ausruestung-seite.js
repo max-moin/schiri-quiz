@@ -86,6 +86,22 @@ function symbolHtml(icon) {
   return `<svg viewBox="0 0 24 24" aria-hidden="true">${innen || innen === "" ? innen : '<circle cx="12" cy="12" r="8"/>'}</svg>`;
 }
 
+// Im Usability-Test konnte die Testperson nicht erkennen, ob sie eine
+// Farbe gewaehlt hatte: der Auswahlzustand steckte allein in einem
+// blassen Rahmen und ein paar Pixeln Groesse. Er haengt jetzt an drei
+// Merkmalen - Rahmen, Haekchen (beides in stil/ausruestung.css) und
+// dieser ausgeschriebenen Zeile. Kein Merkmal davon ist Farbe oder
+// Groesse allein (WCAG 1.4.1).
+function zeigeGewaehlteFarbe() {
+  const wert = $("bestand-farbe").value.trim();
+  const andereGewaehlt = document.querySelector('input[name="bestand-farbton"][value="__andere__"]')?.checked;
+  const zeile = $("bestand-farbe-gewaehlt");
+  zeile.textContent = wert
+    ? "Gewählt: " + wert
+    : (andereGewaehlt ? "Gewählt: Andere Farbe – bitte unten eintragen" : "Noch keine Farbe gewählt");
+  zeile.classList.toggle("bestand-farbe-gewaehlt-aktiv", Boolean(wert) || Boolean(andereGewaehlt));
+}
+
 function setzeFarbe(wert) {
   const bekannt = AUS.FARBEN.find((x) => x.wert.toLocaleLowerCase("de") === String(wert || "").toLocaleLowerCase("de"));
   const radio = document.querySelector(`input[name="bestand-farbton"][value="${bekannt ? bekannt.wert : "__andere__"}"]`);
@@ -94,10 +110,15 @@ function setzeFarbe(wert) {
   $("bestand-andere-farbe").hidden = !wert || !!bekannt;
   $("bestand-andere-farbe").value = bekannt ? "" : (wert || "");
   $("bestand-farbe").value = wert || "";
+  zeigeGewaehlteFarbe();
 }
 
+// Solange nichts gewaehlt ist, gibt es auch keine passenden Zusatzfelder:
+// "fach()" faellt bei einem unbekannten Schluessel auf "Sonstiges" zurueck
+// und wuerde sonst Bezeichnung und Farbe anbieten, bevor ueberhaupt eine
+// Kategorie feststeht.
 function aktualisiereFormularFelder() {
-  const kategorie = fach($("bestand-kategorie").value);
+  const kategorie = $("bestand-kategorie").value ? fach($("bestand-kategorie").value) : {};
   $("bestand-bezeichnung-bereich").hidden = !kategorie.bezeichnung;
   $("bestand-farbe-bereich").hidden = !kategorie.farbe;
   $("bestand-groesse-bereich").hidden = !kategorie.groesse;
@@ -110,7 +131,10 @@ function aktualisiereFormularFelder() {
   if (!kategorie.verbrauch) $("bestand-anzahl").value = "1";
 }
 
-$("bestand-kategorie").innerHTML = AUS.kategorienOptionen();
+// "Trikot" war vorausgewaehlt - die Testperson nahm das Feld deshalb gar
+// nicht als Auswahl wahr und haette am Ende ein Trikot eingetragen, das
+// sie nie gewaehlt hat. Der leere Eintrag steht vorn und ist die Vorgabe.
+$("bestand-kategorie").innerHTML = '<option value="">Bitte wählen …</option>' + AUS.kategorienOptionen();
 $("bestand-farbwahl").innerHTML = AUS.farbwahlHtml("bestand-farbton");
 $("bestand-kategorie").addEventListener("change", aktualisiereFormularFelder);
 $("bestand-farbwahl").addEventListener("change", (event) => {
@@ -118,9 +142,13 @@ $("bestand-farbwahl").addEventListener("change", (event) => {
   const andere = event.target.value === "__andere__";
   $("bestand-andere-farbe").hidden = !andere;
   $("bestand-farbe").value = andere ? "" : event.target.value;
+  zeigeGewaehlteFarbe();
   if (andere) $("bestand-andere-farbe").focus();
 });
-$("bestand-andere-farbe").addEventListener("input", () => { $("bestand-farbe").value = $("bestand-andere-farbe").value.trim(); });
+$("bestand-andere-farbe").addEventListener("input", () => {
+  $("bestand-farbe").value = $("bestand-andere-farbe").value.trim();
+  zeigeGewaehlteFarbe();
+});
 
 // ---------- Das Formular ----------
 
@@ -344,6 +372,11 @@ $("bestand-formular").onsubmit = async (e) => {
   e.preventDefault();
   const weiterenAnlegen = e.submitter?.id === "bestand-speichern-weiter";
   const ausgewaehlteKategorie = $("bestand-kategorie").value;
+  if (!ausgewaehlteKategorie) {
+    meldung("Bitte wähle zuerst aus, um was für ein Stück es geht.", true);
+    $("bestand-kategorie").focus();
+    return;
+  }
   const kategorie = fach(ausgewaehlteKategorie);
   if (kategorie.bezeichnung && $("bestand-bezeichnung").value.trim().length < 2) {
     meldung("Bitte beschreibe, welches Equipment du eintragen möchtest.", true);

@@ -23,6 +23,67 @@ function kennzahl(zahl, label, klasse = "") {
   return k;
 }
 
+// Zwei Testpersonen am 10.09.2026: "Man sieht die Schwaechen nicht." Die
+// Seite zeigte nur Zahlen und ueberliess das Deuten der Person.
+//
+// Ein Themengebiet kann hier NICHT benannt werden: "meine_quiz_statistik"
+// liefert ausschliesslich Werte pro Woche, keine Kategorie und keine
+// Regelnummer. Statt eine Schwaeche zu erfinden, sagt diese Auswertung in
+// Saetzen genau das, was die vorhandenen Zahlen hergeben - und wo ihre
+// Grenze liegt.
+function schwaechsteWoche(wochen) {
+  const gespielt = wochen.filter((w) => Number(w.beantwortet) > 0);
+  if (!gespielt.length) return null;
+  return gespielt.slice().sort((a, b) => {
+    const quoteA = Number(a.richtig) / Number(a.beantwortet);
+    const quoteB = Number(b.richtig) / Number(b.beantwortet);
+    if (quoteA !== quoteB) return quoteA - quoteB;
+    // Bei gleicher Quote zaehlt die Woche mit mehr Antworten mehr: sie ist
+    // die belastbarere Aussage.
+    return Number(b.beantwortet) - Number(a.beantwortet);
+  })[0];
+}
+
+function deutungsSaetze(wochen, summe) {
+  if (!wochen.length) return ["Sobald die erste Quizwoche läuft, steht hier, was deine Zahlen bedeuten."];
+  if (!summe.beantwortet) {
+    return ["Du hast bisher keine einzige Quizfrage beantwortet – deshalb kann diese Seite noch nicht sagen, wo du stehst.",
+      "Mach eine Woche mit, dann steht hier, wo es bei dir hakt."];
+  }
+
+  const saetze = [];
+  const woche = schwaechsteWoche(wochen);
+  const name = woche?.bezeichnung || "einer Quizwoche";
+  const richtig = Number(woche?.richtig || 0);
+  const beantwortet = Number(woche?.beantwortet || 0);
+  if (richtig >= beantwortet) {
+    saetze.push(`Danebengelegen bist du bisher in keiner Woche: alle ${summe.beantwortet} beantworteten Fragen waren richtig.`);
+  } else if (beantwortet === 1) {
+    saetze.push(`Am häufigsten danebengelegen hast du in der Woche „${name}“ – dort war deine einzige Antwort falsch.`);
+  } else {
+    saetze.push(`Am häufigsten danebengelegen hast du in der Woche „${name}“: dort waren nur ${richtig} von ${beantwortet} Antworten richtig.`);
+  }
+
+  if (summe.offen > summe.falsch) {
+    saetze.push(`Dein größter Hebel ist aber nicht das Regelwissen, sondern das Mitmachen: ${summe.offen} Fragen hast du gar nicht erst beantwortet.`);
+  }
+  if (summe.nachbessern > 0) {
+    saetze.push(`Bei ${summe.nachbessern} Antworten hat erst die zweite Chance gereicht – das sind die Stellen, an denen es knapp war.`);
+  }
+  saetze.push("Nach Themengebieten kann diese Übersicht nicht auswerten – sie kennt nur deine Wochen.");
+  return saetze;
+}
+
+function zeichneDeutung(saetze) {
+  const ziel = $("statistik-deutung");
+  if (!ziel) return;
+  ziel.replaceChildren(...saetze.map((satz) => {
+    const p = document.createElement("p");
+    p.textContent = satz;
+    return p;
+  }));
+}
+
 function zeichne(wochen) {
   const beantwortet = wochen.reduce((summe, w) => summe + Number(w.beantwortet || 0), 0);
   const richtig = wochen.reduce((summe, w) => summe + Number(w.richtig || 0), 0);
@@ -35,6 +96,15 @@ function zeichne(wochen) {
     kennzahl(richtig, "richtig", "richtig"),
     kennzahl(`${quote} %`, "Trefferquote"),
   );
+
+  const gestellt = wochen.reduce((summe, w) => summe + Number(w.fragen_gesamt || 0), 0);
+  zeichneDeutung(deutungsSaetze(wochen, {
+    beantwortet,
+    richtig,
+    falsch: wochen.reduce((summe, w) => summe + Number(w.falsch || 0), 0),
+    nachbessern: wochen.reduce((summe, w) => summe + Number(w.nachbessern || 0), 0),
+    offen: Math.max(0, gestellt - beantwortet),
+  }));
 
   const verlauf = $("statistik-verlauf");
   verlauf.replaceChildren();
@@ -90,6 +160,7 @@ async function lade(person) {
   if (error) {
     $("statistik-verlauf").innerHTML = '<p class="meine-leer">Dein Verlauf konnte gerade nicht geladen werden.</p>';
     $("statistik-zeitraum").textContent = "Nicht verfügbar";
+    zeichneDeutung(["Ohne deine Zahlen lässt sich hier nichts deuten. Versuch es später noch einmal."]);
     return;
   }
   zeichne(Array.isArray(data) ? data : []);

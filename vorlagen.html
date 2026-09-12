@@ -43,6 +43,7 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html" aria-current="page">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
@@ -75,18 +76,71 @@
     <section id="spiel" class="abschnitt">
       <div class="abschnitt-kopf"><h2>Ein angesetztes Spiel absagen</h2></div>
 
+      <!-- ============================================================
+           Runde 1 des Usability-Tests: "Es braucht eine Anleitung, wie man
+           absagt - nicht nur die Vorlage. Der Ablauf muss beschrieben sein:
+           wen benachrichtige ich, worueber, bis wann." Die Aufgabe wurde
+           nicht geschafft. Genau diese drei Fragen stehen deshalb vor
+           allem anderen - beantwortet, nicht nur gestellt.
+
+           Die Empfaenger stehen hier bewusst NICHT noch einmal als fester
+           Text: sie gehoeren zur redaktionell gepflegten Vorlage (Bereich
+           "vorlagen" der Datenbank). Das Skript am Seitenende liest sie
+           von dort ab und traegt sie unten ein. Zwei Stellen mit derselben
+           Adresse laufen frueher oder spaeter auseinander.
+
+           ZU PRUEFEN (Max): Die Anweisung des Stadtverbands nennt in dem,
+           was hier dokumentiert ist, keine Stundenfrist fuer die Absage
+           eines einzelnen Spiels - nur das Nachhaken nach 24 Stunden und
+           die Sperrtermine bis zum 20. des Vormonats. Steht im Original
+           doch eine Frist, gehoert sie in die Antwort auf "Bis wann?".
+           ============================================================ -->
+      <dl class="absage-kurz">
+        <div class="absage-kurz-punkt">
+          <dt>Wen benachrichtigst du?</dt>
+          <dd id="absage-empfaenger">Das Ansetzer-Team des Stadtverbands – den
+            Schiedsrichter-Obmann beziehungsweise die Mailadresse deines Vereins
+            immer in Kopie. Beide Adressen stehen fertig in der Vorlage weiter unten.</dd>
+        </div>
+        <div class="absage-kurz-punkt">
+          <dt>Worüber?</dt>
+          <dd>Schriftlich per E-Mail, mit Begründung und allen Angaben zum Spiel:
+            Begegnung, Spielkennung, Datum, Uhrzeit, Wettbewerb, Liga und deine
+            Funktion. Genau danach fragt die Vorlage.</dd>
+        </div>
+        <div class="absage-kurz-punkt">
+          <dt>Bis wann?</dt>
+          <dd>So früh wie möglich: Du bleibst für das Spiel zuständig, bis du im
+            DFBnet tatsächlich abgesetzt bist. Zwei feste Fristen gibt es dabei –
+            bist du 24 Stunden nach der Mail noch angesetzt, rufst du beim Ansetzer
+            an; und längere Zeiträume sagst du gar nicht einzeln ab, sondern trägst
+            sie bis zum 20. des Vormonats als Sperrtermine im DFBnet ein.</dd>
+        </div>
+      </dl>
+
       <ol class="weg absage-weg" aria-label="Ablauf einer Spielabsage">
+        <!-- Runde 3: "Ansetzung bestätigen" versteht niemand - die
+             Testperson wollte an diesem Schritt vorbei direkt zur
+             E-Mail-Vorlage. Der Schritt heisst jetzt nach dem, was man
+             hier tut: die Angaben heraussuchen, die gleich in die Mail
+             gehoeren. Die Pflicht, eine neue Ansetzung sofort zu
+             bestaetigen, bleibt - sie steht so in der Anweisung des
+             Stadtverbands -, rutscht aber hinter den Zweck des Schritts. -->
         <li class="weg-schritt" data-nr="1">
-          <h3>Ansetzung bestätigen und öffnen</h3>
+          <h3>Daten bereithalten</h3>
+          <p>Such dir die Angaben heraus, die gleich in die E-Mail gehören:
+             Begegnung, Spielkennung, Datum, Uhrzeit, Wettbewerb, Liga und
+             deine Funktion. Alles davon steht in der Ansetzung im DFBnet.</p>
           <p>Prüfe deine Ansetzungen täglich zwischen 19 und 20 Uhr und bestätige
              eine neue Ansetzung sofort – auch dann, wenn du sie anschließend
-             absagen musst. Halte Begegnung, Spielkennung, Datum, Uhrzeit,
-             Wettbewerb, Liga und deine Funktion bereit.</p>
+             absagen musst.</p>
         </li>
         <li class="weg-schritt" data-nr="2">
           <h3>Absage per E-Mail senden</h3>
           <p>Schreibe den konkreten Grund dazu und sende die E-Mail an das
              Ansetzer-Team – den Obmann beziehungsweise die Vereinsadresse immer in Kopie.</p>
+          <p>Die Vorlage unten öffnest du entweder direkt in deiner Mail-App
+             oder kopierst sie in dein eigenes Mailprogramm.</p>
           <a class="absage-sprung" href="#email-spiel">Zur E-Mail-Vorlage</a>
         </li>
         <li class="weg-schritt" data-nr="3">
@@ -114,7 +168,21 @@
       <div class="vorlage" id="email-spiel">
         <div class="vorlage-kopf">
           <span class="vorlage-titel" id="titel-spiel">E-Mail-Vorlage für die Spielabsage</span>
-          <button class="kopieren" type="button" data-ziel="text-spiel">Text kopieren</button>
+          <!-- Runde 2 und 3 erwarteten beide einen Weg, der die Vorlage direkt
+               in der eigenen Mail-App oeffnet. mailto: greift aber nicht auf
+               jedem Geraet und in jedem Browser - deshalb bleibt das Kopieren
+               gleichberechtigt daneben stehen; das ist der Weg, der in Runde 3
+               funktioniert hat (Text kopieren, beim eigenen Mail-Anbieter
+               einfuegen). Beide Knoepfe sind mit Woertern beschriftet.
+
+               Der mailto-Knopf startet versteckt und wird erst eingeblendet,
+               wenn das Skript unten eine Empfaengeradresse aus der Vorlage
+               lesen konnte: ein Knopf, der ins Leere fuehrt, ist schlimmer
+               als gar keiner. -->
+          <span class="vorlage-knoepfe">
+            <a class="vorlage-mailto" id="mailto-spiel" href="#" hidden>In der Mail-App öffnen</a>
+            <button class="kopieren" type="button" data-ziel="text-spiel">Text kopieren</button>
+          </span>
         </div>
         <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
 Cc: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
@@ -135,6 +203,10 @@ ich bitte um die Absetzung von folgendem Spiel:
 Grund: [kurz und konkret]
 
 Viele Grüße</pre>
+        <p class="vorlage-fuss">„In der Mail-App öffnen“ legt eine fertige E-Mail an –
+          Empfänger, Kopie, Betreff und Text stehen schon drin, du füllst nur noch die
+          eckigen Klammern aus. Öffnet sich nichts, nimm „Text kopieren“ und füge den
+          Text bei deinem eigenen Mail-Anbieter ein.</p>
       </div>
 
       <details class="faltung" style="margin-top:14px">
@@ -182,7 +254,7 @@ Viele Grüße</pre>
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
-      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
       <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
@@ -220,6 +292,66 @@ Viele Grüße</pre>
     document.getElementById("text-spiel").textContent = fuelleMail(VORLAGEN.spiel.text);
     document.getElementById("hinweis-spiel").lastElementChild.textContent = VORLAGEN.spiel.hinweis;
     document.getElementById("quelle-spiel").textContent = VORLAGEN.spiel.quelle;
+
+    /* ------------------------------------------------------------
+       Der zweite Weg: die Vorlage in der eigenen Mail-App oeffnen
+       ------------------------------------------------------------
+       Runde 2 und 3 des Usability-Tests haben genau das erwartet.
+       Empfaenger, Kopie und Betreff werden dafuer aus der Vorlage
+       gelesen und nicht hier noch einmal hingeschrieben: die Vorlage
+       ist redaktioneller Inhalt, den Max im Obmann-Bereich aendern
+       kann. Stuende die Adresse zusaetzlich im Skript, wuerde der
+       mailto-Knopf nach der ersten Aenderung an die alte schicken.
+
+       Zerlegt wird nur der Kopf am Anfang ("An:", "Cc:", "Betreff:").
+       Findet sich dort kein Empfaenger, bleibt der Knopf versteckt und
+       es bleibt beim Kopieren - das funktioniert immer. */
+    function zerlegeVorlage(text) {
+      const zeilen = String(text || "").split("\n");
+      const schluessel = [["An:", "an"], ["Cc:", "cc"], ["Betreff:", "betreff"]];
+      const kopf = { an: "", cc: "", betreff: "" };
+
+      let i = 0;
+      for (; i < zeilen.length; i += 1) {
+        const treffer = schluessel.find(([wort]) => zeilen[i].startsWith(wort));
+        if (!treffer) break;
+        kopf[treffer[1]] = zeilen[i].slice(treffer[0].length).trim();
+      }
+      // Die Leerzeile zwischen Kopf und Anschreiben gehoert nicht in den
+      // Mailtext - sonst beginnt jede Mail mit einer leeren Zeile.
+      while (zeilen[i] === "") i += 1;
+
+      return { ...kopf, koerper: zeilen.slice(i).join("\n") };
+    }
+
+    const zerlegt = zerlegeVorlage(document.getElementById("text-spiel").textContent);
+    const mailKnopf = document.getElementById("mailto-spiel");
+
+    if (mailKnopf && zerlegt.an) {
+      /* Die Adresse selbst wird mit encodeURI kodiert: encodeURIComponent
+         wuerde das @ zu %40 machen, was zwar erlaubt ist, aber von
+         aelteren Mailprogrammen nicht immer verstanden wird. Die
+         Zusatzfelder muessen dagegen vollstaendig kodiert werden, sonst
+         beendet das erste & oder # im Betreff die Adresse. */
+      const felder = [];
+      if (zerlegt.cc) felder.push("cc=" + encodeURIComponent(zerlegt.cc));
+      if (zerlegt.betreff) felder.push("subject=" + encodeURIComponent(zerlegt.betreff));
+      felder.push("body=" + encodeURIComponent(zerlegt.koerper));
+
+      mailKnopf.href = "mailto:" + encodeURI(zerlegt.an) + "?" + felder.join("&");
+      mailKnopf.hidden = false;
+    }
+
+    /* Dieselbe Quelle beantwortet oben die Frage "Wen benachrichtigst du?".
+       Bleibt die Vorlage ohne Empfaenger, bleibt der feste Text stehen. */
+    const empfaengerFeld = document.getElementById("absage-empfaenger");
+    if (empfaengerFeld && zerlegt.an) {
+      empfaengerFeld.textContent = zerlegt.cc
+        ? `Das Ansetzer-Team des Stadtverbands unter ${zerlegt.an} – in Kopie immer `
+          + `${zerlegt.cc}, also den Schiedsrichter-Obmann beziehungsweise die `
+          + `Mailadresse deines Vereins.`
+        : `Das Ansetzer-Team des Stadtverbands unter ${zerlegt.an}.`;
+    }
 
     /* Kopierknopf. navigator.clipboard gibt es nur in sicheren Kontexten
        (https oder localhost) - deshalb ein Rückfallweg über ein

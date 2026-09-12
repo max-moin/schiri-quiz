@@ -169,7 +169,24 @@
   font-size: .98rem;
 }
 
-.regel-finder-schritt .segment { margin: 0; }
+/* Runde 3, iPhone: "Was für ein Spiel ist es? / Freundschaftsspiel" ragte
+   über die Karte hinaus. .segment ist ein inline-flex ohne Umbruch - es
+   schrumpft also nie unter die Summe seiner Knopfbreiten, und drei
+   Knöpfe brauchen mehr als die rund 240 px, die bei 360 px Fensterbreite
+   im Schritt übrig bleiben. Im Finder darf die Reihe deshalb umbrechen.
+   Die 44 px Höhe sind gleich mit dabei: aus .segment kamen nur 40. */
+.regel-finder-schritt .segment {
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+}
+.regel-finder-schritt .segment button {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 9px 14px;
+}
 
 .regel-auswahl {
   width: 100%;
@@ -185,6 +202,49 @@
 
 .regel-auswahl:focus-visible { outline: 3px solid var(--blau); outline-offset: 2px; }
 .freundschaft-hinweis { margin-top: 14px; }
+.regel-finder-erklaerung {
+  margin: 9px 0 0;
+  font-size: .78rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ---------- Stand-Hinweis zum Aufklappen ----------
+   Warum überhaupt: siehe zeichneStand() in regeluebersicht.html. Kurz -
+   der Balken war so groß, dass der Inhalt darunter übersehen wurde.
+
+   Die Regeln hängen bewusst an BEIDEN Klassen. stil/hinweise.css wird
+   nach dieser Datei geladen; mit nur .hinweis-falt gewinnen dort
+   display:flex und die Polsterung von .hinweisbalken. */
+.hinweisbalken.hinweis-falt { display: block; padding: 0; }
+.hinweisbalken.hinweis-falt > summary {
+  display: flex; align-items: center; gap: 11px;
+  padding: 11px 15px; min-height: 44px;
+  cursor: pointer; list-style: none;
+}
+.hinweisbalken.hinweis-falt > summary::-webkit-details-marker { display: none; }
+.hinweisbalken.hinweis-falt > summary:focus-visible { outline-offset: -3px; }
+.hinweisbalken.hinweis-falt .hinweis-kurz { min-width: 0; overflow-wrap: anywhere; }
+/* Wort statt Pfeil - dieselbe Hausregel wie bei .sym-wort. */
+.hinweisbalken.hinweis-falt .hinweis-mehr {
+  margin-left: auto; white-space: nowrap;
+  font-size: .75rem; font-weight: 700; color: var(--muted);
+}
+.hinweisbalken.hinweis-falt:not([open]) .hinweis-mehr::after { content: "Warum"; }
+.hinweisbalken.hinweis-falt[open] .hinweis-mehr::after { content: "Zuklappen"; }
+.hinweisbalken.hinweis-falt .hinweis-text { padding: 0 15px 13px; }
+
+/* ---------- Kartenkopf: Altersklasse, Quelle, Spielklasse ----------
+   Die Karte muss für sich allein lesbar sein - wer mitten in der Liste
+   landet, sieht die Gruppenüberschrift nicht mehr. */
+.rk-kopfzeile {
+  display: flex; align-items: center; gap: 9px; flex-wrap: wrap;
+  margin-bottom: 3px;
+}
+.rk-alter {
+  font-size: .72rem; font-weight: 700; color: var(--muted);
+  text-transform: uppercase; letter-spacing: .045em;
+}
 .regel-grenze { margin: 14px 0 20px; color: var(--muted); font-size: .82rem; line-height: 1.55; }
 
 @media (min-width: 880px) {

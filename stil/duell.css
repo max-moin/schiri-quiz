@@ -42,9 +42,24 @@
   overflow: hidden;
 }
 .duell-symbol { font-size: 2rem; display: block; margin-bottom: 4px; }
-.duell-start { display: grid; gap: 16px; margin-top: 20px; }
-.duell-einstiegskarte { margin-top: 16px; }
-.duell-einstiegskarte h2 { margin: 0 0 6px; }
+
+/* Einstieg (11.09.2026): Die beiden Wege sind bewusst NICHT mehr gleich
+   gewichtet. "Duell eroeffnen" ist die Hauptkarte, "beitreten" die
+   zweite - in drei Tests konnte niemand die beiden auseinanderhalten,
+   solange sie nebeneinander gleich aussahen. Deshalb hier untereinander
+   und optisch verschieden, auch auf breiten Bildschirmen. */
+.duell-karte-haupt { margin-top: 16px; border-color: var(--marke); border-width: 2px; }
+.duell-karte-zweit { margin-top: 16px; background: var(--bg-start, #fff); }
+.duell-karte-haupt h2, .duell-karte-zweit h2 { margin: 0 0 8px; }
+.duell-ablauf { margin: 10px 0 14px; padding-left: 21px; display: grid; gap: 6px; }
+.duell-ablauf li { line-height: 1.5; }
+.duell-kleingedruckt { margin-top: 9px; color: var(--muted); font-size: .86rem; }
+.duell-als { margin: 12px 0; }
+.duell-anderer-weg { margin: 14px 0 0; text-align: center; }
+.duell-textknopf {
+  min-height: 44px; padding: 10px 14px; border: 0; background: none;
+  color: var(--marke); font: 600 .93rem var(--font-text); text-decoration: underline; cursor: pointer;
+}
 .duell-karte label { display: grid; gap: 7px; margin: 14px 0; font-weight: 700; }
 .duell-karte input[type="text"], .duell-karte input:not([type]) {
   box-sizing: border-box; width: 100%; min-height: 48px; padding: 12px;
@@ -58,11 +73,24 @@
 .duell-haupt:disabled { opacity: .5; cursor: default; }
 .duell-aktionen { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 6px; }
 .duell-aktionen button:first-child { background: var(--marke-lighter); color: var(--marke); }
-.duell-code, .duell-fertig { margin-top: 28px; text-align: center; }
-.duell-code > strong {
-  display: block; margin: 10px 0; font: 800 clamp(2.6rem, 11vw, 4.6rem)/1 var(--font-titel);
+.duell-warteraum, .duell-fertig { margin-top: 20px; text-align: center; }
+.duell-code-label { color: var(--muted); font-size: .86rem; margin-top: 4px; }
+.duell-code-wert {
+  display: block; margin: 6px 0 12px; font: 800 clamp(2.4rem, 10vw, 4.2rem)/1 var(--font-titel);
   letter-spacing: .13em; color: var(--marke);
 }
+.duell-warteraum .duell-ablauf { text-align: left; max-width: 30rem; margin-inline: auto; }
+/* Die Warteliste beantwortet die Frage, an der in allen drei Tests
+   Schluss war: "ist ueberhaupt jemand da?" */
+.duell-warteliste {
+  margin: 16px auto; padding: 14px; max-width: 30rem; text-align: left;
+  border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--marke-lighter);
+}
+.duell-warteliste h3 { margin: 0 0 8px; font-size: .95rem; }
+.duell-namen { margin: 0; padding-left: 19px; display: grid; gap: 5px; }
+.duell-warteliste .duell-kleingedruckt { margin-top: 10px; }
+.duell-letzte-duelle { margin-top: 16px; }
+.duell-letzte-duelle h2 { margin: 0 0 4px; }
 .duell-fehler { padding: 12px; border-radius: 10px; background: var(--red-hell); color: var(--red); font-weight: 700; margin-bottom: 16px; }
 .duell-lade-hinweis { color: var(--muted); text-align: center; padding: 30px 0; }
 .duell-spiel-kopf { margin-bottom: 0; }
@@ -257,6 +285,5 @@
 }
 
 @media (min-width: 720px) {
-  .duell-start { grid-template-columns: 1fr 1fr; }
   .duell-karte { padding: 28px; }
 }

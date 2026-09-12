@@ -104,7 +104,7 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
 
   const vorschlagHtml = ich ? `
     <section class="termin-aktionen" aria-labelledby="termin-mitgestalten">
-      <div><h2 id="termin-mitgestalten">Termin mitgestalten</h2><p>Du hast eine Idee? Reiche sie zur Prüfung ein.</p></div>
+      <div><h2 id="termin-mitgestalten">Einen Termin vorschlagen</h2><p>Du wünschst dir einen zusätzlichen Regelabend oder Treff? Schlag hier einen Tag dafür vor – der Obmann prüft ihn.</p></div>
       <button type="button" class="td-senden" data-vorschlag-oeffnen>Termin vorschlagen</button>
     </section>
     ${vorschlaege.length ? `<details class="eigene-vorschlaege"><summary>Meine Vorschläge (${vorschlaege.length})</summary>

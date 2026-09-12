@@ -166,6 +166,80 @@
 
 .bestand-feld textarea { min-height: 84px; resize: vertical; line-height: 1.5; }
 
+/* Pflichtfelder tragen ihr Wort, nicht bloss ein Sternchen. */
+.bestand-pflicht {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+  font-size: .68rem;
+  font-weight: 700;
+  letter-spacing: .03em;
+  vertical-align: middle;
+}
+
+/* ---------- Die Farbauswahl ----------
+   Im Usability-Test war nicht zu erkennen, ob ueberhaupt eine Farbe
+   gewaehlt war: stil/bausteine.css markiert die Wahl nur mit einem
+   blassen Rahmen und zwei Pixeln mehr Groesse. Auf dieser Seite haengt
+   der Zustand darum an drei Merkmalen zugleich - kraeftiger Rahmen mit
+   Ring, ein Haekchen am Feld und die ausgeschriebene Farbe darunter
+   (die Zeile fuellt src/website/ausruestung-seite.js). Damit haengt
+   nichts an Farbe oder Groesse allein, WCAG 1.4.1.
+   Bewusst auf ".bestand-farbblock" eingegrenzt: dieselbe Farbwahl steht
+   auch in den Fenstern aus dem Kontomenue, die ihre Regeln aus
+   stil/profil.css beziehen und hier nicht mitwandern sollen. */
+.bestand-farbblock .ausruestungs-farbwahl { gap: 10px; }
+
+.bestand-farbblock .ausruestungs-farbe span {
+  position: relative;
+  /* 44 px Trefferflaeche - das Feld selbst, nicht erst die Zeile darum. */
+  width: 44px;
+  height: 44px;
+  /* var(--border) laege bei 1,2:1 auf Weiss; als Umriss eines
+     Bedienelements verlangt WCAG 1.4.11 mindestens 3:1. */
+  border-color: var(--muted);
+}
+
+.bestand-farbblock .ausruestungs-farbe input:checked + span {
+  border-width: 3px;
+  border-color: var(--marke-dunkel);
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--marke-dunkel);
+}
+
+/* Das Haekchen sitzt in einer eigenen dunklen Scheibe: so bleibt es
+   lesbar, egal ob die Flaeche darunter Schwarz oder Weiss ist. */
+.bestand-farbblock .ausruestungs-farbe input:checked + span::after {
+  content: "✓";
+  position: absolute;
+  right: -6px;
+  bottom: -6px;
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  border: 2px solid var(--card);
+  border-radius: 50%;
+  background: var(--marke-dunkel);
+  color: #fff;
+  font-size: .7rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.bestand-farbblock .ausruestungs-farbe input:checked ~ small { color: var(--text); font-weight: 800; }
+
+.bestand-farbe-gewaehlt {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 400;
+}
+
+.bestand-farbe-gewaehlt.bestand-farbe-gewaehlt-aktiv { color: var(--text); font-weight: 700; }
+
 .bestand-meldung {
   min-height: 1.3em;
   margin: 14px 0 0;

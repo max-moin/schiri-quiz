@@ -48,6 +48,7 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
@@ -64,7 +65,9 @@
     <p class="seiten-unter">Vier Schritte bis zur fertigen Quittung. Jeden Betrag rechts kannst du von Hand überschreiben.</p>
 
     <div class="rechner">
-      <div>
+      <!-- Die Eingabespalte hat einen Namen, weil der Ausdruck sie
+           ausblendet: gedruckt wird die Quittung, nicht das Formular. -->
+      <div class="rechner-formular">
 
         <!-- Reihenfolge nach Max' Vorgabe vom 21.08.2026: erst wer spielt und
              was für ein Spiel es ist, dann erst die Liga. Vorher stand die
@@ -151,9 +154,15 @@
         </section>
 
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Wo und wer fährt?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Fahrtkosten</h2></div>
           <div class="schritt-koerper">
-            <label for="verein">Heimverein</label>
+            <!-- Runde 1, Testperson über 50: "Heimverein" wurde als "für
+                 welchen Verein pfeifst du" gelesen. Das Feld beantwortet aber
+                 eine ganz andere Frage - gewaehlterVerein() liefert allein die
+                 LAGE des Vereins, und die geht nur in fahrtkostenStadt() ein.
+                 Es benennt also den Spielort, und danach heisst es jetzt. -->
+            <label for="verein">Spielort
+              <span class="etikett-zusatz">Verein, auf dessen Platz gespielt wird – er bestimmt die Tarifzone</span></label>
             <input class="feld" id="verein" list="vereinsliste" placeholder="Vereinsnamen eintippen …" />
             <datalist id="vereinsliste"></datalist>
             <p class="hinweis-klein" id="ortHinweis"></p>
@@ -249,6 +258,23 @@
           <div class="q-zeile"><span>Fahrtkosten zusammen</span><b id="qFahrt">–</b></div>
         </div>
         <div class="q-gesamt"><b id="qGesamtLabel">Gesamt</b><b id="qGesamt" aria-live="polite">–</b></div>
+
+        <!-- Runde 2, wörtlich: "Man wusste nicht, wann man fertig ist."
+             Der Rechner endete mit dem letzten Eingabefeld - danach kam
+             nichts mehr, was sagt: das war's. Dieser Block sitzt direkt
+             unter der Gesamtsumme und trägt denselben grünen Grund, ist
+             also mit ihr zusammen EIN Ergebnis. Die Summe wird bewusst
+             nicht noch einmal wiederholt - dieselbe Zahl zweimal
+             untereinander sah schon einmal nach einem Fehler aus
+             (siehe den Kommentar an .q-summen). -->
+        <div class="q-abschluss">
+          <p class="q-abschluss-titel">Fertig – das ist das Ergebnis.</p>
+          <p class="q-abschluss-text">
+            Übertrage die drei Beträge von oben auf das Quittungsformular –
+            oder drucke diese Quittung aus.
+          </p>
+          <button type="button" class="q-drucken" id="qDrucken">Quittung drucken</button>
+        </div>
         <p class="q-haftung" id="qBearbeitetHinweis" hidden>
           Einzelne Beträge wurden von Hand geändert.
           <button type="button" class="linkknopf" id="qZuruecksetzen">Alle zurücksetzen</button>
@@ -274,7 +300,11 @@
     <div class="ergebnis-leiste">
       <span class="el-titel" id="elTitel">Gesamt</span>
       <b class="el-betrag" id="elBetrag">–</b>
-      <a class="el-sprung" href="#quittung">Zur Quittung</a>
+      <!-- Hiess bis zur ersten Testrunde "Zur Quittung". Die Testperson
+           erwartete dahinter den Ausdruck und hielt den Knopf für kaputt,
+           weil er "nur" gescrollt hat. Er sagt jetzt, was er tut; gedruckt
+           wird mit dem Knopf unten in der Quittung. -->
+      <a class="el-sprung" href="#quittung">Nach unten zur Quittung</a>
     </div>
   </main>
 
@@ -282,7 +312,7 @@
     <div class="fuss-innen">
       <a href="impressum.html">Impressum</a>
       <a href="datenschutz.html">Datenschutz</a>
-      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+      <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a>
       <a href="https://www.svf-dresden.de" target="_blank" rel="noopener noreferrer">SVF Dresden</a>
       <a href="https://www.dfbnet.org" target="_blank" rel="noopener noreferrer">DFBnet</a>
       <a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
@@ -974,6 +1004,12 @@
       handEingaben.clear();
       rechne();
     });
+
+    /* window.print() öffnet die Druckfunktion des Browsers, kein
+       Meldefenster - die Seite baut also keinen eigenen Dialog. Was auf
+       dem Blatt landet, entscheidet der @media-print-Block in
+       stil/spesen.css: nur die Quittung, ohne Formular und Menü. */
+    $("qDrucken").addEventListener("click", () => window.print());
 
     /* ------------------------------------------------------------------
        Was von Hand eingetragen wurde, gilt für GENAU diese Konstellation.

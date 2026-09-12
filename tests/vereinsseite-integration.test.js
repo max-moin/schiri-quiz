@@ -17,7 +17,14 @@ test("die Vereinsstartseite bleibt vom Quiz-Einstieg getrennt", () => {
 
 test("das Vereinsquiz behält Hausknopf und Gast-Direkteinstieg", () => {
   assert.match(quiz, /class="heim-knopf"/);
-  assert.match(quiz, /href="index\.html"/);
+  // 12.09.2026: Der Hausknopf fuehrt eine Ebene hoch nach modus.html,
+  // nicht mehr zwei Ebenen bis zur Startseite. Das Wochenquiz haengt im
+  // Baum unter "Quiz" (src/ui/wegweiser.js) - wer zurueck will, soll
+  // dort landen und nicht ganz aussen. Und er traegt jetzt ein Wort:
+  // ohne Browserleiste ist er der einzige Weg heraus.
+  assert.match(quiz, /class="heim-knopf" aria-label="Zurück zu Quiz"/);
+  assert.match(quiz, /href="modus\.html" class="heim-knopf"/);
+  assert.match(quiz, /heim-knopf-wort/);
   assert.match(quiz, /window\.location\.hash === "#gast"/);
   assert.match(quiz, /gast-wechsel-button/);
 });

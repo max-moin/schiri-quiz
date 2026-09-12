@@ -22,7 +22,18 @@
 //  gerade jemand anderes.
 // ============================================================
 
+// 11.09.2026, nach der dritten Testrunde: "Start" ist zurueck.
+//
+// Bis dahin fuehrte nur das Wappen zur Startseite - mit der Begruendung,
+// zwei Wege zum selben Ziel seien einer zu viel. Der Test mit einer
+// Person ueber 50 auf dem iPhone hat die Begruendung widerlegt: sie kam
+// auf das Wappen nur, WEIL Max es ihr vorher einmal gesagt hatte. Ein
+// Weg, den man kennen muss, ist kein Weg. Auf dem Handy liegt die Leiste
+// ausserdem hinter dem Menueknopf - und dort hat dieselbe Person zuerst
+// gesucht, auch bei anderen Aufgaben. Erwartungskonformitaet (ISO
+// 9241-110) schlaegt hier die Sparsamkeit.
 const NAVIGATION = [
+  { href: "index.html", text: "Start", seiten: ["index.html"] },
   { href: "termine.html", text: "Termine", seiten: ["termine.html"] },
   { href: "vorlagen.html", text: "Absagen", seiten: ["vorlagen.html"] },
   { href: "regeluebersicht.html", text: "Regeln", seiten: ["regeluebersicht.html"], funktion: "regeln" },

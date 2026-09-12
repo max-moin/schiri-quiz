@@ -18,8 +18,44 @@ test("ein gespeichertes altes Duell öffnet nicht mehr automatisch", async () =>
   const js = await lese("src/website/duell-seite.js");
   assert.match(js, /sitzung = lesenSitzung\(\);[\s\S]*startAnsicht\(\);/);
   assert.doesNotMatch(js, /if \(sitzung\?\.zugang\)[^{\n]*einstiegInLaufendesDuell/);
-  assert.match(js, /data-neues-duell/);
+  assert.match(js, /data-duell-verlassen/);
   assert.match(js, /neuesDuellStarten/);
+});
+
+// Umbau 11.09.2026: "Ein Duell starten" ist in allen drei moderierten
+// Tests gescheitert. Diese Tests halten die Gegenmassnahmen fest, damit
+// sie nicht beim naechsten Umbau still wieder verschwinden.
+test("wer ueber einen geteilten Link kommt, sieht nur das Beitreten", async () => {
+  const js = await lese("src/website/duell-seite.js");
+  assert.match(js, /function einladungsAnsicht\(code\)/);
+  // Der Einladungsfall verlaesst startAnsicht, BEVOR die Eroeffnen-Karte
+  // gebaut wird - sonst baut sich der Gast daneben einen zweiten Raum.
+  assert.match(js, /const eingeladen = leseCodeAusAdresse\(\);\s*\n\s*if \(eingeladen\) return einladungsAnsicht\(eingeladen\);/);
+});
+
+test("der Warteraum zeigt, wer schon dabei ist", async () => {
+  const js = await lese("src/website/duell-seite.js");
+  assert.match(js, /function warteraumAnsicht/);
+  assert.match(js, /data-warteliste|duell-warteliste/);
+  assert.match(js, /api\.stand\(sitzung\.zugang\)/);
+  assert.match(js, /setInterval\(aktualisiereWarteliste/);
+  assert.match(js, /function stoppeWarteUhr/);
+  // Allein starten ist erlaubt, aber nur nach ausdruecklicher Nachfrage -
+  // und niemals ueber einen Browserdialog.
+  assert.match(js, /Noch ist niemand da/);
+  assert.doesNotMatch(js, /\bconfirm\(/);
+});
+
+test("die Wortwahl im Duell sagt, was passiert", async () => {
+  const js = await lese("src/website/duell-seite.js");
+  const verlauf = await lese("src/website/duell-verlauf-ansicht.js");
+  assert.match(js, /Duell eröffnen/);
+  assert.match(js, /Duell beitreten/);
+  assert.doesNotMatch(js, /Code erstellen/);
+  // "Duellübersicht" hiess im Spiel und in der Auswertung etwas
+  // Verschiedenes - das war der benannte Navigationsfehler.
+  assert.doesNotMatch(js, /Duellübersicht/);
+  assert.doesNotMatch(verlauf, /Duellübersicht/);
 });
 
 test("der kompakte Duellkopf initialisiert trotzdem die gemeinsame Vereinssitzung", async () => {

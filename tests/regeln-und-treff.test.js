@@ -63,12 +63,50 @@ test("Absagen erklaert erst den Ablauf und bietet danach die Vorlage", () => {
   const ablauf = absagen.indexOf('class="weg absage-weg"');
   const vorlage = absagen.indexOf('id="email-spiel"');
   assert.ok(ablauf > -1 && vorlage > ablauf);
-  for (const text of ["Ansetzung bestätigen und öffnen", "Absage per E-Mail senden",
+  // Der erste Schritt hiess bis zur dritten Testrunde "Ansetzung
+  // bestätigen und öffnen". Die Testperson verstand den Namen nicht und
+  // wollte an dem Schritt vorbei direkt zur Vorlage; er heisst jetzt nach
+  // seinem Zweck. Die Pflicht dahinter steht weiter drin - die beiden
+  // Zusicherungen unter der Schleife pruefen genau das.
+  for (const text of ["Daten bereithalten", "Absage per E-Mail senden",
     "Absetzung kontrollieren", "Nach 24 Stunden anrufen"]) {
     assert.match(absagen, new RegExp(text));
   }
+  assert.doesNotMatch(absagen, /<h3>Ansetzung bestätigen und öffnen<\/h3>/);
   assert.match(absagen, /täglich zwischen 19 und 20 Uhr/);
   assert.match(absagen, /auch dann, wenn du sie anschließend\s+absagen musst/);
+});
+
+test("Absagen beantwortet wen, worueber und bis wann - und bietet zwei Wege in die Mail", () => {
+  const absagen = lies("vorlagen.html");
+
+  // Runde 1: "Es braucht eine Anleitung, wie man absagt - nicht nur die
+  // Vorlage." Die drei offenen Fragen stehen jetzt VOR dem Ablauf.
+  const kurz = absagen.indexOf('class="absage-kurz"');
+  const ablauf = absagen.indexOf('class="weg absage-weg"');
+  assert.ok(kurz > -1, "der Kurzüberblick fehlt");
+  assert.ok(ablauf > kurz, "der Kurzüberblick steht nicht vor dem Ablauf");
+  for (const frage of ["Wen benachrichtigst du?", "Worüber?", "Bis wann?"]) {
+    assert.ok(absagen.includes(frage), `die Frage "${frage}" fehlt`);
+  }
+
+  // Runde 2 und 3 erwarteten einen Weg direkt in die eigene Mail-App.
+  // Das Kopieren bleibt daneben, weil mailto: nicht ueberall greift -
+  // beide in Worten beschriftet, nicht als blosse Symbole.
+  assert.match(absagen, /In der Mail-App öffnen/);
+  assert.match(absagen, /Text kopieren/);
+  assert.match(absagen, /"mailto:" \+ encodeURI\(zerlegt\.an\)/);
+
+  // Empfaenger und Betreff kommen aus der redaktionellen Vorlage, damit
+  // Anleitung und Vorlage nicht auseinanderlaufen.
+  assert.match(absagen, /function zerlegeVorlage/);
+  assert.match(absagen, /id="absage-empfaenger"/);
+
+  // Ohne Empfaenger kein Knopf: er startet versteckt - und bleibt es auch,
+  // denn das display aus dem Stylesheet wuerde [hidden] sonst schlagen.
+  assert.match(absagen, /id="mailto-spiel" href="#" hidden/);
+  assert.match(lies("stil/vorlagen.css"), /\.vorlage-mailto\[hidden\]\s*\{\s*display: none;\s*\}/);
+  assert.doesNotMatch(absagen, /(?:alert|confirm|window\.prompt)\s*\(/);
 });
 
 test("Regellehrabend wird nicht mehr mit einer ueberholten Absage-Mail angeboten", () => {
