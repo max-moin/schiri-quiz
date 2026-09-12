@@ -429,3 +429,36 @@
   .rk-kernwert { min-height: 72px; }
   .rk-zusatzwerte { grid-template-columns: 1fr; }
 }
+
+/* Belege an der einzelnen Regelzeile (12.09.2026)
+   Vorher stand am Seitenende eine Liste aller Quellen - wer bei den
+   C-Junioren stand, musste selbst heraussuchen, welches der 23
+   Dokumente gemeint ist. Der Block sitzt am Fuss der Karte, also nach
+   den Regeln: er ist der Beleg, nicht die Auskunft. */
+.rk-belege {
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px dashed var(--border);
+}
+.rk-belege h3 {
+  margin: 0 0 7px;
+  font-size: .72rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.rk-belege ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 9px; }
+.rk-belege li { display: grid; gap: 2px; }
+/* 44px Trefferflaeche, ohne dass der Link wie ein Knopf aussieht: der
+   Innenabstand liegt senkrecht und der Text bleibt ein Link. */
+.rk-belege a {
+  display: inline-block;
+  padding: 6px 0;
+  min-height: 32px;
+  font-weight: 650;
+  font-size: .92rem;
+  color: var(--marke);
+}
+.rk-belege li > span { font-size: .84rem; color: var(--muted); line-height: 1.45; }
+@media print { .rk-belege { border-top-style: solid; } }

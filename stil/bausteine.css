@@ -346,3 +346,62 @@ body { overflow-x: hidden; }
 .ausruestungs-farbe-eigen span { background: var(--card); }
 .ausruestungs-farbblock > input:not([type="hidden"]) { margin-top: 10px; }
 @media (max-width: 420px) { .ausruestungs-farbwahl { grid-template-columns: repeat(4, 1fr); } }
+
+/* ---------- Sekundaerer Knopf (Nebenaktion) ----------
+   Die Klasse ".sekundaer-button" war bis 12.09.2026 AUSSCHLIESSLICH in
+   style.css definiert - dem Buendel, das nur quiz.html, duell.html und die
+   drei Rechtstexte laden. Auf allen Vereinsseiten (die stil/*.css laden)
+   trug damit zwar Markup die Klasse, hatte aber keinerlei Gestaltung: ein
+   nackter Link ohne Flaeche, ohne Umriss, ohne Trefferflaeche.
+
+   Warum hier und nicht in einer Seitendatei: die Klasse taucht in mehreren
+   Seiten und in gemeinsam genutztem JS auf - eine Kopie je Seite waere
+   genau die Doppelung, die spaeter auseinander laeuft.
+
+   Warum das die Quiz-Fassung nicht stoert: keine einzige Seite bindet
+   style.css UND stil/bausteine.css zusammen ein (geprueft ueber alle
+   *.html; duell.html laedt style.css, aber kein bausteine.css). Die beiden
+   Definitionen treffen sich also nie in derselben Kaskade. Deshalb steht
+   hier bewusst eine eigenstaendige Regel und kein Aufbohren von style.css -
+   das Quiz laeuft und soll von Aenderungen der Vereinsseite unberuehrt
+   bleiben (siehe Kopf dieser Datei).
+
+   Gestaltung als Nebenaktion, nicht als Hauptaktion: heller Grund mit
+   dunklem Umriss statt gefuellter Markenflaeche. Der Umriss ist
+   --marke-hell (#374151) und nicht --border (#e5e7eb) - letzteres kommt
+   auf Weiss nur auf rund 1,2:1 und faellt damit unter die 3:1, die ein
+   Bedienelement fuer seinen Umriss braucht. #374151 liegt bei rund 10:1,
+   die Beschriftung (--text) bei rund 17:1. */
+
+.sekundaer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  /* 44 px ist die kleinste Trefferflaeche, die am Handy zuverlaessig
+     getroffen wird; das Padding allein kam bei .85rem nicht dorthin. */
+  min-height: 44px;
+  padding: 9px 18px;
+  border: 1.5px solid var(--marke-hell);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  font-size: .85rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+}
+
+/* basis.css setzt [hidden] { display: none !important; } global - diese
+   Zeile ist trotzdem noetig, weil die Klasse auch auf Seiten ohne
+   basis.css denkbar ist und "display: inline-flex" sonst gewinnt. */
+.sekundaer-button[hidden] { display: none; }
+
+.sekundaer-button:hover {
+  background: var(--marke-lighter);
+  border-color: var(--marke-dunkel);
+}
+

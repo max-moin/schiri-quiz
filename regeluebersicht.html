@@ -237,13 +237,26 @@
   <script type="module" src="seite.js"></script>
   <script type="module">
     import { DATENBANK, VEREIN } from "./verein.config.js";
-    import { REGELN_STANDARD } from "./src/website/content-defaults.js";
+    import { REGELN_STANDARD, UNTERLAGEN_STANDARD } from "./src/website/content-defaults.js";
     import { ladeWebsiteInhalt } from "./src/website/content-config.js";
+    import { passendeDokumente } from "./src/website/regel-dokumente.js";
 
     const { konfiguration: REGELN } = await ladeWebsiteInhalt({
       datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
       bereich: "regeln", fallback: REGELN_STANDARD,
     });
+
+    /* Die Unterlagen kommen dazu, damit an JEDER Regelzeile das Dokument
+       haengt, aus dem sie stammt - statt einer Sammelliste am Seitenende,
+       aus der man selbst heraussuchen muesste, welches der 23 Dokumente
+       gemeint ist. Faellt der Aufruf aus, bleibt die Liste leer und die
+       Karten sehen aus wie vorher; die Regeln sind wichtiger als ihre
+       Belege. */
+    const { konfiguration: UNTERLAGEN } = await ladeWebsiteInhalt({
+      datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
+      bereich: "unterlagen", fallback: UNTERLAGEN_STANDARD,
+    }).catch(() => ({ konfiguration: UNTERLAGEN_STANDARD }));
+    const DOKUMENTE = Array.isArray(UNTERLAGEN?.dokumente) ? UNTERLAGEN.dokumente : [];
     const QUELLEN = REGELN.quellen;
     const SVFD_MEISTER = REGELN.svfdMeister;
     const SVFD_POKAL = REGELN.svfdPokal;
@@ -500,6 +513,24 @@
         </details>`;
     }
 
+    /* Die Belege zu genau dieser Zeile. Jeder Eintrag sagt in einem Satz,
+       WARUM er hier steht - ein Dokumententitel allein beantwortet das
+       nicht. Die Zuordnung steht in src/website/regel-dokumente.js und
+       ist dort ausschliesslich aus der Selbstbeschreibung der Dokumente
+       abgeleitet, nicht aus einer fachlichen Annahme. */
+    function belegeHtml(zeile) {
+      const belege = passendeDokumente(zeile, ebene, DOKUMENTE);
+      if (!belege.length) return "";
+      const punkte = belege.map((d) => `<li>
+          <a href="${sicher(d.href)}" target="_blank" rel="noopener">${sicher(d.titel)}</a>
+          <span>${sicher(d.grund)}</span>
+        </li>`).join("");
+      return `<div class="rk-belege">
+          <h3>Dazu gehört</h3>
+          <ul>${punkte}</ul>
+        </div>`;
+    }
+
     function zeichne() {
       const alle = daten();
       const index = Number(spielklasse);
@@ -559,6 +590,7 @@
               ${weitere ? `<details class="rk-mehr"><summary>Weitere Regeln</summary><div class="rk-zusatzwerte">${weitere}</div></details>` : ""}
               ${konflikt}
               ${(r.fuss || r.bes) ? `<div class="rk-fuss">${sicher(r.fuss || r.bes)}</div>` : ""}
+              ${belegeHtml(r)}
             </article>`;
         }).join("");
 

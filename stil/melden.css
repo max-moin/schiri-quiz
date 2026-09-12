@@ -120,11 +120,49 @@
   box-shadow: var(--shadow-hover);
 }
 
+/* Symbol und Wort in einer Zeile. Das Symbol steht DAVOR und ersetzt den
+   Titel nicht - ein Piktogramm allein waere eine Rateaufgabe (Grundsatz
+   "Woerter statt blosser Icons", siehe .sym-wort in stil/bausteine.css).
+   Die Zeichnung liegt INNERHALB des Knopfes, vergroessert ihn also nur
+   nach Bedarf und schneidet nichts von der Trefferflaeche ab. */
 .melden-art-titel {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-family: var(--font-titel);
   font-size: 1rem;
   font-weight: 700;
 }
+
+/* Feste Kachel, damit die Zeichnung beim Umbruch langer Titel ("Thema fuer
+   den Schiri-Treff" auf 360 px) weder schrumpft noch in die zweite Zeile
+   rutscht. align-self: flex-start haelt sie bei zwei Zeilen oben an der
+   ersten, statt sie in die Mitte zu schieben. */
+.melden-art-symbol {
+  flex: none;
+  align-self: flex-start;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  color: var(--marke);
+}
+
+.melden-art-symbol svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* min-width: 0 erlaubt dem Wort das Umbrechen - ohne das bleibt ein
+   Flex-Kind auf seiner Inhaltsbreite stehen und schiebt die Kachel auf. */
+.melden-art-titel-wort { min-width: 0; }
+
+.melden-art.gewaehlt .melden-art-symbol { color: var(--marke-dunkel); }
 
 .melden-art-frage {
   font-size: .9rem;
