@@ -145,6 +145,19 @@
 .admin-dokument-felder select,
 .admin-regel-felder input { min-height: 44px; }
 .admin-breit { grid-column: 1 / -1; }
+
+/* Textredaktion: jede Zeile ist ein Feld plus der Ausgangsstand
+   darunter. Der Ausgangsstand steht bewusst als grauer Kleintext und
+   nicht in einem Aufklapper - man soll beim Tippen sehen, wovon man
+   gerade abweicht, ohne erst etwas oeffnen zu muessen. */
+.admin-text-zeile { grid-column: 1 / -1; display: grid; gap: 6px; }
+.admin-vorgabe { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  color: var(--muted); font-size: .78rem; line-height: 1.5; }
+.admin-vorgabe span { font-weight: 700; }
+.admin-vorgabe code { flex: 1 1 220px; min-width: 0; padding: 4px 7px; border-radius: 7px;
+  background: #f3f5f7; font: .78rem/1.5 var(--font-text); overflow-wrap: anywhere; }
+.admin-vorgabe .knopf { min-height: 34px; padding: 4px 12px; font-size: .76rem; }
+.admin-text-panel .admin-panel-kopf a { color: inherit; }
 .admin-vorschau { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .admin-vorschau summary { cursor: pointer; padding: 12px 14px; font-weight: 750; }
 .admin-vorschau pre { margin: 0; padding: 16px; border-top: 1px solid var(--border); background: #fafbfc; white-space: pre-wrap; font: .8rem/1.55 var(--font-text); }

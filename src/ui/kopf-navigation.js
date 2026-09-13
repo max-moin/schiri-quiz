@@ -33,13 +33,13 @@
 // gesucht, auch bei anderen Aufgaben. Erwartungskonformitaet (ISO
 // 9241-110) schlaegt hier die Sparsamkeit.
 const NAVIGATION = [
-  { href: "index.html", text: "Start", seiten: ["index.html"] },
   { href: "termine.html", text: "Termine", seiten: ["termine.html"] },
   { href: "vorlagen.html", text: "Absagen", seiten: ["vorlagen.html"] },
   { href: "regeluebersicht.html", text: "Regeln", seiten: ["regeluebersicht.html"], funktion: "regeln" },
   { href: "spesenrechner.html", text: "Spesen", seiten: ["spesenrechner.html"], funktion: "spesen" },
   { href: "informationen.html", text: "Unterlagen", seiten: ["informationen.html"] },
-  { href: "melden.html", text: "Ideen & Feedback", seiten: ["melden.html", "frage-vorschlagen.html"] },
+  { href: "melden.html", text: "Ideen", seiten: ["melden.html", "frage-vorschlagen.html"] },
+  { href: "hilfe.html", text: "Hilfe", seiten: ["hilfe.html", "installieren.html", "schiri-werden.html"] },
 ];
 
 function dateiname() {

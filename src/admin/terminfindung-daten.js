@@ -201,5 +201,11 @@ export function erstelleTerminfindungZugriff({ client, passwort }) {
 
     abbrechen: (findungId) =>
       rufe("obmann_terminfindung_abbrechen", { p_findung_id: findungId }),
+
+    // Endgueltig loeschbar ist nur eine zuvor abgebrochene Suche. Der
+    // Server prueft das erneut; eine laufende oder entschiedene Suche kann
+    // durch einen Oberflaechenfehler deshalb nicht verschwinden.
+    loeschen: (findungId) =>
+      rufe("obmann_terminfindung_loeschen", { p_findung_id: findungId }),
   });
 }

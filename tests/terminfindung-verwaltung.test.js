@@ -58,6 +58,7 @@ const jsOhneKommentare = (quelltext) =>
 
 const V97 = "supabase/migrations/20260829220000_v97_terminfindung_verwaltung.sql";
 const v97 = sqlOhneKommentare(lies(V97));
+const LOESCH_MIGRATION = "supabase/migrations/20260913135838_terminfindung_kontrolliert_loeschen.sql";
 
 /* Genau EINEN Funktionsrumpf herausschneiden - dieselbe Vorsichtsmassnahme
    wie in api-sicherheit.test.js. Eine Pruefung ueber die ganze Datei
@@ -84,6 +85,17 @@ const NEUE_FUNKTIONEN = [
 
 test("die Migration v97 liegt im Repository", () => {
   assert.equal(existsSync(new URL("../" + V97, import.meta.url)), true, V97 + " fehlt");
+});
+
+test("abgebrochene Terminsuchen lassen sich kontrolliert endgültig löschen", () => {
+  const sql = sqlOhneKommentare(lies(LOESCH_MIGRATION));
+  assert.match(sql, /obmann_verein\(p_passwort\)/);
+  assert.match(sql, /verein_id = v_verein/);
+  assert.match(sql, /status = 'abgebrochen'/);
+  assert.match(sql, /erstellter_termin is null/);
+  const editor = jsOhneKommentare(lies("src/admin/terminfindung-editor.js"));
+  assert.match(editor, /findung\.status === "abgebrochen"/);
+  assert.match(editor, /zugriff\.loeschen\(findung\.id\)/);
 });
 
 test("jede neue Funktion prüft Passwort, Verein und Status", () => {

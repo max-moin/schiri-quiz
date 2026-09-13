@@ -667,7 +667,7 @@ export const VORLAGEN_STANDARD = {
   "schemaVersion": 1,
   "spiel": {
     "titel": "E-Mail an den Ansetzer",
-    "text": "An: sr-ansetzer@svf-dresden.de\nCc: [E-Mail eures Obmanns]\nBetreff: Absage Ansetzung – Spielkennung [XXXXXXX], [TT.MM.JJJJ]\n\nHallo liebes Ansetzer-Team,\n\nich bitte um die Absetzung von folgendem Spiel:\n\n- Begegnung: [Heimverein] – [Gastverein]\n- Spielkennung: [aus DFBnet]\n- Datum: [TT.MM.JJJJ]\n- Uhrzeit: [HH:MM Uhr]\n- Wettbewerb: [z. B. Meisterschaft, Pokal ...]\n- Liga: [z. B. Landesklasse ...]\n- Meine Funktion: [Schiedsrichter / 1. Assistent / 2. Assistent]\n\nGrund: [kurz und konkret]\n\nViele Grüße",
+    "text": "An: sr-ansetzer@svf-dresden.de\nCc: max.mueller.2004@gmx.de\nBetreff: Absage Ansetzung – Spielkennung [XXXXXXX], [TT.MM.JJJJ]\n\nHallo liebes Ansetzer-Team,\n\nich bitte um die Absetzung von folgendem Spiel:\n\n- Begegnung: [Heimverein] – [Gastverein]\n- Spielkennung: [aus DFBnet]\n- Datum: [TT.MM.JJJJ]\n- Uhrzeit: [HH:MM Uhr]\n- Wettbewerb: [z. B. Meisterschaft, Pokal ...]\n- Liga: [z. B. Landesklasse ...]\n- Meine Funktion: [Schiedsrichter / 1. Assistent / 2. Assistent]\n\nGrund: [kurz und konkret]\n\nViele Grüße",
     "hinweis": "Bist du nach 24 Stunden nicht abgesetzt, ruf beim Ansetzer an. Du bleibst für das Spiel zuständig, bis du tatsächlich abgesetzt wurdest – die Mail allein reicht nicht.",
     "quelle": "Anweisung des Stadtverbands Fußball Dresden e. V. an Schiedsrichter/-innen, Beobachter und Paten, gültig ab 20.08.2026, Ergänzung SRO §8 Punkt 7.",
     "entwurf": false

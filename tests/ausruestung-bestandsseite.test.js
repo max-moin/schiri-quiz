@@ -88,6 +88,14 @@ test("die Anfrage-Maske wird benutzt und nicht nachgebaut", () => {
     "Das Anfrage-Formular samt Rechnungs-Upload darf nicht nachgebaut werden.");
 });
 
+test("ein vorhandenes Stück kann direkt als Ersatz angefragt werden", () => {
+  assert.match(seite, /data-bestand-nachbestellen=/);
+  assert.match(seite, /oeffneAusruestungsAnfrage\(\{/);
+  assert.match(seite, /Ersatz für/);
+  assert.match(html, /So läuft eine Anfrage ab/);
+  assert.match(html, /Originalbeleg/);
+});
+
 test("die Seite hat eine eigene Gestaltung und borgt sich nichts mehr", () => {
   assert.match(html, /href="stil\/ausruestung\.css"/);
   assert.doesNotMatch(html, /href="stil\/frage-vorschlagen\.css"/,

@@ -84,6 +84,7 @@
       </div>
     </form>
 
+    <p id="bestand-seitenmeldung" class="bestand-meldung" role="status" aria-live="polite" hidden></p>
     <div id="bestand-liste" class="bestand-schrank">Wird geladen …</div>
 
     <section class="bestand-abschnitt">
@@ -91,7 +92,15 @@
         <h2>Meine Ausrüstungsanfragen</h2>
         <button id="bestand-anfrage-stellen" type="button" class="bestand-knopf">Ausrüstung anfragen</button>
       </div>
-      <p class="bestand-abschnitt-text">Was du beim Obmann angefragt hast und wie weit es damit ist.</p>
+      <details class="faltung bestand-ablauf">
+        <summary>So läuft eine Anfrage ab</summary>
+        <ol>
+          <li>Du sendest die Anfrage; der Obmann prüft und entscheidet.</li>
+          <li>Bei einer Annahme wird festgelegt, ob du selbst kaufst oder der Verein bestellt.</li>
+          <li>Beim Selbstkauf bewahrst du den Originalbeleg auf und übergibst ihn vorerst analog. Danach kann die Erstattung auf dein hinterlegtes Konto erfolgen.</li>
+        </ol>
+        <p>Wenn der Verein für dich bestellt, gib Größe und Ausführung besonders genau an – eine Anprobe ist dabei nicht garantiert.</p>
+      </details>
       <div id="bestand-anfragen">Wird geladen …</div>
     </section>
   </div>

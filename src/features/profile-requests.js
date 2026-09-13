@@ -168,7 +168,7 @@
       schliesseProfilPanel();
     });
 
-    function setzeAnfrageFormularZurueck() {
+    function setzeAnfrageFormularZurueck(vorbelegung = {}) {
       anfrageKategorieAuswahl.value = "";
       anfrageFarbeEingabe.value = "";
       anfrageAndereFarbe.value = "";
@@ -181,13 +181,31 @@
       anfrageFormularHinweis.hidden = true;
       anfrageFormularInhalt.hidden = false;
       anfrageFormularErfolg.hidden = true;
+
+      if (vorbelegung.kategorie) {
+        anfrageKategorieAuswahl.value = vorbelegung.kategorie;
+        aktualisiereAnfrageFelder();
+      }
+      if (vorbelegung.farbe) {
+        const bekannteFarbe = FARBEN.find((farbe) => farbe.wert.toLocaleLowerCase("de") === String(vorbelegung.farbe).toLocaleLowerCase("de"));
+        const radio = anfrageFarbwahl.querySelector(`input[value="${bekannteFarbe ? bekannteFarbe.wert : "__andere__"}"]`);
+        if (radio) radio.checked = true;
+        anfrageFarbeEingabe.value = vorbelegung.farbe;
+        if (!bekannteFarbe) {
+          anfrageAndereFarbe.hidden = false;
+          anfrageAndereFarbe.value = vorbelegung.farbe;
+        }
+      }
+      anfrageGroesseEingabe.value = vorbelegung.groesse || "";
+      anfrageAermellaengeAuswahl.value = vorbelegung.aermellaenge || "";
+      anfrageAnmerkungEingabe.value = vorbelegung.anmerkung || "";
     }
 
     anfrageKategorieAuswahl.addEventListener("change", aktualisiereAnfrageFelder);
 
-    function oeffneAusruestungsAnfrage() {
+    function oeffneAusruestungsAnfrage(vorbelegung = {}) {
       schliesseProfilPanel();
-      setzeAnfrageFormularZurueck();
+      setzeAnfrageFormularZurueck(vorbelegung);
       anfrageFormularOverlay.hidden = false;
     }
 
@@ -205,7 +223,9 @@
       if (event.target === anfrageFormularOverlay) schliesseAnfrageFormular();
     });
 
+    let anfrageWirdGesendet = false;
     anfrageAbsendenButton.addEventListener("click", async () => {
+      if (anfrageWirdGesendet) return;
       const kategorie = anfrageKategorieAuswahl.value;
       if (!kategorie) {
         anfrageFormularHinweis.textContent = "Bitte wähle aus, was du brauchst.";
@@ -220,22 +240,28 @@
       }
 
       anfrageFormularHinweis.hidden = true;
+      anfrageWirdGesendet = true;
       anfrageAbsendenButton.disabled = true;
-
-      const { error } = await sb.rpc("schiri_anfrage_erstellen", {
-        p_schiedsrichter_id: getZugang().schiedsrichterId,
-        p_pin: getZugang().pin,
-        p_kategorie: kategorie,
-        p_farbe: anfrageFarbeEingabe.value.trim() || null,
-        p_groesse: anfrageGroesseEingabe.value.trim() || null,
-        p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
-        p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
-      });
-
+      let error;
+      try {
+        ({ error } = await sb.rpc("schiri_anfrage_erstellen", {
+          p_schiedsrichter_id: getZugang().schiedsrichterId,
+          p_pin: getZugang().pin,
+          p_kategorie: kategorie,
+          p_farbe: anfrageFarbeEingabe.value.trim() || null,
+          p_groesse: anfrageGroesseEingabe.value.trim() || null,
+          p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
+          p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
+        }));
+      } catch (fehler) {
+        error = fehler;
+      }
+      anfrageWirdGesendet = false;
       anfrageAbsendenButton.disabled = false;
 
       if (error) {
-        anfrageFormularHinweis.textContent = "Konnte leider nicht gespeichert werden: " + error.message;
+        anfrageFormularHinweis.textContent = "Anfrage konnte nicht gespeichert werden: " + error.message;
+        anfrageFormularHinweis.dataset.art = "fehler";
         anfrageFormularHinweis.hidden = false;
         return;
       }

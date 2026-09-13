@@ -47,13 +47,13 @@
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
 
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
-        <a href="index.html" aria-current="page">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
         <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
         <a href="informationen.html">Unterlagen</a>
-        <a href="melden.html">Ideen &amp; Feedback</a>
+        <a href="melden.html">Ideen</a>
+        <a href="hilfe.html">Hilfe</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
@@ -97,11 +97,11 @@
         <img data-bild="aufmacher" src="bilder/motiv-aufmacher.svg" alt="" loading="eager" />
       </div>
       <div class="aufmacher-text">
-        <span class="kicker">Schiedsrichter · FV Löbtauer Kickers</span>
-        <h1>Ohne uns geht<br />kein Spiel</h1>
+        <span class="kicker" data-text="start.kicker">Schiedsrichter · FV Löbtauer Kickers</span>
+        <h1 data-text="start.titel">Ohne uns geht<br />kein Spiel</h1>
         <div class="aufmacher-knoepfe">
-          <a class="knopf-haupt" href="schiri-werden.html">Schiri werden</a>
-          <a class="knopf-rand" href="quiz.html#gast">Dein Fußballwissen testen</a>
+          <a class="knopf-haupt" href="schiri-werden.html" data-text="start.knopf-links">Schiri werden</a>
+          <a class="knopf-rand" href="quiz.html#gast" data-text="start.knopf-rechts">Dein Fußballwissen testen</a>
         </div>
       </div>
     </section>
@@ -118,7 +118,7 @@
     <!-- Drei eindeutige Wege. Quiz bleibt als hervorgehobener Knopf im
          Seitenkopf und wird hier nicht ein zweites Mal angeboten. -->
     <section class="abschnitt">
-      <div class="abschnitt-kopf"><h2>Für unsere Schiedsrichter</h2></div>
+      <div class="abschnitt-kopf"><h2 data-text="start.bereich-schiris">Für unsere Schiedsrichter</h2></div>
       <div class="kachelraster">
 
         <a class="bildkachel" href="vorlagen.html">

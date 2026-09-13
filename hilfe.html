@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="app.webmanifest" />
+  <link rel="apple-touch-icon" href="bilder/apple-touch-icon.png" />
+  <meta name="theme-color" content="#1f2937" />
+  <title>Hilfe – Schiedsrichter FV Löbtauer Kickers</title>
+  <meta name="description" content="Schnelle Hilfe zur Schiedsrichter-Vereinsseite, zur Anmeldung und zum Quiz." />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
+</head>
+<body>
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf"><div class="kopf-innen">
+    <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40"><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
+    <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+    <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
+      <a href="termine.html">Termine</a>
+      <a href="vorlagen.html">Absagen</a>
+      <span class="nav-deaktiviert" aria-disabled="true">Regeln<small>In Prüfung</small></span>
+      <span class="nav-deaktiviert" aria-disabled="true">Spesen<small>In Prüfung</small></span>
+      <a href="informationen.html">Unterlagen</a>
+      <a href="melden.html">Ideen</a>
+      <a href="hilfe.html" aria-current="page">Hilfe</a>
+      <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
+    </nav>
+  </div></header>
+  <main class="inhalt" id="inhalt" tabindex="-1">
+    <h1 class="seiten-titel">Hilfe</h1>
+    <div class="hilfe-raster">
+      <a class="funktions-kachel" href="installieren.html"><strong>Website als App öffnen</strong><span>Zum Home-Bildschirm hinzufügen – für iPhone, iPad und Android.</span></a>
+      <a class="funktions-kachel" href="modus.html"><strong>Anmeldung und Quiz</strong><span>Zum Wochenquiz, Üben oder Quiz-Duell.</span></a>
+      <a class="funktions-kachel" href="melden.html"><strong>Problem melden</strong><span>Technischen Fehler oder Feedback zur Website senden.</span></a>
+      <a class="funktions-kachel" href="schiri-werden.html"><strong>Schiedsrichter werden</strong><span>Der Weg zur Pfeife und häufige Fragen.</span></a>
+    </div>
+  </main>
+  <footer class="seiten-fuss"><div class="fuss-innen">
+    <a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
+    <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
+  </div></footer>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script>
+</body>
+</html>

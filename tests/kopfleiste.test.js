@@ -52,7 +52,7 @@ const ohneCssKommentare = (css) => css.replace(/\/\*[\s\S]*?\*\//g, " ");
 const SEITEN_MIT_LEISTE = [
   "index.html", "termine.html", "regeluebersicht.html", "spesenrechner.html",
   "vorlagen.html", "informationen.html", "modus.html", "entscheiden.html",
-  "schiri-werden.html", "melden.html",
+  "schiri-werden.html", "melden.html", "hilfe.html",
 ];
 
 // Die verbindliche Reihenfolge folgt dem typischen Spielauftrag: Termin
@@ -68,13 +68,13 @@ const SEITEN_MIT_LEISTE = [
 // src/ui/kopf-navigation.js. Der Test darunter, der "Start" frueher
 // verboten hat, ist deshalb umgedreht worden.
 const REITER = [
-  { ziel: "index.html", text: "Start" },
   { ziel: "termine.html", text: "Termine" },
   { ziel: "vorlagen.html", text: "Absagen" },
   { ziel: null, text: "Regeln" },
   { ziel: null, text: "Spesen" },
   { ziel: "informationen.html", text: "Unterlagen" },
-  { ziel: "melden.html", text: "Ideen &amp; Feedback" },
+  { ziel: "melden.html", text: "Ideen" },
+  { ziel: "hilfe.html", text: "Hilfe" },
   { ziel: "modus.html", text: "Zum Quiz" },
 ];
 
@@ -142,22 +142,11 @@ test("die Leiste benennt Aufgaben statt Sammelbegriffe", () => {
   }
 });
 
-test('"Start" steht als erster Reiter auf jeder Seite', () => {
-  // Umgedreht am 11.09.2026. Vorher stand hier das Gegenteil, begruendet
-  // damit, dass das Wappen schon zur Startseite fuehrt. Der dritte
-  // moderierte Test hat das widerlegt: die Testperson kam auf das Wappen
-  // nur, weil sie es vorher gesagt bekommen hatte. Ein Weg, den man
-  // kennen muss, ist kein Weg.
+test('"Start" wird nicht als dritter Weg in der Reiterleiste wiederholt', () => {
   for (const seite of SEITEN_MIT_LEISTE) {
-    const erster = reiterAus(leiste(seite)[0]);
-    assert.equal(erster.text, "Start", seite + ': erster Reiter ist nicht "Start"');
-    assert.equal(erster.ziel, "index.html", seite + ': "Start" fuehrt nicht zur Startseite');
-  }
-  // Und auch dort, wo die Leiste nur als einzeiliger Rueckfall im HTML
-  // steht - sonst fehlt er genau auf den Seiten des eigenen Bereichs.
-  for (const seite of ["installieren.html", "meine-daten.html", "meine-statistik.html"]) {
-    assert.match(lies(seite), /<a href="index\.html">Start<\/a>/,
-      seite + ': "Start" fehlt im Rueckfallstand');
+    const reiter = leiste(seite).map(reiterAus);
+    assert.ok(!reiter.some((eintrag) => eintrag.text === "Start"), seite + ': "Start" steht wieder in der Leiste');
+    assert.equal(reiter[0].text, "Termine", seite + ': Termine ist nicht der erste Arbeitsweg');
   }
 });
 
@@ -220,7 +209,7 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
     // Seit "Start" wieder in der Leiste steht, markiert die Startseite
     // ihren eigenen Reiter. Oben steht trotzdem kein Seitenname - dafuer
     // sorgt leseSeitenname, siehe den Test weiter unten.
-    "index.html": ["index.html", "page"],
+    "index.html": null,
     "termine.html": ["termine.html", "page"],
     // Seit dem 08.09.2026 sind diese beiden Reiter gesperrt und haben
     // deshalb kein Ziel mehr. Erkannt werden sie hier an der Beschriftung.
@@ -233,8 +222,9 @@ test("jede Seite markiert genau den Reiter, auf dem sie steht", () => {
     // vorlesen. Wo man ist, sagt dort jetzt das data-seitenname.
     "entscheiden.html": ["modus.html", "true"],
     "vorlagen.html": ["vorlagen.html", "page"],
-    "schiri-werden.html": null,
+    "schiri-werden.html": ["hilfe.html", "true"],
     "melden.html": ["melden.html", "page"],
+    "hilfe.html": ["hilfe.html", "page"],
   };
 
   for (const seite of SEITEN_MIT_LEISTE) {

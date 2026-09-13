@@ -43,13 +43,13 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
-        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html" aria-current="page">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
         <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft">Spesen<small>In Prüfung</small></span>
         <a href="informationen.html">Unterlagen</a>
-        <a href="melden.html">Ideen &amp; Feedback</a>
+        <a href="melden.html">Ideen</a>
+        <a href="hilfe.html">Hilfe</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
@@ -57,10 +57,6 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1">
     <h1 class="seiten-titel">Absagen</h1>
-    <p class="seiten-unter">
-      So sagst du ein angesetztes Spiel richtig ab. Die Vorlage hilft beim Schreiben –
-      erledigt ist die Absage erst, wenn du im DFBnet wirklich abgesetzt wurdest.
-    </p>
 
     <!-- ============================================================
          Der Text der Spielabsage ist NICHT neu formuliert. Er stammt aus
@@ -92,23 +88,15 @@
       <dl class="absage-kurz">
         <div class="absage-kurz-punkt">
           <dt>Wen benachrichtigst du?</dt>
-          <dd id="absage-empfaenger">Das Ansetzer-Team des Stadtverbands – den
-            Schiedsrichter-Obmann beziehungsweise die Mailadresse deines Vereins
-            immer in Kopie. Beide Adressen stehen fertig in der Vorlage weiter unten.</dd>
+          <dd id="absage-empfaenger">Das Ansetzer-Team des Stadtverbands; Max steht immer in Kopie. Beide Adressen sind in der Vorlage eingetragen.</dd>
         </div>
         <div class="absage-kurz-punkt">
           <dt>Worüber?</dt>
-          <dd>Schriftlich per E-Mail, mit Begründung und allen Angaben zum Spiel:
-            Begegnung, Spielkennung, Datum, Uhrzeit, Wettbewerb, Liga und deine
-            Funktion. Genau danach fragt die Vorlage.</dd>
+          <dd>Per E-Mail mit Grund, Begegnung, Spielkennung, Datum, Uhrzeit, Wettbewerb, Liga und deiner Funktion.</dd>
         </div>
         <div class="absage-kurz-punkt">
           <dt>Bis wann?</dt>
-          <dd>So früh wie möglich: Du bleibst für das Spiel zuständig, bis du im
-            DFBnet tatsächlich abgesetzt bist. Zwei feste Fristen gibt es dabei –
-            bist du 24 Stunden nach der Mail noch angesetzt, rufst du beim Ansetzer
-            an; und längere Zeiträume sagst du gar nicht einzeln ab, sondern trägst
-            sie bis zum 20. des Vormonats als Sperrtermine im DFBnet ein.</dd>
+          <dd>So früh wie möglich. Nach 24 Stunden ohne Absetzung rufst du an; längere Zeiträume trägst du bis zum 20. des Vormonats als Sperrtermine ein.</dd>
         </div>
       </dl>
 
@@ -179,6 +167,7 @@
           </span>
         </div>
         <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
+Cc: max.mueller.2004@gmx.de
 Betreff: Absage Ansetzung – Spielkennung [XXXXXXX], [TT.MM.JJJJ]
 
 Hallo liebes Ansetzer-Team,
@@ -346,9 +335,7 @@ Viele Grüße</pre>
     const empfaengerFeld = document.getElementById("absage-empfaenger");
     if (empfaengerFeld && zerlegt.an) {
       empfaengerFeld.textContent = zerlegt.cc
-        ? `Das Ansetzer-Team des Stadtverbands unter ${zerlegt.an} – in Kopie immer `
-          + `${zerlegt.cc}, also den Schiedsrichter-Obmann beziehungsweise die `
-          + `Mailadresse deines Vereins.`
+        ? `An ${zerlegt.an}; ${zerlegt.cc} steht immer in Kopie.`
         : `Das Ansetzer-Team des Stadtverbands unter ${zerlegt.an}.`;
     }
 

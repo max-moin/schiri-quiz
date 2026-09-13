@@ -44,6 +44,34 @@ function person() {
   return anmeldung?.lesen() || null;
 }
 
+// Eine Terminantwort veraendert den verbindlichen Stand. Vor dem Senden
+// steht deshalb noch einmal klar da, was gespeichert wird. Das Dialog-
+// Element bleibt auf der aktuellen Seite und ist auch per Escape schliessbar.
+function bestaetigeTerminantwort({ titel, text, bestaetigen }) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "termin-dialog termin-bestaetigung";
+    dialog.innerHTML = `<div class="dialog-kopf"><h2>${sicher(titel)}</h2><button type="button" class="dialog-schliessen" aria-label="Schließen">×</button></div>
+      <p>${sicher(text)}</p>
+      <div class="td-knopfpaar">
+        <button type="button" class="td-knopf" data-nein>Zurück</button>
+        <button type="button" class="td-senden" data-ja>${sicher(bestaetigen)}</button>
+      </div>`;
+    document.body.append(dialog);
+    const fertig = (wert) => {
+      if (dialog.open) dialog.close();
+      dialog.remove();
+      resolve(wert);
+    };
+    dialog.querySelector(".dialog-schliessen").addEventListener("click", () => fertig(false));
+    dialog.querySelector("[data-nein]").addEventListener("click", () => fertig(false));
+    dialog.querySelector("[data-ja]").addEventListener("click", () => fertig(true));
+    dialog.addEventListener("cancel", (event) => { event.preventDefault(); fertig(false); });
+    dialog.addEventListener("click", (event) => { if (event.target === dialog) fertig(false); });
+    dialog.showModal();
+  });
+}
+
 async function ladeTermine() {
   const ich = person();
   const [oeffentlich, eigene] = await Promise.allSettled([
@@ -65,7 +93,8 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
 
-  const offen = kuenftig.filter((t) => t.mitgliedSicht && t.mein_status == null).length;
+  const offen = kuenftig.filter((t) => t.mitgliedSicht
+    && t.rueckmeldung_erforderlich !== false && t.mein_status == null).length;
 
   const kopf = `
     <h1 class="seiten-titel">Termine</h1>
@@ -152,14 +181,25 @@ function bindeVorschlag() {
       if (event.target === dialog) dialog.close("abbrechen");
     });
     dialog.addEventListener("close", () => dialog.remove());
+    let sendet = false;
     dialog.querySelector("form").addEventListener("submit", async (event) => {
       if (event.submitter?.value !== "senden") return;
-      event.preventDefault(); const form = new FormData(event.currentTarget); const meldung = dialog.querySelector("[data-vorschlag-meldung]");
+      event.preventDefault();
+      if (sendet) return;
+      sendet = true;
+      const senden = event.submitter;
+      senden.disabled = true;
+      const form = new FormData(event.currentTarget); const meldung = dialog.querySelector("[data-vorschlag-meldung]");
       try {
         await zugriff.vorschlagen(person(), { titel: form.get("titel"), datum: form.get("datum"), beginnZeit: form.get("zeit"), ort: form.get("ort"), begruendung: form.get("begruendung") });
         meldung.textContent = "Vorschlag gesendet. Danke fürs Mitdenken."; meldung.dataset.art = "erfolg";
         setTimeout(() => location.reload(), 700);
-      } catch (fehler) { meldung.textContent = `Konnte nicht gesendet werden: ${fehler.message}`; meldung.dataset.art = "fehler"; }
+      } catch (fehler) {
+        sendet = false;
+        senden.disabled = false;
+        meldung.textContent = `Vorschlag konnte nicht gesendet werden: ${fehler.message}`;
+        meldung.dataset.art = "fehler";
+      }
     });
   });
 }
@@ -171,21 +211,29 @@ function bindeStimmen() {
   bereich.querySelectorAll("[data-antwort]").forEach((knopf) => {
     knopf.addEventListener("click", async () => {
       const karte = knopf.closest(".terminfindung");
+      if (karte.dataset.sendet === "ja") return;
+      karte.dataset.sendet = "ja";
       const meldung = karte.querySelector("[data-tf-meldung]");
       const vorschlag = knopf.dataset.vorschlag;
+      const knoepfe = [...karte.querySelectorAll(`[data-vorschlag="${CSS.escape(vorschlag)}"]`)];
+      knoepfe.forEach((k) => { k.disabled = true; });
       try {
         await zugriff.stimmen(person(), vorschlag, knopf.dataset.antwort);
       } catch (fehler) {
-        meldung.textContent = `Konnte nicht gespeichert werden: ${fehler.message}`;
+        meldung.textContent = `Antwort konnte nicht gespeichert werden: ${fehler.message}`;
         meldung.dataset.art = "fehler";
         meldung.hidden = false;
+        delete karte.dataset.sendet;
+        knoepfe.forEach((k) => { k.disabled = false; });
         return;
       }
-      karte.querySelectorAll(`[data-vorschlag="${CSS.escape(vorschlag)}"]`).forEach((k) =>
+      knoepfe.forEach((k) =>
         k.classList.toggle("an", k === knopf));
       meldung.textContent = "Antwort gespeichert.";
       meldung.dataset.art = "erfolg";
       meldung.hidden = false;
+      delete karte.dataset.sendet;
+      knoepfe.forEach((k) => { k.disabled = false; });
     });
   });
 }
@@ -194,7 +242,8 @@ function bindeStimmen() {
 
 function zeichneDetail(termin, zusagen, protokoll = null) {
   const ich = person();
-  const darfAntworten = Boolean(ich && termin.mitgliedSicht);
+  const brauchtAntwort = termin.rueckmeldung_erforderlich !== false;
+  const darfAntworten = Boolean(ich && termin.mitgliedSicht && brauchtAntwort);
   const zeit = zeitspanne(termin);
 
   const marken = [
@@ -206,7 +255,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
     zeit ? ["Wann", `${sicher(datumLang(termin.datum))}<br><span class="td-neben">${sicher(zeit)}</span>`]
          : ["Wann", sicher(datumLang(termin.datum))],
     termin.ort ? ["Ort", sicher(termin.ort)] : null,
-    termin.rueckmeldung_bis && !termin.vergangen
+    brauchtAntwort && termin.rueckmeldung_bis && !termin.vergangen
       ? ["Antwort bis", sicher(datumLang(termin.rueckmeldung_bis))] : null,
     termin.beschreibung ? ["Thema", sicher(termin.beschreibung)] : null,
   ].filter(Boolean).map(([titel, wert]) =>
@@ -217,7 +266,9 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   // auszuformulieren ist klarer als drei ineinandergeschachtelte Fragen
   // im Markup.
   let antwort;
-  if (termin.vergangen) {
+  if (!brauchtAntwort) {
+    antwort = '<p class="td-abgelaufen">Dieser Termin dient nur zur Information. Eine Zu- oder Absage ist nicht erforderlich.</p>';
+  } else if (termin.vergangen) {
     antwort = '<p class="td-abgelaufen">Dieser Termin ist vorbei.</p>';
   } else if (!ich) {
     antwort = `
@@ -288,6 +339,7 @@ function bindeAntwort(termin) {
   const grundbox = bereich.querySelector("[data-grundbox]");
   const meldung = bereich.querySelector("[data-meldung]");
   let gewaehlterGrund = termin.mein_grund || null;
+  let sendet = false;
 
   const zeige = (text, art = "info") => {
     meldung.textContent = text;
@@ -296,6 +348,10 @@ function bindeAntwort(termin) {
   };
 
   async function sende(status, grund, kommentar) {
+    if (sendet) return false;
+    sendet = true;
+    const knoepfe = [...bereich.querySelectorAll("[data-status], [data-absage-senden]")];
+    knoepfe.forEach((k) => { k.disabled = true; });
     try {
       await zugriff.melden(person(), termin.id, status, grund, kommentar);
       // Den lokalen Stand mitziehen, damit ein zweiter Klick nicht mit
@@ -305,8 +361,11 @@ function bindeAntwort(termin) {
       termin.mein_kommentar = status === "ab" ? kommentar : null;
       return true;
     } catch (fehler) {
-      zeige(`Konnte nicht gespeichert werden: ${fehler.message}`, "fehler");
+      zeige(`Antwort konnte nicht gespeichert werden: ${fehler.message}`, "fehler");
       return false;
+    } finally {
+      sendet = false;
+      knoepfe.forEach((k) => { k.disabled = false; });
     }
   }
 
@@ -322,6 +381,12 @@ function bindeAntwort(termin) {
         return;
       }
       grundbox.hidden = true;
+      const bestaetigt = await bestaetigeTerminantwort({
+        titel: "Zusage bestätigen",
+        text: `Du sagst für „${termin.titel}“ verbindlich zu.`,
+        bestaetigen: "Zusage speichern",
+      });
+      if (!bestaetigt) return;
       if (await sende("zu", null, null)) {
         markiereKnoepfe("zu");
         zeige("Zusage gespeichert.", "erfolg");
@@ -343,6 +408,12 @@ function bindeAntwort(termin) {
       return;
     }
     const kommentar = bereich.querySelector("[data-kommentar]").value.trim();
+    const bestaetigt = await bestaetigeTerminantwort({
+      titel: "Absage bestätigen",
+      text: `Du sagst für „${termin.titel}“ ab.`,
+      bestaetigen: "Absage speichern",
+    });
+    if (!bestaetigt) return;
     if (await sende("ab", gewaehlterGrund, kommentar)) {
       markiereKnoepfe("ab");
       zeige("Absage gespeichert.", "erfolg");
@@ -409,7 +480,7 @@ async function start() {
 
     let zusagen = [];
     const ich = person();
-    if (ich && termin.mitgliedSicht) {
+    if (ich && termin.mitgliedSicht && termin.rueckmeldung_erforderlich !== false) {
       // Scheitert das, ist der Termin trotzdem anzeigbar - nur die
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }

@@ -48,21 +48,21 @@
       <button class="nav-knopf" id="nav-knopf" type="button"
               aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
       <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation">
-        <a href="index.html">Start</a>
         <a href="termine.html">Termine</a>
         <a href="vorlagen.html">Absagen</a>
         <span class="nav-deaktiviert" aria-disabled="true" title="Regelübersicht wird noch fachlich geprüft">Regeln<small>In Prüfung</small></span>
         <span class="nav-deaktiviert" aria-disabled="true" title="Spesenrechner wird noch fachlich geprüft" aria-current="page">Spesen<small>In Prüfung</small></span>
         <a href="informationen.html">Unterlagen</a>
-        <a href="melden.html">Ideen &amp; Feedback</a>
+        <a href="melden.html">Ideen</a>
+        <a href="hilfe.html">Hilfe</a>
         <a href="modus.html" class="nav-anmelden">Zum Quiz</a>
       </nav>
     </div>
   </header>
 
   <main class="inhalt" id="inhalt" tabindex="-1" data-funktionsinhalt="spesen" hidden>
-    <h1 class="seiten-titel">Spesenrechner</h1>
-    <p class="seiten-unter">Vier Schritte bis zur Berechnung. Jeden Betrag rechts kannst du von Hand überschreiben.</p>
+    <h1 class="seiten-titel" data-text="spesen.titel">Spesenrechner</h1>
+    <p class="seiten-unter" data-text="spesen.unter">Vier Schritte bis zur Berechnung. Jeden Betrag rechts kannst du von Hand überschreiben.</p>
 
     <div class="rechner">
       <!-- Die Eingabespalte hat einen Namen, weil der Ausdruck sie
@@ -74,7 +74,7 @@
              Liga vor der Spielart - man wählte also eine Klasse, ohne zu
              wissen, ob die Pokalsätze überhaupt anders sind. -->
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2>Was für ein Spiel, und wer spielt?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">1</span><h2 data-text="spesen.schritt-1">Was für ein Spiel, und wer spielt?</h2></div>
           <div class="schritt-koerper">
             <div class="wahl-block">
               <span class="feldname" id="artLabel">Art des Spiels</span>
@@ -130,7 +130,7 @@
         </section>
 
         <section class="schritt" id="ligaSchritt">
-          <div class="schritt-kopf"><span class="schritt-nr">2</span><h2>In welcher Liga?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">2</span><h2 data-text="spesen.schritt-2">In welcher Liga?</h2></div>
           <div class="schritt-koerper">
             <label for="liga">Spielklasse</label>
             <select class="feld" id="liga"></select>
@@ -139,7 +139,7 @@
         </section>
 
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">3</span><h2>Wer pfeift?</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">3</span><h2 data-text="spesen.schritt-3">Wer pfeift?</h2></div>
           <div class="schritt-koerper">
             <label for="funktion">Deine Funktion</label>
             <select class="feld" id="funktion">
@@ -154,7 +154,7 @@
         </section>
 
         <section class="schritt">
-          <div class="schritt-kopf"><span class="schritt-nr">4</span><h2>Fahrtkosten</h2></div>
+          <div class="schritt-kopf"><span class="schritt-nr">4</span><h2 data-text="spesen.schritt-4">Fahrtkosten</h2></div>
           <div class="schritt-koerper">
             <!-- Runde 1, Testperson über 50: "Heimverein" wurde als "für
                  welchen Verein pfeifst du" gelesen. Das Feld beantwortet aber

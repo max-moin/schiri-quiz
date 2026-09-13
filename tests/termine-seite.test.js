@@ -105,7 +105,16 @@ test("Namen der Zusagen erscheinen nur für Angemeldete", () => {
   // die Namen der Vereinsmitglieder nichts.
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /const teilnehmer = darfAntworten && zusagen\.length/);
-  assert.match(js, /if \(ich && termin\.mitgliedSicht\)/);
+  assert.match(js, /if \(ich && termin\.mitgliedSicht && termin\.rueckmeldung_erforderlich !== false\)/);
+});
+
+test("reine Informationstermine zeigen weder Antwortstatus noch Antwortbedienung", () => {
+  const seite = ohneKommentare(lies("src/website/termine-seite.js"));
+  const karten = ohneKommentare(lies("src/website/termine.js"));
+  assert.match(seite, /const brauchtAntwort = termin\.rueckmeldung_erforderlich !== false/);
+  assert.match(seite, /Dieser Termin dient nur zur Information/);
+  assert.match(seite, /brauchtAntwort && termin\.rueckmeldung_bis/);
+  assert.match(karten, /termin\.rueckmeldung_erforderlich !== false[\s\S]*Noch keine Rückmeldung/);
 });
 
 test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {
@@ -114,6 +123,15 @@ test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /if \(!gewaehlterGrund\)/);
   assert.match(js, /Bitte wähle noch einen Grund aus/);
+});
+
+test("Terminantworten werden bestätigt und während des Sendens gesperrt", () => {
+  const js = ohneKommentare(lies("src/website/termine-seite.js"));
+  assert.match(js, /function bestaetigeTerminantwort/);
+  assert.match(js, /verbindlich zu/);
+  assert.match(js, /titel: "Absage bestätigen"/);
+  assert.match(js, /if \(sendet\) return false/);
+  assert.match(js, /knoepfe\.forEach\(\(k\) => \{ k\.disabled = true; \}\)/);
 });
 
 test("der Terminvorschlag lässt sich auf dem Handy sicher schließen und nur vertikal bewegen", () => {

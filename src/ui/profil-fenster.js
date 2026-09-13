@@ -73,7 +73,9 @@
       </div>
 
       <div id="anfrage-formular-erfolg" hidden>
-        <p>Danke, deine Anfrage ist raus! Den Status siehst du unter „Mein Ausrüstungsbestand“.</p>
+        <h3>Anfrage gesendet</h3>
+        <p>Der Obmann prüft sie und setzt sie auf angenommen oder abgelehnt. Bei einer Annahme siehst du dort auch, ob du den Gegenstand selbst besorgst oder der Verein ihn für dich beschafft.</p>
+        <p>Wenn du selbst einkaufst, bewahre den Originalbeleg auf. Bis der Verein etwas anderes bestätigt, übergibst du ihn analog; danach kann die Erstattung auf das hinterlegte Konto erfolgen.</p>
         <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
       </div>
     </div>
@@ -93,7 +95,7 @@
       </div>
 
       <div id="rechnung-upload-inhalt">
-        <p class="hinweis">Mach ein Foto von der Rechnung oder wähle eins aus deiner Galerie - der Schiri-Obmann sieht es dann in seinem Dashboard und überweist dir das Geld.</p>
+        <p class="hinweis">Mach ein Foto von der Rechnung oder wähle eins aus deiner Galerie. Bewahre den Originalbeleg trotzdem auf, bis der Verein bestätigt hat, dass das Foto ausreicht.</p>
         <input id="rechnung-datei-eingabe" type="file" accept="image/*" />
         <img id="rechnung-vorschau-bild" alt="Vorschau der Rechnung" hidden />
         <p id="rechnung-upload-hinweis" class="hinweis" hidden></p>

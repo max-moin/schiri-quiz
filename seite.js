@@ -149,6 +149,32 @@ if (document.querySelector("img[data-bild]")) {
   })();
 }
 
+// ---------- Redaktionelle Texte ----------
+// Genau wie bei den Bildern: nur Seiten, die ueberhaupt einen Haken
+// tragen, fragen nach. Bis die Antwort da ist, steht der Text aus dem
+// HTML da - kein Flackern von leer nach voll, und bei einem Fehler
+// bleibt er einfach stehen.
+if (document.querySelector("[data-text]")) {
+  void (async () => {
+    try {
+      const [{ ladeWebsiteInhalt }, { TEXTE_STANDARD }, { wendeTexteAn }] = await Promise.all([
+        import("./src/website/content-config.js"),
+        import("./src/website/redaktionstexte-standard.js"),
+        import("./src/website/redaktionstexte.js"),
+      ]);
+      const stand = await ladeWebsiteInhalt({
+        datenbank: DATENBANK,
+        seitenschluessel: VEREIN.seitenschluessel,
+        bereich: "texte",
+        fallback: TEXTE_STANDARD,
+      });
+      wendeTexteAn(document, stand.konfiguration);
+    } catch (fehler) {
+      console.warn("Texte: veroeffentlichter Stand nicht erreichbar, ausgelieferter Text bleibt.", fehler);
+    }
+  })();
+}
+
 // Der Redaktionszugang ist kein Sicherheitsgeheimnis und wird deshalb nicht
 // durch einen kryptischen URL-Trick versteckt. Er bleibt im Footer bewusst
 // leise, waehrend Auth, TOTP und RLS den eigentlichen Schutz uebernehmen.

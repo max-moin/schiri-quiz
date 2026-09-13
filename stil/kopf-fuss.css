@@ -28,7 +28,7 @@
 .kopf-innen {
   max-width: 1140px;
   margin: 0 auto;
-  padding: 0 20px;
+  padding: 5px 20px;
   display: flex;
   align-items: center;
   gap: 14px;

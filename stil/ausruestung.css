@@ -317,21 +317,47 @@
 }
 
 .bestand-eintrag {
-  display: block;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   min-height: 44px;
   margin: 0 0 8px;
   padding: 12px;
-  text-align: left;
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--card);
   color: inherit;
-  font-family: inherit;
-  cursor: pointer;
 }
 
 .bestand-eintrag:hover { border-color: var(--marke); }
+
+.bestand-eintrag-bearbeiten {
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.bestand-nachbestellen {
+  min-height: 44px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--marke-lighter);
+  color: var(--marke);
+  font: inherit;
+  font-size: .78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.bestand-nachbestellen:hover { border-color: var(--marke); }
 
 .bestand-eintrag-name { display: block; font-size: .95rem; font-weight: 700; }
 
@@ -369,6 +395,11 @@
   color: var(--muted);
   font-size: .8rem;
   line-height: 1.5;
+}
+
+@media (max-width: 560px) {
+  .bestand-eintrag { grid-template-columns: 1fr; }
+  .bestand-nachbestellen { width: 100%; }
 }
 
 /* ---------- Noch nichts eingetragen ----------

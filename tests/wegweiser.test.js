@@ -84,9 +84,9 @@ test("der Weg nach oben nennt sein Ziel statt nur 'zurueck'", () => {
   assert.ok(leiste, "installieren.html bekommt keinen Wegweiser");
   const hoch = leiste.mitKlasse("wegweiser-zurueck")[0];
   assert.ok(hoch, "es gibt keinen Weg nach oben");
-  assert.equal(hoch.href, "informationen.html");
-  assert.equal(hoch.getAttribute("aria-label"), "Zurück zu Unterlagen");
-  assert.equal(leiste.mitKlasse("wegweiser-ziel")[0].textContent, "Unterlagen");
+  assert.equal(hoch.href, "hilfe.html");
+  assert.equal(hoch.getAttribute("aria-label"), "Zurück zu Hilfe");
+  assert.equal(leiste.mitKlasse("wegweiser-ziel")[0].textContent, "Hilfe");
 });
 
 test("der Pfad zeigt die ganze Tiefe und markiert die aktuelle Seite", () => {

@@ -12,6 +12,7 @@ import { erstelleRegelnEditor } from "./regeln-editor.js";
 import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
 import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
 import { erstelleBilderEditor } from "./bilder-editor.js";
+import { erstelleTexteEditor } from "./texte-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
@@ -88,6 +89,13 @@ async function oeffneEditor() {
     // ueber dieselbe Veroeffentlichung wie die anderen Bereiche.
     erstelleBilderEditor({
       wurzel: document.querySelector('[data-admin-bereich="bilder"]'),
+      client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    // Die Texte der oeffentlichen Seiten. Ohne Veroeffentlichung
+    // bleibt stehen, was im HTML steht - der Editor zeigt diesen
+    // Ausgangsstand neben jedem Feld an.
+    erstelleTexteEditor({
+      wurzel: document.querySelector('[data-admin-bereich="texte"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
     });
     // Die Terminsuche braucht weder verein noch benutzer: sie arbeitet

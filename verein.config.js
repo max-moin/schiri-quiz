@@ -28,7 +28,7 @@ export const VEREIN = {
   // Klartext auf der öffentlichen Vorlagenseite und ist für Spam-Sammler
   // lesbar. Das ist eine Entscheidung, die Max treffen muss, nicht ich.
   // Solange null, steht dort "[E-Mail eures Obmanns]".
-  kontakt: { obmann: "Max M.", email: null },
+  kontakt: { obmann: "Max M.", email: "max.mueller.2004@gmx.de" },
 
   // ============================================================
   // Benachrichtigungen (Web Push).

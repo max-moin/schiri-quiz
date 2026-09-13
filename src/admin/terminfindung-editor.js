@@ -489,6 +489,20 @@ export function erstelleTerminfindungEditor({ wurzel, client }) {
       verweis.href = `termine.html?termin=${encodeURIComponent(findung.erstellter_termin)}`;
       verweis.textContent = "Zum entstandenen Termin";
       artikel.append(verweis);
+    } else if (findung.status === "abgebrochen") {
+      const fuss = el("div", "admin-tf-kartenfuss");
+      const loeschen = knopf("Abgebrochene Suche löschen", "admin-icon-knopf");
+      loeschen.addEventListener("click", async () => {
+        if (!window.confirm(`„${findung.titel}“ endgültig löschen? Vorschläge und abgegebene Stimmen dieser abgebrochenen Suche werden ebenfalls entfernt.`)) return;
+        loeschen.disabled = true;
+        const erfolg = await mitMeldung("Terminsuche wird gelöscht …", async () => {
+          await zugriff.loeschen(findung.id);
+          await neuLaden("Abgebrochene Terminsuche gelöscht.");
+        });
+        if (!erfolg) loeschen.disabled = false;
+      });
+      fuss.append(loeschen);
+      artikel.append(fuss);
     }
 
     return artikel;

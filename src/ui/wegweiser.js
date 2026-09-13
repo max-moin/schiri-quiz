@@ -42,11 +42,12 @@ export const BAUM = Object.freeze({
   "spesenrechner.html": { titel: "Spesen", eltern: "index.html" },
   "informationen.html": { titel: "Unterlagen", eltern: "index.html" },
   "melden.html": { titel: "Ideen & Feedback", eltern: "index.html" },
+  "hilfe.html": { titel: "Hilfe", eltern: "index.html" },
   "schiri-werden.html": { titel: "Schiri werden", eltern: "index.html" },
   "modus.html": { titel: "Quiz", eltern: "index.html" },
 
   // Ebene 2: was unter einem Reiter haengt.
-  "installieren.html": { titel: "App installieren", eltern: "informationen.html" },
+  "installieren.html": { titel: "App installieren", eltern: "hilfe.html" },
   "frage-vorschlagen.html": { titel: "Frage vorschlagen", eltern: "melden.html" },
   "quiz.html": { titel: "Fragen dieser Woche", eltern: "modus.html" },
   "entscheiden.html": { titel: "Entscheiden", eltern: "modus.html" },
@@ -126,7 +127,9 @@ export function baueWegweiser(seite, dokument = globalThis.document) {
   leiste.appendChild(hoch);
 
   const pfad = pfadZu(seite);
-  if (pfad.length > 1) {
+  // Auf Ebene eins waere der Pfad neben dem bereits beschrifteten
+  // Zurueck-Knopf nur eine Wiederholung. Tiefe Unterseiten behalten ihn.
+  if (pfad.length > 2) {
     const liste = dokument.createElement("ol");
     liste.className = "wegweiser-pfad";
     pfad.forEach((schritt, i) => {

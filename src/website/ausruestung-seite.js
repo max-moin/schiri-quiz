@@ -179,6 +179,16 @@ function neu() {
 function meldung(text, istFehler) {
   $("bestand-meldung").textContent = text;
   $("bestand-meldung").classList.toggle("bestand-fehler", !!istFehler);
+  $("bestand-meldung").dataset.art = text ? (istFehler ? "fehler" : "info") : "";
+}
+
+function seitenmeldung(text, istFehler = false) {
+  const feld = $("bestand-seitenmeldung");
+  if (!feld) return;
+  feld.textContent = text;
+  feld.hidden = !text;
+  feld.classList.toggle("bestand-fehler", istFehler);
+  feld.dataset.art = text ? (istFehler ? "fehler" : "erfolg") : "";
 }
 
 // Loeschen ohne Browserdialog (Hausregel): der Knopf fragt selbst nach,
@@ -243,11 +253,14 @@ function eintragHtml(x) {
   if (Number(x.anzahl) > 1) plaketten.push(plakette(x.anzahl + "×"));
   plaketten.push(plakette(ZUSTAND_WORT[x.zustand] || x.zustand, "zustand-" + x.zustand));
   const name = x.bezeichnung || fach(x.kategorie)?.wort || x.kategorie;
-  return `<button type="button" class="bestand-eintrag" data-id="${esc(x.id)}">`
+  return `<article class="bestand-eintrag" data-id="${esc(x.id)}">`
+    + `<button type="button" class="bestand-eintrag-bearbeiten" data-bestand-bearbeiten="${esc(x.id)}">`
     + `<span class="bestand-eintrag-name">${esc(name)}</span>`
     + `<span class="bestand-plaketten">${plaketten.join("")}</span>`
     + (x.anmerkung ? `<span class="bestand-eintrag-anmerkung">${esc(x.anmerkung)}</span>` : "")
-    + "</button>";
+    + "</button>"
+    + `<button type="button" class="bestand-nachbestellen" data-bestand-nachbestellen="${esc(x.id)}">Neu anfragen</button>`
+    + "</article>";
 }
 
 // Sollte je eine Kategorie dazukommen, die diese Seite noch nicht kennt,
@@ -295,8 +308,23 @@ async function ladeBestand() {
   }
   eintraege = Array.isArray(data) ? data : [];
   $("bestand-liste").innerHTML = eintraege.length ? schrankHtml() : leerHtml();
-  $("bestand-liste").querySelectorAll(".bestand-eintrag").forEach((knopf) => {
-    knopf.addEventListener("click", () => oeffneEintrag(knopf.dataset.id));
+  $("bestand-liste").querySelectorAll("[data-bestand-bearbeiten]").forEach((knopf) => {
+    knopf.addEventListener("click", () => oeffneEintrag(knopf.dataset.bestandBearbeiten));
+  });
+  $("bestand-liste").querySelectorAll("[data-bestand-nachbestellen]").forEach((knopf) => {
+    knopf.addEventListener("click", () => {
+      const eintrag = eintraege.find((x) => x.id === knopf.dataset.bestandNachbestellen);
+      const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;
+      if (!eintrag || !profil?.oeffneAusruestungsAnfrage) return;
+      const name = eintrag.bezeichnung || fach(eintrag.kategorie)?.wort || "Ausrüstung";
+      profil.oeffneAusruestungsAnfrage({
+        kategorie: eintrag.kategorie,
+        farbe: eintrag.farbe || "",
+        groesse: eintrag.groesse || "",
+        aermellaenge: eintrag.aermellaenge || "",
+        anmerkung: `Ersatz für ${name}${eintrag.zustand === "verschlissen" ? " (verschlissen)" : ""}`,
+      });
+    });
   });
   const leerKnopf = $("bestand-leer-hinzufuegen");
   if (leerKnopf) leerKnopf.addEventListener("click", oeffneNeuenEintrag);
@@ -417,6 +445,8 @@ $("bestand-formular").onsubmit = async (e) => {
     erstesFeld.focus();
   } else {
     verbergeFormular();
+    seitenmeldung("Eintrag gespeichert.");
+    $("bestand-seitenmeldung").scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 };
 
@@ -451,6 +481,7 @@ $("bestand-loeschen").onclick = async (e) => {
   neu();
   verbergeFormular();
   await ladeBestand();
+  seitenmeldung("Eintrag gelöscht.");
 };
 
 // ---------- Start ----------

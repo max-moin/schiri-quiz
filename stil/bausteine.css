@@ -405,3 +405,30 @@ body { overflow-x: hidden; }
   border-color: var(--marke-dunkel);
 }
 
+/* Kompakter Hilfe-Hub: dieselbe Karte bleibt auf Handy und Desktop
+   lesbar, ohne einen neuen Sonderstil fuer jede Hilfeart einzufuehren. */
+.hilfe-raster {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+.funktions-kachel {
+  min-height: 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  color: var(--text);
+  text-decoration: none;
+  box-shadow: var(--shadow);
+}
+.funktions-kachel:hover { border-color: var(--marke-hell); }
+.funktions-kachel span { color: var(--muted); font-size: .9rem; line-height: 1.45; }
+@media (max-width: 600px) {
+  .hilfe-raster { grid-template-columns: 1fr; }
+}

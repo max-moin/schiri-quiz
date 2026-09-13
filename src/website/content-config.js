@@ -1,6 +1,6 @@
 const kopie = (wert) => JSON.parse(JSON.stringify(wert));
 
-export const INHALTSBEREICHE = Object.freeze(["regeln", "vorlagen", "unterlagen", "bilder"]);
+export const INHALTSBEREICHE = Object.freeze(["regeln", "vorlagen", "unterlagen", "bilder", "texte"]);
 
 /**
  * Die Motive der Startseite. Die Liste steht hier und nicht in den
@@ -125,6 +125,13 @@ export function validiereWebsiteInhalt(bereich, roh) {
     }
   }
 
+  if (bereich === "texte") {
+    for (const [schluessel, wert] of Object.entries(roh)) {
+      if (typeof wert !== "string") fehler.push(`Text "${schluessel}": kein Text.`);
+      else if (wert.length > 600) fehler.push(`Text "${schluessel}": länger als 600 Zeichen.`);
+    }
+  }
+
   if (bereich === "regeln") {
     for (const [quelle, name] of [["svfd", "Stadtverband"], ["sfv", "Landesverband"]]) {
       if (!istText(roh.quellen?.[quelle]?.titel)) fehler.push(`${name}: Quellentitel fehlt.`);
@@ -243,12 +250,28 @@ function normalisiereBilder(roh, fallback) {
   return { schemaVersion: 1, motive };
 }
 
+/**
+ * Die Texte sind ein flaches Verzeichnis Schluessel -> Text. Der
+ * Fallback bestimmt, welche Schluessel es ueberhaupt gibt: ein Feld,
+ * das die Seite nicht kennt, wuerde im Editor als Zeile erscheinen,
+ * die nirgends ankommt. Ein leeres Feld faellt auf die Vorgabe
+ * zurueck, damit eine geleerte Ueberschrift nicht verschwindet.
+ */
+function normalisiereTexte(roh, fallback) {
+  const texte = {};
+  for (const schluessel of Object.keys(fallback)) {
+    texte[schluessel] = text(roh[schluessel], fallback[schluessel], 600);
+  }
+  return texte;
+}
+
 export function normalisiereWebsiteInhalt(bereich, roh, fallback) {
   if (!INHALTSBEREICHE.includes(bereich) || !fallback) throw new Error("Unbekannter Inhaltsbereich.");
   if (!roh || typeof roh !== "object" || Array.isArray(roh)) return kopie(fallback);
   if (bereich === "vorlagen") return normalisiereVorlagen(roh, fallback);
   if (bereich === "unterlagen") return normalisiereUnterlagen(roh, fallback);
   if (bereich === "bilder") return normalisiereBilder(roh, fallback);
+  if (bereich === "texte") return normalisiereTexte(roh, fallback);
   return normalisiereRegeln(roh, fallback);
 }
 

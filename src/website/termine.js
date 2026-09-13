@@ -199,7 +199,8 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   let stand = "";
   if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
   else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
-  else if (termin.mein_status === null && !termin.vergangen) {
+  else if (termin.rueckmeldung_erforderlich !== false
+      && termin.mein_status === null && !termin.vergangen) {
     stand = '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
   }
 
