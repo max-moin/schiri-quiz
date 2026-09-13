@@ -10,7 +10,7 @@
 import { DATENBANK, VEREIN } from "../../verein.config.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
-  teileVergangenheitAb, datumLang, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
+  teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
 } from "./termine.js";
 
 const bereich = document.getElementById("terminBereich");

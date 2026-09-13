@@ -747,7 +747,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "vor",
       "titel": "Handreichung des SVFD 2025/2026",
       "sub": "Was in Dresden bei C- und D-Junioren gilt: 9 gegen 9, Viertel statt Halbzeiten, Mittellinienregel in der Feldmitte – und in den D-Junioren gibt es KEINE Gelb-Rote Karte.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/handreichung-regeln-c-und-d-junioren/",
       "q": "svfd"
     },
     {
@@ -756,7 +756,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "vor",
       "titel": "Kapitänsregelung",
       "sub": "Wer mit dem Schiedsrichter sprechen darf und wer nicht.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/leitlinien-zur-kapitaensregelung/",
       "q": "svfd"
     },
     {
@@ -765,7 +765,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "vor",
       "titel": "Spielberechtigungen prüfen",
       "sub": "Was vor dem Anpfiff kontrolliert wird und was bei Unstimmigkeiten gilt.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/anweisungen-fuer-schiedsrichter-und-beobachter/",
       "q": "svfd"
     },
     {
@@ -774,7 +774,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "nach",
       "titel": "Wiedereinwechslungen eintragen",
       "sub": "Klickanleitung für den Spielbericht – wo genau man was einträgt.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/handreichung-wiedereinwechslungen-im-spielbericht/",
       "q": "svfd"
     },
     {
@@ -783,7 +783,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "nach",
       "titel": "Spesenquittung (Formular)",
       "sub": "Das Originalformular des Stadtverbands zum Ausdrucken.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/quittungen/",
       "q": "svfd"
     },
     {
@@ -801,7 +801,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "lernen",
       "titel": "DFB-Fußballregeln",
       "sub": "Das vollständige Regelwerk der laufenden Saison.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/dfb-fussballregeln-202526/",
       "q": "svfd"
     },
     {
@@ -810,7 +810,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "lernen",
       "titel": "Regeländerungen",
       "sub": "Was sich zu dieser Saison geändert hat.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/regelaenderungen-zur-saison-202526/",
       "q": "svfd"
     },
     {
@@ -909,7 +909,7 @@ export const UNTERLAGEN_STANDARD = {
       "g": "vorfall",
       "titel": "Umgang mit Diskriminierung und Gewalt",
       "sub": "Die Handreichung des Stadtverbands dazu.",
-      "href": "https://www.svf-dresden.de/dokumente/kategorie/schiedsrichter/",
+      "href": "https://www.svf-dresden.de/dokumente/handlungsempfehlungen-zum-umgang-mit-diskriminierung-und-gewalt/",
       "q": "svfd"
     },
     {

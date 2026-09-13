@@ -88,12 +88,6 @@
            "vorlagen" der Datenbank). Das Skript am Seitenende liest sie
            von dort ab und traegt sie unten ein. Zwei Stellen mit derselben
            Adresse laufen frueher oder spaeter auseinander.
-
-           ZU PRUEFEN (Max): Die Anweisung des Stadtverbands nennt in dem,
-           was hier dokumentiert ist, keine Stundenfrist fuer die Absage
-           eines einzelnen Spiels - nur das Nachhaken nach 24 Stunden und
-           die Sperrtermine bis zum 20. des Vormonats. Steht im Original
-           doch eine Frist, gehoert sie in die Antwort auf "Bis wann?".
            ============================================================ -->
       <dl class="absage-kurz">
         <div class="absage-kurz-punkt">
@@ -185,7 +179,6 @@
           </span>
         </div>
         <pre class="vorlage-text" id="text-spiel">An: sr-ansetzer@svf-dresden.de
-Cc: <span data-verein="obmannMail">[E-Mail eures Obmanns]</span>
 Betreff: Absage Ansetzung – Spielkennung [XXXXXXX], [TT.MM.JJJJ]
 
 Hallo liebes Ansetzer-Team,
@@ -284,8 +277,16 @@ Viele Grüße</pre>
       datenbank: DATENBANK, seitenschluessel: VEREIN.seitenschluessel,
       bereich: "vorlagen", fallback: VORLAGEN_STANDARD,
     });
-    const obmannMail = VEREIN.kontakt.email || "[E-Mail eures Obmanns]";
-    const fuelleMail = (wert) => String(wert || "").replaceAll("[E-Mail eures Obmanns]", obmannMail);
+    const PLATZHALTER_MAIL = "[E-Mail eures Obmanns]";
+    const obmannMail = VEREIN.kontakt.email || null;
+    /* Ohne hinterlegte Adresse faellt die ganze Zeile weg, nicht nur der
+       Platzhalter: eine Vorlage mit "Cc: [E-Mail eures Obmanns]" wird
+       erfahrungsgemaess genau so verschickt. Zeilenweise, damit auch ein
+       Platzhalter mitten im Text keine halbe Zeile stehen laesst. */
+    const fuelleMail = (wert) => String(wert || "").split("\n")
+      .filter((zeile) => obmannMail || !zeile.includes(PLATZHALTER_MAIL))
+      .map((zeile) => (obmannMail ? zeile.replaceAll(PLATZHALTER_MAIL, obmannMail) : zeile))
+      .join("\n");
     document.getElementById("titel-spiel").textContent = VORLAGEN.spiel.titel;
     document.getElementById("text-spiel").textContent = fuelleMail(VORLAGEN.spiel.text);
     document.getElementById("hinweis-spiel").lastElementChild.textContent = VORLAGEN.spiel.hinweis;
