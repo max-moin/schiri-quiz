@@ -161,9 +161,21 @@ async function baueLetzteDuelleHtml(person) {
   if (person) {
     const liste = await api.meineListe(person).catch(() => []);
     if (!liste?.length) return "";
-    const zeilen = liste.slice(0, LETZTE_DUELLE_MAX).map((d) => `<button type="button" class="duell-liste-eintrag" data-code="${esc(d.code)}" data-zugang="${esc(d.zugang)}">
-      <span class="duell-liste-code">${esc(d.code)}</span>
-      <span class="duell-liste-info">${d.ich_richtig}/${d.ich_beantwortet} richtig · ${d.status === "offen" ? "läuft noch" : "beendet"}</span></button>`).join("");
+    const zeilen = liste.slice(0, LETZTE_DUELLE_MAX).map((d) => {
+      const offen = d.status === "offen";
+      const namen = (d.teilnehmer || []).map((t) => t.name).filter(Boolean);
+      return `<article class="duell-liste-eintrag" data-duell-code="${esc(d.code)}" data-zugang="${esc(d.zugang)}" data-status="${esc(d.status)}">
+        <div class="duell-liste-kopf"><span class="duell-liste-code">${esc(d.code)}</span>
+          <span class="duell-liste-info">${d.ich_richtig}/${d.ich_beantwortet} richtig · ${offen ? "läuft" : "beendet"}</span></div>
+        <div class="duell-beteiligte"><span>Beteiligte</span><strong>${esc(namen.join(" · ") || "Nur du")}</strong></div>
+        <div class="duell-liste-aktionen">
+          ${offen ? '<button type="button" data-duell-aktion="spielen">Spielen</button><button type="button" data-duell-aktion="lobby">Lobby</button>' : ""}
+          <button type="button" data-duell-aktion="stand">Zwischenstand</button>
+          ${offen ? '<button type="button" data-duell-aktion="teilen">Teilen</button>' : ""}
+          ${offen && d.ist_ersteller ? '<button type="button" class="gefahr" data-duell-aktion="schliessen">Schließen</button>' : ""}
+        </div>
+      </article>`;
+    }).join("");
     return `<section class="card duell-letzte-duelle"><h2>Deine Duelle</h2>
       <p class="duell-kleingedruckt">Tipp auf ein Duell, um dort weiterzumachen oder die Auswertung zu sehen.</p>
       <div class="duell-liste">${zeilen}</div></section>`;
@@ -176,6 +188,57 @@ async function baueLetzteDuelleHtml(person) {
   return `<section class="card duell-letzte-duelle"><h2>Zuletzt gespielt</h2>
     <p class="duell-kleingedruckt">Tipp auf ein Duell, um dort weiterzumachen.</p>
     <div class="duell-liste">${zeilen}</div></section>`;
+}
+
+function duellAdresse(code) {
+  return `${location.origin}${location.pathname}?code=${code}`;
+}
+
+async function teileDuell(code, knopf) {
+  const url = duellAdresse(code);
+  const text = `Ich fordere dich zu einem Quiz-Duell heraus. Code ${code}.`;
+  try {
+    if (navigator.share) { await navigator.share({ title: "Quiz-Duell", text, url }); return; }
+    await navigator.clipboard?.writeText(url);
+    const vorher = knopf.textContent;
+    knopf.textContent = "Kopiert ✓";
+    setTimeout(() => { knopf.textContent = vorher; }, 1600);
+  } catch { /* Abbrechen ist kein Fehler */ }
+}
+
+function bestaetigeDuellSchliessen(code) {
+  return new Promise((resolve) => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "duell-dialog";
+    dialog.innerHTML = `<div class="duell-dialog-kopf"><h2>Duell ${esc(code)} schließen?</h2><button type="button" aria-label="Schließen" data-abbrechen>×</button></div>
+      <p>Danach kann niemand mehr antworten. Die Auswertung bleibt noch 30 Tage erreichbar.</p>
+      <div class="duell-dialog-aktionen"><button type="button" data-abbrechen>Behalten</button><button type="button" class="gefahr" data-bestaetigen>Duell schließen</button></div>`;
+    document.body.append(dialog);
+    const fertig = (wert) => { if (dialog.open) dialog.close(); dialog.remove(); resolve(wert); };
+    dialog.querySelectorAll("[data-abbrechen]").forEach((knopf) => knopf.addEventListener("click", () => fertig(false)));
+    dialog.querySelector("[data-bestaetigen]").addEventListener("click", () => fertig(true));
+    dialog.addEventListener("cancel", (event) => { event.preventDefault(); fertig(false); });
+    dialog.showModal();
+  });
+}
+
+function verdrahteDuellListe() {
+  root.querySelectorAll("[data-duell-aktion]").forEach((knopf) => knopf.addEventListener("click", async () => {
+    const eintrag = knopf.closest("[data-duell-code]");
+    speichernSitzung({ code: eintrag.dataset.duellCode, zugang: eintrag.dataset.zugang });
+    const aktion = knopf.dataset.duellAktion;
+    if (aktion === "spielen") return einstiegInLaufendesDuell();
+    if (aktion === "lobby") return warteraumAnsicht(false);
+    if (aktion === "stand") return uebersichtAnsicht(eintrag.dataset.status === "offen");
+    if (aktion === "teilen") return teileDuell(sitzung.code, knopf);
+    if (aktion !== "schliessen" || !(await bestaetigeDuellSchliessen(sitzung.code))) return;
+    knopf.disabled = true;
+    try {
+      const geschlossen = await api.schliessen(sitzung.zugang);
+      if (!geschlossen) throw new Error("Das Duell ist bereits geschlossen oder du bist nicht der Ersteller.");
+      await startAnsicht();
+    } catch (e) { knopf.disabled = false; fehler(e); }
+  }));
 }
 
 function beitretenFormularHtml(person, code) {
@@ -285,6 +348,7 @@ async function startAnsicht() {
       speichernSitzung({ code: knopf.dataset.code, zugang: knopf.dataset.zugang });
       einstiegInLaufendesDuell();
     }));
+    verdrahteDuellListe();
   }
 }
 
@@ -303,7 +367,7 @@ function stoppeWarteUhr() {
 function warteraumAnsicht(neu = false) {
   stoppeWarteUhr();
   setzeKopf({ untertitel: "Warteraum – erst teilen, dann starten." });
-  const url = `${location.origin}${location.pathname}?code=${sitzung.code}`;
+  const url = duellAdresse(sitzung.code);
   root.innerHTML = `<div class="historie-kopf">
       <button type="button" class="sekundaer-button duell-zurueck" data-zurueck>← Meine Duelle</button>
     </div>
@@ -337,15 +401,8 @@ function warteraumAnsicht(neu = false) {
   // Auf dem Handy ist das systemeigene Teilen der kuerzeste Weg nach
   // WhatsApp - genau der Weg, den die Testperson gesucht hat. Ohne
   // Unterstuetzung faellt es auf die Zwischenablage zurueck.
-  root.querySelector("[data-teilen]").addEventListener("click", async (event) => {
-    const knopf = event.currentTarget;
-    const text = `Ich fordere dich zu einem Quiz-Duell heraus. Code ${sitzung.code}.`;
-    try {
-      if (navigator.share) { await navigator.share({ title: "Quiz-Duell", text, url }); return; }
-      await navigator.clipboard?.writeText(url);
-      knopf.textContent = "Link kopiert ✓";
-    } catch { /* Abbrechen ist kein Fehler */ }
-  });
+  root.querySelector("[data-teilen]").addEventListener("click", (event) =>
+    teileDuell(sitzung.code, event.currentTarget));
 
   startKnopf.addEventListener("click", () => {
     if (alleine && !startScharf) {

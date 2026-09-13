@@ -158,6 +158,24 @@
   background: #f3f5f7; font: .78rem/1.5 var(--font-text); overflow-wrap: anywhere; }
 .admin-vorgabe .knopf { min-height: 34px; padding: 4px 12px; font-size: .76rem; }
 .admin-text-panel .admin-panel-kopf a { color: inherit; }
+
+/* Aufklappbare Gruppe je Seitenabschnitt. Bei 77 Feldern ist die
+   flache Liste unbrauchbar - man findet den Satz nicht wieder, den
+   man gerade geaendert hat. */
+.admin-textgruppe { border-top: 1px solid var(--border); }
+.admin-textgruppe > summary { display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 13px 20px; cursor: pointer; font-weight: 750; list-style: none; }
+.admin-textgruppe > summary::-webkit-details-marker { display: none; }
+.admin-textgruppe > summary::before { content: "▸"; color: var(--muted); font-size: .85rem; }
+.admin-textgruppe[open] > summary::before { content: "▾"; }
+.admin-textgruppe[open] > summary { border-bottom: 1px solid var(--border); }
+.admin-textgruppe > summary small { color: var(--muted); font-weight: 500; font-size: .78rem; }
+.admin-textgruppe > summary em { margin-left: auto; font-style: normal; font-size: .74rem;
+  font-weight: 700; padding: 3px 9px; border-radius: 999px;
+  background: var(--marke); color: #fff; }
+.admin-text-zeile.ist-geaendert > label { color: var(--marke); }
+.admin-text-zeile.ist-geaendert textarea,
+.admin-text-zeile.ist-geaendert input { border-color: var(--marke); }
 .admin-vorschau { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .admin-vorschau summary { cursor: pointer; padding: 12px 14px; font-weight: 750; }
 .admin-vorschau pre { margin: 0; padding: 16px; border-top: 1px solid var(--border); background: #fafbfc; white-space: pre-wrap; font: .8rem/1.55 var(--font-text); }

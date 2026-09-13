@@ -105,7 +105,7 @@
                  src/website/spesen-klassenfilter.js. -->
             <div class="wahl-block">
               <span class="feldname" id="schnellLabel">Schnellauswahl
-                <span class="etikett-zusatz">grenzt die Liste darunter ein – oder überspring sie</span></span>
+                <span class="etikett-zusatz" data-text="spesen.hinweis-schnellwahl">grenzt die Liste darunter ein – oder überspring sie</span></span>
               <div class="wahl-gruppe" id="schnellFilter" role="group" aria-labelledby="schnellLabel">
                 <button type="button" class="wahl-knopf" data-filter="geschlecht" data-wert="m" aria-pressed="false">Männlich</button>
                 <button type="button" class="wahl-knopf" data-filter="geschlecht" data-wert="w" aria-pressed="false">Weiblich</button>
@@ -124,7 +124,7 @@
               <label for="stunden">Dauer in Stunden</label>
               <input class="feld" id="stunden" type="number" inputmode="numeric"
                    min="1" step="1" value="4" />
-              <p class="hinweis-klein">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
+              <p class="hinweis-klein" data-text="spesen.hinweis-turnier">32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.</p>
             </div>
           </div>
         </section>
@@ -162,7 +162,7 @@
                  LAGE des Vereins, und die geht nur in fahrtkostenStadt() ein.
                  Es benennt also den Spielort, und danach heisst es jetzt. -->
             <label for="verein">Spielort
-              <span class="etikett-zusatz">Verein, auf dessen Platz gespielt wird – er bestimmt die Tarifzone</span></label>
+              <span class="etikett-zusatz" data-text="spesen.hinweis-tarifzone">Verein, auf dessen Platz gespielt wird – er bestimmt die Tarifzone</span></label>
             <input class="feld" id="verein" list="vereinsliste" placeholder="Vereinsnamen eintippen …" />
             <datalist id="vereinsliste"></datalist>
             <p class="hinweis-klein" id="ortHinweis"></p>
@@ -182,7 +182,7 @@
                 <label for="ticketBetrag">Betrag laut Fahrausweis (Hin- und Rückfahrt)</label>
                 <input class="feld" id="ticketBetrag" type="text" inputmode="decimal"
                      placeholder="z. B. 12,40" />
-                <p class="hinweis-klein">Wird gegen Vorlage der Fahrausweise erstattet, bei der Bahn
+                <p class="hinweis-klein" data-text="spesen.hinweis-fahrschein">Wird gegen Vorlage der Fahrausweise erstattet, bei der Bahn
                    die 2. Klasse.</p>
               </div>
 
@@ -192,7 +192,7 @@
                 <label class="haken wahl-block" id="lblMitnahme">
                   <input type="checkbox" id="cbMitnahme" /> Ich habe weitere Personen mitgenommen
                 </label>
-                <p class="hinweis-klein">Die wirtschaftlichste Strecke ist zu nehmen, Fahrgemeinschaften
+                <p class="hinweis-klein" data-text="spesen.hinweis-strecke">Die wirtschaftlichste Strecke ist zu nehmen, Fahrgemeinschaften
                    sind zu nutzen. Bei der Abrechnung sind Strecke, Kilometer und die Namen der
                    mitgenommenen Personen anzugeben.</p>
               </div>
@@ -204,7 +204,7 @@
                  Startannahme, kein Messwert. Der Zusatz im Etikett sagt das
                  jetzt, statt dass die Zahl unerklaert im Feld steht. -->
             <div class="wahl-block">
-              <label for="plz">Deine Postleitzahl <span class="etikett-zusatz">Vorbelegung: unser Vereinssitz – überschreib sie</span></label>
+              <label for="plz">Deine Postleitzahl <span class="etikett-zusatz" data-text="spesen.hinweis-vereinssitz">Vorbelegung: unser Vereinssitz – überschreib sie</span></label>
               <input class="feld" id="plz" type="text" inputmode="numeric" autocomplete="postal-code"
                      maxlength="5" placeholder="Postleitzahl" />
               <p class="hinweis-klein" id="plzHinweis"></p>
@@ -268,8 +268,8 @@
              untereinander sah schon einmal nach einem Fehler aus
              (siehe den Kommentar an .q-summen). -->
         <div class="q-abschluss">
-          <p class="q-abschluss-titel">Fertig – das ist das Ergebnis.</p>
-          <p class="q-abschluss-text">
+          <p class="q-abschluss-titel" data-text="spesen.ergebnis-titel">Fertig – das ist das Ergebnis.</p>
+          <p class="q-abschluss-text" data-text="spesen.ergebnis-text">
             Übertrage die drei Beträge von oben auf das offizielle
             Quittungsformular des zuständigen Verbandes. Diese Berechnung
             ersetzt keine Quittung.
@@ -282,7 +282,7 @@
           Einzelne Beträge wurden von Hand geändert.
           <button type="button" class="linkknopf" id="qZuruecksetzen">Alle zurücksetzen</button>
         </p>
-        <p class="q-haftung">
+        <p class="q-haftung" data-text="spesen.haftung">
           <b>Ohne Gewähr.</b> Maßgeblich sind allein die gültigen Sätze des Stadtverbands
           Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.
         </p>

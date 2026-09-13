@@ -11,6 +11,7 @@ import { DATENBANK, VEREIN } from "../../verein.config.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
   teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
+  ladeTerminInKalender,
 } from "./termine.js";
 
 const bereich = document.getElementById("terminBereich");
@@ -326,12 +327,17 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
       </header>
       <div class="td-body">
         ${zeilen}
+        <button type="button" class="td-kalender" data-kalender>
+          <span aria-hidden="true">＋</span> Zum Kalender hinzufügen
+        </button>
       ${antwort}
       ${protokollHtml}
         ${teilnehmer}
       </div>
     </article>`;
 
+  bereich.querySelector("[data-kalender]")?.addEventListener("click", () =>
+    ladeTerminInKalender(termin, location.href));
   if (darfAntworten && !termin.vergangen) bindeAntwort(termin);
 }
 

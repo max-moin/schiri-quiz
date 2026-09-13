@@ -181,6 +181,15 @@ a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--
 }
 .td-senden:hover { background: var(--marke-dunkel); }
 
+.td-kalender {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  margin: 4px 0 18px; padding: 9px 14px; border: 1px solid var(--border);
+  border-radius: 10px; background: var(--card); color: var(--marke);
+  font: 700 .9rem var(--font-text); cursor: pointer;
+}
+.td-kalender:hover { background: var(--marke-lighter); border-color: var(--marke); }
+.td-kalender span { font-size: 1.15rem; line-height: 1; }
+
 .td-knopfpaar { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .td-knopf {
   min-height: 52px; padding: 13px 12px;

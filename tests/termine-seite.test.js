@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
-import { leseRpcAntwort } from "../src/website/termine.js";
+import { leseRpcAntwort, terminAlsKalenderdatei } from "../src/website/termine.js";
 
 const lies = (pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf8");
 
@@ -175,13 +175,27 @@ test("die sechs Absagegründe stimmen mit der Datenbank überein", () => {
   assert.deepEqual(ausJs.sort(), ausSql.sort());
 });
 
-test("kein Kalenderraster", () => {
+test("kein Kalenderraster, aber ein einzelner Termin kann übernommen werden", () => {
   // Max am 29.08.2026: "Kalender finde ich sehr unnuetzig dafuer. Wir
   // haben zu wenig Termine, die da drinstehen." Steht hier, damit es
   // nicht in einem halben Jahr jemand gut gemeint nachruestet.
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
-  assert.doesNotMatch(js, /kalender/i);
+  assert.doesNotMatch(js, /kalenderraster/i);
   assert.match(js, /nachMonatenGruppiert/);
+  assert.match(js, /data-kalender/);
+});
+
+test("Kalenderdatei enthält Zeit, Ort und eine sichere Textkodierung", () => {
+  const ics = terminAlsKalenderdatei({
+    id: "termin-1", titel: "Treff, intern", datum: "2026-09-14",
+    beginn_zeit: "18:00:00", ende_zeit: "19:30:00",
+    ort: "Vereinsheim; Dresden", beschreibung: "Punkt 1\nPunkt 2",
+  }, { jetzt: new Date("2026-09-13T12:00:00.000Z"), seitenAdresse: "https://example.test/termine.html?termin=1" });
+  assert.match(ics, /DTSTART;TZID=Europe\/Berlin:20260914T180000/);
+  assert.match(ics, /DTEND;TZID=Europe\/Berlin:20260914T193000/);
+  assert.match(ics, /SUMMARY:Treff\\, intern/);
+  assert.match(ics, /LOCATION:Vereinsheim\\; Dresden/);
+  assert.match(ics, /DESCRIPTION:Punkt 1\\nPunkt 2/);
 });
 
 /* ---------- Terminfindung (v91) ---------- */

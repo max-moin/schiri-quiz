@@ -33,11 +33,13 @@ function hakenAusDatei(datei) {
   return gefunden;
 }
 
+const alleFelder = (seite) => seite.gruppen.flatMap((gruppe) => gruppe.felder);
+
 test("jeder Haken im HTML hat genau denselben Ausgangsstand wie der Editor", () => {
   let gezaehlt = 0;
   for (const seite of TEXT_SEITEN) {
     const haken = hakenAusDatei(seite.datei);
-    for (const feld of seite.felder) {
+    for (const feld of alleFelder(seite)) {
       assert.ok(feld.schluessel in haken,
         `${seite.datei}: Haken data-text="${feld.schluessel}" fehlt im HTML`);
       assert.equal(haken[feld.schluessel], TEXTE_STANDARD[feld.schluessel],
@@ -46,17 +48,17 @@ test("jeder Haken im HTML hat genau denselben Ausgangsstand wie der Editor", () 
     }
     // Umgekehrt: kein Haken im HTML, den der Editor nicht kennt.
     for (const schluessel of Object.keys(haken)) {
-      assert.ok(TEXT_SEITEN.some((s) => s.felder.some((f) => f.schluessel === schluessel)),
+      assert.ok(TEXT_SEITEN.some((s) => alleFelder(s).some((f) => f.schluessel === schluessel)),
         `${seite.datei}: Haken ${schluessel} ist im Editor nicht aufgeführt`);
     }
   }
   assert.equal(gezaehlt, Object.keys(TEXTE_STANDARD).length);
-  assert.ok(gezaehlt >= 20);
+  assert.ok(gezaehlt >= 70, `nur ${gezaehlt} Texte redaktionell erreichbar`);
 });
 
 test("jeder Schlüssel beginnt mit dem Kürzel seiner Seite", () => {
   for (const seite of TEXT_SEITEN) {
-    for (const feld of seite.felder) {
+    for (const feld of alleFelder(seite)) {
       assert.ok(feld.schluessel.startsWith(`${seite.schluessel}.`), feld.schluessel);
       assert.ok(feld.beschriftung.length > 2, feld.schluessel);
     }
@@ -85,8 +87,42 @@ test("nur harmlose Auszeichnungen überleben die Säuberung", () => {
   assert.equal(saeubereText("Ohne uns geht<br />kein Spiel"), "Ohne uns geht<br />kein Spiel");
   assert.equal(saeubereText("Sehr <strong>wichtig</strong>"), "Sehr <strong>wichtig</strong>");
   assert.equal(saeubereText('<img src=x onerror=alert(1)>Hallo'), "Hallo");
-  assert.equal(saeubereText('<script>alert(1)</script>Text'), "alert(1)Text");
-  assert.equal(saeubereText('<a href="https://example.invalid">Link</a>'), "Link");
+  assert.equal(saeubereText("<script>alert(1)</script>Text"), "alert(1)Text");
+  assert.equal(saeubereText("<iframe src=\"x\"></iframe>"), "");
+});
+
+test("erlaubte Tags verlieren ihre Attribute", () => {
+  // Das war das eigentliche Loch: der Tagname stand auf der Liste,
+  // also blieb der ganze Tag stehen - samt onmouseover.
+  assert.equal(saeubereText('<b onmouseover="alert(1)">x</b>'), "<b>x</b>");
+  assert.equal(saeubereText('<span style="position:fixed" onclick="k()">x</span>'), "<span>x</span>");
+  assert.equal(saeubereText('<em class="gross">x</em>'), "<em>x</em>");
+  // Nur der Vereinsname darf am span bleiben, sonst stuende im Weg
+  // zur Pfeife nach einer Veroeffentlichung eine Luecke.
+  assert.equal(saeubereText('<span data-verein="name">FV</span>'), '<span data-verein="name">FV</span>');
+  assert.equal(saeubereText('<span data-verein="name" onclick="k()">FV</span>'),
+    '<span data-verein="name">FV</span>');
+});
+
+test("Links dürfen nur auf harmlose Ziele zeigen", () => {
+  assert.equal(saeubereText('<a href="vorlagen.html">Absagen</a>'),
+    '<a href="vorlagen.html">Absagen</a>');
+  assert.equal(saeubereText('<a href="https://www.svf-dresden.de/">SVFD</a>'),
+    '<a href="https://www.svf-dresden.de/" target="_blank" rel="noopener noreferrer">SVFD</a>');
+  assert.equal(saeubereText('<a href="mailto:max@example.org">Mail</a>'),
+    '<a href="mailto:max@example.org">Mail</a>');
+  // javascript: und data: verlieren das Ziel und werden zum blossen Text.
+  assert.equal(saeubereText('<a href="javascript:alert(1)">Klick</a>'), "<a>Klick</a>");
+  assert.equal(saeubereText('<a href="data:text/html,x">Klick</a>'), "<a>Klick</a>");
+});
+
+test("die tatsächlich hinterlegten Texte überstehen die Säuberung unverändert", () => {
+  // Kein Ausgangsstand darf durch die Saeuberung anders werden -
+  // sonst aenderte sich die Seite allein durch ein Veroeffentlichen,
+  // ohne dass jemand etwas getippt hat.
+  for (const [schluessel, wert] of Object.entries(TEXTE_STANDARD)) {
+    assert.equal(saeubereText(wert), wert, schluessel);
+  }
 });
 
 test("wendeTexteAn ersetzt nur, was wirklich dasteht", () => {
@@ -103,4 +139,16 @@ test("wendeTexteAn ersetzt nur, was wirklich dasteht", () => {
   assert.equal(elemente[2].innerHTML, "alt");
   assert.equal(wendeTexteAn(null, {}), 0);
   assert.equal(wendeTexteAn(dokument, null), 0);
+});
+
+test("nach dem Ersetzen wird nachbearbeitet", () => {
+  const element = { dataset: { text: "start.titel" }, innerHTML: "alt" };
+  const dokument = { querySelectorAll: () => [element] };
+  const nachgetragen = [];
+  wendeTexteAn(dokument, { "start.titel": "Neu" }, (el) => nachgetragen.push(el));
+  assert.deepEqual(nachgetragen, [element]);
+  // Unveraenderter Text loest keine Nachbearbeitung aus.
+  nachgetragen.length = 0;
+  wendeTexteAn(dokument, { "start.titel": "Neu" }, (el) => nachgetragen.push(el));
+  assert.deepEqual(nachgetragen, []);
 });

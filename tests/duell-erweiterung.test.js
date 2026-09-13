@@ -58,9 +58,20 @@ test("duell-zugriff.js trennt Zeilen-Auspacken (table) von Rohwert (jsonb)", () 
   assert.match(zugriff, /fetchRpc\("duell_reaktionen_fuer_frage"/);
   assert.match(zugriff, /fetchRpc\("duell_verlauf"/);
   assert.match(zugriff, /fetchRpc\("duell_meine_liste"/);
+  assert.match(zugriff, /fetchRpc\("duell_eigenes_schliessen"/);
   assert.doesNotMatch(zugriff, /rufeZeile\("duell_verlauf"/);
   assert.doesNotMatch(zugriff, /rufeZeile\("duell_reaktionen_fuer_frage"/);
   assert.match(zugriff, /\/api\/duell-freitext-ergaenzung/);
+});
+
+test("eigene Duelle trennen Beteiligte, Lobby, Zwischenstand und Teilen", () => {
+  const seite = lies("src/website/duell-seite.js");
+  assert.match(seite, />Beteiligte</);
+  for (const aktion of ["spielen", "lobby", "stand", "teilen", "schliessen"]) {
+    assert.match(seite, new RegExp(`data-duell-aktion=\\"${aktion}\\"`));
+  }
+  assert.match(seite, /bestaetigeDuellSchliessen/);
+  assert.doesNotMatch(seite, /\bconfirm\(/);
 });
 
 test("api/duell-freitext.js erlaubt jetzt \"nachbessern\" und übergibt Status/Nachfrage an die RPC", () => {

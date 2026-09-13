@@ -170,10 +170,17 @@ $("loginForm").addEventListener("submit", async (event) => {
   }
 });
 
+// Adresse und Schluessel gehen ausdruecklich mit: die MFA-Anfragen
+// setzen ihren Authorization-Header selbst (siehe obmann-auth.js).
+const ZUGANG = Object.freeze({
+  adresse: DATENBANK.adresse,
+  schluessel: DATENBANK.oeffentlicherSchluessel,
+});
+
 async function codePruefen(input) {
   fehler();
   try {
-    await totpBestaetigen(client, aktiverFaktor, input.value);
+    await totpBestaetigen(client, aktiverFaktor, input.value, ZUGANG);
     input.value = "";
     await route();
   } catch (error) {
@@ -181,14 +188,24 @@ async function codePruefen(input) {
   }
 }
 
-$("totpSetupForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  codePruefen($("totpSetupCode"));
-});
-$("totpCodeForm").addEventListener("submit", (event) => {
-  event.preventDefault();
-  codePruefen($("totpLoginCode"));
-});
+let pruefungLaeuft = false;
+function bindeCodeFormular(formularId, feldId) {
+  $(formularId).addEventListener("submit", async (event) => {
+    event.preventDefault();
+    if (pruefungLaeuft) return;
+    pruefungLaeuft = true;
+    const knopf = event.currentTarget.querySelector("button");
+    if (knopf) knopf.disabled = true;
+    try {
+      await codePruefen($(feldId));
+    } finally {
+      pruefungLaeuft = false;
+      if (knopf) knopf.disabled = false;
+    }
+  });
+}
+bindeCodeFormular("totpSetupForm", "totpSetupCode");
+bindeCodeFormular("totpCodeForm", "totpLoginCode");
 
 document.querySelectorAll("[data-abmelden]").forEach((knopf) => {
   knopf.addEventListener("click", async () => {

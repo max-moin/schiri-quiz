@@ -72,5 +72,6 @@ export function erstelleDuellZugriff({ adresse, oeffentlicherSchluessel }) {
     // Nur fuer angemeldete Vereinsmitglieder sinnvoll (Teil E) - Gaeste
     // haben keine serverseitige Identitaet, an der man das festmachen koennte.
     meineListe: (person) => fetchRpc("duell_meine_liste", { p_schiedsrichter_id: person.id, p_pin: person.pin }),
+    schliessen: (zugang) => fetchRpc("duell_eigenes_schliessen", { p_zugang: zugang }),
   });
 }

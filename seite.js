@@ -44,10 +44,13 @@ const WERTE = {
   obmannMail: VEREIN.kontakt?.email,
 };
 
-document.querySelectorAll("[data-verein]").forEach((el) => {
-  const schluessel = el.dataset.verein;
-  if (WERTE[schluessel]) el.textContent = WERTE[schluessel];
-});
+function setzeVereinswerte(wurzel = document) {
+  wurzel.querySelectorAll("[data-verein]").forEach((el) => {
+    const schluessel = el.dataset.verein;
+    if (WERTE[schluessel]) el.textContent = WERTE[schluessel];
+  });
+}
+setzeVereinswerte();
 
 // Links, die je Verein anders sind.
 document.querySelectorAll("[data-verein-link]").forEach((el) => {
@@ -168,7 +171,10 @@ if (document.querySelector("[data-text]")) {
         bereich: "texte",
         fallback: TEXTE_STANDARD,
       });
-      wendeTexteAn(document, stand.konfiguration);
+      // Ein frisch eingesetztes <span data-verein="name"> ist noch leer -
+      // die Vereinswerte wurden oben schon gesetzt. Deshalb je ersetztem
+      // Element noch einmal nachtragen.
+      wendeTexteAn(document, stand.konfiguration, setzeVereinswerte);
     } catch (fehler) {
       console.warn("Texte: veroeffentlichter Stand nicht erreichbar, ausgelieferter Text bleibt.", fehler);
     }

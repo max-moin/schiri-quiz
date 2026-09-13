@@ -61,6 +61,70 @@ function alsDatum(iso) {
 
 const zweistellig = (zahl) => String(zahl).padStart(2, "0");
 
+function kalenderText(wert) {
+  return String(wert ?? "")
+    .replace(/\\/g, "\\\\")
+    .replace(/\n/g, "\\n")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,");
+}
+
+function kalenderDatum(iso) {
+  return String(iso || "").replaceAll("-", "");
+}
+
+function kalenderZeit(datum, zeit) {
+  return `${kalenderDatum(datum)}T${String(zeit).slice(0, 5).replace(":", "")}00`;
+}
+
+/** Baut eine standardisierte Kalenderdatei für Apple-, Google- und
+ * Outlook-Kalender. Ohne Uhrzeit bleibt der Termin ein ganzer Tag. */
+export function terminAlsKalenderdatei(termin, {
+  jetzt = new Date(),
+  seitenAdresse = "",
+} = {}) {
+  const zeilen = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//FV Loebtauer Kickers//Schiedsrichter//DE",
+    "CALSCALE:GREGORIAN", "METHOD:PUBLISH", "BEGIN:VEVENT",
+    `UID:${kalenderText(termin.id || `${termin.datum}-${termin.titel}`)}@schiri.fv-loebtauer-kickers.de`,
+    `DTSTAMP:${jetzt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
+    `SUMMARY:${kalenderText(termin.titel)}`,
+  ];
+
+  if (termin.beginn_zeit) {
+    zeilen.push(`DTSTART;TZID=Europe/Berlin:${kalenderZeit(termin.datum, termin.beginn_zeit)}`);
+    if (termin.ende_zeit) {
+      zeilen.push(`DTEND;TZID=Europe/Berlin:${kalenderZeit(termin.datum, termin.ende_zeit)}`);
+    }
+  } else {
+    const morgen = alsDatum(termin.datum);
+    morgen.setDate(morgen.getDate() + 1);
+    const ende = `${morgen.getFullYear()}${zweistellig(morgen.getMonth() + 1)}${zweistellig(morgen.getDate())}`;
+    zeilen.push(`DTSTART;VALUE=DATE:${kalenderDatum(termin.datum)}`, `DTEND;VALUE=DATE:${ende}`);
+  }
+
+  if (termin.ort) zeilen.push(`LOCATION:${kalenderText(termin.ort)}`);
+  if (termin.beschreibung) zeilen.push(`DESCRIPTION:${kalenderText(termin.beschreibung)}`);
+  if (seitenAdresse) zeilen.push(`URL:${kalenderText(seitenAdresse)}`);
+  zeilen.push("END:VEVENT", "END:VCALENDAR", "");
+  return zeilen.join("\r\n");
+}
+
+export function ladeTerminInKalender(termin, seitenAdresse = location.href) {
+  const datei = new Blob([terminAlsKalenderdatei(termin, { seitenAdresse })], {
+    type: "text/calendar;charset=utf-8",
+  });
+  const adresse = URL.createObjectURL(datei);
+  const link = document.createElement("a");
+  const name = String(termin.titel || "Termin").replace(/[^a-z0-9äöüß-]+/gi, "-").replace(/^-|-$/g, "");
+  link.href = adresse;
+  link.download = `${name || "Termin"}.ics`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  setTimeout(() => URL.revokeObjectURL(adresse), 1000);
+}
+
 export function datumLang(iso) {
   const d = alsDatum(iso);
   return `${WOCHENTAGE[d.getDay()]}, ${d.getDate()}. ${MONATE[d.getMonth()]} ${d.getFullYear()}`;
