@@ -93,9 +93,11 @@ async function ladeTermine() {
 function zeichneListe(termine, findungen, vorschlaege = []) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
+  const hatAntworttermine = kuenftig.some((t) =>
+    t.rueckmeldung_erforderlich === true);
 
   const offen = kuenftig.filter((t) => t.mitgliedSicht
-    && t.rueckmeldung_erforderlich !== false && t.mein_status == null).length;
+    && t.rueckmeldung_erforderlich === true && t.mein_status == null).length;
 
   const kopf = `
     <h1 class="seiten-titel">Termine</h1>
@@ -105,7 +107,9 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
         ? (offen > 0
             ? `<strong>${offen} ${offen === 1 ? "Termin wartet" : "Termine warten"} noch auf deine Rückmeldung.</strong>`
             : "Keine offenen Rückmeldungen in deinem Verein.")
-        : "Melde dich an, um zu- oder abzusagen."}
+        : (hatAntworttermine
+            ? "Melde dich an, um bei freigegebenen Terminen zu- oder abzusagen."
+            : "Hier findest du die öffentlich freigegebenen Termine.")}
     </p>
     ${ich ? "" : `
       <div class="hinweisbalken ruhig">
@@ -243,7 +247,10 @@ function bindeStimmen() {
 
 function zeichneDetail(termin, zusagen, protokoll = null) {
   const ich = person();
-  const brauchtAntwort = termin.rueckmeldung_erforderlich !== false;
+  // Nur ein ausdrueckliches `true` schaltet die Rueckmeldung frei. Damit
+  // koennen ein fehlendes Feld, alte Datensaetze oder `null` niemals
+  // versehentlich eine Zu-/Absage-Abfrage einblenden.
+  const brauchtAntwort = termin.rueckmeldung_erforderlich === true;
   const darfAntworten = Boolean(ich && termin.mitgliedSicht && brauchtAntwort);
   const zeit = zeitspanne(termin);
 
@@ -486,7 +493,7 @@ async function start() {
 
     let zusagen = [];
     const ich = person();
-    if (ich && termin.mitgliedSicht && termin.rueckmeldung_erforderlich !== false) {
+    if (ich && termin.mitgliedSicht && termin.rueckmeldung_erforderlich === true) {
       // Scheitert das, ist der Termin trotzdem anzeigbar - nur die
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }

@@ -105,16 +105,18 @@ test("Namen der Zusagen erscheinen nur für Angemeldete", () => {
   // die Namen der Vereinsmitglieder nichts.
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /const teilnehmer = darfAntworten && zusagen\.length/);
-  assert.match(js, /if \(ich && termin\.mitgliedSicht && termin\.rueckmeldung_erforderlich !== false\)/);
+  assert.match(js, /if \(ich && termin\.mitgliedSicht && termin\.rueckmeldung_erforderlich === true\)/);
 });
 
 test("reine Informationstermine zeigen weder Antwortstatus noch Antwortbedienung", () => {
   const seite = ohneKommentare(lies("src/website/termine-seite.js"));
   const karten = ohneKommentare(lies("src/website/termine.js"));
-  assert.match(seite, /const brauchtAntwort = termin\.rueckmeldung_erforderlich !== false/);
+  assert.match(seite, /const brauchtAntwort = termin\.rueckmeldung_erforderlich === true/);
   assert.match(seite, /Dieser Termin dient nur zur Information/);
   assert.match(seite, /brauchtAntwort && termin\.rueckmeldung_bis/);
-  assert.match(karten, /termin\.rueckmeldung_erforderlich !== false[\s\S]*Noch keine Rückmeldung/);
+  assert.match(karten, /if \(termin\.rueckmeldung_erforderlich === true\)[\s\S]*Noch keine Rückmeldung/);
+  assert.doesNotMatch(seite, /rueckmeldung_erforderlich !== false/);
+  assert.doesNotMatch(karten, /rueckmeldung_erforderlich !== false/);
 });
 
 test("die Oberfläche fängt eine Absage ohne Grund selbst ab", () => {

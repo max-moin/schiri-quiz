@@ -261,11 +261,14 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   // Rueckmeldung" bei einem vergangenen Termin waere ein Vorwurf ohne
   // Handlungsmoeglichkeit.
   let stand = "";
-  if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
-  else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
-  else if (termin.rueckmeldung_erforderlich !== false
-      && termin.mein_status === null && !termin.vergangen) {
-    stand = '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
+  // Wird die Rueckmeldung spaeter abgeschaltet, darf auch ein alter eigener
+  // Stand nicht mehr wie eine aktuelle Handlungsaufforderung erscheinen.
+  if (termin.rueckmeldung_erforderlich === true) {
+    if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
+    else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
+    else if (termin.mein_status === null && !termin.vergangen) {
+      stand = '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
+    }
   }
 
   const innen = `

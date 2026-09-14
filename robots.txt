@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://www.schiri-loebtauer-kickers.com/sitemap.xml

@@ -4,8 +4,9 @@ import { readFileSync } from 'node:fs';
 import vm from 'node:vm';
 import * as termine from '../src/website/termine.js';
 
-const oeffentlich = { id: 'public', titel: 'Schiri-Treff', datum: '2027-01-01', art: 'sonstiges', vergangen: false };
-const intern = { id: 'intern', titel: 'Eigener Termin', datum: '2027-01-02', mein_status: null, vergangen: false };
+const oeffentlich = { id: 'public', titel: 'Schiri-Treff', datum: '2027-01-01', art: 'sonstiges', vergangen: false, rueckmeldung_erforderlich: true };
+const intern = { id: 'intern', titel: 'Eigener Termin', datum: '2027-01-02', mein_status: null, vergangen: false, rueckmeldung_erforderlich: true };
+const information = { id: 'info', titel: 'Nur Information', datum: '2027-01-03', mein_status: 'zu', vergangen: false, rueckmeldung_erforderlich: false };
 
 test('öffentliche und eigene Termine vereinigen sich ohne Dubletten', () => {
   const ergebnis = termine.verbindeTerminSichten([oeffentlich], [{ ...oeffentlich, mein_status: 'zu' }, intern]);
@@ -15,11 +16,11 @@ test('öffentliche und eigene Termine vereinigen sich ohne Dubletten', () => {
   assert.equal(termine.verbindeTerminSichten([oeffentlich], [intern])[0].mitgliedSicht, false);
 });
 
-async function seite({ ich = { id: 'andere-person', pin: 'test' }, id = '', eigene = [intern] } = {}) {
+async function seite({ ich = { id: 'andere-person', pin: 'test' }, id = '', eigene = [intern], oeffentliche = [oeffentlich] } = {}) {
   const aufrufe = [];
   const bereich = { innerHTML: '', querySelectorAll: () => [], querySelector: () => null };
   const rpc = {
-    alleOeffentlich: async () => [oeffentlich],
+    alleOeffentlich: async () => oeffentliche,
     alleFuerMitglied: async () => { aufrufe.push('eigene'); if (eigene instanceof Error) throw eigene; return eigene; },
     zusagen: async () => { aufrufe.push('zusagen'); return [{ name: 'Interner Name' }]; },
     terminfindungen: async () => [],
@@ -59,6 +60,19 @@ test('eigener Detailtermin bleibt mit Teilnehmerliste und Rückmeldung bedienbar
   assert.match(html, /data-status="zu"/);
   assert.match(html, /Interner Name/);
   assert.ok(aufrufe.includes('zusagen'));
+});
+
+test('Informationstermin blendet für Mitglieder auch einen alten Antwortstand vollständig aus', async () => {
+  const { html, aufrufe } = await seite({ id: 'info', eigene: [information], oeffentliche: [] });
+  assert.match(html, /dient nur zur Information/);
+  assert.doesNotMatch(html, /Bist du dabei|data-status|Zum Antworten anmelden|Du bist dabei|Abgesagt/);
+  assert.ok(!aufrufe.includes('zusagen'));
+});
+
+test('öffentlicher Informationstermin fordert Gäste nicht zur Anmeldung auf', async () => {
+  const { html } = await seite({ ich: null, id: 'info', eigene: [], oeffentliche: [information] });
+  assert.match(html, /dient nur zur Information/);
+  assert.doesNotMatch(html, /Bist du dabei|data-status|Zum Antworten anmelden/);
 });
 
 test('ohne Anmeldung werden ausschließlich öffentliche Termine geladen', async () => {
