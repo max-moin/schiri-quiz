@@ -10,3 +10,8 @@ supabase/.temp/
 # (18.08.2026). Der Ordner darf nie mitcommittet werden - er ist nur ein
 # Zwischenlager und kann jederzeit von Hand geleert werden.
 _to_delete/
+
+# Versehentlich im Projektordner angelegte zweite Arbeitskopie.
+# Sie besitzt ein eigenes .git-Verzeichnis und darf nicht im eigentlichen
+# Repository landen.
+/Ohne Titel/
