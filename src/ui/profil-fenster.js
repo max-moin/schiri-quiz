@@ -88,7 +88,7 @@
       <div id="anfrage-formular-erfolg" hidden>
         <h3>Anfrage gesendet</h3>
         <p>Dein gewünschter Beschaffungsweg wurde mitgeschickt. Der Obmann prüft die Anfrage, kann den Weg bei Bedarf anpassen und setzt sie auf angenommen oder abgelehnt.</p>
-        <p>Wenn du selbst einkaufst, bewahre den Originalbeleg auf. Bis der Verein etwas anderes bestätigt, übergibst du ihn analog; danach kann die Erstattung auf das hinterlegte Konto erfolgen.</p>
+        <p>Wenn du selbst einkaufst, kannst du den Kauf nach der Freigabe bestätigen und die Rechnung sofort oder später hochladen. Bewahre den Originalbeleg bis zur Erstattung auf.</p>
         <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
       </div>
     </div>

@@ -484,6 +484,8 @@
   line-height: 1.5;
 }
 
+.bestand-anfrage-aktionen { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+.bestand-anfrage-aktionen .bestand-knopf-sekundaer { min-height: 44px; }
 .bestand-plakette.status-offen { background: var(--marke-lighter); color: var(--marke); }
 .bestand-plakette.status-angenommen { background: var(--green-light); color: var(--green-dark); }
 .bestand-plakette.status-abgelehnt { background: var(--red-hell); color: var(--red); }

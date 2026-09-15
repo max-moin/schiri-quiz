@@ -7,7 +7,8 @@ const fenster = lies("src/ui/profil-fenster.js");
 const anfragen = lies("src/features/profile-requests.js");
 const bestand = lies("src/website/ausruestung-seite.js");
 const ablauf = lies("ausruestung.html");
-const migration = lies("supabase/migrations/20260915090000_v141_beschaffungswunsch_bei_anfrage.sql");
+const migration = lies("supabase/migrations/20260915224750_v141_beschaffungswunsch_bei_anfrage.sql");
+const selbstkaufMigration = lies("supabase/migrations/20260915225013_v142_selbstkauf_bestaetigen.sql");
 
 test("der Schiri waehlt den Beschaffungsweg direkt in der Anfrage", () => {
   assert.match(fenster, /name="anfrage-beschaffungsweg"/);
@@ -29,4 +30,19 @@ test("die Datenbank validiert den Wunsch und bleibt fuer alte Clients kompatibel
   assert.match(migration, /beschaffungsweg\n\s*\) values/);
   assert.match(migration, /not in \('weg1_obmann_besorgt', 'weg2_schiri_besorgt'\)/);
   assert.match(migration, /'anliegen'.*null/s);
+});
+
+test("ein freigegebener Selbstkauf kann vor dem spaeteren Rechnungsupload bestaetigt werden", () => {
+  assert.match(selbstkaufMigration, /selbstkauf_bestaetigt boolean not null default false/);
+  assert.match(selbstkaufMigration, /schiri_anfrage_selbstkauf_bestaetigen/);
+  assert.match(selbstkaufMigration, /status = 'angenommen'/);
+  assert.match(selbstkaufMigration, /beschaffungsweg = 'weg2_schiri_besorgt'/);
+  assert.match(bestand, /data-selbstkauf/);
+  assert.match(bestand, /Gekauft · Rechnung folgt/);
+  assert.match(bestand, /Rechnung kannst du hier später hochladen/);
+});
+
+test("ein direkter Rechnungsupload bestaetigt den Kauf ebenfalls", () => {
+  assert.match(selbstkaufMigration, /rechnung_hochgeladen_am = now\(\).*selbstkauf_bestaetigt = true/s);
+  assert.match(bestand, /Gekauft \+ Rechnung hochladen/);
 });

@@ -97,3 +97,5 @@ revoke execute on function public.schiri_anfrage_erstellen(
 grant execute on function public.schiri_anfrage_erstellen(
   uuid, text, text, text, text, text, text, text, text
 ) to anon, authenticated;
+
+notify pgrst, 'reload schema';

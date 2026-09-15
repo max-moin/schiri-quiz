@@ -360,7 +360,11 @@ async function ladeAnfragen() {
     const wegVorsatz = a.status === "angenommen" ? "Beschaffung: " : "Wunsch: ";
     if (a.beschaffungsweg === "weg2_schiri_besorgt") merkmale.push(plakette(wegVorsatz + "selbst kaufen"));
     if (a.beschaffungsweg === "weg1_obmann_besorgt") merkmale.push(plakette(wegVorsatz + "Verein bestellt"));
-    const rechnungMoeglich = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt" && !a.rechnung_hochgeladen_am;
+    const selbstkaufFreigegeben = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt";
+    const kaufBestaetigenMoeglich = selbstkaufFreigegeben && !a.selbstkauf_bestaetigt;
+    const rechnungMoeglich = selbstkaufFreigegeben && !a.rechnung_hochgeladen_am;
+    if (a.selbstkauf_bestaetigt) merkmale.push(plakette("Gekauft", "status-angenommen"));
+    if (a.rechnung_hochgeladen_am) merkmale.push(plakette("Rechnung eingereicht", "status-angenommen"));
     return '<article class="bestand-anfrage">'
       + '<div class="bestand-anfrage-kopf">'
       + `<span class="bestand-anfrage-titel">${esc(name)}</span>`
@@ -369,7 +373,10 @@ async function ladeAnfragen() {
       + "</div>"
       + (merkmale.length ? `<div class="bestand-plaketten">${merkmale.join("")}</div>` : "")
       + (a.anmerkung ? `<p class="bestand-anfrage-anmerkung">„${esc(a.anmerkung)}“</p>` : "")
-      + (rechnungMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">Rechnung hochladen</button>` : "")
+      + ((kaufBestaetigenMoeglich || rechnungMoeglich) ? '<div class="bestand-anfrage-aktionen">' : "")
+      + (kaufBestaetigenMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-selbstkauf="${esc(a.id)}">Gekauft · Rechnung folgt</button>` : "")
+      + (rechnungMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">${a.selbstkauf_bestaetigt ? "Rechnung hochladen" : "Gekauft + Rechnung hochladen"}</button>` : "")
+      + ((kaufBestaetigenMoeglich || rechnungMoeglich) ? "</div>" : "")
       + "</article>";
   }).join("");
   const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;
@@ -379,6 +386,40 @@ async function ladeAnfragen() {
       return;
     }
     knopf.addEventListener("click", () => profil.oeffneRechnungUpload(knopf.dataset.rechnung));
+  });
+  $("bestand-anfragen").querySelectorAll("[data-selbstkauf]").forEach((knopf) => {
+    knopf.addEventListener("click", async () => {
+      // Kein Browser-Dialog: der erste Druck macht die Konsequenz sichtbar,
+      // der zweite bestätigt. Nach einigen Sekunden fällt der Knopf zurück.
+      if (knopf.dataset.sicher !== "ja") {
+        knopf.dataset.sicher = "ja";
+        knopf.textContent = "Kauf jetzt bestätigen";
+        window.setTimeout(() => {
+          if (!knopf.isConnected || knopf.disabled) return;
+          knopf.dataset.sicher = "";
+          knopf.textContent = "Gekauft · Rechnung folgt";
+        }, 5000);
+        return;
+      }
+
+      knopf.disabled = true;
+      const p = ich();
+      const { error: bestaetigungsFehler } = await rpc.rpc("schiri_anfrage_selbstkauf_bestaetigen", {
+        p_schiedsrichter_id: p.id,
+        p_pin: p.pin,
+        p_anfrage_id: knopf.dataset.selbstkauf,
+      });
+      if (bestaetigungsFehler) {
+        knopf.disabled = false;
+        knopf.dataset.sicher = "";
+        knopf.textContent = "Gekauft · Rechnung folgt";
+        seitenmeldung("Der Kauf konnte nicht bestätigt werden: " + bestaetigungsFehler.message, true);
+        return;
+      }
+
+      seitenmeldung("Als gekauft markiert. Die Rechnung kannst du hier später hochladen.");
+      await ladeAnfragen();
+    });
   });
 }
 
