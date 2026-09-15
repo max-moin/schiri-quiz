@@ -84,6 +84,8 @@
     const anfrageGroesseBereich = document.getElementById("anfrage-groesse-bereich");
     const anfrageAermellaengeBereich = document.getElementById("anfrage-aermellaenge-bereich");
     const anfrageAermellaengeAuswahl = document.getElementById("anfrage-aermellaenge-auswahl");
+    const anfrageBeschaffungswegAuswahl = () => document.querySelector('input[name="anfrage-beschaffungsweg"]:checked');
+    const anfrageBeschaffungSelbst = document.getElementById("anfrage-beschaffung-selbst");
     const anfrageAnmerkungEingabe = document.getElementById("anfrage-anmerkung-eingabe");
     const anfrageFormularHinweis = document.getElementById("anfrage-formular-hinweis");
     const anfrageAbsendenButton = document.getElementById("anfrage-absenden-button");
@@ -176,6 +178,7 @@
       anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
       anfrageGroesseEingabe.value = "";
       anfrageAermellaengeAuswahl.value = "";
+      if (anfrageBeschaffungSelbst) anfrageBeschaffungSelbst.checked = true;
       aktualisiereAnfrageFelder();
       anfrageAnmerkungEingabe.value = "";
       anfrageFormularHinweis.hidden = true;
@@ -252,6 +255,7 @@
           p_groesse: anfrageGroesseEingabe.value.trim() || null,
           p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
           p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
+          p_beschaffungsweg: anfrageBeschaffungswegAuswahl()?.value || "weg2_schiri_besorgt",
         }));
       } catch (fehler) {
         error = fehler;

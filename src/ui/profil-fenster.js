@@ -65,6 +65,19 @@
           </select>
         </div>
 
+        <fieldset class="anfrage-beschaffung">
+          <legend>Wie möchtest du die Ausrüstung bekommen?</legend>
+          <label class="anfrage-beschaffung-option">
+            <input id="anfrage-beschaffung-selbst" type="radio" name="anfrage-beschaffungsweg" value="weg2_schiri_besorgt" checked />
+            <span><strong>Ich kaufe sie selbst</strong><small>Standard · Nach der Freigabe reichst du den Beleg ein.</small></span>
+          </label>
+          <label class="anfrage-beschaffung-option">
+            <input type="radio" name="anfrage-beschaffungsweg" value="weg1_obmann_besorgt" />
+            <span><strong>Der Verein soll sie bestellen</strong><small>Größe und Ausführung bitte möglichst genau angeben.</small></span>
+          </label>
+          <p>Das ist dein Wunsch. Der Obmann kann den Weg bei der Prüfung noch anpassen.</p>
+        </fieldset>
+
         <label for="anfrage-anmerkung-eingabe">Anmerkung (optional)</label>
         <textarea id="anfrage-anmerkung-eingabe" rows="3" placeholder="Sonstiges, was wir wissen sollten ..."></textarea>
 
@@ -74,7 +87,7 @@
 
       <div id="anfrage-formular-erfolg" hidden>
         <h3>Anfrage gesendet</h3>
-        <p>Der Obmann prüft sie und setzt sie auf angenommen oder abgelehnt. Bei einer Annahme siehst du dort auch, ob du den Gegenstand selbst besorgst oder der Verein ihn für dich beschafft.</p>
+        <p>Dein gewünschter Beschaffungsweg wurde mitgeschickt. Der Obmann prüft die Anfrage, kann den Weg bei Bedarf anpassen und setzt sie auf angenommen oder abgelehnt.</p>
         <p>Wenn du selbst einkaufst, bewahre den Originalbeleg auf. Bis der Verein etwas anderes bestätigt, übergibst du ihn analog; danach kann die Erstattung auf das hinterlegte Konto erfolgen.</p>
         <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
       </div>

@@ -397,6 +397,46 @@ button {
 
 #anfrage-aermellaenge-bereich[hidden] { display: none; }
 
+.anfrage-beschaffung {
+  min-width: 0;
+  margin: 2px 0 16px;
+  padding: 0;
+  border: 0;
+}
+.anfrage-beschaffung legend {
+  margin-bottom: 8px;
+  color: var(--blue);
+  font-size: .85rem;
+  font-weight: 700;
+}
+.anfrage-beschaffung-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 44px;
+  box-sizing: border-box;
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text);
+  cursor: pointer;
+}
+.anfrage-beschaffung-option:has(input:checked) {
+  border-color: var(--blue);
+  background: var(--blue-light);
+}
+.anfrage-beschaffung-option input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 1px 0 0;
+  accent-color: var(--blue);
+}
+.anfrage-beschaffung-option span { display: grid; gap: 2px; }
+.anfrage-beschaffung-option small { color: var(--muted); font-weight: 400; line-height: 1.4; }
+.anfrage-beschaffung > p { margin: 2px 2px 0; color: var(--muted); font-size: .78rem; }
+
 #anfrage-absenden-button {
   width: 100%;
   background: var(--marke);

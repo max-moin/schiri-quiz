@@ -357,6 +357,9 @@ async function ladeAnfragen() {
     if (a.groesse) merkmale.push(plakette("Größe " + a.groesse));
     if (a.farbe) merkmale.push(farbPlakette(a.farbe));
     if (a.aermellaenge) merkmale.push(plakette(AERMEL_WORT[a.aermellaenge] || a.aermellaenge));
+    const wegVorsatz = a.status === "angenommen" ? "Beschaffung: " : "Wunsch: ";
+    if (a.beschaffungsweg === "weg2_schiri_besorgt") merkmale.push(plakette(wegVorsatz + "selbst kaufen"));
+    if (a.beschaffungsweg === "weg1_obmann_besorgt") merkmale.push(plakette(wegVorsatz + "Verein bestellt"));
     const rechnungMoeglich = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt" && !a.rechnung_hochgeladen_am;
     return '<article class="bestand-anfrage">'
       + '<div class="bestand-anfrage-kopf">'
