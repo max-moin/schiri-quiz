@@ -92,20 +92,20 @@ test("ohne Anmeldung wird nur die öffentliche Abfrage benutzt", () => {
   // laeuft - die filtert auf "oeffentlich".
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
   assert.match(js, /alleOeffentlich\(VEREIN\.seitenschluessel\)/);
-  assert.match(js, /ich \? zugriff\.alleFuerMitglied\(ich\)/);
+  assert.match(js, /ich \? zugriff\.alleFuerMitglied\(ich, VEREIN\.seitenschluessel\)/);
 
   // Und: die Mitgliederabfrage darf nur mit einer Person aufgerufen werden.
   const zugriff = ohneKommentare(lies("src/website/termine.js"));
   assert.match(zugriff, /p_schiedsrichter_id: person\.id, p_pin: person\.pin/);
 });
 
-test("Namen der Zusagen erscheinen nur für Angemeldete", () => {
+test("Namen der Zusagen erscheinen nur für den eigenen Verein", () => {
   // Max' Entscheidung: Zusagen mit Namen fuer die anderen Schiedsrichter,
   // Absagegruende nur fuer ihn. Fuer Besucher der oeffentlichen Seite sind
   // die Namen der Vereinsmitglieder nichts.
   const js = ohneKommentare(lies("src/website/termine-seite.js"));
-  assert.match(js, /const teilnehmer = darfAntworten && zusagen\.length/);
-  assert.match(js, /if \(ich && termin\.mitgliedSicht && termin\.rueckmeldung_erforderlich === true\)/);
+  assert.match(js, /const teilnehmer = darfInterneDatenSehen && zusagen\.length/);
+  assert.match(js, /if \(ich && termin\.mitgliedSicht && termin\.eigenerVerein/);
 });
 
 test("reine Informationstermine zeigen weder Antwortstatus noch Antwortbedienung", () => {

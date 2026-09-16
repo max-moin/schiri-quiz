@@ -9,9 +9,10 @@ const intern = { id: 'intern', titel: 'Eigener Termin', datum: '2027-01-02', mei
 const information = { id: 'info', titel: 'Nur Information', datum: '2027-01-03', mein_status: 'zu', vergangen: false, rueckmeldung_erforderlich: false };
 
 test('öffentliche und eigene Termine vereinigen sich ohne Dubletten', () => {
-  const ergebnis = termine.verbindeTerminSichten([oeffentlich], [{ ...oeffentlich, mein_status: 'zu' }, intern]);
+  const ergebnis = termine.verbindeTerminSichten([oeffentlich], [{ ...oeffentlich, mein_status: 'zu', eigener_verein: false }, intern]);
   assert.equal(ergebnis.length, 2);
   assert.equal(ergebnis[0].mitgliedSicht, true);
+  assert.equal(ergebnis[0].eigenerVerein, false);
   assert.equal(ergebnis[0].mein_status, 'zu');
   assert.equal(termine.verbindeTerminSichten([oeffentlich], [intern])[0].mitgliedSicht, false);
 });
@@ -48,10 +49,11 @@ test('anderer Verein sieht öffentliche Termine auch in der Liste', async () => 
   assert.match(html, /1 Termin wartet/); // nur eigener Termin, nicht der öffentliche
 });
 
-test('fremder öffentlicher Detailtermin lädt keine Teilnehmer und keine Antwortknöpfe', async () => {
-  const { html, aufrufe } = await seite({ id: 'public' });
-  assert.doesNotMatch(html, /data-status|Interner Name|data-kommentar/);
-  assert.match(html, /Öffentlicher Termin eines anderen Vereins/);
+test('fremder öffentlicher Detailtermin erlaubt die eigene Antwort, aber lädt keine Teilnehmernamen', async () => {
+  const personalisiert = { ...oeffentlich, eigener_verein: false, mein_status: null };
+  const { html, aufrufe } = await seite({ id: 'public', eigene: [intern, personalisiert] });
+  assert.match(html, /data-status="zu"|data-kommentar/);
+  assert.doesNotMatch(html, /Interner Name/);
   assert.ok(!aufrufe.includes('zusagen'));
 });
 

@@ -169,8 +169,19 @@ export async function leseRpcAntwort(antwort) {
 
 // Berechtigungen kommen aus dem jeweiligen RPC, niemals nur aus „angemeldet“.
 export function verbindeTerminSichten(oeffentlich, eigene) {
-  const termine = new Map(oeffentlich.map(t => [t.id, { ...t, mitgliedSicht: false }]));
-  for (const termin of eigene) termine.set(termin.id, { ...termin, mitgliedSicht: true });
+  const termine = new Map(oeffentlich.map(t => [t.id, {
+    ...t,
+    mitgliedSicht: false,
+    eigenerVerein: false,
+  }]));
+  for (const termin of eigene) termine.set(termin.id, {
+    ...termin,
+    // Die personalisierte Sicht darf auch ein oeffentlicher Termin eines
+    // anderen Vereins sein. Antworten ist dann erlaubt, interne Namen und
+    // Protokolle bleiben aber auf den eigenen Verein begrenzt.
+    mitgliedSicht: true,
+    eigenerVerein: termin.eigener_verein !== false,
+  });
   return [...termine.values()].sort((a, b) => String(a.datum).localeCompare(String(b.datum)));
 }
 
@@ -196,8 +207,12 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
 
     // Mit Anmeldung: auch interne Termine des eigenen Vereins, dazu der
     // eigene Stand und die Zaehlstaende.
-    alleFuerMitglied: (person) =>
-      rufe("termine_fuer_schiri", { p_schiedsrichter_id: person.id, p_pin: person.pin }),
+    alleFuerMitglied: (person, seitenschluessel) =>
+      rufe("termine_fuer_schiri_v2", {
+        p_schiedsrichter_id: person.id,
+        p_pin: person.pin,
+        p_seitenschluessel: seitenschluessel,
+      }),
 
     zusagen: (person, terminId) =>
       rufe("termin_zusagen", {

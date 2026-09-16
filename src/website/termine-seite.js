@@ -77,7 +77,7 @@ async function ladeTermine() {
   const ich = person();
   const [oeffentlich, eigene] = await Promise.allSettled([
     zugriff.alleOeffentlich(VEREIN.seitenschluessel),
-    ich ? zugriff.alleFuerMitglied(ich) : Promise.resolve([]),
+    ich ? zugriff.alleFuerMitglied(ich, VEREIN.seitenschluessel) : Promise.resolve([]),
   ]);
   if (oeffentlich.status === "rejected" && (!ich || eigene.status === "rejected")) {
     throw new Error("Termine konnten nicht geladen werden");
@@ -106,7 +106,7 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
       ${ich
         ? (offen > 0
             ? `<strong>${offen} ${offen === 1 ? "Termin wartet" : "Termine warten"} noch auf deine Rückmeldung.</strong>`
-            : "Keine offenen Rückmeldungen in deinem Verein.")
+            : "Keine offenen Terminrückmeldungen.")
         : (hatAntworttermine
             ? "Melde dich an, um bei freigegebenen Terminen zu- oder abzusagen."
             : "Hier findest du die öffentlich freigegebenen Termine.")}
@@ -252,6 +252,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   // versehentlich eine Zu-/Absage-Abfrage einblenden.
   const brauchtAntwort = termin.rueckmeldung_erforderlich === true;
   const darfAntworten = Boolean(ich && termin.mitgliedSicht && brauchtAntwort);
+  const darfInterneDatenSehen = Boolean(darfAntworten && termin.eigenerVerein);
   const zeit = zeitspanne(termin);
 
   const marken = [
@@ -285,7 +286,12 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
         Zum Antworten anmelden
       </button>`;
   } else if (!darfAntworten) {
-    antwort = '<p class="td-abgelaufen">Öffentlicher Termin eines anderen Vereins. Hier siehst du dieselben Informationen wie Besucher ohne Anmeldung.</p>';
+    // Es liegt zwar noch eine lokale Anmeldung vor, der Server konnte sie
+    // aber nicht als personalisierte Terminsicht bestaetigen (z. B. alte
+    // PIN). Ohne diese Bestaetigung darf kein Schreibweg angeboten werden.
+    antwort = `
+      <p class="td-abgelaufen">Deine Anmeldung konnte für diesen Termin nicht bestätigt werden.</p>
+      <button type="button" class="td-senden" data-anmelden>Erneut anmelden</button>`;
   } else {
     const jaAn = termin.mein_status === "zu" ? " an" : "";
     const neinAn = termin.mein_status === "ab" ? " an" : "";
@@ -317,7 +323,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   // Namen nur fuer Angemeldete - fuer Besucher der oeffentlichen Seite
   // sind die Namen der Vereinsmitglieder nichts. Max' Entscheidung vom
   // 29.08.2026: Zusagen mit Namen, Absagegruende nur fuer ihn.
-  const teilnehmer = darfAntworten && zusagen.length ? `
+  const teilnehmer = darfInterneDatenSehen && zusagen.length ? `
     <div class="td-teilnehmer">
       <p class="td-teilnehmer-titel">Dabei · ${zusagen.length}</p>
       <div class="td-namen">${zusagen.map((z) =>
@@ -493,13 +499,16 @@ async function start() {
 
     let zusagen = [];
     const ich = person();
-    if (ich && termin.mitgliedSicht && termin.rueckmeldung_erforderlich === true) {
+    if (ich && termin.mitgliedSicht && termin.eigenerVerein
+        && termin.rueckmeldung_erforderlich === true) {
       // Scheitert das, ist der Termin trotzdem anzeigbar - nur die
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }
     }
     let protokoll = null;
-    if (ich && termin.mitgliedSicht) { try { protokoll = (await zugriff.protokoll(ich, termin.id))[0] || null; } catch {} }
+    if (ich && termin.mitgliedSicht && termin.eigenerVerein) {
+      try { protokoll = (await zugriff.protokoll(ich, termin.id))[0] || null; } catch {}
+    }
     zeichneDetail(termin, zusagen, protokoll);
     bindeAnmeldeKnoepfe();
     return;
