@@ -13,6 +13,7 @@ import { erstelleVorlagenEditor } from "./vorlagen-editor.js";
 import { erstelleUnterlagenEditor } from "./unterlagen-editor.js";
 import { erstelleBilderEditor } from "./bilder-editor.js";
 import { erstelleTexteEditor } from "./texte-editor.js";
+import { erstelleFreigabeEditor } from "./freigabe-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
@@ -97,6 +98,13 @@ async function oeffneEditor() {
     erstelleTexteEditor({
       wurzel: document.querySelector('[data-admin-bereich="texte"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
+    });
+    // Freigabe laeuft - wie die Terminsuche - ueber das gemeinsame
+    // Obmann-Passwort, nicht ueber Supabase Auth. Deshalb weder verein
+    // noch benutzer.
+    erstelleFreigabeEditor({
+      wurzel: document.querySelector('[data-admin-bereich="freigabe"]'),
+      client,
     });
     // Die Terminsuche braucht weder verein noch benutzer: sie arbeitet
     // nicht auf den website_-Tabellen mit RLS-Policies, sondern auf den

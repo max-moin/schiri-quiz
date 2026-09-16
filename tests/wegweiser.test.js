@@ -22,6 +22,13 @@ const lies = (pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf
 const AUSSERHALB = new Set([
   // Eigener Bereich hinter Passwort und TOTP, mit eigener Wurzel.
   "obmann.html",
+  // freigabe.html ist keine Vereinsseite, sondern ein Formular fuer EIN
+  // Vorstandsmitglied, das die Seite ueber einen persoenlichen Link
+  // oeffnet, einmal entscheidet und nie wiederkommt. Es hat bewusst
+  // keine Navigation, keinen Weg in den Rest der Seite und steht in
+  // keinem Menue - sonst landet ein Vereinsfremder mitten im internen
+  // Bereich. Aus demselben Grund traegt es noindex.
+  "freigabe.html",
 ]);
 
 test("jede Seite der Vereinsseite haengt im Baum", () => {

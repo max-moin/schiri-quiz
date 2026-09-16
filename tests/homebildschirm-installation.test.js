@@ -38,8 +38,18 @@ test("die Home-Bildschirm-Symbole haben die angekuendigten Abmessungen", () => {
   }
 });
 
+// freigabe.html steht in beiden Listen bewusst nicht: die Seite ist kein
+// Teil der Vereinsseite, sondern ein einzelnes Formular fuer ein
+// Vorstandsmitglied, das sie ueber einen persoenlichen Link oeffnet,
+// einmal entscheidet und nie wiederkommt. Weder das Vereins-Manifest
+// noch "App installieren" ergeben dort einen Sinn - beides wuerde einer
+// vereinsfremden Person anbieten, sich unsere Schiedsrichter-App auf den
+// Startbildschirm zu legen.
+const NICHT_VEREINSSEITE = new Set(["freigabe.html"]);
+
 test("jede HTML-Seite bindet Manifest und iPhone-Symbol ein", () => {
-  const seiten = readdirSync(wurzel, { encoding: "utf8" }).filter((name) => name.endsWith(".html"));
+  const seiten = readdirSync(wurzel, { encoding: "utf8" })
+    .filter((name) => name.endsWith(".html") && !NICHT_VEREINSSEITE.has(name));
   assert.ok(seiten.length >= 20, "unerwartet wenige HTML-Seiten");
   for (const seite of seiten) {
     const inhalt = lies(seite);
@@ -74,7 +84,8 @@ test("die Anleitung haengt nicht nur tief unter den Unterlagen", () => {
   // quiz.html fehlt hier bewusst: an der Datei arbeitet gerade jemand
   // anderes, sie wurde in dieser Runde nicht angefasst.
   const seiten = readdirSync(wurzel, { encoding: "utf8" })
-    .filter((name) => name.endsWith(".html") && name !== "quiz.html");
+    .filter((name) => name.endsWith(".html") && name !== "quiz.html"
+      && !NICHT_VEREINSSEITE.has(name));
   for (const seite of seiten) {
     assert.match(lies(seite), /<a href="installieren\.html"[^>]*>App installieren<\/a>/,
       `${seite}: der Fusseintrag zur Installationsanleitung fehlt`);

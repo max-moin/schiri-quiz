@@ -56,6 +56,14 @@
           <input id="anfrage-groesse-eingabe" type="text" autocomplete="off" placeholder="z. B. L oder 42" />
         </div>
 
+        <div id="anfrage-preis-bereich" hidden>
+          <label for="anfrage-preis-eingabe">Was kostet es ungefähr? (optional)</label>
+          <input id="anfrage-preis-eingabe" type="text" inputmode="decimal" autocomplete="off"
+                 placeholder="z. B. 35 oder 35,50" />
+          <small id="anfrage-preis-hinweis">Wenn du ein bestimmtes Produkt im Blick hast, hilft
+            der Preis bei der Freigabe. Lass es sonst einfach leer.</small>
+        </div>
+
         <div id="anfrage-aermellaenge-bereich" hidden>
           <label for="anfrage-aermellaenge-auswahl">Ärmellänge</label>
           <select id="anfrage-aermellaenge-auswahl">

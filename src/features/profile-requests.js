@@ -81,6 +81,20 @@
     const anfrageFarbwahl = document.getElementById("anfrage-farbwahl");
     const anfrageAndereFarbe = document.getElementById("anfrage-andere-farbe");
     const anfrageGroesseEingabe = document.getElementById("anfrage-groesse-eingabe");
+    const anfragePreisEingabe = document.getElementById("anfrage-preis-eingabe");
+    const anfragePreisBereich = document.getElementById("anfrage-preis-bereich");
+
+    /* "35", "35,50" und "35.50" heissen dasselbe. Leer heisst
+       ausdruecklich "weiss ich nicht" und nicht "kostenlos" - deshalb
+       null und nicht 0. */
+    function preisInCent() {
+      const roh = String(anfragePreisEingabe?.value ?? "").trim()
+        .replace(/[€\s]/g, "").replace(",", ".");
+      if (!roh) return null;
+      const zahl = Number(roh);
+      if (!Number.isFinite(zahl) || zahl < 0) return Number.NaN;
+      return Math.round(zahl * 100);
+    }
     const anfrageGroesseBereich = document.getElementById("anfrage-groesse-bereich");
     const anfrageAermellaengeBereich = document.getElementById("anfrage-aermellaenge-bereich");
     const anfrageAermellaengeAuswahl = document.getElementById("anfrage-aermellaenge-auswahl");
@@ -110,6 +124,12 @@
       if (anfrageFarbeBereich.hidden) anfrageFarbeEingabe.value = "";
       if (anfrageGroesseBereich.hidden) anfrageGroesseEingabe.value = "";
       if (anfrageAermellaengeBereich.hidden) anfrageAermellaengeAuswahl.value = "";
+      // Der Preis gehoert zu jeder Ausruestung, sobald eine gewaehlt ist -
+      // anders als Farbe oder Groesse haengt er an keiner Eigenschaft.
+      if (anfragePreisBereich) {
+        anfragePreisBereich.hidden = !anfrageKategorieAuswahl.value;
+        if (anfragePreisBereich.hidden && anfragePreisEingabe) anfragePreisEingabe.value = "";
+      }
       if (kategorie.schluessel === "sonstiges") {
         anfrageAnmerkungEingabe.placeholder = "Bitte beschreibe genau, welches Equipment du brauchst.";
       } else {
@@ -242,6 +262,14 @@
         return;
       }
 
+      const preisCent = preisInCent();
+      if (Number.isNaN(preisCent)) {
+        anfrageFormularHinweis.textContent = "Bitte den Preis wie 35 oder 35,50 eingeben – oder das Feld leer lassen.";
+        anfrageFormularHinweis.hidden = false;
+        anfragePreisEingabe.focus();
+        return;
+      }
+
       anfrageFormularHinweis.hidden = true;
       anfrageWirdGesendet = true;
       anfrageAbsendenButton.disabled = true;
@@ -256,6 +284,7 @@
           p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
           p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
           p_beschaffungsweg: anfrageBeschaffungswegAuswahl()?.value || "weg2_schiri_besorgt",
+          p_preis_schiri_cent: preisCent,
         }));
       } catch (fehler) {
         error = fehler;

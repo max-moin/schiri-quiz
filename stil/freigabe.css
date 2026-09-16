@@ -1,0 +1,81 @@
+/* ============================================================
+   Freigabeseite für den Vorstand
+   ------------------------------------------------------------
+   Eigenes, sehr ruhiges Blatt: wer hier landet, kennt die Seite
+   nicht und soll in fünf Minuten fertig sein. Große Knöpfe,
+   keine Ablenkung, alles einspaltig - das wird zu 90 Prozent
+   auf einem Handy geöffnet.
+   ============================================================ */
+.freigabe-seite { background: #f4f6f4; margin: 0; }
+
+.fg-marke { display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; background: #fff; border-bottom: 1px solid #e0e5e0;
+  font-weight: 750; font-size: .95rem; }
+
+.fg-inhalt { max-width: 640px; margin: 0 auto; padding: 20px 16px 96px; }
+
+.fg-kopf { background: #fff; border-radius: 14px; padding: 20px; margin-bottom: 16px; }
+.fg-kopf h1 { margin: 0 0 8px; font-size: 1.45rem; }
+.fg-kopf p { margin: 0 0 10px; line-height: 1.6; }
+
+.fg-summe { display: flex; gap: 10px; margin: 14px 0; }
+.fg-summe div { flex: 1; background: #f4f6f4; border-radius: 10px; padding: 10px 12px; }
+.fg-summe span { display: block; font-size: .78rem; color: #5b6b60; }
+.fg-summe b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+
+.fg-hinweis { font-size: .85rem; color: #5b6b60; }
+.fg-name { display: grid; gap: 6px; font-weight: 700; font-size: .9rem; margin-top: 12px; }
+.fg-name input { box-sizing: border-box; width: 100%; min-height: 48px;
+  border: 1px solid #c8cfc8; border-radius: 10px; padding: 10px 12px; font: inherit; }
+
+.fg-liste { display: grid; gap: 12px; }
+.fg-zeile { background: #fff; border-radius: 14px; padding: 16px; }
+.fg-zeile.ist-erledigt { opacity: .72; }
+.fg-zeile-kopf { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
+.fg-zeile-kopf b { display: block; font-size: 1.02rem; }
+.fg-person { font-size: .88rem; color: #5b6b60; }
+.fg-preis { text-align: right; }
+.fg-preis b { font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.fg-preis span { display: block; font-size: .75rem; color: #5b6b60; }
+.fg-anmerkung { margin: 10px 0 0; font-style: italic; color: #3d4a41; }
+
+.fg-notiz { display: grid; gap: 5px; margin-top: 12px; font-size: .85rem; font-weight: 700; }
+.fg-notiz input { box-sizing: border-box; width: 100%; min-height: 44px;
+  border: 1px solid #c8cfc8; border-radius: 10px; padding: 9px 11px; font: inherit;
+  font-weight: 400; }
+
+/* Zwei gleich große Knöpfe nebeneinander, mit Abstand zum Text darüber:
+   auf dem Handy wird hier mit dem Daumen getroffen. */
+.fg-knoepfe { display: flex; gap: 10px; margin-top: 14px; }
+.fg-knoepfe button { flex: 1; min-height: 52px; border-radius: 12px; border: 0;
+  font: inherit; font-weight: 750; cursor: pointer; }
+.fg-ja { background: #00803c; color: #fff; }
+.fg-nein { background: #fff; color: #a32a1e; border: 1.5px solid #e2b7b1 !important; }
+.fg-knoepfe button:disabled { opacity: .5; cursor: default; }
+
+.fg-ergebnis { margin: 12px 0 0; font-weight: 700; }
+.fg-ergebnis[data-stand="freigegeben"] { color: #00803c; }
+.fg-ergebnis[data-stand="abgelehnt"] { color: #a32a1e; }
+.fg-ergebnis em { font-weight: 400; color: #5b6b60; font-size: .9rem; }
+
+.fg-leer { background: #fff; border-radius: 14px; padding: 24px 20px; text-align: center;
+  color: #5b6b60; }
+.fg-erledigt { margin-top: 18px; }
+.fg-erledigt summary { cursor: pointer; font-weight: 700; padding: 10px 0; }
+
+/* Die Meldung liegt fest am unteren Rand: nach einem Klick weit oben in
+   der Liste sieht man sonst nicht, ob etwas passiert ist. */
+.fg-meldung { position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: 16px; max-width: min(560px, calc(100vw - 32px));
+  background: #16211a; color: #fff; padding: 12px 18px; border-radius: 12px;
+  font-size: .92rem; box-shadow: 0 6px 22px rgba(0,0,0,.22); z-index: 20; }
+.fg-meldung[data-art="fehler"] { background: #8c2318; }
+.fg-meldung[data-art="erfolg"] { background: #00803c; }
+
+.fg-fuss { text-align: center; padding: 0 16px 24px; font-size: .82rem; color: #5b6b60; }
+.fg-fuss a { color: inherit; }
+
+@media (max-width: 420px) {
+  .fg-preis { text-align: left; }
+  .fg-summe { flex-wrap: wrap; }
+}

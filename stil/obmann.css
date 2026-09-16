@@ -176,6 +176,56 @@
 .admin-text-zeile.ist-geaendert > label { color: var(--marke); }
 .admin-text-zeile.ist-geaendert textarea,
 .admin-text-zeile.ist-geaendert input { border-color: var(--marke); }
+
+/* ---------- Freigabe durch den Vorstand ----------
+   Eigene Tabellenklasse statt der Terminsuch-Tabelle: dort haengen
+   Spaltenbreiten an Wochentagen, das passt hier nirgends. */
+.admin-passwort { display: flex; flex-wrap: wrap; gap: 12px; align-items: end;
+  padding: 18px 20px; }
+.admin-passwort label { display: grid; gap: 6px; flex: 1 1 240px; min-width: 0;
+  color: var(--marke-hell); font-size: .8rem; font-weight: 700; }
+.admin-passwort input { box-sizing: border-box; width: 100%; min-height: 44px;
+  border: 1px solid var(--border); border-radius: 10px; padding: 10px 11px;
+  font: inherit; background: #fff; }
+
+.admin-tabelle { width: 100%; border-collapse: collapse; font-size: .88rem; }
+.admin-tabelle th { text-align: left; padding: 10px 14px; background: #f6f8f6;
+  border-bottom: 1px solid var(--border); font-size: .76rem; letter-spacing: .04em;
+  text-transform: uppercase; color: var(--muted); }
+.admin-tabelle td { padding: 11px 14px; border-bottom: 1px solid var(--border);
+  vertical-align: top; }
+.admin-tabelle small { color: var(--muted); font-size: .76rem; line-height: 1.45; }
+.admin-tabelle tr:last-child td { border-bottom: 0; }
+
+.admin-cent { box-sizing: border-box; width: 104px; min-height: 40px;
+  border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px;
+  font: inherit; text-align: right; font-variant-numeric: tabular-nums; }
+
+.admin-tat { white-space: nowrap; text-align: right; }
+.admin-tat .knopf { margin-left: 6px; }
+
+.admin-stand { font-weight: 700; font-size: .8rem; }
+.admin-stand[data-stand="vorgelegt"]   { color: #a8730a; }
+.admin-stand[data-stand="freigegeben"] { color: var(--marke); }
+.admin-stand[data-stand="abgelehnt"]   { color: #a32a1e; }
+
+.admin-leer { padding: 18px 20px; color: var(--muted); }
+
+/* Der Token steht genau einmal da. Deshalb auffaellig, umbrechend und
+   in voller Laenge - nicht gekuerzt, sonst kopiert man die Haelfte. */
+.admin-token { background: #fff8e1; border: 1px solid #e8d9a0; border-radius: 10px;
+  padding: 12px 14px; display: grid; gap: 7px; }
+.admin-token code { display: block; background: #fff; border: 1px solid var(--border);
+  border-radius: 8px; padding: 9px 11px; font-size: .82rem; overflow-wrap: anywhere; }
+
+@media (max-width: 720px) {
+  .admin-tabelle, .admin-tabelle tbody, .admin-tabelle tr, .admin-tabelle td { display: block; }
+  .admin-tabelle thead { display: none; }
+  .admin-tabelle tr { border-bottom: 1px solid var(--border); padding: 6px 0; }
+  .admin-tabelle td { border-bottom: 0; padding: 6px 14px; }
+  .admin-tat { text-align: left; white-space: normal; }
+  .admin-tat .knopf { margin: 4px 6px 0 0; }
+}
 .admin-vorschau { grid-column: 1 / -1; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .admin-vorschau summary { cursor: pointer; padding: 12px 14px; font-weight: 750; }
 .admin-vorschau pre { margin: 0; padding: 16px; border-top: 1px solid var(--border); background: #fafbfc; white-space: pre-wrap; font: .8rem/1.55 var(--font-text); }
