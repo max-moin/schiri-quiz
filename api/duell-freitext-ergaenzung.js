@@ -8,7 +8,7 @@
 //  "...ergaenzung_speichern" statt "duell_freitext_kontext"/
 //  "duell_freitext_speichern").
 // ============================================================
-import { baueNachbesserungsPrompt } from "./freitext-bewerten.js";
+import { baueNachbesserungsPrompt, normalisiereKIBewertung } from "./freitext-bewerten.js";
 import { antworteMitSicheremFehler, geminiAufrufen, geminiModellFuer,
   minimaleGeminiThinkingConfig, sichereApiAntwort, stelleGeminiErfolgSicher,
   supabaseRpc } from "../server/api-helpers.js";
@@ -34,10 +34,11 @@ export default async function handler(req, res) {
     await stelleGeminiErfolgSicher(antwort);
     const daten=await antwort.json();
     const ausgabe=JSON.parse((daten.candidates?.[0]?.content?.parts?.[0]?.text||"").replace(/```json|```/g,"").trim());
-    // Nach dem zweiten Versuch gibt es nur noch richtig/falsch (siehe
-    // Prompt) - ein unerwarteter Wert zaehlt sicherheitshalber als falsch.
-    const korrekt = ausgabe.status === "richtig";
-    const feedback = String(ausgabe.feedback||"").slice(0,300);
+    // Nach dem zweiten Versuch gibt es nur noch richtig/falsch. Strukturierte
+    // Kriterien verhindern auch im Duell, dass ein Widerspruch übersehen wird.
+    const bewertung = normalisiereKIBewertung(ausgabe, kontext.bewertungshinweise, false);
+    const korrekt = bewertung.status === "richtig";
+    const feedback = String(bewertung.feedback||"").slice(0,300);
 
     const gespeichert=await supabaseRpc("duell_freitext_ergaenzung_speichern",{
       p_zugang:zugang,p_frage_id:frageId,p_zweiter_text:text,p_korrekt:korrekt,p_feedback:feedback,

@@ -1,4 +1,4 @@
-import { baueErstversuchPrompt } from "./freitext-bewerten.js";
+import { baueErstversuchPrompt, normalisiereKIBewertung } from "./freitext-bewerten.js";
 import { antworteMitSicheremFehler, geminiAufrufen, geminiModellFuer,
   minimaleGeminiThinkingConfig, sichereApiAntwort, stelleGeminiErfolgSicher,
   supabaseRpc } from "../server/api-helpers.js";
@@ -37,17 +37,15 @@ export default async function handler(req, res) {
     const daten=await antwort.json();
     const ausgabe=JSON.parse((daten.candidates?.[0]?.content?.parts?.[0]?.text||"").replace(/```json|```/g,"").trim());
 
-    // Serverseitig gegen die erlaubten Werte pruefen, genau wie im
-    // Wochenquiz-Gegenstueck - ein unbekannter Status darf niemals
-    // Richtung Datenbank durchgereicht werden.
-    let status = typeof ausgabe.status === "string" ? ausgabe.status.trim().toLowerCase() : "";
-    if (!ERLAUBTE_STATUS.includes(status)) {
-      status = typeof ausgabe.korrekt === "boolean" ? (ausgabe.korrekt ? "richtig" : "falsch") : "falsch";
-    }
+    // Bei neuen Kriterien leitet dieselbe Funktion wie im Wochenquiz den
+    // Status serverseitig ab; alte Fragen bleiben beim bisherigen JSON-
+    // Status des Modells kompatibel.
+    const bewertung = normalisiereKIBewertung(ausgabe, kontext.bewertungshinweise, true);
+    const status = ERLAUBTE_STATUS.includes(bewertung.status) ? bewertung.status : "falsch";
     const nachfrage = status === "nachbessern"
-      ? (typeof ausgabe.nachfrage === "string" && ausgabe.nachfrage.trim() ? ausgabe.nachfrage.trim().slice(0,300) : null)
+      ? (typeof bewertung.nachfrage === "string" && bewertung.nachfrage.trim() ? bewertung.nachfrage.trim().slice(0,300) : null)
       : null;
-    const feedback = status === "nachbessern" ? NACHBESSERN_FEEDBACK : String(ausgabe.feedback||"").slice(0,300);
+    const feedback = status === "nachbessern" ? NACHBESSERN_FEEDBACK : String(bewertung.feedback||"").slice(0,300);
 
     const gespeichert=await supabaseRpc("duell_freitext_speichern",{
       p_zugang:zugang,p_frage_id:frageId,p_text:text,p_korrekt:status==="richtig",p_feedback:feedback,

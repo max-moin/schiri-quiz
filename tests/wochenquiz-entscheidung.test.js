@@ -24,6 +24,7 @@ test("gängige Ortsformulierungen werden ohne KI robust normalisiert", () => {
   assert.equal(normalisiereOrt("  Strafstoßmarke! "), "strafstossmarke");
   assert.equal(vergleicheOrtLokal("dort, wo das Foul passiert ist", "Ort des Vergehens"), true);
   assert.equal(vergleicheOrtLokal("am Elfmeterpunkt", "Strafstoßmarke"), true);
+  assert.equal(vergleicheOrtLokal("Nächster Punkt auf der Seitenlinie", "Wo der Ball das Spielfeld verlassen hat"), true);
   assert.equal(vergleicheOrtLokal("wo der Ball zuletzt gespielt wurde", "Ort des Vergehens"), false);
   assert.equal(vergleicheOrtLokal("auf Höhe des zweiten Pfostens", "Ort des Vergehens"), null);
 });

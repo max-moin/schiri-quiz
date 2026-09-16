@@ -54,7 +54,14 @@ function ortKategorie(wert) {
       || /wo (das )?(vergehen|foul) (stattfand|passiert|begangen wurde)/.test(text)) return "ort_vergehen";
   if (/ball.*zuletzt.*(gespielt|beruhrt)/.test(text)
       || /wo.*ball.*zuletzt/.test(text)) return "ball_zuletzt";
-  if (/(nachste|nachster|nachsten).*punkt.*(seitenlinie|aussenlinie)/.test(text)) return "seitenlinie_naechst";
+  // Beim Einwurf beschreibt "am nächsten Punkt auf der Seitenlinie"
+  // denselben Ort wie "wo der Ball das Spielfeld verlassen hat". Das ist
+  // kein Ort des Vergehens und auch nicht "wo der Ball zuletzt gespielt
+  // wurde". Diese enge, regeltechnisch eindeutige Gleichsetzung spart für
+  // die häufigste natürliche Formulierung einen KI-Aufruf.
+  if (/ball.*(spielfeld|feld).*(verlas|aus)/.test(text)
+      || /wo.*ball.*(verlas|aus)/.test(text)
+      || /(nachste|nachster|nachsten).*punkt.*(seitenlinie|aussenlinie)/.test(text)) return "ball_spielfeld_verlassen";
   if (/torraumlinie/.test(text)) return "torraumlinie";
   if (/(strafstossmarke|elfmeterpunkt)/.test(text)) return "strafstossmarke";
   if (/(mittelpunkt|anstosspunkt)/.test(text)) return "mittelpunkt";

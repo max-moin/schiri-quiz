@@ -97,6 +97,7 @@ const ALLGEMEINE_BEWERTUNGSREGELN = `Allgemeine Regeln für die Bewertung ernstg
 - Allgemein: wenn die Musterantwort einen konkreten Begriff, eine Zahl oder eine bestimmte Konsequenz nennt, muss die gegebene Antwort genau diesen Punkt ebenfalls klar benennen - Umschreibungen/Synonyme sind erlaubt, das Weglassen oder Verallgemeinern des entscheidenden Details nicht.
 - Strukturierte Bewertungshinweise können Abschnitte mit "Zwingende Kernaussagen", "Anerkannte Formulierungen", "Orange, wenn", "Rot, wenn" und "Adaptive Rückfragen" enthalten. Nutze diese Abschnitte als fragenspezifische Rubrik: Für "richtig" müssen die zwingenden Kernaussagen sinngemäß enthalten sein; anerkannte Formulierungen gelten ausdrücklich als gleichwertig; ein passender "Orange, wenn"-Fall ist "nachbessern"; ein passender "Rot, wenn"-Fall ist "falsch". Die Rubrik darf eine fachlich falsche Aussage niemals in richtig oder nachbessern umdeuten.
 - Eine im Grundsatz richtige Antwort, die nur die richtige Kategorie nennt, aber ein entscheidendes Detail offenlässt, darf "nachbessern" sein, WENN die fragenspezifischen Bewertungshinweise diesen Fall unter "Orange, wenn" nennen. Beispiel: "eine Karte" kann orange sein, wenn noch nach der Kartenfarbe/persönlichen Strafe gefragt werden soll; "Gelbe Karte" ist bei der entsprechenden Musterantwort grün, "keine Karte" oder "Rote Karte" rot.
+- Prüfe WIDERSPRÜCHE vor LÜCKEN. Wer z.B. ausdrücklich "Rote Karte" schreibt, obwohl eine Verwarnung richtig wäre, hat nicht nur etwas vergessen. Das ist falsch und darf nicht erst durch eine Nachfrage repariert werden. Nur eine nicht getroffene, aber auch nicht falsch behauptete Aussage ist eine mögliche Lücke.
 - Umgangssprache, Tippfehler, knapper Satzbau und fehlende Fachbegriffe sind erlaubt und sollen NICHT negativ bewertet werden, solange die ausdrücklich verlangte fachliche Aussage eindeutig stimmt.
 - Konkretes Kalibrierungsbeispiel: Bei "Ein Spieler zieht beim Torjubel sein Trikot aus. Wie reagierst du?" ist "Der Spieler bekommt die Gelbe Karte" vollständig RICHTIG. Orange wäre hier zu streng, weil die Frage keine Begründung verlangt.`;
 
@@ -130,6 +131,133 @@ Das gilt auch für das "feedback": Bei "nachbessern" darf es den fehlenden Punkt
 // Modell, denn nur es weiß, welcher Punkt im konkreten Fall fehlt.
 const NACHBESSERN_FEEDBACK = "Der Kern stimmt – ein Punkt fehlt noch.";
 
+// Neue Fragen speichern ihre Kriterien als abgegrenztes JSON im bestehenden
+// Hinweisfeld. Das hält alle historischen RPCs kompatibel, gibt Gemini aber
+// eine echte Liste statt eines langen, mehrdeutigen Fließtexts.
+const KRITERIEN_START = "[[KI-KRITERIEN-JSON]]";
+const KRITERIEN_ENDE = "[[/KI-KRITERIEN-JSON]]";
+const KRITERIUM_STATUS = new Set(["erfuellt", "fehlt", "widersprochen"]);
+const AUSWIRKUNGEN = new Set(["ignorieren", "nachfragen", "falsch"]);
+
+export function extrahiereBewertungskriterien(hinweise) {
+  if (typeof hinweise !== "string") return [];
+  const start = hinweise.indexOf(KRITERIEN_START);
+  const ende = hinweise.indexOf(KRITERIEN_ENDE, start + KRITERIEN_START.length);
+  if (start < 0 || ende < 0) return [];
+  try {
+    const roh = hinweise.slice(start + KRITERIEN_START.length, ende).trim();
+    const kriterien = JSON.parse(roh);
+    if (!Array.isArray(kriterien)) return [];
+    return kriterien
+      .filter((k) => k && typeof k.id === "string" && typeof k.bezeichnung === "string" && typeof k.erwartung === "string")
+      .map((k) => ({
+        id: k.id,
+        bezeichnung: k.bezeichnung.trim(),
+        erwartung: k.erwartung.trim(),
+        akzeptierte_formulierungen: typeof k.akzeptierte_formulierungen === "string" ? k.akzeptierte_formulierungen.trim() : "",
+        bei_fehlen: AUSWIRKUNGEN.has(k.bei_fehlen) ? k.bei_fehlen : "nachfragen",
+        bei_widerspruch: AUSWIRKUNGEN.has(k.bei_widerspruch) ? k.bei_widerspruch : "falsch",
+        rueckfrage: typeof k.rueckfrage === "string" ? k.rueckfrage.trim() : "",
+      }))
+      .filter((k) => k.bezeichnung && k.erwartung)
+      .slice(0, 10);
+  } catch {
+    // Ungültiges JSON wird niemals als freie KI-Anweisung verwendet. Die
+    // bewährte Alt-Rubrik bleibt dann der sichere Rückfall.
+    return [];
+  }
+}
+
+function hinweiseOhneKriterienJson(hinweise) {
+  if (typeof hinweise !== "string") return "";
+  const start = hinweise.indexOf(KRITERIEN_START);
+  const ende = hinweise.indexOf(KRITERIEN_ENDE, start + KRITERIEN_START.length);
+  if (start < 0 || ende < 0) return hinweise.trim();
+  return (hinweise.slice(0, start) + hinweise.slice(ende + KRITERIEN_ENDE.length)).trim();
+}
+
+function kriterienKontext(hinweise) {
+  const kriterien = extrahiereBewertungskriterien(hinweise);
+  const freieHinweise = hinweiseOhneKriterienJson(hinweise);
+  if (!kriterien.length) {
+    return { kriterien, prompt: `Bewertungshinweise zu dieser Frage: ${freieHinweise || "keine besonderen Hinweise"}` };
+  }
+  return {
+    kriterien,
+    prompt: `Strukturierte Bewertungskriterien (maßgeblich):\n${JSON.stringify(kriterien)}\nZusätzliche Hinweise (nur Kontext): ${freieHinweise || "keine"}`,
+  };
+}
+
+function kriterienAnweisung(kriterien) {
+  if (!kriterien.length) return "";
+  return `
+Die strukturierten Kriterien sind maßgeblich. Bewerte JEDES Kriterium separat:
+- "erfuellt": die erwartete Aussage oder eine anerkannte Formulierung ist eindeutig vorhanden.
+- "fehlt": die Aussage wird nicht getroffen, ohne dass etwas Gegenteiliges behauptet wird.
+- "widersprochen": es wird eine fachlich gegenteilige, für dieses Kriterium relevante Aussage gemacht.
+Ein Widerspruch ist NIE bloß ein Fehlen. Prüfe besonders persönliche Strafe, Spielfortsetzung, Ausführungsort und ausdrücklich verlangte Begründungen zuerst auf Widerspruch.
+Gib für jedes Kriterium exakt dessen id zurück. Der Server leitet den endgültigen Status aus den hinterlegten Folgen ab; setze den eigenen Gesamtstatus dennoch konsistent: Widerspruch mit "falsch" → falsch, sonst nachfragbare Lücke → nachbessern, sonst richtig.`;
+}
+
+function eigeneKriterienNachfrage(offeneKriterien) {
+  const eigene = offeneKriterien.map((k) => k.rueckfrage).filter(Boolean);
+  if (eigene.length === 1) return eigene[0];
+  if (eigene.length > 1) return `Schau bitte noch auf diese Punkte: ${eigene.join(" Außerdem: ")}`;
+  const namen = offeneKriterien.map((k) => k.bezeichnung).filter(Boolean);
+  if (!namen.length) return null;
+  return `Schau bitte noch auf ${namen.join(" und ")}.`;
+}
+
+/// Der Server, nicht Gemini, entscheidet den Gesamtstatus. Damit kann eine
+/// falsche rote Karte nicht mehr durch einen richtigen Freistoß zu Orange
+/// werden. Die Kriterienwerte selbst bleiben KI-semantisch, aber die Folgen
+/// sind vollständig durch Max' Eingabe definiert.
+export function leiteKriterienBewertungAb(kiAntwort, hinweise, mitNachbessern) {
+  const kriterien = extrahiereBewertungskriterien(hinweise);
+  if (!kriterien.length) return null;
+  const gemeldet = new Map(
+    Array.isArray(kiAntwort.kriterien)
+      ? kiAntwort.kriterien
+          .filter((eintrag) => eintrag && typeof eintrag.id === "string" && KRITERIUM_STATUS.has(eintrag.status))
+          .map((eintrag) => [eintrag.id, eintrag.status])
+      : []
+  );
+  // Eine unvollständige KI-Struktur wird nicht still als richtig gespeichert.
+  if (kriterien.some((k) => !gemeldet.has(k.id))) {
+    throw new Error("Die KI hat nicht alle Bewertungskriterien zurückgegeben.");
+  }
+
+  const fehlende = [];
+  let istFalsch = kiAntwort.ungueltig === true;
+  for (const kriterium of kriterien) {
+    const status = gemeldet.get(kriterium.id);
+    const auswirkung = status === "erfuellt"
+      ? "ignorieren"
+      : status === "fehlt"
+        ? kriterium.bei_fehlen
+        : kriterium.bei_widerspruch;
+    if (auswirkung === "falsch") istFalsch = true;
+    if (auswirkung === "nachfragen") fehlende.push(kriterium);
+  }
+
+  // Ohne zweiten Versuch (Üben oder Ergänzung) bleibt eine nachfragbare
+  // Lücke fachlich unvollständig und damit falsch - nie versehentlich grün.
+  const hatOffeneLuecke = fehlende.length > 0;
+  const nachbessern = !istFalsch && mitNachbessern && hatOffeneLuecke;
+  return {
+    status: istFalsch || (hatOffeneLuecke && !mitNachbessern)
+      ? "falsch"
+      : nachbessern
+        ? "nachbessern"
+        : "richtig",
+    feedback: typeof kiAntwort.feedback === "string" ? kiAntwort.feedback : "",
+    nachfrage: nachbessern
+      ? saubereNachfrage(kiAntwort.nachfrage) || eigeneKriterienNachfrage(fehlende)
+      : null,
+    offeneKriterien: fehlende,
+  };
+}
+
 // Eigener, sehr enger Prompt nur für die Rückfrage.
 //
 // Er wird gebraucht, wenn das Modell beim Bewerten zwar "nachbessern" sagt,
@@ -138,11 +266,12 @@ const NACHBESSERN_FEEDBACK = "Der Kern stimmt – ein Punkt fehlt noch.";
 // Allgemeinplatz einzusetzen, wird die Frage gezielt nachgefordert - sie ist
 // der eigentliche Wert des ganzen Zwischenschritts.
 function baueNachfragePrompt(kontext, freitext) {
+  const bewertung = kriterienKontext(kontext.bewertungshinweise);
   return `${SYSTEMKONTEXT}
 
 Frage aus dem Regel-Quiz: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
-Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
+${bewertung.prompt}
 Gegebene Antwort: ${freitext}
 
 Diese Antwort ist im Kern richtig, aber unvollständig: Mindestens ein zwingender Punkt aus der Musterantwort oder der fragenspezifischen Rubrik fehlt. Formuliere GENAU EINE kurze, freundliche Rückfrage in Du-Form, die die Person zu genau diesem fehlenden Punkt hinführt, OHNE ihn zu verraten.
@@ -159,6 +288,7 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt, ohne Markdown-Codeblock drumherum:
 }
 
 export function baueErstversuchPrompt(kontext, freitext, mitNachbessern) {
+  const bewertung = kriterienKontext(kontext.bewertungshinweise);
   const statusTeil = mitNachbessern
     ? STATUS_REGELN
     : `Vergib genau einen Status: "richtig", wenn alles Geforderte da ist, sonst "falsch". Der Status "nachbessern" ist hier NICHT erlaubt, "nachfrage" ist immer null.`;
@@ -169,13 +299,14 @@ ${ALLGEMEINE_BEWERTUNGSREGELN}
 
 Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
-Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
+${bewertung.prompt}
 Gegebene Antwort: ${freitext}
 
 ${statusTeil}
+${kriterienAnweisung(bewertung.kriterien)}
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"status": "richtig" oder "nachbessern" oder "falsch", "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": "gezielte Rückfrage oder null"}`;
+{"status": "richtig" oder "nachbessern" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": "gezielte Rückfrage oder null"}`;
 }
 
 // Beim zweiten Versuch wird NICHT die Ergänzung allein bewertet, sondern
@@ -183,13 +314,14 @@ Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-C
 // bestraft, die für sich genommen unvollständig wirkt, im Zusammenhang aber
 // genau die Lücke schließt.
 export function baueNachbesserungsPrompt(kontext, ergaenzung) {
+  const bewertung = kriterienKontext(kontext.bewertungshinweise);
   return `${SYSTEMKONTEXT}
 
 ${ALLGEMEINE_BEWERTUNGSREGELN}
 
 Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
-Bewertungshinweise zu dieser Frage: ${kontext.bewertungshinweise || "keine besonderen Hinweise"}
+${bewertung.prompt}
 
 Diese Person hat bereits einmal geantwortet. Ihre Antwort war im Kern richtig, aber unvollständig, und sie wurde gezielt nachgefragt. Bewerte jetzt BEIDE Texte GEMEINSAM als eine einzige Antwort.
 
@@ -200,9 +332,10 @@ Gegebene Antwort (Ergänzung): ${ergaenzung}
 Ergibt sich aus beiden Texten zusammen alles Geforderte, ist der Status "richtig". Fehlt der zwingende Punkt weiterhin, oder widerspricht die Ergänzung der Musterantwort, ist der Status "falsch". Einen dritten Versuch gibt es nicht, "nachbessern" ist hier NICHT erlaubt.
 
 Das Feedback soll sich auf die Gesamtantwort beziehen, nicht nur auf die Ergänzung.
+${kriterienAnweisung(bewertung.kriterien)}
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"status": "richtig" oder "falsch", "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": null}`;
+{"status": "richtig" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": null}`;
 }
 
 // Ein Gemini-Aufruf, roh: liefert das geparste JSON zurück.
@@ -256,8 +389,9 @@ async function holeNachfrage(apiKey, kontext, freitext, modell) {
   }
 }
 
-async function frageGemini(apiKey, prompt, modell) {
-  const { ergebnis, rohtext } = await frageModell(apiKey, prompt, modell);
+export function normalisiereKIBewertung(ergebnis, bewertungshinweise, mitNachbessern = true, rohtext = "") {
+  const strukturierteBewertung = leiteKriterienBewertungAb(ergebnis, bewertungshinweise, mitNachbessern);
+  if (strukturierteBewertung) return strukturierteBewertung;
 
   // Das Modell-Ergebnis wird hier serverseitig gegen die erlaubten Werte
   // geprüft. Ein unbekannter Status darf niemals in Richtung Datenbank
@@ -277,6 +411,11 @@ async function frageGemini(apiKey, prompt, modell) {
     feedback: typeof ergebnis.feedback === "string" ? ergebnis.feedback : "",
     nachfrage: status === "nachbessern" ? saubereNachfrage(ergebnis.nachfrage) : null,
   };
+}
+
+async function frageGemini(apiKey, prompt, modell, bewertungshinweise, mitNachbessern = true) {
+  const { ergebnis, rohtext } = await frageModell(apiKey, prompt, modell);
+  return normalisiereKIBewertung(ergebnis, bewertungshinweise, mitNachbessern, rohtext);
 }
 
 function kiFehlerantwort(res, fehler, standardNachricht) {
@@ -361,7 +500,13 @@ export default async function handler(req, res) {
 
     let kiErgebnis;
     try {
-      kiErgebnis = await frageGemini(apiKey, baueNachbesserungsPrompt(kontext, bereinigterFreitext), modell);
+      kiErgebnis = await frageGemini(
+        apiKey,
+        baueNachbesserungsPrompt(kontext, bereinigterFreitext),
+        modell,
+        kontext.bewertungshinweise,
+        false
+      );
     } catch (e) {
       kiFehlerantwort(res, e, "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.");
       return;
@@ -420,7 +565,13 @@ export default async function handler(req, res) {
   // Schritt 2: Gemini fragen
   let kiErgebnis;
   try {
-    kiErgebnis = await frageGemini(apiKey, baueErstversuchPrompt(kontext, bereinigterFreitext, !istHistorie), modell);
+    kiErgebnis = await frageGemini(
+      apiKey,
+      baueErstversuchPrompt(kontext, bereinigterFreitext, !istHistorie),
+      modell,
+      kontext.bewertungshinweise,
+      !istHistorie
+    );
   } catch (e) {
     kiFehlerantwort(res, e, "KI-Bewertung fehlgeschlagen, bitte nochmal versuchen.");
     return;
