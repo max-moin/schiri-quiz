@@ -10,7 +10,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
-import { euro, summe, ohnePreis, stueckText, QUELLE_TEXT } from "../src/website/freigabe-zugriff.js";
+import {
+  euro, betrag, datum, stueckText, QUELLE_TEXT, STAND_TEXT,
+  summeMitLuecken, personZusammenfassung, bestandText,
+} from "../src/website/freigabe-zugriff.js";
 import { centAusEingabe } from "../src/admin/freigabe-editor.js";
 
 const lies = (n) => readFileSync(new URL("../" + n, import.meta.url), "utf8");
@@ -22,13 +25,61 @@ test("Betraege werden als Euro dargestellt, fehlende gar nicht", () => {
   assert.equal(euro(undefined), null);
 });
 
-test("die Summe zaehlt nur, was einen Preis hat", () => {
+test("die Summe zaehlt nur, was einen Preis hat - und sagt, was fehlt", () => {
   const zeilen = [{ preis_cent: 3500 }, { preis_cent: null }, { preis_cent: 800 }];
-  assert.equal(summe(zeilen), 4300);
-  // Eine Anfrage ohne Preis darf die Summe nicht als 0 mitzaehlen und
-  // dadurch so aussehen, als koste sie nichts.
-  assert.equal(ohnePreis(zeilen), 1);
-  assert.equal(summe([]), 0);
+  const r = summeMitLuecken(zeilen);
+  assert.equal(r.cent, 4300);
+  assert.equal(r.anzahl, 3);
+  // Eine Anfrage ohne Preis darf nicht als 0 mitzaehlen und dadurch
+  // aussehen, als koste sie nichts. Die Luecke muss benannt werden.
+  assert.equal(r.ohnePreis, 1);
+  assert.deepEqual(summeMitLuecken([]), { cent: 0, ohnePreis: 0, anzahl: 0 });
+  assert.deepEqual(summeMitLuecken(null), { cent: 0, ohnePreis: 0, anzahl: 0 });
+});
+
+test("leere Betraege werden als Strich gezeigt, nicht als 0,00", () => {
+  assert.equal(betrag(null), "–");
+  assert.equal(betrag(0, { nullIstNichts: true }), "–");
+  // Ohne die Kennzeichnung ist 0 eine echte Zahl und wird gezeigt.
+  assert.match(betrag(0), /0,00/);
+  assert.match(betrag(3500), /35,00/);
+});
+
+// Die deutsche Waehrungsausgabe trennt Betrag und Zeichen mit einem
+// GESCHUETZTEN Leerzeichen (je nach ICU-Fassung U+00A0 oder U+202F).
+// Ein Vergleich mit einem getippten Leerzeichen scheitert dann an zwei
+// Strings, die auf dem Bildschirm identisch aussehen.
+const ohneSchmalraum = (text) => String(text).replace(/[\u00a0\u202f]/g, " ");
+
+test("die Zusammenfassung je Person nennt nur, was es gibt", () => {
+  assert.equal(
+    ohneSchmalraum(personZusammenfassung({ offen: 1, freigegeben: 2, abgelehnt: 1, freigegeben_cent: 4300 })),
+    "1 wartet auf dich · 2 freigegeben (43,00 €) · 1 abgelehnt");
+  // Bei einem neuen Schiedsrichter stehen keine drei Nullen da.
+  assert.equal(personZusammenfassung({ offen: 0, freigegeben: 0, abgelehnt: 0 }),
+    "noch nichts angefragt");
+  // Freigegeben ohne Betrag nennt keinen leeren Klammerausdruck.
+  assert.equal(personZusammenfassung({ freigegeben: 1, freigegeben_cent: 0 }), "1 freigegeben");
+});
+
+test("der eigene Bestand wird lesbar zusammengefasst", () => {
+  assert.equal(bestandText([]), "nichts eingetragen");
+  assert.equal(bestandText(null), "nichts eingetragen");
+  assert.equal(bestandText([{ bezeichnung: "Trikot", anzahl: 2 }, { bezeichnung: "Hose", anzahl: 1 }]),
+    "2× Trikot, Hose");
+  // Fehlt die Bezeichnung, traegt die Kategorie.
+  assert.equal(bestandText([{ kategorie: "pfeife" }]), "pfeife");
+});
+
+test("zu jedem Freigabestand steht ein Satz in Worten", () => {
+  for (const s of ["nicht_vorgelegt", "vorgelegt", "freigegeben", "abgelehnt"]) {
+    assert.ok(STAND_TEXT[s] && STAND_TEXT[s].length > 5, s);
+  }
+});
+
+test("Datumsangaben bleiben deutsch und leer heisst leer", () => {
+  assert.equal(datum(null), "");
+  assert.match(datum("2026-09-17T10:00:00Z"), /^\d{2}\.\d{2}\.\d{4}$/);
 });
 
 test("Eingaben werden in Cent umgerechnet, auch mit Komma und Euro-Zeichen", () => {
@@ -93,8 +144,23 @@ test("der Token wird nirgends im Browser abgelegt", () => {
   assert.doesNotMatch(editor, /localStorage|sessionStorage/);
 });
 
+test("eine Ablehnung ohne Begruendung wird nicht abgeschickt", () => {
+  // Der Grund wird an den Schiedsrichter weitergegeben. Ohne ihn ist die
+  // Ablehnung fuer ihn wertlos - deshalb ein Pflichtfeld in der Seite.
+  const skript = lies("src/website/freigabe-seite.js");
+  assert.match(skript, /entscheidung === "abgelehnt" && notiz\.length < 3/);
+  assert.match(skript, /bekommt der Schiedsrichter zu lesen/);
+});
+
+test("waehrend des Speicherns sind beide Knoepfe gesperrt", () => {
+  // Sonst schickt ein zweiter Klick die Gegenentscheidung, und die
+  // waere dann die, die zaehlt.
+  const skript = lies("src/website/freigabe-seite.js");
+  assert.match(skript, /querySelectorAll\("button"\)\.forEach\(\(b\) => \{ b\.disabled = true; \}\)/);
+});
+
 test("die Migration schuetzt Tabellen und oeffnet nur Funktionen", () => {
-  const m = lies("supabase/migrations/20260916120000_v141_ausruestung_preise_und_freigabe.sql");
+  const m = lies("supabase/migrations/20260916120000_v145_ausruestung_preise_und_freigabe.sql");
   for (const tabelle of ["ausruestung_preise", "freigabe_links"]) {
     assert.match(m, new RegExp(`alter table public\\.${tabelle} enable row level security`));
   }
@@ -109,4 +175,77 @@ test("die Migration schuetzt Tabellen und oeffnet nur Funktionen", () => {
   // Der Baustein zur Tokenpruefung darf von aussen nicht rufbar sein.
   assert.match(m, /revoke all on function public\.freigabe_verein\(text\) from public;/);
   assert.doesNotMatch(m, /grant execute on function public\.freigabe_verein/);
+});
+
+/* ============================================================
+   Die Liste zum Weitergeben
+   ------------------------------------------------------------
+   Das Blatt geht aus der Hand und kommt unterschrieben zurueck.
+   Was darauf fehlt, fehlt endgueltig - deshalb wird der Aufbau
+   hier geprueft und nicht nur einmal angesehen.
+   ============================================================ */
+const { baueDruckliste } = await import("../src/admin/freigabe-druck.js");
+
+const BEISPIEL = [
+  { person: "Anna B.", bezeichnung: "Trikot", farbe: "rot", groesse: "M",
+    aermellaenge: "lang", preis_cent: 3500, freigabe_status: "nicht_vorgelegt" },
+  { person: "Carl D.", bezeichnung: "Pfeife", preis_cent: null,
+    freigabe_status: "vorgelegt", anmerkung: "die alte ist kaputt" },
+  { person: "Erik F.", bezeichnung: "Hose", preis_cent: 2000,
+    freigabe_status: "freigegeben" },
+];
+
+test("das Blatt zeigt nur, worueber noch nicht entschieden wurde", () => {
+  const blatt = baueDruckliste(BEISPIEL, "FV Löbtauer Kickers", new Date("2026-09-17T09:00:00"));
+  assert.match(blatt, /Anna B\./);
+  assert.match(blatt, /Carl D\./);
+  // Erledigtes gehoert nicht auf ein Blatt, das um Entscheidung bittet.
+  assert.doesNotMatch(blatt, /Erik F\./);
+});
+
+test("die Summe auf dem Blatt nennt ihre Luecken", () => {
+  const blatt = baueDruckliste(BEISPIEL, "FV Löbtauer Kickers");
+  // 35,00 aus der einen Zeile mit Preis - die Pfeife hat keinen.
+  assert.match(blatt, /35,00/);
+  assert.match(blatt, /ohne 1 Zeile ohne Preis/);
+  // Die preislose Zeile steht trotzdem drauf, mit Strich statt Zahl.
+  assert.match(blatt, /<td class="dr-rechts">–<\/td>/);
+});
+
+test("auf Papier gibt es Kaestchen, Schreiblinien und eine Unterschrift", () => {
+  const blatt = baueDruckliste(BEISPIEL, "FV Löbtauer Kickers");
+  // Zwei Kaestchen je Zeile (ja/nein), also vier bei zwei Zeilen.
+  assert.equal((blatt.match(/dr-kasten/g) || []).length, 4);
+  assert.equal((blatt.match(/dr-linie/g) || []).length, 2);
+  assert.match(blatt, /Unterschrift/);
+  assert.match(blatt, /Name in Druckbuchstaben/);
+  assert.match(blatt, /Datum/);
+});
+
+test("ohne offene Anfragen entsteht kein leeres Formular", () => {
+  const blatt = baueDruckliste([{ person: "X", bezeichnung: "Hose", freigabe_status: "freigegeben" }], "Verein");
+  assert.match(blatt, /keine Anfrage vor/);
+  assert.doesNotMatch(blatt, /dr-kasten|Unterschrift/);
+});
+
+test("Eingaben aus der Datenbank landen nicht als HTML auf dem Blatt", () => {
+  const blatt = baueDruckliste([{
+    person: '<script>böse()</script>', bezeichnung: "Trikot",
+    anmerkung: '"><b>fett', preis_cent: 100, freigabe_status: "vorgelegt",
+  }], "Verein");
+  assert.doesNotMatch(blatt, /<script>/);
+  assert.doesNotMatch(blatt, /<b>fett/);
+  assert.match(blatt, /&lt;script&gt;/);
+});
+
+test("das Druckblatt blendet den Obmann-Bereich vollstaendig aus", () => {
+  const css = lies("stil/druckblatt.css");
+  // Ausblenden statt einblenden: so kann kein Bedienelement des
+  // Obmann-Bereichs versehentlich mit aufs Papier geraten.
+  assert.match(css, /@media print/);
+  assert.match(css, /\.admin-seite, \.admin-seite \* \{ visibility: hidden; \}/);
+  assert.match(css, /\.druckblatt, \.druckblatt \* \{ visibility: visible; \}/);
+  assert.match(css, /@page \{ size: A4/);
+  // Am Bildschirm bleibt das Blatt unsichtbar.
+  assert.match(css, /^\.druckblatt \{ display: none; \}/m);
 });

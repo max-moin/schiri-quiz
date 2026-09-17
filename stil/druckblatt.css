@@ -1,0 +1,59 @@
+/* ============================================================
+   Die Freigabeliste auf Papier
+   ------------------------------------------------------------
+   Am Bildschirm unsichtbar, im Druck das Einzige, was bleibt.
+   Deshalb wird im @media print ALLES andere ausgeblendet statt
+   das Blatt zusätzlich einzublenden: so kann kein Bedienelement
+   des Obmann-Bereichs versehentlich mit aufs Papier geraten.
+   ============================================================ */
+.druckblatt { display: none; }
+
+@media print {
+  /* Nur das Blatt. Der Obmann-Bereich verschwindet vollständig. */
+  body > *:not(.druckblatt-huelle) { display: none !important; }
+  .admin-seite, .admin-seite * { visibility: hidden; }
+  .druckblatt, .druckblatt * { visibility: visible; }
+  .druckblatt {
+    display: block !important;
+    position: absolute; left: 0; top: 0; width: 100%;
+    padding: 0; margin: 0;
+    font: 400 10.5pt/1.5 -apple-system, "Segoe UI", Arial, sans-serif;
+    color: #000; background: #fff;
+  }
+
+  @page { size: A4; margin: 15mm 12mm; }
+
+  .dr-kopf { display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2.5pt solid #000; padding-bottom: 7pt; margin-bottom: 11pt; }
+  .dr-kopf h1 { font-size: 15pt; margin: 0 0 2pt; }
+  .dr-kopf p { margin: 0; font-size: 9.5pt; }
+  .dr-datum { white-space: nowrap; }
+  .dr-einstieg { margin: 0 0 12pt; font-size: 10pt; }
+  .dr-leer { font-style: italic; }
+
+  .dr-tabelle { width: 100%; border-collapse: collapse; font-size: 9.5pt; }
+  .dr-tabelle th { text-align: left; border-bottom: 1.2pt solid #000;
+    padding: 5pt 6pt; font-size: 8.5pt; text-transform: uppercase; letter-spacing: .04em; }
+  .dr-tabelle td { border-bottom: .6pt solid #999; padding: 9pt 6pt; vertical-align: top; }
+  .dr-tabelle tr { page-break-inside: avoid; }
+  .dr-tabelle small { font-size: 8.5pt; font-style: italic; }
+  .dr-rechts { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  .dr-mitte { text-align: center; }
+  .dr-tabelle tfoot td { border-top: 1.2pt solid #000; border-bottom: 0;
+    font-weight: 700; padding-top: 7pt; }
+
+  /* Zum Ankreuzen mit dem Kugelschreiber - deshalb ordentlich groß. */
+  .dr-kasten { display: inline-block; width: 13pt; height: 13pt;
+    border: 1pt solid #000; }
+  /* Eine Schreiblinie, keine leere Zelle: sonst schreibt niemand hinein. */
+  .dr-linie { min-width: 42mm; }
+  .dr-linie::after { content: ""; display: block; border-bottom: .6pt dotted #666;
+    height: 11pt; }
+
+  .dr-unterschrift { display: flex; gap: 10mm; margin-top: 16mm;
+    page-break-inside: avoid; }
+  .dr-unterschrift div { flex: 1; }
+  .dr-feld { display: block; border-bottom: .8pt solid #000; height: 13mm; }
+  .dr-unterschrift small { font-size: 8pt; }
+  .dr-fuss { margin-top: 9mm; font-size: 8.5pt; color: #333; }
+}

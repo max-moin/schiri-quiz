@@ -13,6 +13,7 @@
 // ============================================================
 import { erstellePasswortSchloss } from "./obmann-passwort.js";
 import { setzeStatus } from "./editor-ui.js";
+import { druckeListe } from "./freigabe-druck.js";
 
 const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
@@ -49,9 +50,10 @@ const GERUEST = `
     <label>Obmann-Passwort<input type="password" autocomplete="current-password" data-passwort /></label>
     <button class="knopf knopf-primaer" type="submit">Öffnen</button>
   </form>
-  <div data-freigabe-inhalt hidden></div>`;
+  <div data-freigabe-inhalt hidden></div>
+  <div class="druckblatt" data-druckblatt aria-hidden="true"></div>`;
 
-export function erstelleFreigabeEditor({ wurzel, client }) {
+export function erstelleFreigabeEditor({ wurzel, client, verein }) {
   wurzel.innerHTML = GERUEST;
   const inhalt = wurzel.querySelector("[data-freigabe-inhalt]");
   const form = wurzel.querySelector("[data-passwort-form]");
@@ -176,6 +178,20 @@ export function erstelleFreigabeEditor({ wurzel, client }) {
       </section>
 
       <section class="admin-panel">
+        <div class="admin-panel-kopf"><h2>Liste zum Weitergeben</h2>
+          <p>Wenn der Link nicht in Frage kommt: ein Blatt zum Ausdrucken oder als PDF sichern
+            – mit Kästchen zum Ankreuzen und Unterschriftszeile.</p></div>
+        <div class="admin-text-form">
+          <div class="admin-breit">
+            <button type="button" class="knopf" data-liste-drucken>Liste drucken oder als PDF sichern</button>
+          </div>
+          <p class="admin-hinweis admin-breit">Im Druckdialog gibt es unten links
+            „PDF" → „Als PDF sichern". Gedruckt werden alle Anfragen, über die noch
+            nicht entschieden wurde.</p>
+        </div>
+      </section>
+
+      <section class="admin-panel">
         <div class="admin-panel-kopf"><h2>Richtpreise</h2>
           <p>Werden beim Anlegen einer Anfrage als Hausnummer übernommen. Leer heißt: kein Richtwert.</p></div>
         <table class="admin-tabelle">
@@ -229,6 +245,16 @@ export function erstelleFreigabeEditor({ wurzel, client }) {
         });
         neuerLink = `${location.origin}/freigabe.html?code=${token}`;
       });
+    });
+
+    inhalt.querySelector("[data-liste-drucken]")?.addEventListener("click", () => {
+      const offene = anfragen.filter((a) => a.freigabe_status !== "freigegeben"
+        && a.freigabe_status !== "abgelehnt");
+      if (!offene.length) {
+        setzeStatus(wurzel, "Es liegt gerade keine unentschiedene Anfrage vor.", "fehler");
+        return;
+      }
+      druckeListe(wurzel.querySelector("[data-druckblatt]"), anfragen, verein?.name || "");
     });
 
     inhalt.querySelectorAll("[data-link-widerrufen]").forEach((knopf) => {

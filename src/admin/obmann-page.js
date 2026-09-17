@@ -104,7 +104,7 @@ async function oeffneEditor() {
     // noch benutzer.
     erstelleFreigabeEditor({
       wurzel: document.querySelector('[data-admin-bereich="freigabe"]'),
-      client,
+      client, verein: VEREIN,
     });
     // Die Terminsuche braucht weder verein noch benutzer: sie arbeitet
     // nicht auf den website_-Tabellen mit RLS-Policies, sondern auf den

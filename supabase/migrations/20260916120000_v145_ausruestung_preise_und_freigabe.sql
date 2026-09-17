@@ -1,5 +1,12 @@
 -- ============================================================
---  v141 - Richtpreise und die Freigabe durch den Vorstand
+--  v145 - Richtpreise und die Freigabe durch den Vorstand
+-- ------------------------------------------------------------
+--  Hinweis zur Nummer: eingespielt wurde dieser Stand am
+--  16.09.2026 unter den Namen v141a bis v141e - v141 und v142
+--  waren zu diesem Zeitpunkt in einer parallel laufenden Sitzung
+--  schon vergeben und tauchten erst danach hier auf. Die Datei
+--  traegt deshalb v145; in der Supabase-Historie stehen die
+--  alten Namen.
 -- ============================================================
 --  Das Problem, das hier geloest wird, ist kein technisches:
 --  Der Obmann darf ueber Vereinsgeld nicht allein entscheiden.
@@ -493,3 +500,46 @@ $$;
 
 revoke all on function public.schiri_anfrage_erstellen(uuid, text, text, text, text, text, text, text, text, integer) from public;
 grant execute on function public.schiri_anfrage_erstellen(uuid, text, text, text, text, text, text, text, text, integer) to anon;
+
+-- ------------------------------------------------------------
+--  12. Schlanke Anfragenliste fuer den Obmann-Bereich
+-- ------------------------------------------------------------
+--  Absichtlich nicht obmann_anfragen_liste erweitert: die traegt
+--  das Rechnungsbild als base64 mit und wird von der SwiftUI-App
+--  dekodiert. Hier braucht es nur Name, Stueck, Preis und Stand.
+create or replace function public.obmann_freigabe_anfragen(p_passwort text)
+returns table(id uuid, person text, bezeichnung text, kategorie text,
+              farbe text, groesse text, aermellaenge text, anmerkung text,
+              status text, erstellt_am timestamptz,
+              preis_richtwert_cent integer, preis_schiri_cent integer,
+              preis_final_cent integer, preis_cent integer, preis_quelle text,
+              freigabe_status text, freigabe_name text,
+              freigabe_notiz text, freigabe_am timestamptz)
+language plpgsql security definer set search_path to '' as $$
+declare v_verein uuid;
+begin
+  v_verein := public.obmann_verein(p_passwort);
+  return query
+    select a.id, s.name, coalesce(pr.bezeichnung, a.kategorie), a.kategorie,
+           a.farbe, a.groesse, a.aermellaenge, a.anmerkung,
+           a.status, a.erstellt_am,
+           a.preis_richtwert_cent, a.preis_schiri_cent, a.preis_final_cent,
+           coalesce(a.preis_final_cent, a.preis_schiri_cent, a.preis_richtwert_cent),
+           case when a.preis_final_cent  is not null then 'obmann'
+                when a.preis_schiri_cent is not null then 'schiri'
+                when a.preis_richtwert_cent is not null then 'richtwert'
+                else 'unbekannt' end,
+           a.freigabe_status, a.freigabe_name, a.freigabe_notiz, a.freigabe_am
+      from public.ausruestungs_anfragen a
+      join public.schiedsrichter s on s.id = a.schiedsrichter_id
+      left join public.ausruestung_preise pr
+             on pr.verein_id = s.verein_id and pr.kategorie = a.kategorie
+     where s.verein_id = v_verein
+       and a.typ = 'ausruestung'
+       and a.status not in ('erledigt','abgelehnt','abgeschlossen')
+     order by (a.freigabe_status = 'nicht_vorgelegt') desc, a.erstellt_am;
+end;
+$$;
+
+revoke all on function public.obmann_freigabe_anfragen(text) from public;
+grant execute on function public.obmann_freigabe_anfragen(text) to anon;

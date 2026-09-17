@@ -89,6 +89,9 @@ const REIHENFOLGE = [
   "basis", "kopf-fuss", "startseite", "termine", "aktuelles", "regeln",
   "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "obmann", "spesen",
   "modus", "entscheiden", "melden",
+  // "druckblatt" steht ganz am Ende: es blendet im @media print alles
+  // andere aus und muss deshalb nach allem stehen, was es ueberstimmt.
+  "druckblatt",
 ];
 
 test("es gibt keine gesammelte seite.css mehr", () => {
