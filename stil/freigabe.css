@@ -83,23 +83,16 @@
 .fg-nein { background: #fff; color: var(--fg-rot); box-shadow: inset 0 0 0 1.5px #e2b7b1; }
 .fg-knoepfe button:disabled { opacity: .5; cursor: default; }
 
-/* ---------- Personen ---------- */
-.fg-personen { display: grid; gap: 9px; }
-.fg-person-karte { background: #fff; border-radius: 12px; overflow: hidden; }
-.fg-person-karte > summary { cursor: pointer; padding: 14px 16px; list-style: none;
-  display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.fg-person-karte > summary::-webkit-details-marker { display: none; }
-.fg-person-karte > summary::before { content: "▸"; color: var(--fg-leise); font-size: .8rem; }
-.fg-person-karte[open] > summary::before { content: "▾"; }
-.fg-person-name { font-weight: 750; }
-.fg-person-zahl { font-size: .84rem; color: var(--fg-leise); flex: 1 1 100%;
-  padding-left: 18px; }
-.fg-punkt-offen { width: 9px; height: 9px; border-radius: 50%; background: #d9a520;
-  margin-left: auto; flex: 0 0 auto; }
-.fg-person-inhalt { padding: 0 16px 14px; border-top: 1px solid var(--fg-linie); }
-.fg-bestand { margin: 12px 0; font-size: .88rem; line-height: 1.55; color: #35443b; }
+/* ---------- Kontextzeile ---------- */
+/* Der einzige Personenkontext, der hier noch steht. Der frueher an
+   dieser Stelle aufgeklappte Ausruestungsbestand samt vollstaendiger
+   Anfragehistorie ist mit v151 entfallen - fuer eine Kaufentscheidung
+   ist er nicht noetig, und bei minderjaehrigen Schiedsrichtern ist er
+   deutlich zu viel. */
+.fg-kontext { margin: 10px 0 0; font-size: .87rem; line-height: 1.55;
+  color: var(--fg-leise); }
 
-/* ---------- Kleine Zeilen (Verlauf, Anfragen je Person) ---------- */
+/* ---------- Kleine Zeilen (Verlauf) ---------- */
 .fg-mini-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
 .fg-mini { display: flex; gap: 10px; align-items: flex-start; }
 .fg-mini b { display: block; font-size: .93rem; font-weight: 650; line-height: 1.35; }

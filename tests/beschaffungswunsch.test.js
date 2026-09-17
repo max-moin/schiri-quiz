@@ -9,6 +9,9 @@ const bestand = lies("src/website/ausruestung-seite.js");
 const ablauf = lies("ausruestung.html");
 const migration = lies("supabase/migrations/20260915224750_v141_beschaffungswunsch_bei_anfrage.sql");
 const selbstkaufMigration = lies("supabase/migrations/20260915225013_v142_selbstkauf_bestaetigen.sql");
+// Seit v149/v150 stehen die Knopfbeschriftungen des Schiedsrichters in
+// diesem gemeinsamen Modul - die Seite leitet nichts mehr selbst ab.
+const linie = lies("src/website/prozess-linie.js");
 
 test("der Schiri waehlt den Beschaffungsweg direkt in der Anfrage", () => {
   assert.match(fenster, /name="anfrage-beschaffungsweg"/);
@@ -37,12 +40,18 @@ test("ein freigegebener Selbstkauf kann vor dem spaeteren Rechnungsupload bestae
   assert.match(selbstkaufMigration, /schiri_anfrage_selbstkauf_bestaetigen/);
   assert.match(selbstkaufMigration, /status = 'angenommen'/);
   assert.match(selbstkaufMigration, /beschaffungsweg = 'weg2_schiri_besorgt'/);
-  assert.match(bestand, /data-selbstkauf/);
-  assert.match(bestand, /Gekauft · Rechnung folgt/);
-  assert.match(bestand, /Rechnung kannst du hier später hochladen/);
+  // Der Knopf kommt jetzt aus "meine_aktionen" des Servers: nur wenn der
+  // Uebergang erlaubt ist, gibt es ihn ueberhaupt.
+  assert.match(bestand, /data-schritt/);
+  assert.match(bestand, /schiri_anfrage_schritt/);
+  assert.match(linie, /gekauft: "Gekauft · Beleg folgt"/);
+  assert.match(bestand, /Den Beleg kannst du hier hochladen/);
 });
 
 test("ein direkter Rechnungsupload bestaetigt den Kauf ebenfalls", () => {
   assert.match(selbstkaufMigration, /rechnung_hochgeladen_am = now\(\).*selbstkauf_bestaetigt = true/s);
-  assert.match(bestand, /Gekauft \+ Rechnung hochladen/);
+  // Der Belegupload ist seit v150 selbst ein Prozessschritt. Er erscheint
+  // genau dann, wenn der Server ihn in "meine_aktionen" mitgibt.
+  assert.match(bestand, /schritt === "beleg_hochgeladen"/);
+  assert.match(bestand, /Beleg hochladen/);
 });

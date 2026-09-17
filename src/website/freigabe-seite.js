@@ -1,11 +1,10 @@
 // ============================================================
-//  freigabe.html - das Dashboard für den Vorstand
+//  freigabe.html - die Seite für den Vorstand
 // ------------------------------------------------------------
 //  Die Person, die hier landet, ist KEIN Schiedsrichter, kennt
 //  die Seite nicht und entscheidet über Vereinsgeld. Sie braucht
-//  deshalb zweierlei: schnell entscheiden können - und sehen,
-//  worüber sie entscheidet. Also erst die offenen Punkte, dann
-//  der Zusammenhang je Person, dann der Verlauf.
+//  zweierlei: schnell entscheiden können - und sehen, worüber
+//  sie entscheidet.
 //
 //  Der Name wird einmal oben eingetragen und für die Sitzung
 //  behalten. Bewusst NICHT im Browser gespeichert: der Link kann
@@ -15,11 +14,30 @@
 //  Die Begründung ist kein Beiwerk. Max gibt sie an den
 //  Schiedsrichter weiter - deshalb steht sie bei einer Ablehnung
 //  als Pflichtfeld da und nicht als "(freiwillig)".
+//
+//  Zwei Dinge haben sich mit v150/v151 geändert:
+//
+//  1. Diese Seite zeigt nur den Stapel DIESES Links. Der Betrag
+//     je Zeile ist der, der beim Vorlegen eingefroren wurde -
+//     nachträglich ändern kann ihn niemand, ohne dass eine neue
+//     Freigabe fällig wird.
+//
+//  2. "Freigegeben" heißt freigegebenes Budget, nicht ausgegebenes
+//     Geld. Deshalb gibt es unten einen zweiten Abschnitt: Vorgänge,
+//     bei denen der Beleg geprüft ist und nur noch die Überweisung
+//     fehlt. Wer sie gemacht hat, weiß nur der Vereinsverantwortliche
+//     selbst - also trägt er es hier ein, wenn er mag. Muss er nicht:
+//     der Obmann kann denselben Schritt auch nach einer Nachricht
+//     setzen. In beiden Fällen steht hinterher da, wer es war.
+//
+//  Der frühere Abschnitt "Die Schiedsrichter" mit Ausrüstungsbestand
+//  und vollständiger Anfragehistorie je Person ist bewusst weg. Für
+//  eine Kaufentscheidung braucht es ihn nicht.
 // ============================================================
 import { DATENBANK } from "../../verein.config.js";
 import {
   erstelleFreigabeZugriff, euro, betrag, datum, stueckText,
-  QUELLE_TEXT, STAND_TEXT, summeMitLuecken, personZusammenfassung, bestandText,
+  QUELLE_TEXT, STAND_TEXT, summeMitLuecken, saisonKontext,
 } from "./freigabe-zugriff.js";
 
 const bereich = document.getElementById("freigabeBereich");
@@ -42,6 +60,13 @@ function meldung(text, art = "info") {
   kasten.hidden = !text;
 }
 
+function nameFehlt() {
+  if (String(name).trim().length >= 2) return false;
+  meldung("Bitte trage oben zuerst deinen Namen ein.", "fehler");
+  document.getElementById("fgName")?.focus();
+  return true;
+}
+
 /* ---------------- Bausteine ---------------- */
 
 function kachel(titel, wert, zusatz = "") {
@@ -59,15 +84,16 @@ function kopf() {
       <p class="fg-kicker">${sicher(stand.verein)} · Saison ${sicher(stand.saison.bezeichnung)}</p>
       <h1>Ausrüstung freigeben</h1>
       <p class="fg-einstieg">Unsere Schiedsrichter fragen Ausrüstung an. Bitte entscheide
-        je Zeile, ob der Verein das übernimmt. Darunter siehst du, was die einzelnen
-        Schiedsrichter in dieser Saison schon bekommen haben.</p>
+        je Zeile, ob der Verein das übernimmt. Du siehst hier genau die Vorgänge, die
+        dir der Schiedsrichter-Obmann über diesen Link vorgelegt hat.</p>
 
       <div class="fg-kacheln">
         ${kachel("Wartet auf dich", k.offen_anzahl, luecke)}
         ${kachel("Davon Summe", betrag(k.offen_cent, { nullIstNichts: true }))}
-        ${kachel("Freigegeben in der Saison", betrag(k.freigegeben_cent, { nullIstNichts: true }),
+        ${kachel("Freigegeben", betrag(k.freigegeben_cent, { nullIstNichts: true }),
           `${k.freigegeben_anzahl} ${k.freigegeben_anzahl === 1 ? "Stück" : "Stücke"}`)}
-        ${kachel("Abgelehnt", k.abgelehnt_anzahl)}
+        ${kachel("Zahlung offen", betrag(k.zahlung_cent, { nullIstNichts: true }),
+          `${k.zahlung_anzahl} ${k.zahlung_anzahl === 1 ? "Vorgang" : "Vorgänge"}`)}
       </div>
 
       <label class="fg-name">Dein Name
@@ -81,6 +107,9 @@ function kopf() {
 
 function entscheidungsKarte(zeile) {
   const preis = euro(zeile.preis_cent);
+  const weg = zeile.beschaffungsweg === "weg1_obmann_besorgt"
+    ? "Der Verein bestellt es."
+    : "Der Schiedsrichter kauft es selbst und reicht den Beleg ein.";
   return `
     <article class="fg-zeile" data-id="${sicher(zeile.id)}">
       <div class="fg-zeile-kopf">
@@ -90,10 +119,11 @@ function entscheidungsKarte(zeile) {
         </div>
         <div class="fg-preis">
           <b>${preis || "kein Preis"}</b>
-          <span>${sicher(QUELLE_TEXT[zeile.preis_quelle] || "")}</span>
+          <span>${sicher(QUELLE_TEXT.vorgelegt)}</span>
         </div>
       </div>
       ${zeile.anmerkung ? `<p class="fg-anmerkung">„${sicher(zeile.anmerkung)}"</p>` : ""}
+      <p class="fg-kontext">${sicher(saisonKontext(zeile))} ${sicher(weg)}</p>
       <label class="fg-notiz">Begründung
         <input type="text" data-notiz maxlength="200"
                placeholder="Wird dem Schiedsrichter weitergegeben – bei einer Ablehnung bitte ausfüllen" />
@@ -105,33 +135,23 @@ function entscheidungsKarte(zeile) {
     </article>`;
 }
 
-function anfrageZeile(z) {
+function zahlungsKarte(zeile) {
   return `
-    <li class="fg-mini" data-stand="${sicher(z.freigabe_status)}">
-      <span class="fg-mini-punkt" aria-hidden="true"></span>
-      <div>
-        <b>${sicher(stueckText(z))}</b>
-        <small>${datum(z.erstellt_am)} · ${sicher(STAND_TEXT[z.freigabe_status])}${
-          z.preis_cent != null ? ` · ${euro(z.preis_cent)}` : ""}</small>
-        ${z.freigabe_notiz ? `<small class="fg-mini-grund">„${sicher(z.freigabe_notiz)}"
-          – ${sicher(z.freigabe_name || "")}</small>` : ""}
+    <article class="fg-zeile" data-zahlung-id="${sicher(zeile.id)}">
+      <div class="fg-zeile-kopf">
+        <div>
+          <b>${sicher(stueckText(zeile))}</b>
+          <span class="fg-person">für ${sicher(zeile.person)} · freigegeben am ${datum(zeile.freigabe_am)}</span>
+        </div>
+        <div class="fg-preis"><b>${euro(zeile.preis_cent) || "kein Betrag"}</b></div>
       </div>
-    </li>`;
-}
-
-function personKarte(person) {
-  return `
-    <details class="fg-person-karte">
-      <summary>
-        <span class="fg-person-name">${sicher(person.name)}</span>
-        <span class="fg-person-zahl">${sicher(personZusammenfassung(person))}</span>
-        ${person.offen ? `<span class="fg-punkt-offen" title="wartet auf dich"></span>` : ""}
-      </summary>
-      <div class="fg-person-inhalt">
-        <p class="fg-bestand"><b>Hat schon:</b> ${sicher(bestandText(person.bestand))}</p>
-        <ul class="fg-mini-liste">${(person.anfragen || []).map(anfrageZeile).join("")}</ul>
+      <p class="fg-kontext">Der Beleg liegt vor und ist geprüft. Sobald du das Geld
+        überwiesen hast, trag es hier ein – der Schiedsrichter bestätigt anschließend
+        selbst, dass es angekommen ist.</p>
+      <div class="fg-knoepfe">
+        <button type="button" class="fg-ja" data-zahlung>Habe ich überwiesen</button>
       </div>
-    </details>`;
+    </article>`;
 }
 
 function verlaufZeile(z) {
@@ -151,8 +171,8 @@ function verlaufZeile(z) {
 
 function zeichne() {
   const offen = stand.offen || [];
+  const zahlungen = stand.zahlungen || [];
   const rechnung = summeMitLuecken(offen);
-  const personen = stand.schiedsrichter || [];
   const verlauf = stand.verlauf || [];
 
   bereich.innerHTML = `
@@ -162,24 +182,24 @@ function zeichne() {
       <h2>Zu entscheiden${offen.length ? ` <span class="fg-anzahl">${offen.length}</span>` : ""}</h2>
       ${offen.length ? `
         ${rechnung.ohnePreis ? `<p class="fg-warnung">Bei ${rechnung.ohnePreis === 1
-          ? "einer Anfrage" : `${rechnung.ohnePreis} Anfragen`} ist kein Preis hinterlegt.
-          Die Summe oben ist deshalb unvollständig – frag im Zweifel beim Obmann nach.</p>` : ""}
+          ? "einer Anfrage" : `${rechnung.ohnePreis} Anfragen`} fehlt der Betrag.
+          Die Summe oben ist deshalb unvollständig – bitte frag beim Obmann nach.</p>` : ""}
         <div class="fg-liste">${offen.map(entscheidungsKarte).join("")}</div>`
         : `<p class="fg-leer">Zurzeit liegt nichts zur Entscheidung an. Danke!</p>`}
     </section>
 
+    ${zahlungen.length ? `
     <section class="fg-abschnitt">
-      <h2>Die Schiedsrichter</h2>
-      <p class="fg-hinweis">Was jeder in dieser Saison angefragt bekommen hat – und was er
-        laut eigener Angabe schon besitzt.</p>
-      ${personen.length ? `<div class="fg-personen">${personen.map(personKarte).join("")}</div>`
-        : `<p class="fg-leer">Noch keine Anfragen.</p>`}
-    </section>
+      <h2>Zahlung anweisen <span class="fg-anzahl">${zahlungen.length}</span></h2>
+      <p class="fg-hinweis">Freigegeben heißt noch nicht bezahlt. Diese Vorgänge warten
+        auf die Überweisung an den Schiedsrichter.</p>
+      <div class="fg-liste">${zahlungen.map(zahlungsKarte).join("")}</div>
+    </section>` : ""}
 
     ${verlauf.length ? `
     <section class="fg-abschnitt">
       <details class="fg-verlauf">
-        <summary><h2>Alle Entscheidungen <span class="fg-anzahl">${verlauf.length}</span></h2></summary>
+        <summary><h2>Deine Entscheidungen <span class="fg-anzahl">${verlauf.length}</span></h2></summary>
         <ul class="fg-mini-liste">${verlauf.map(verlaufZeile).join("")}</ul>
       </details>
     </section>` : ""}`;
@@ -198,13 +218,10 @@ function verdrahte() {
       const notizFeld = artikel.querySelector("[data-notiz]");
       const notiz = notizFeld?.value.trim() || "";
 
-      if (String(name).trim().length < 2) {
-        meldung("Bitte trage oben zuerst deinen Namen ein.", "fehler");
-        document.getElementById("fgName")?.focus();
-        return;
-      }
+      if (nameFehlt()) return;
       // Eine Ablehnung ohne Grund ist für den Schiedsrichter wertlos -
-      // und genau der bekommt sie weitergereicht.
+      // und genau der bekommt sie weitergereicht. Der Server weist sie
+      // ohnehin ab; hier steht es nur freundlicher da.
       if (entscheidung === "abgelehnt" && notiz.length < 3) {
         meldung("Bitte schreib kurz dazu, warum es nicht geht – das bekommt der Schiedsrichter zu lesen.", "fehler");
         notizFeld?.focus();
@@ -221,6 +238,23 @@ function verdrahte() {
         meldung(entscheidung === "freigegeben" ? "Freigegeben." : "Abgelehnt.", "erfolg");
       } catch (fehler) {
         artikel.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+        meldung(fehler.message, "fehler");
+      }
+    });
+  });
+
+  bereich.querySelectorAll("[data-zahlung]").forEach((knopf) => {
+    knopf.addEventListener("click", async () => {
+      const artikel = knopf.closest(".fg-zeile");
+      if (nameFehlt()) return;
+      knopf.disabled = true;
+      meldung("Wird gespeichert …");
+      try {
+        await zugriff.zahlungAngewiesen(token, artikel.dataset.zahlungId, name.trim());
+        await laden();
+        meldung("Als überwiesen eingetragen.", "erfolg");
+      } catch (fehler) {
+        knopf.disabled = false;
         meldung(fehler.message, "fehler");
       }
     });

@@ -6,6 +6,11 @@
 //  Aufruf neu - abgelaufen oder widerrufen heißt sofort Schluss,
 //  auch mitten in der Sitzung.
 //
+//  Seit v151 sieht ein Link außerdem nur noch seinen eigenen
+//  Stapel: genau die Anfragen, die unter diesem Link vorgelegt
+//  wurden. Vorher hätte ein laufender Link ohne Zutun immer
+//  neue Vorgänge angezeigt.
+//
 //  Die Rechenteile stehen hier und nicht in der Seite, damit sie
 //  prüfbar sind, ohne einen Browser zu bauen.
 // ============================================================
@@ -35,6 +40,12 @@ export function erstelleFreigabeZugriff({ adresse, oeffentlicherSchluessel }) {
     entscheiden: (token, id, entscheidung, name, notiz) => rufe("freigabe_entscheiden", {
       p_token: token, p_id: id, p_entscheidung: entscheidung,
       p_name: name, p_notiz: notiz || null,
+    }),
+    // "Freigegeben" heißt freigegebenes Budget, nicht ausgegebenes Geld.
+    // Die Überweisung ist ein eigener Schritt - und wer ihn gemacht hat,
+    // weiß nur der Vereinsverantwortliche selbst.
+    zahlungAngewiesen: (token, id, name) => rufe("freigabe_zahlung_angewiesen", {
+      p_token: token, p_id: id, p_name: name,
     }),
   });
 }
@@ -69,6 +80,7 @@ export const QUELLE_TEXT = Object.freeze({
   obmann: "vom Obmann eingetragen",
   schiri: "vom Schiedsrichter angegeben",
   richtwert: "Richtwert des Vereins",
+  vorgelegt: "so vorgelegt",
   unbekannt: "kein Preis hinterlegt",
 });
 
@@ -94,27 +106,21 @@ export function summeMitLuecken(zeilen) {
 }
 
 /**
- * Eine Zeile für die Personenübersicht: "2 angefragt · 1 freigegeben
- * (35,00 €) · 1 abgelehnt". Leere Teile fallen weg, damit bei einem
- * neuen Schiedsrichter nicht dreimal "0" steht.
+ * Der einzige Personenkontext, den diese Seite noch zeigt: was für
+ * diese Person in der laufenden Saison bereits freigegeben wurde.
+ *
+ * Bewusst nur diese eine Zahl. Bis v150 standen hier der komplette
+ * Ausrüstungsbestand und die vollständige Anfragehistorie jeder Person.
+ * Für eine Entscheidung über ein Trikot braucht es das nicht - und bei
+ * minderjährigen Schiedsrichtern ist es deutlich mehr, als ein
+ * Vereinsverantwortlicher sehen muss.
  */
-export function personZusammenfassung(person) {
-  const teile = [];
-  if (person.offen) teile.push(`${person.offen} wartet auf dich`);
-  if (person.freigegeben) {
-    const betragText = person.freigegeben_cent ? ` (${euro(person.freigegeben_cent)})` : "";
-    teile.push(`${person.freigegeben} freigegeben${betragText}`);
-  }
-  if (person.abgelehnt) teile.push(`${person.abgelehnt} abgelehnt`);
-  if (!teile.length) teile.push("noch nichts angefragt");
-  return teile.join(" · ");
-}
-
-/** Wie viele Stücke jemand schon besitzt, nach Art zusammengefasst. */
-export function bestandText(bestand) {
-  const liste = Array.isArray(bestand) ? bestand : [];
-  if (!liste.length) return "nichts eingetragen";
-  return liste
-    .map((s) => `${(s.anzahl ?? 1) > 1 ? `${s.anzahl}× ` : ""}${s.bezeichnung || s.kategorie}`)
-    .join(", ");
+export function saisonKontext(zeile) {
+  const anzahl = Number(zeile && zeile.saison_freigegeben_anzahl) || 0;
+  if (!anzahl) return "In dieser Saison noch nichts freigegeben.";
+  const summe = euro(zeile && zeile.saison_freigegeben_cent);
+  const stueck = anzahl === 1 ? "ein Stück" : `${anzahl} Stücke`;
+  return summe
+    ? `In dieser Saison schon freigegeben: ${stueck} (${summe}).`
+    : `In dieser Saison schon freigegeben: ${stueck}.`;
 }

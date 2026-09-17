@@ -216,8 +216,14 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
       knopf.addEventListener("click", () => {
         const zeile = knopf.closest("tr");
         const vorlegen = knopf.hasAttribute("data-vorlegen");
+        // Seit v150 sind das zwei verschiedene Vorgänge: Vorlegen friert
+        // den Betrag ein und bindet die Anfrage an genau einen
+        // Freigabe-Link. Zurückziehen setzt sie auf "geprüft" zurück -
+        // und macht damit eine spätere Freigabe wieder nötig.
         mit(vorlegen ? "Wird vorgelegt …" : "Wird zurückgezogen …", () =>
-          rufe("obmann_anfrage_vorlegen", { p_id: zeile.dataset.id, p_vorlegen: vorlegen }));
+          vorlegen
+            ? rufe("obmann_anfrage_vorlegen", { p_id: zeile.dataset.id })
+            : rufe("obmann_anfrage_schritt", { p_id: zeile.dataset.id, p_schritt: "geprueft" }));
       });
     });
 

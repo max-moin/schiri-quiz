@@ -28,6 +28,9 @@
 // ============================================================
 
 import { DATENBANK } from "../../verein.config.js";
+import {
+  prozessLinieHtml, schiriAktionen, naechsterSchrittText, nachId,
+} from "./prozess-linie.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -334,24 +337,32 @@ async function ladeBestand() {
 
 async function ladeAnfragen() {
   const p = ich();
-  const { data, error } = await rpc.rpc("schiri_anfragen_liste", {
-    p_schiedsrichter_id: p.id,
-    p_pin: p.pin,
-  });
-  if (error) {
+  // Zwei Aufrufe, aber nur EINE Wahrheit: die Liste liefert die Stammdaten
+  // der Anfrage, die Prozessliste die Schritte. Abgeleitet wird hier
+  // nichts mehr - genau das hat vorher dafuer gesorgt, dass diese Seite
+  // etwas anderes anzeigte als "Meine Anliegen" oder die Obmann-App.
+  const [liste, prozesse] = await Promise.all([
+    rpc.rpc("schiri_anfragen_liste", { p_schiedsrichter_id: p.id, p_pin: p.pin }),
+    rpc.rpc("schiri_prozess_liste", { p_schiedsrichter_id: p.id, p_pin: p.pin }),
+  ]);
+  if (liste.error) {
     $("bestand-anfragen").innerHTML = '<p class="bestand-leer-zeile">Anfragen konnten nicht geladen werden.</p>';
     return;
   }
+  const kette = nachId(prozesse.error ? [] : prozesse.data);
+
   // Anliegen gehoeren nicht hierher - die stehen im Kontomenue unter
   // "Meine Anliegen". Geprueft wird auf "nicht anliegen" statt auf
   // "ausruestung", weil aeltere Zeilen keinen Typ tragen muessen; genauso
   // filtert es src/features/profile-requests.js.
-  const anfragen = (Array.isArray(data) ? data : []).filter((a) => a.typ !== "anliegen");
+  const anfragen = (Array.isArray(liste.data) ? liste.data : []).filter((a) => a.typ !== "anliegen");
   if (!anfragen.length) {
     $("bestand-anfragen").innerHTML = '<p class="bestand-leer-zeile">Du hast noch nichts angefragt.</p>';
     return;
   }
+
   $("bestand-anfragen").innerHTML = anfragen.map((a) => {
+    const vorgang = kette.get(String(a.id)) || null;
     const name = fach(a.kategorie)?.wort || a.kategorie || "Ausrüstung";
     const merkmale = [];
     if (a.groesse) merkmale.push(plakette("Größe " + a.groesse));
@@ -360,25 +371,35 @@ async function ladeAnfragen() {
     const wegVorsatz = a.status === "angenommen" ? "Beschaffung: " : "Wunsch: ";
     if (a.beschaffungsweg === "weg2_schiri_besorgt") merkmale.push(plakette(wegVorsatz + "selbst kaufen"));
     if (a.beschaffungsweg === "weg1_obmann_besorgt") merkmale.push(plakette(wegVorsatz + "Verein bestellt"));
-    const selbstkaufFreigegeben = a.status === "angenommen" && a.beschaffungsweg === "weg2_schiri_besorgt";
-    const kaufBestaetigenMoeglich = selbstkaufFreigegeben && !a.selbstkauf_bestaetigt;
-    const rechnungMoeglich = selbstkaufFreigegeben && !a.rechnung_hochgeladen_am;
-    if (a.selbstkauf_bestaetigt) merkmale.push(plakette("Gekauft", "status-angenommen"));
-    if (a.rechnung_hochgeladen_am) merkmale.push(plakette("Rechnung eingereicht", "status-angenommen"));
+
+    // Welche Knoepfe erlaubt sind, sagt der Server. Der Belegupload ist
+    // dabei derselbe Schritt wie jeder andere - er braucht nur eine
+    // Dateiauswahl statt eines einfachen Klicks.
+    const aktionen = schiriAktionen(vorgang);
+    const belegMoeglich = (vorgang?.meine_aktionen || []).some((x) => x.schritt === "beleg_hochgeladen");
+    const knoepfe = [
+      ...aktionen.map((x) =>
+        `<button type="button" class="bestand-knopf-sekundaer" data-schritt="${esc(x.schritt)}" data-anfrage="${esc(a.id)}">${esc(x.wort)}</button>`),
+      belegMoeglich
+        ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">Beleg hochladen</button>`
+        : "",
+    ].filter(Boolean);
+    const stand = naechsterSchrittText(vorgang);
+
     return '<article class="bestand-anfrage">'
       + '<div class="bestand-anfrage-kopf">'
       + `<span class="bestand-anfrage-titel">${esc(name)}</span>`
-      + plakette(STATUS_WORT[a.status] || a.status, "status-" + a.status)
+      + plakette(vorgang?.prozess_titel || STATUS_WORT[a.status] || a.status, "status-" + a.status)
       + `<span class="bestand-anfrage-datum">${esc(datum(a.erstellt_am))}</span>`
       + "</div>"
       + (merkmale.length ? `<div class="bestand-plaketten">${merkmale.join("")}</div>` : "")
       + (a.anmerkung ? `<p class="bestand-anfrage-anmerkung">„${esc(a.anmerkung)}“</p>` : "")
-      + ((kaufBestaetigenMoeglich || rechnungMoeglich) ? '<div class="bestand-anfrage-aktionen">' : "")
-      + (kaufBestaetigenMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-selbstkauf="${esc(a.id)}">Gekauft · Rechnung folgt</button>` : "")
-      + (rechnungMoeglich ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">${a.selbstkauf_bestaetigt ? "Rechnung hochladen" : "Gekauft + Rechnung hochladen"}</button>` : "")
-      + ((kaufBestaetigenMoeglich || rechnungMoeglich) ? "</div>" : "")
+      + prozessLinieHtml(vorgang, esc)
+      + (stand ? `<p class="bestand-anfrage-stand">${esc(stand)}</p>` : "")
+      + (knoepfe.length ? `<div class="bestand-anfrage-aktionen">${knoepfe.join("")}</div>` : "")
       + "</article>";
   }).join("");
+
   const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;
   $("bestand-anfragen").querySelectorAll("[data-rechnung]").forEach((knopf) => {
     if (!profil?.oeffneRechnungUpload) {
@@ -387,37 +408,41 @@ async function ladeAnfragen() {
     }
     knopf.addEventListener("click", () => profil.oeffneRechnungUpload(knopf.dataset.rechnung));
   });
-  $("bestand-anfragen").querySelectorAll("[data-selbstkauf]").forEach((knopf) => {
+
+  $("bestand-anfragen").querySelectorAll("[data-schritt]").forEach((knopf) => {
+    const wort = knopf.textContent;
     knopf.addEventListener("click", async () => {
       // Kein Browser-Dialog: der erste Druck macht die Konsequenz sichtbar,
       // der zweite bestätigt. Nach einigen Sekunden fällt der Knopf zurück.
       if (knopf.dataset.sicher !== "ja") {
         knopf.dataset.sicher = "ja";
-        knopf.textContent = "Kauf jetzt bestätigen";
+        knopf.textContent = "Wirklich? Noch einmal drücken";
         window.setTimeout(() => {
           if (!knopf.isConnected || knopf.disabled) return;
           knopf.dataset.sicher = "";
-          knopf.textContent = "Gekauft · Rechnung folgt";
+          knopf.textContent = wort;
         }, 5000);
         return;
       }
 
       knopf.disabled = true;
-      const p = ich();
-      const { error: bestaetigungsFehler } = await rpc.rpc("schiri_anfrage_selbstkauf_bestaetigen", {
-        p_schiedsrichter_id: p.id,
-        p_pin: p.pin,
-        p_anfrage_id: knopf.dataset.selbstkauf,
+      const person = ich();
+      const { error } = await rpc.rpc("schiri_anfrage_schritt", {
+        p_schiedsrichter_id: person.id,
+        p_pin: person.pin,
+        p_anfrage_id: knopf.dataset.anfrage,
+        p_schritt: knopf.dataset.schritt,
       });
-      if (bestaetigungsFehler) {
+      if (error) {
         knopf.disabled = false;
         knopf.dataset.sicher = "";
-        knopf.textContent = "Gekauft · Rechnung folgt";
-        seitenmeldung("Der Kauf konnte nicht bestätigt werden: " + bestaetigungsFehler.message, true);
+        knopf.textContent = wort;
+        seitenmeldung("Das hat nicht geklappt: " + error.message, true);
         return;
       }
-
-      seitenmeldung("Als gekauft markiert. Die Rechnung kannst du hier später hochladen.");
+      seitenmeldung(knopf.dataset.schritt === "geld_erhalten"
+        ? "Danke - damit ist der Vorgang für dich erledigt."
+        : "Eingetragen. Den Beleg kannst du hier hochladen.");
       await ladeAnfragen();
     });
   });

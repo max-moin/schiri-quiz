@@ -1,0 +1,84 @@
+/* ============================================================
+   Die Prozesslinie einer Ausruestungsanfrage
+   ------------------------------------------------------------
+   Eigene Datei, weil sie auf zwei Seiten gebraucht wird
+   (ausruestung.html und meine-anliegen.html) und stil/ausruestung.css
+   die 500-Zeilen-Grenze bereits ausreizt.
+
+   Die Linie zeigt den ganzen Weg, nicht nur den aktuellen Punkt: was
+   erledigt ist, was gerade dran ist, was noch kommt. Erledigt und
+   aktuell stehen kraeftig da, Kommendes bleibt leise - sonst liest es
+   sich wie eine Liste von Versprechen.
+   ============================================================ */
+
+.prozess-linie {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0 0 0 4px;
+  display: grid;
+  gap: 0;
+}
+
+.prozess-schritt {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 0 12px 18px;
+  font-size: .86rem;
+  line-height: 1.45;
+}
+
+/* Die Linie zwischen den Punkten. Am letzten Schritt endet sie. */
+.prozess-schritt::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 12px;
+  bottom: 0;
+  width: 2px;
+  background: var(--border);
+}
+
+.prozess-schritt:last-child::before { display: none; }
+
+.prozess-punkt {
+  position: absolute;
+  left: 0;
+  top: 5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.prozess-wort { color: var(--muted); }
+
+.prozess-zusatz {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: .78rem;
+  white-space: nowrap;
+}
+
+.prozess-schritt[data-stand="erledigt"] .prozess-punkt { background: var(--green-dark); }
+.prozess-schritt[data-stand="erledigt"] .prozess-wort { color: var(--text); }
+
+.prozess-schritt[data-stand="dran"] .prozess-punkt {
+  background: var(--marke);
+  box-shadow: 0 0 0 4px var(--marke-lighter);
+}
+.prozess-schritt[data-stand="dran"] .prozess-wort { color: var(--text); font-weight: 650; }
+
+.prozess-schritt[data-stand="gestoppt"] .prozess-punkt { background: var(--red); }
+.prozess-schritt[data-stand="gestoppt"] .prozess-wort { color: var(--red); font-weight: 650; }
+
+.prozess-schritt[data-stand="entfaellt"] .prozess-wort { text-decoration: line-through; }
+
+.bestand-anfrage-stand {
+  margin: 10px 0 0;
+  font-size: .85rem;
+  line-height: 1.5;
+  color: var(--text);
+  font-weight: 600;
+}

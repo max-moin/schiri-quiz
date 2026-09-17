@@ -12,7 +12,7 @@ import { readFileSync } from "node:fs";
 
 import {
   euro, betrag, datum, stueckText, QUELLE_TEXT, STAND_TEXT,
-  summeMitLuecken, personZusammenfassung, bestandText,
+  summeMitLuecken, saisonKontext,
 } from "../src/website/freigabe-zugriff.js";
 import { centAusEingabe } from "../src/admin/freigabe-editor.js";
 
@@ -51,24 +51,18 @@ test("leere Betraege werden als Strich gezeigt, nicht als 0,00", () => {
 // Strings, die auf dem Bildschirm identisch aussehen.
 const ohneSchmalraum = (text) => String(text).replace(/[\u00a0\u202f]/g, " ");
 
-test("die Zusammenfassung je Person nennt nur, was es gibt", () => {
+test("der Personenkontext ist auf eine einzige Zahl geschrumpft", () => {
+  // Bis v150 standen hier der komplette Ausruestungsbestand und die
+  // vollstaendige Anfragehistorie jeder Person. Fuer eine Entscheidung
+  // ueber ein Trikot braucht es das nicht - und bei minderjaehrigen
+  // Schiedsrichtern ist es deutlich mehr, als ein Vereinsverantwortlicher
+  // sehen muss.
   assert.equal(
-    ohneSchmalraum(personZusammenfassung({ offen: 1, freigegeben: 2, abgelehnt: 1, freigegeben_cent: 4300 })),
-    "1 wartet auf dich · 2 freigegeben (43,00 €) · 1 abgelehnt");
-  // Bei einem neuen Schiedsrichter stehen keine drei Nullen da.
-  assert.equal(personZusammenfassung({ offen: 0, freigegeben: 0, abgelehnt: 0 }),
-    "noch nichts angefragt");
-  // Freigegeben ohne Betrag nennt keinen leeren Klammerausdruck.
-  assert.equal(personZusammenfassung({ freigegeben: 1, freigegeben_cent: 0 }), "1 freigegeben");
-});
-
-test("der eigene Bestand wird lesbar zusammengefasst", () => {
-  assert.equal(bestandText([]), "nichts eingetragen");
-  assert.equal(bestandText(null), "nichts eingetragen");
-  assert.equal(bestandText([{ bezeichnung: "Trikot", anzahl: 2 }, { bezeichnung: "Hose", anzahl: 1 }]),
-    "2× Trikot, Hose");
-  // Fehlt die Bezeichnung, traegt die Kategorie.
-  assert.equal(bestandText([{ kategorie: "pfeife" }]), "pfeife");
+    ohneSchmalraum(saisonKontext({ saison_freigegeben_anzahl: 2, saison_freigegeben_cent: 4300 })),
+    "In dieser Saison schon freigegeben: 2 Stücke (43,00 €).");
+  assert.equal(saisonKontext({ saison_freigegeben_anzahl: 0 }),
+    "In dieser Saison noch nichts freigegeben.");
+  assert.equal(saisonKontext(undefined), "In dieser Saison noch nichts freigegeben.");
 });
 
 test("zu jedem Freigabestand steht ein Satz in Worten", () => {
@@ -248,4 +242,40 @@ test("das Druckblatt blendet den Obmann-Bereich vollstaendig aus", () => {
   assert.match(css, /@page \{ size: A4/);
   // Am Bildschirm bleibt das Blatt unsichtbar.
   assert.match(css, /^\.druckblatt \{ display: none; \}/m);
+});
+
+test("jede obmann_-Funktion des Web-Editors ist auch fuer angemeldete Rollen freigegeben", () => {
+  // Der Obmann-Bereich der Website laeuft ueber Supabase Auth, PostgREST
+  // ruft von dort als "authenticated". Nur "anon" zu berechtigen sieht in
+  // der Migration vollstaendig aus und scheitert erst im Browser mit
+  // "permission denied" - genau so passiert am 17.09.2026.
+  const editor = lies("src/admin/freigabe-editor.js");
+  const gerufen = [...editor.matchAll(/rufe\("(obmann_[a-z_]+)"/g)].map((t) => t[1]);
+  const ausSchloss = [...editor.matchAll(/client\.rpc\("(obmann_[a-z_]+)"/g)].map((t) => t[1]);
+  const alle = [...new Set([...gerufen, ...ausSchloss])];
+  assert.ok(alle.length >= 6, `nur ${alle.length} Funktionen gefunden - stimmt das Muster noch?`);
+
+  // Die Rechte stehen ueber mehrere Migrationen verteilt: v147 hat die
+  // erste Runde nachgezogen, v150 bringt die Aktionen des
+  // Beschaffungsprozesses mit. Geprueft wird die Summe, nicht eine Datei.
+  const rechte = [
+    "supabase/migrations/20260917140000_v147_obmann_freigabe_auch_fuer_angemeldete.sql",
+    "supabase/migrations/20260917190000_v150_ausruestung_aktionen_und_zeitleiste.sql",
+  ].map(lies).join("\n");
+  for (const funktion of alle) {
+    // "to anon, authenticated" und "to authenticated" sind beide gueltig -
+    // gesucht ist die Rolle, nicht eine bestimmte Schreibweise.
+    assert.match(rechte, new RegExp(`grant execute on function public\\.${funktion}\\([^;]*\\bauthenticated\\b`),
+      `${funktion} ist nicht fuer "authenticated" freigegeben - der Web-Editor bekommt permission denied`);
+  }
+});
+
+test("die Seite des Vorstands bleibt bewusst bei anon", () => {
+  // Dort ist niemand angemeldet - das ist der Sinn des Links. Eine
+  // Freigabe an "authenticated" waere hier kein Fehler, aber ein Zeichen,
+  // dass jemand die beiden Tueren verwechselt hat.
+  const rechte = lies("supabase/migrations/20260917140000_v147_obmann_freigabe_auch_fuer_angemeldete.sql");
+  for (const funktion of ["freigabe_dashboard", "freigabe_entscheiden", "freigabe_uebersicht"]) {
+    assert.doesNotMatch(rechte, new RegExp(`${funktion}[^;]*to authenticated`), funktion);
+  }
 });

@@ -77,7 +77,11 @@ test("Ausruestungsanfragen stehen mit unter den eigenen Vorgaengen", () => {
   // gefunden. Die Zeilen kamen immer schon mit derselben RPC mit.
   assert.match(js, /artName: "Ausrüstungsanfrage"/);
   assert.match(js, /\["ausruestung", "Ausrüstung"\]/);
-  assert.match(js, /ausAusruestung\(aufrufe\[0\]\.value\)/);
+  // Seit v153 kommt der Verlauf aus der serverseitigen Schrittliste, die
+  // als zweiter Aufruf danebensteht - dieselbe Quelle wie auf der
+  // Ausruestungsseite und in der Obmann-App.
+  assert.match(js, /ausAusruestung\(aufrufe\[0\]\.value, prozesse\)/);
+  assert.match(js, /schiri_prozess_liste/);
 });
 
 test("die Uebersicht bleibt kurz und zeigt Fall und Verlauf erst im Eintrag", () => {

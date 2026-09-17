@@ -6,6 +6,7 @@
 //  Stammdaten und fremde Vorgaenge bleiben ausgeschlossen.
 
 import { DATENBANK } from "../../verein.config.js";
+import { verlaufAusProzess, nachId } from "./prozess-linie.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -293,8 +294,15 @@ function ausAnliegen(zeilen) {
 // gesucht und nicht gefunden. Die Zeilen kamen schon immer mit - sie wurden
 // nur weggefiltert, weil "Meine Anliegen" ausschliesslich den Typ
 // "anliegen" gezeigt hat.
-function ausAusruestung(zeilen) {
+function ausAusruestung(zeilen, prozesse) {
   return zeilen.filter((a) => !istAnliegen(a)).map((a) => {
+    // Der Verlauf kommt aus der serverseitigen Schrittliste (v153) - aus
+    // derselben Quelle wie die Ausruestungsseite, die Obmann-App und die
+    // Vorstandsseite. Vorher hat jede Oberflaeche ihre eigene Kette aus
+    // Status und Booleans gebaut; genau deshalb stand hier etwas anderes
+    // als dort. Faellt der Aufruf aus, bleibt der alte, grobe Weg als
+    // Rueckfalllinie - lieber wenig als nichts.
+    const vorgang = prozesse?.get(String(a.id)) || null;
     const wort = AUSRUESTUNG?.findeKategorie?.(a.kategorie)?.wort || text(a.kategorie) || "Ausrüstung";
     const merkmale = [
       text(a.groesse) ? "Größe " + text(a.groesse) : "",
@@ -314,6 +322,7 @@ function ausAusruestung(zeilen) {
     if (a.erstattet) {
       verlauf.push({ wer: "stand", titel: "Erstattet", text: "Der Verein hat dir die Kosten erstattet." });
     }
+    const schritte = vorgang ? verlaufAusProzess(vorgang) : [];
     return {
       art: "ausruestung",
       artName: "Ausrüstungsanfrage",
@@ -326,7 +335,7 @@ function ausAusruestung(zeilen) {
         ["Dein Text", a.anmerkung],
         ["Beschaffung", WEG_WORT[a.beschaffungsweg]],
       ],
-      verlauf,
+      verlauf: schritte.length ? schritte : verlauf,
       hinweis: OHNE_ANTWORTTEXT,
       link: "ausruestung.html",
       linkText: "Zu meinem Ausrüstungsbestand",
@@ -475,17 +484,20 @@ function ausTerminen(zeilen) {
 async function ladeVorgaenge(person) {
   const aufrufe = await Promise.allSettled([
     rufeListe("schiri_anfragen_liste", person),
+    rufeListe("schiri_prozess_liste", person),
     rufeListe("meine_frage_meldungen", person),
     rufeListe("schiri_fragenvorschlaege_liste", person),
     rufeListe("meine_termin_vorschlaege", person),
   ]);
 
+  const prozesse = nachId(aufrufe[1].status === "fulfilled" ? aufrufe[1].value : []);
+
   vorgaenge = [
     ...(aufrufe[0].status === "fulfilled" ? ausAnliegen(aufrufe[0].value) : []),
-    ...(aufrufe[0].status === "fulfilled" ? ausAusruestung(aufrufe[0].value) : []),
-    ...(aufrufe[1].status === "fulfilled" ? ausQuizFeedback(aufrufe[1].value) : []),
-    ...(aufrufe[2].status === "fulfilled" ? ausFragen(aufrufe[2].value) : []),
-    ...(aufrufe[3].status === "fulfilled" ? ausTerminen(aufrufe[3].value) : []),
+    ...(aufrufe[0].status === "fulfilled" ? ausAusruestung(aufrufe[0].value, prozesse) : []),
+    ...(aufrufe[2].status === "fulfilled" ? ausQuizFeedback(aufrufe[2].value) : []),
+    ...(aufrufe[3].status === "fulfilled" ? ausFragen(aufrufe[3].value) : []),
+    ...(aufrufe[4].status === "fulfilled" ? ausTerminen(aufrufe[4].value) : []),
   ].sort((a, b) => new Date(b.zeit || 0) - new Date(a.zeit || 0));
 
   zeichneFilter();
