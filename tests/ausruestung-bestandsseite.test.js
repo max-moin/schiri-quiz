@@ -134,6 +134,25 @@ test("das Formular zeigt nur Angaben, die zum Gegenstand passen", () => {
   assert.match(html, /<option value="ersatz">Stark gebraucht<\/option>/);
 });
 
+test("neue Bestandsstücke erfassen ehrlich, wer sie bezahlt hat", () => {
+  const migration = lies("supabase/migrations/20260921102209_bestandsfinanzierung.sql");
+  assert.match(html, /id="bestand-finanzierung"/);
+  assert.match(html, /Selbst gekauft/);
+  assert.match(html, /Vom Verein bezahlt/);
+  assert.match(html, /Weiß ich nicht mehr/);
+  assert.match(seite, /schiri_ausruestungsbestand_speichern_v2/);
+  assert.match(seite, /Bitte gib an, ob du das Stück selbst gekauft hast/);
+  assert.match(seite, /finanzierung-/);
+  assert.match(migration, /add column if not exists finanzierung/);
+  assert.match(migration, /default 'unbekannt'/,
+    "Altdaten dürfen nicht nachträglich als selbst oder verein-finanziert erfunden werden.");
+  assert.match(migration, /create or replace function public\.schiri_ausruestungsbestand_speichern_v2/);
+  assert.match(migration, /'finanzierung', x\.finanzierung/,
+    "Toms Bestandsansicht bekommt die Finanzierungsangabe nicht.");
+  assert.match(migration, /'finanzierung', b\.finanzierung/,
+    "Die Personenansicht der Dashboard-App bekommt die Finanzierungsangabe nicht.");
+});
+
 test("Farbe ist eine sichtbare Auswahl und bleibt trotzdem zugänglich beschriftet", () => {
   assert.match(katalog, /const FARBEN/);
   for (const farbe of ["Schwarz", "Weiß", "Gelb", "Rot", "Grün", "Blau"]) {

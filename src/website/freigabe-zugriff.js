@@ -1,10 +1,11 @@
 // ============================================================
 //  Zugriff und Aufbereitung für die Vorstandsfreigabe
 // ------------------------------------------------------------
-//  Bewusst ohne Anmeldung: die Berechtigung steckt allein im
+//  Bewusst ohne Konto: die Berechtigung steckt im persönlichen
 //  Token aus der Adresszeile. Der Server prüft ihn bei JEDEM
 //  Aufruf neu - abgelaufen oder widerrufen heißt sofort Schluss,
-//  auch mitten in der Sitzung.
+//  auch mitten in der Sitzung. Dauerzugänge laufen nicht kalendarisch
+//  ab, können aber jederzeit im Obmann-Bereich widerrufen werden.
 //
 //  Seit v151 sieht ein Link außerdem nur noch seinen eigenen
 //  Stapel: genau die Anfragen, die unter diesem Link vorgelegt
@@ -36,7 +37,9 @@ export function erstelleFreigabeZugriff({ adresse, oeffentlicherSchluessel }) {
   }
 
   return Object.freeze({
+    zugang: (token) => rufe("freigabe_zugang", { p_token: token }),
     dashboard: (token) => rufe("freigabe_dashboard", { p_token: token }),
+    bestand: (token) => rufe("freigabe_bestand", { p_token: token }),
     entscheiden: (token, id, entscheidung, name, notiz) => rufe("freigabe_entscheiden", {
       p_token: token, p_id: id, p_entscheidung: entscheidung,
       p_name: name, p_notiz: notiz || null,
@@ -106,14 +109,11 @@ export function summeMitLuecken(zeilen) {
 }
 
 /**
- * Der einzige Personenkontext, den diese Seite noch zeigt: was für
- * diese Person in der laufenden Saison bereits freigegeben wurde.
- *
- * Bewusst nur diese eine Zahl. Bis v150 standen hier der komplette
- * Ausrüstungsbestand und die vollständige Anfragehistorie jeder Person.
- * Für eine Entscheidung über ein Trikot braucht es das nicht - und bei
- * minderjährigen Schiedsrichtern ist es deutlich mehr, als ein
- * Vereinsverantwortlicher sehen muss.
+ * Der kompakte Kontext direkt an einer Entscheidung. Der Bestand liegt
+ * getrennt in einer eigenen, klar gekennzeichneten Übersicht und ist
+ * nur für einen namentlichen Dauerzugang abrufbar. Dadurch bleibt die
+ * Entscheidungskarte kurz, ohne Tom den vereinbarten Gesamtüberblick zu
+ * nehmen.
  */
 export function saisonKontext(zeile) {
   const anzahl = Number(zeile && zeile.saison_freigegeben_anzahl) || 0;

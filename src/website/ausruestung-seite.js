@@ -65,6 +65,11 @@ const ZUSTAND_WORT = {
   fehlt: "Nicht mehr vorhanden",
 };
 const AERMEL_WORT = { kurz: "Kurzarm", lang: "Langarm" };
+const FINANZIERUNG_WORT = {
+  selbst: "Selbst gekauft",
+  verein: "Vom Verein bezahlt",
+  unbekannt: "Finanzierung nicht mehr bekannt",
+};
 const STATUS_WORT = { offen: "Offen", angenommen: "Angenommen", abgelehnt: "Abgelehnt", erledigt: "Erledigt" };
 
 const datum = (iso) => globalThis.SchiriQuizUtils?.formatiereAnfrageDatum?.(iso) || "";
@@ -227,6 +232,7 @@ function oeffneEintrag(id) {
   $("bestand-aermel").value = x.aermellaenge || "";
   $("bestand-anzahl").value = x.anzahl || 1;
   $("bestand-zustand").value = x.zustand;
+  $("bestand-finanzierung").value = x.finanzierung || "unbekannt";
   $("bestand-anmerkung").value = x.anmerkung || "";
   aktualisiereFormularFelder();
   meldung("", false);
@@ -255,6 +261,10 @@ function eintragHtml(x) {
   if (x.aermellaenge) plaketten.push(plakette(AERMEL_WORT[x.aermellaenge] || x.aermellaenge));
   if (Number(x.anzahl) > 1) plaketten.push(plakette(x.anzahl + "×"));
   plaketten.push(plakette(ZUSTAND_WORT[x.zustand] || x.zustand, "zustand-" + x.zustand));
+  plaketten.push(plakette(
+    FINANZIERUNG_WORT[x.finanzierung || "unbekannt"],
+    "finanzierung-" + (x.finanzierung || "unbekannt"),
+  ));
   const name = x.bezeichnung || fach(x.kategorie)?.wort || x.kategorie;
   return `<article class="bestand-eintrag" data-id="${esc(x.id)}">`
     + `<button type="button" class="bestand-eintrag-bearbeiten" data-bestand-bearbeiten="${esc(x.id)}">`
@@ -485,9 +495,14 @@ $("bestand-formular").onsubmit = async (e) => {
     $("bestand-bezeichnung").focus();
     return;
   }
+  if (!$("bestand-finanzierung").value) {
+    meldung("Bitte gib an, ob du das Stück selbst gekauft hast oder der Verein es bezahlt hat.", true);
+    $("bestand-finanzierung").focus();
+    return;
+  }
   const p = ich();
   meldung("Wird gespeichert …", false);
-  const { error } = await rpc.rpc("schiri_ausruestungsbestand_speichern", {
+  const { error } = await rpc.rpc("schiri_ausruestungsbestand_speichern_v2", {
     p_schiedsrichter_id: p.id,
     p_pin: p.pin,
     p_kategorie: $("bestand-kategorie").value,
@@ -497,6 +512,7 @@ $("bestand-formular").onsubmit = async (e) => {
     p_aermellaenge: kategorie.aermel ? ($("bestand-aermel").value || null) : null,
     p_anzahl: kategorie.verbrauch ? Number($("bestand-anzahl").value) : 1,
     p_zustand: $("bestand-zustand").value,
+    p_finanzierung: $("bestand-finanzierung").value,
     p_anmerkung: $("bestand-anmerkung").value.trim() || null,
     p_id: $("bestand-id").value || null,
   });

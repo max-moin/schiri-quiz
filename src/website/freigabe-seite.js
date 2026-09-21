@@ -6,10 +6,10 @@
 //  zweierlei: schnell entscheiden können - und sehen, worüber
 //  sie entscheidet.
 //
-//  Der Name wird einmal oben eingetragen und für die Sitzung
-//  behalten. Bewusst NICHT im Browser gespeichert: der Link kann
-//  weitergegeben werden, und dann stünde der falsche Name unter
-//  einer fremden Entscheidung.
+//  Bei einem persönlichen Dauerzugang stammt der Name serverseitig
+//  aus dem Zugang. Er kann im Browser weder vertauscht noch
+//  überschrieben werden. Alte befristete Links behalten das bisherige
+//  Namensfeld und speichern es weiterhin nicht im Browser.
 //
 //  Die Begründung ist kein Beiwerk. Max gibt sie an den
 //  Schiedsrichter weiter - deshalb steht sie bei einer Ablehnung
@@ -30,15 +30,17 @@
 //     der Obmann kann denselben Schritt auch nach einer Nachricht
 //     setzen. In beiden Fällen steht hinterher da, wer es war.
 //
-//  Der frühere Abschnitt "Die Schiedsrichter" mit Ausrüstungsbestand
-//  und vollständiger Anfragehistorie je Person ist bewusst weg. Für
-//  eine Kaufentscheidung braucht es ihn nicht.
+//  Der Bestand ist wieder da, aber enger als frueher: nur im
+//  namentlichen Dauerzugang, nach Gegenstandsgruppen sortiert und ohne
+//  PINs, Kontaktdaten oder fremde Vereinsdaten. Befristete Links sehen
+//  weiterhin nur ihren eigenen Anfragestapel.
 // ============================================================
 import { DATENBANK } from "../../verein.config.js";
 import {
   erstelleFreigabeZugriff, euro, betrag, datum, stueckText,
   QUELLE_TEXT, STAND_TEXT, summeMitLuecken, saisonKontext,
 } from "./freigabe-zugriff.js";
+import { bestandsgruppe, bestandsInhalt } from "./freigabe-bestand.js";
 
 const bereich = document.getElementById("freigabeBereich");
 const zugriff = erstelleFreigabeZugriff({
@@ -49,6 +51,9 @@ const zugriff = erstelleFreigabeZugriff({
 const token = new URLSearchParams(location.search).get("code") || "";
 let name = "";
 let stand = null;
+let zugangsinfo = null;
+let bestandsstand = { personen: [] };
+let bestandsfilter = "trikot";
 
 const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
@@ -74,8 +79,20 @@ function kachel(titel, wert, zusatz = "") {
     ${zusatz ? `<small>${sicher(zusatz)}</small>` : ""}</div>`;
 }
 
+function verdrahteBestand() {
+  document.querySelectorAll("[data-bestand-filter]").forEach((knopf) => {
+    knopf.addEventListener("click", () => {
+      bestandsfilter = knopf.dataset.bestandFilter;
+      const ziel = document.getElementById("fgBestand");
+      if (ziel) ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter);
+      verdrahteBestand();
+    });
+  });
+}
+
 function kopf() {
   const k = stand.kennzahlen;
+  const persoenlich = zugangsinfo?.art === "dauerhaft" && zugangsinfo?.name;
   const luecke = k.offen_ohne_preis
     ? `${k.offen_ohne_preis === 1 ? "eine Zeile ohne Preis" : `${k.offen_ohne_preis} Zeilen ohne Preis`}`
     : "";
@@ -96,12 +113,18 @@ function kopf() {
           `${k.zahlung_anzahl} ${k.zahlung_anzahl === 1 ? "Vorgang" : "Vorgänge"}`)}
       </div>
 
-      <label class="fg-name">Dein Name
+      ${persoenlich ? `<div class="fg-identitaet">
+        <span>Persönlicher Zugang</span>
+        <b>${sicher(zugangsinfo.name)}</b>
+        ${zugangsinfo.rolle ? `<small>${sicher(zugangsinfo.rolle)}</small>` : ""}
+      </div>
+      <p class="fg-hinweis">Dieser Zugang bleibt bis zum Widerruf gültig. Entscheidungen
+        werden automatisch diesem Namen zugeordnet.</p>` : `<label class="fg-name">Dein Name
         <input id="fgName" type="text" autocomplete="name" placeholder="Vor- und Nachname"
                value="${sicher(name)}" />
       </label>
       <p class="fg-hinweis">Wird zu jeder Entscheidung gespeichert, damit später
-        nachvollziehbar ist, wer sie getroffen hat.</p>
+        nachvollziehbar ist, wer sie getroffen hat.</p>`}
     </section>`;
 }
 
@@ -124,6 +147,9 @@ function entscheidungsKarte(zeile) {
       </div>
       ${zeile.anmerkung ? `<p class="fg-anmerkung">„${sicher(zeile.anmerkung)}"</p>` : ""}
       <p class="fg-kontext">${sicher(saisonKontext(zeile))} ${sicher(weg)}</p>
+      ${zugangsinfo?.art === "dauerhaft" ? `<button type="button" class="fg-bestand-sprung"
+        data-bestand-oeffnen="${sicher(zeile.person)}" data-bestand-kategorie="${sicher(zeile.kategorie)}">
+        Bestand von ${sicher(zeile.person)} ansehen</button>` : ""}
       <label class="fg-notiz">Begründung
         <input type="text" data-notiz maxlength="200"
                placeholder="Wird dem Schiedsrichter weitergegeben – bei einer Ablehnung bitte ausfüllen" />
@@ -178,6 +204,13 @@ function zeichne() {
   bereich.innerHTML = `
     ${kopf()}
 
+    ${zugangsinfo?.art === "dauerhaft" ? `<section class="fg-abschnitt fg-bestand">
+      <div class="fg-abschnitt-kopf"><div><p class="fg-kicker">Vereinsbestand</p>
+        <h2>Ausrüstung der Schiedsrichter</h2></div>
+        <p>Bestand prüfen, bevor der Verein eine weitere Anschaffung übernimmt.</p></div>
+      <div id="fgBestand">${bestandsInhalt(bestandsstand, bestandsfilter)}</div>
+    </section>` : ""}
+
     <section class="fg-abschnitt">
       <h2>Zu entscheiden${offen.length ? ` <span class="fg-anzahl">${offen.length}</span>` : ""}</h2>
       ${offen.length ? `
@@ -205,6 +238,7 @@ function zeichne() {
     </section>` : ""}`;
 
   verdrahte();
+  verdrahteBestand();
 }
 
 function verdrahte() {
@@ -259,11 +293,32 @@ function verdrahte() {
       }
     });
   });
+
+  bereich.querySelectorAll("[data-bestand-oeffnen]").forEach((knopf) => {
+    knopf.addEventListener("click", () => {
+      bestandsfilter = bestandsgruppe(knopf.dataset.bestandKategorie).id;
+      const ziel = document.getElementById("fgBestand");
+      if (!ziel) return;
+      ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter);
+      verdrahteBestand();
+      const person = [...ziel.querySelectorAll("[data-bestand-person]")]
+        .find((element) => element.dataset.bestandPerson === knopf.dataset.bestandOeffnen);
+      if (person) person.open = true;
+      person?.scrollIntoView({ behavior: "smooth", block: "center" });
+    });
+  });
 }
 
 async function laden() {
   try {
-    stand = await zugriff.dashboard(token);
+    [stand, zugangsinfo] = await Promise.all([
+      zugriff.dashboard(token),
+      zugriff.zugang(token),
+    ]);
+    if (zugangsinfo?.art === "dauerhaft" && zugangsinfo?.name) name = zugangsinfo.name;
+    bestandsstand = zugangsinfo?.art === "dauerhaft"
+      ? await zugriff.bestand(token)
+      : { personen: [] };
     zeichne();
   } catch (fehler) {
     bereich.innerHTML = `

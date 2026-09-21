@@ -28,6 +28,7 @@ const VERTRAG = lies("supabase/migrations/20260917180000_v149_ausruestung_prozes
 const AKTIONEN = lies("supabase/migrations/20260917190000_v150_ausruestung_aktionen_und_zeitleiste.sql");
 const POSTFACH = lies("supabase/migrations/20260917200000_v151_ausruestung_postfach_und_freigabestapel.sql");
 const EINGANG = lies("supabase/migrations/20260917210000_v152_eingang_prozess_status.sql");
+const VORSTANDSBESTAND = lies("supabase/migrations/20260921100503_vorstandsbestand.sql");
 
 /* ============================================================
    Die Zustaende
@@ -204,16 +205,32 @@ test("ein Prozessereignis wird abgehakt, nicht geloescht", () => {
    Was der Vorstand zu sehen bekommt
    ============================================================ */
 
-test("die Vorstandsseite zeigt keinen Ausruestungsbestand und keine Personenhistorie mehr", () => {
-  // Fuer eine Entscheidung ueber ein Trikot braucht es das nicht - und bei
-  // minderjaehrigen Schiedsrichtern ist es deutlich zu viel.
+test("Bestand ist nur im persoenlichen Dauerzugang und auf den eigenen Verein begrenzt", () => {
+  // v151 hat den Bestand mit Recht aus jedem geteilten Einmal-Link
+  // entfernt. Max hat ihn am 21.09. bewusst fuer Toms persoenlichen,
+  // widerrufbaren Dauerzugang freigegeben. Diese Trennung muss bleiben.
   const dashboard = POSTFACH.match(
     /create or replace function public\.freigabe_dashboard[\s\S]*?\$function\$;/);
   assert.ok(dashboard);
   assert.doesNotMatch(dashboard[0], /ausruestungsbestand/);
   assert.doesNotMatch(dashboard[0], /'schiedsrichter',/);
+
+  assert.match(VORSTANDSBESTAND, /create or replace function public\.freigabe_bestand/);
+  assert.match(VORSTANDSBESTAND, /l\.zugangsart = 'dauerhaft'/);
+  assert.match(VORSTANDSBESTAND, /s\.verein_id = v_verein/);
+  assert.match(VORSTANDSBESTAND, /coalesce\(s\.aktiv, true\)/);
+  assert.match(VORSTANDSBESTAND, /not coalesce\(s\.ist_test, false\)/);
+  // Kein Login-Geheimnis und keine Kontaktdaten im Ergebnis.
+  assert.doesNotMatch(VORSTANDSBESTAND, /'pin'|'email'|'telefon'/);
+  assert.match(VORSTANDSBESTAND, /grant execute on function public\.freigabe_bestand\(text\) to anon/);
+
   const seite = lies("src/website/freigabe-seite.js");
-  assert.doesNotMatch(seite, /bestandText|fg-bestand|fg-person-karte/);
+  const bestand = lies("src/website/freigabe-bestand.js");
+  assert.match(seite, /Ausrüstung der Schiedsrichter/);
+  for (const gruppe of ["Trikots", "Hosen & Stutzen", "Schuhe", "Equipment", "Technik", "Sonstiges"]) {
+    assert.match(bestand, new RegExp(gruppe.replace(/[&]/g, "&")), gruppe);
+  }
+  assert.match(seite, /Bestand von \$\{sicher\(zeile\.person\)\} ansehen/);
 });
 
 test("der Saisonkontext nennt eine Zahl und sonst nichts", () => {

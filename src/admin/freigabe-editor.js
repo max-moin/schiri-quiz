@@ -134,13 +134,15 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
   }
 
   function linkHtml(l) {
-    const abgelaufen = new Date(l.gueltig_bis) < new Date();
+    const dauerhaft = !l.gueltig_bis;
+    const abgelaufen = !dauerhaft && new Date(l.gueltig_bis) < new Date();
     const tot = l.widerrufen_am || abgelaufen;
     return `
       <tr data-id="${sicher(l.id)}">
         <td>${sicher(l.beschriftung || "ohne Beschriftung")}<br />
           <small>erstellt ${datum(l.erstellt_am)}${l.zuletzt_genutzt_am ? ` · zuletzt benutzt ${datum(l.zuletzt_genutzt_am)}` : " · noch nie benutzt"}</small></td>
-        <td>${l.widerrufen_am ? "widerrufen" : abgelaufen ? "abgelaufen" : `gültig bis ${datum(l.gueltig_bis)}`}</td>
+        <td>${l.widerrufen_am ? "widerrufen" : abgelaufen ? "abgelaufen"
+          : dauerhaft ? "dauerhaft · bis zum Widerruf" : `gültig bis ${datum(l.gueltig_bis)}`}</td>
         <td class="admin-tat">${tot ? "" : `<button type="button" class="knopf" data-link-widerrufen>Widerrufen</button>`}</td>
       </tr>`;
   }
@@ -161,17 +163,26 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
       </section>
 
       <section class="admin-panel">
-        <div class="admin-panel-kopf"><h2>Freigabe-Link</h2>
-          <p>Für ein Vorstandsmitglied. Kein Konto nötig – wer den Link hat, kann entscheiden.</p></div>
+        <div class="admin-panel-kopf"><h2>Zugang für Verantwortliche</h2>
+          <p>Ein persönlicher Dauerzugang kann gespeichert werden und gilt, bis du ihn widerrufst.</p></div>
         <div class="admin-text-form">
-          <label>Für wen (Notiz für dich)<input data-link-name placeholder="z. B. Kassenwart" /></label>
-          <label>Gültig für … Tage<input data-link-tage type="number" min="1" max="365" value="30" /></label>
-          <div class="admin-breit"><button type="button" class="knopf knopf-primaer" data-link-erstellen>Link erzeugen</button></div>
+          <label>Name<input data-dauer-name autocomplete="name" placeholder="z. B. Tom Mustermann" /></label>
+          <label>Rolle<input data-dauer-rolle value="Finanzen / Vorstand" /></label>
+          <div class="admin-breit"><button type="button" class="knopf knopf-primaer" data-dauer-erstellen>
+            Persönlichen Dauerzugang erzeugen</button></div>
           ${neuerLink ? `<div class="admin-breit admin-token">
             <b>Diesen Link jetzt weitergeben – er wird nicht noch einmal angezeigt:</b>
             <code>${sicher(neuerLink)}</code>
           </div>` : ""}
         </div>
+        <details class="admin-aufklapper">
+          <summary><span><b>Befristeten Einmal-Link erzeugen</b><small>Für eine einzelne Übergabe oder Vertretung.</small></span></summary>
+          <div class="admin-text-form">
+            <label>Beschriftung<input data-link-name placeholder="z. B. Vertretung Kassenwart" /></label>
+            <label>Gültig für … Tage<input data-link-tage type="number" min="1" max="365" value="30" /></label>
+            <div class="admin-breit"><button type="button" class="knopf" data-link-erstellen>Befristeten Link erzeugen</button></div>
+          </div>
+        </details>
         ${links.length ? `<table class="admin-tabelle">
           <thead><tr><th>Link</th><th>Stand</th><th></th></tr></thead>
           <tbody>${links.map(linkHtml).join("")}</tbody></table>` : ""}
@@ -191,13 +202,17 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
         </div>
       </section>
 
-      <section class="admin-panel">
-        <div class="admin-panel-kopf"><h2>Richtpreise</h2>
-          <p>Werden beim Anlegen einer Anfrage als Hausnummer übernommen. Leer heißt: kein Richtwert.</p></div>
+      <!-- Zugeklappt voreingestellt (Max, 21.09.2026: "Ich muss das ja
+           nicht immer sehen"). Die Richtwerte aendert man selten, die
+           Anfragen darueber dagegen staendig. Gleiches Muster wie die
+           anderen Aufklapper im Obmann-Bereich. -->
+      <details class="admin-panel admin-aufklapper">
+        <summary><span><b>Richtpreise</b><small>Werden beim Anlegen einer Anfrage als Hausnummer
+          übernommen. Leer heißt: kein Richtwert.</small></span></summary>
         <table class="admin-tabelle">
           <thead><tr><th>Stück</th><th>Richtwert</th><th></th></tr></thead>
           <tbody>${preise.map(preisHtml).join("")}</tbody></table>
-      </section>`;
+      </details>`;
     verdrahte();
   }
 
@@ -239,6 +254,21 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
             p_richtwert_cent: cent, p_aktiv: eintrag.aktiv,
           });
         });
+      });
+    });
+
+    inhalt.querySelector("[data-dauer-erstellen]")?.addEventListener("click", () => {
+      const name = inhalt.querySelector("[data-dauer-name]").value.trim();
+      const rolle = inhalt.querySelector("[data-dauer-rolle]").value.trim();
+      if (name.length < 2 || rolle.length < 2) {
+        setzeStatus(wurzel, "Bitte Name und Rolle des Verantwortlichen eintragen.", "fehler");
+        return;
+      }
+      mit("Dauerzugang wird erzeugt …", async () => {
+        const token = await rufe("obmann_verantwortlichen_zugang_erstellen", {
+          p_name: name, p_rolle: rolle,
+        });
+        neuerLink = `${location.origin}/freigabe.html?code=${token}`;
       });
     });
 

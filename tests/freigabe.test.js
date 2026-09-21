@@ -15,8 +15,10 @@ import {
   summeMitLuecken, saisonKontext,
 } from "../src/website/freigabe-zugriff.js";
 import { centAusEingabe } from "../src/admin/freigabe-editor.js";
+import { bestandsgruppe, bestandsInhalt } from "../src/website/freigabe-bestand.js";
 
 const lies = (n) => readFileSync(new URL("../" + n, import.meta.url), "utf8");
+const DAUERZUGANG = "supabase/migrations/20260921095917_dauerzugang_vorstand.sql";
 
 test("Betraege werden als Euro dargestellt, fehlende gar nicht", () => {
   assert.match(euro(3500), /35,00/);
@@ -132,8 +134,8 @@ test("die Freigabeseite haelt keinen Schluessel im HTML", () => {
 test("der Token wird nirgends im Browser abgelegt", () => {
   const skript = lies("src/website/freigabe-seite.js");
   assert.doesNotMatch(skript, /localStorage|sessionStorage|document\.cookie/);
-  // Auch der Name des Entscheiders nicht - der Link kann weitergegeben
-  // werden, und dann stuende der falsche Name da.
+  // Auch keine Zugangsdaten im Obmann-Editor. Der feste Name eines
+  // Dauerzugangs liegt serverseitig am Link, nicht im Browser-Speicher.
   const editor = lies("src/admin/freigabe-editor.js");
   assert.doesNotMatch(editor, /localStorage|sessionStorage/);
 });
@@ -261,6 +263,7 @@ test("jede obmann_-Funktion des Web-Editors ist auch fuer angemeldete Rollen fre
   const rechte = [
     "supabase/migrations/20260917140000_v147_obmann_freigabe_auch_fuer_angemeldete.sql",
     "supabase/migrations/20260917190000_v150_ausruestung_aktionen_und_zeitleiste.sql",
+    DAUERZUGANG,
   ].map(lies).join("\n");
   for (const funktion of alle) {
     // "to anon, authenticated" und "to authenticated" sind beide gueltig -
@@ -268,6 +271,18 @@ test("jede obmann_-Funktion des Web-Editors ist auch fuer angemeldete Rollen fre
     assert.match(rechte, new RegExp(`grant execute on function public\\.${funktion}\\([^;]*\\bauthenticated\\b`),
       `${funktion} ist nicht fuer "authenticated" freigegeben - der Web-Editor bekommt permission denied`);
   }
+});
+
+test("die Richtpreise stehen zugeklappt", () => {
+  // Max, 21.09.2026: "Ich muss das ja nicht immer sehen." Die Richtwerte
+  // aendert man selten, die Anfragen darueber staendig - also derselbe
+  // Aufklapper wie ueberall sonst im Obmann-Bereich, und ohne "open".
+  const editor = lies("src/admin/freigabe-editor.js");
+  assert.match(editor, /<details class="admin-panel admin-aufklapper">\s*\n\s*<summary><span><b>Richtpreise<\/b>/);
+  assert.doesNotMatch(editor, /admin-aufklapper" open/);
+  // Der Abschnitt mit den zu entscheidenden Anfragen bleibt offen - er ist
+  // der Grund, warum man die Seite ueberhaupt oeffnet.
+  assert.match(editor, /<section class="admin-panel">/);
 });
 
 test("die Seite des Vorstands bleibt bewusst bei anon", () => {
@@ -278,4 +293,81 @@ test("die Seite des Vorstands bleibt bewusst bei anon", () => {
   for (const funktion of ["freigabe_dashboard", "freigabe_entscheiden", "freigabe_uebersicht"]) {
     assert.doesNotMatch(rechte, new RegExp(`${funktion}[^;]*to authenticated`), funktion);
   }
+});
+
+test("der persoenliche Vorstandszugang endet erst beim Widerruf", () => {
+  const m = lies(DAUERZUGANG);
+  assert.match(m, /alter column gueltig_bis drop not null/);
+  assert.match(m, /zugangsart = 'dauerhaft' and gueltig_bis is null/);
+  assert.match(m, /obmann_verantwortlichen_zugang_erstellen/);
+  // Sowohl Verein als auch Link-ID verwenden dieselbe Aktiv-Regel. Wenn
+  // nur eine davon angepasst wird, lädt die Seite teilweise und Aktionen
+  // schlagen danach scheinbar zufällig fehl.
+  assert.ok((m.match(/gueltig_bis is null or l\.gueltig_bis > now\(\)/g) || []).length >= 4);
+  assert.match(m, /widerrufen_am is null/);
+  assert.match(m, /digest\(v_token, 'sha256'\)/);
+  assert.doesNotMatch(m, /insert into public\.freigabe_links[^;]*\btoken\b(?!_abdruck)/s);
+});
+
+test("ein persoenlicher Zugang schreibt den Akteur serverseitig fest", () => {
+  const m = lies(DAUERZUGANG);
+  assert.match(m, /coalesce\(nullif\(btrim\(l\.verantwortlicher_name\)/);
+  assert.match(m, /v_name\s*:= public\.freigabe_akteur\(p_token, p_name\)/);
+  assert.ok((m.match(/'vorstand', v_name/g) || []).length >= 2);
+  assert.match(m, /p_entscheidung = 'abgelehnt'[\s\S]*?p_notiz/);
+  // Der Hilfsbaustein selbst darf nie direkt über die Data API aufrufbar sein.
+  assert.match(m, /revoke all on function public\.freigabe_akteur\(text, text\) from public/);
+  assert.doesNotMatch(m, /grant execute on function public\.freigabe_akteur/);
+});
+
+test("der Obmann-Editor bietet Dauerzugang und befristete Vertretung getrennt an", () => {
+  const editor = lies("src/admin/freigabe-editor.js");
+  assert.match(editor, /Persönlichen Dauerzugang erzeugen/);
+  assert.match(editor, /obmann_verantwortlichen_zugang_erstellen/);
+  assert.match(editor, /Befristeten Einmal-Link erzeugen/);
+  assert.match(editor, /dauerhaft · bis zum Widerruf/);
+  // null ist bei einem Dauerzugang Absicht und darf nicht als 1970 oder
+  // "abgelaufen" formatiert werden.
+  assert.match(editor, /const dauerhaft = !l\.gueltig_bis/);
+});
+
+test("die Vorstandsseite zeigt bei Dauerzugang die feste Identitaet", () => {
+  const zugriff = lies("src/website/freigabe-zugriff.js");
+  const seite = lies("src/website/freigabe-seite.js");
+  assert.match(zugriff, /freigabe_zugang/);
+  assert.match(seite, /zugangsinfo\?\.art === "dauerhaft"/);
+  assert.match(seite, /Persönlicher Zugang/);
+  assert.match(seite, /Entscheidungen[\s\S]*automatisch diesem Namen zugeordnet/);
+});
+
+test("der Vereinsbestand gruppiert Gegenstaende und summiert echte Stueckzahlen", () => {
+  assert.equal(bestandsgruppe("trikot").titel, "Trikots");
+  assert.equal(bestandsgruppe("headset").titel, "Technik");
+  assert.equal(bestandsgruppe("unbekannt").titel, "Sonstiges");
+
+  const html = bestandsInhalt({ personen: [{
+    name: "Max M.",
+    bestand: [
+      { kategorie: "trikot", farbe: "Blau", groesse: "M", anzahl: 2, zustand: "einsatzbereit" },
+      { kategorie: "trikot", farbe: "Rot", groesse: "L", anzahl: 1, zustand: "verschlissen", finanzierung: "verein" },
+    ],
+  }] }, "trikot");
+  assert.match(html, /<span>Trikots<\/span>\s*<b>3<\/b>/);
+  assert.match(html, /Max M\./);
+  assert.match(html, /Größe M/);
+  assert.match(html, /--farbe:#2474d2/);
+  assert.match(html, /× 2/);
+  assert.match(html, /vom Verein bezahlt/);
+  assert.match(html, /Finanzierung unbekannt/);
+});
+
+test("Bestandsangaben werden nie als HTML eingesetzt", () => {
+  const html = bestandsInhalt({ personen: [{
+    name: '<img src=x onerror="boese()">',
+    bestand: [{ kategorie: "trikot", bezeichnung: "<script>boese()</script>",
+      farbe: '"><b>rot', anzahl: 1, zustand: "einsatzbereit" }],
+  }] }, "trikot");
+  assert.doesNotMatch(html, /<script>|<img|<b>rot/);
+  assert.match(html, /&lt;script&gt;/);
+  assert.match(html, /&lt;img/);
 });
