@@ -29,6 +29,7 @@ const AKTIONEN = lies("supabase/migrations/20260917190000_v150_ausruestung_aktio
 const POSTFACH = lies("supabase/migrations/20260917200000_v151_ausruestung_postfach_und_freigabestapel.sql");
 const EINGANG = lies("supabase/migrations/20260917210000_v152_eingang_prozess_status.sql");
 const VORSTANDSBESTAND = lies("supabase/migrations/20260921100503_vorstandsbestand.sql");
+const DAUERPOSTFACH = lies("supabase/migrations/20260921155744_dauerzugang_offene_anfragen.sql");
 
 /* ============================================================
    Die Zustaende
@@ -127,19 +128,19 @@ test("ein Beleg vor der Freigabe ist nicht vorgesehen", () => {
    Der Freigabe-Stapel
    ============================================================ */
 
-test("ein Freigabe-Link sieht nur seinen eigenen Stapel", () => {
-  // Vorher haette ein laufender Link ohne Zutun auch alles erfasst, was
-  // erst spaeter vorgelegt wurde.
+test("befristete Links bleiben Stapel, Dauerzugaenge sind lebende Vereinspostfaecher", () => {
   assert.match(VERTRAG, /vorlage_link_id/);
   assert.match(AKTIONEN, /vorlage_link_id\s*=\s*v_link/);
-  const entscheiden = AKTIONEN.match(
+  const entscheiden = DAUERPOSTFACH.match(
     /create or replace function public\.freigabe_entscheiden[\s\S]*?\$\$;/);
   assert.ok(entscheiden);
-  assert.match(entscheiden[0], /a\.vorlage_link_id = v_link/);
+  assert.match(entscheiden[0], /v_art = 'dauerhaft' or a\.vorlage_link_id = v_link/);
   assert.match(entscheiden[0], /a\.prozess_status = 'vorgelegt'/);
-  for (const stelle of [POSTFACH]) {
-    assert.match(stelle, /a\.vorlage_link_id = v_link/);
-  }
+  assert.match(DAUERPOSTFACH, /v_art = 'dauerhaft'[\s\S]*?v_art = 'befristet' and a\.vorlage_link_id = v_link/);
+  assert.match(DAUERPOSTFACH, /a\.vorlage_am is not null/);
+  // Der alte Stapelvertrag bleibt fuer befristete Links weiterhin die
+  // Grundlage; nur der persoenliche Dauerzugang bekommt die neue Sicht.
+  assert.match(POSTFACH, /a\.vorlage_link_id = v_link/);
 });
 
 test("beim Vorlegen werden Betrag und Umfang eingefroren", () => {
@@ -227,7 +228,7 @@ test("Bestand ist nur im persoenlichen Dauerzugang und auf den eigenen Verein be
   const seite = lies("src/website/freigabe-seite.js");
   const bestand = lies("src/website/freigabe-bestand.js");
   assert.match(seite, /Ausrüstung der Schiedsrichter/);
-  for (const gruppe of ["Trikots", "Hosen & Stutzen", "Schuhe", "Equipment", "Technik", "Sonstiges"]) {
+  for (const gruppe of ["Trikots", "Hosen", "Stutzen", "Schuhe", "Equipment", "Technik", "Sonstiges"]) {
     assert.match(bestand, new RegExp(gruppe.replace(/[&]/g, "&")), gruppe);
   }
   assert.match(seite, /Bestand von \$\{sicher\(zeile\.person\)\} ansehen/);

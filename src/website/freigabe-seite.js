@@ -15,12 +15,12 @@
 //  Schiedsrichter weiter - deshalb steht sie bei einer Ablehnung
 //  als Pflichtfeld da und nicht als "(freiwillig)".
 //
-//  Zwei Dinge haben sich mit v150/v151 geändert:
+//  Zwei Dinge gelten fuer die Datenansicht:
 //
-//  1. Diese Seite zeigt nur den Stapel DIESES Links. Der Betrag
-//     je Zeile ist der, der beim Vorlegen eingefroren wurde -
-//     nachträglich ändern kann ihn niemand, ohne dass eine neue
-//     Freigabe fällig wird.
+//  1. Befristete Links zeigen nur ihren Stapel. Ein persoenlicher
+//     Dauerzugang ist dagegen ein lebendes Vorstandspostfach und zeigt
+//     alle bereits vom Obmann vorgelegten Anfragen des Vereins. Der
+//     Betrag je Zeile bleibt immer der beim Vorlegen eingefrorene Wert.
 //
 //  2. "Freigegeben" heißt freigegebenes Budget, nicht ausgegebenes
 //     Geld. Deshalb gibt es unten einen zweiten Abschnitt: Vorgänge,
@@ -30,17 +30,16 @@
 //     der Obmann kann denselben Schritt auch nach einer Nachricht
 //     setzen. In beiden Fällen steht hinterher da, wer es war.
 //
-//  Der Bestand ist wieder da, aber enger als frueher: nur im
-//  namentlichen Dauerzugang, nach Gegenstandsgruppen sortiert und ohne
-//  PINs, Kontaktdaten oder fremde Vereinsdaten. Befristete Links sehen
-//  weiterhin nur ihren eigenen Anfragestapel.
+//  Der Bestand ist nur im namentlichen Dauerzugang sichtbar, automatisch
+//  nach Gegenstandsgruppen sortiert und ohne PINs, Kontaktdaten oder
+//  fremde Vereinsdaten. Person und Kategorie sind getrennt filterbar.
 // ============================================================
 import { DATENBANK } from "../../verein.config.js";
 import {
   erstelleFreigabeZugriff, euro, betrag, datum, stueckText,
-  QUELLE_TEXT, STAND_TEXT, summeMitLuecken, saisonKontext,
+  QUELLE_TEXT, STAND_TEXT, summeMitLuecken, saisonKontext, gruppiereNachPerson,
 } from "./freigabe-zugriff.js";
-import { bestandsgruppe, bestandsInhalt } from "./freigabe-bestand.js";
+import { bestandsgruppe, bestandsInhalt, bestandsKurztext } from "./freigabe-bestand.js";
 
 const bereich = document.getElementById("freigabeBereich");
 const zugriff = erstelleFreigabeZugriff({
@@ -53,7 +52,8 @@ let name = "";
 let stand = null;
 let zugangsinfo = null;
 let bestandsstand = { personen: [] };
-let bestandsfilter = "trikot";
+let bestandsfilter = "alle";
+let bestandsPerson = "";
 
 const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
@@ -80,14 +80,23 @@ function kachel(titel, wert, zusatz = "") {
 }
 
 function verdrahteBestand() {
+  document.querySelector("[data-bestand-person-filter]")?.addEventListener("change", (ereignis) => {
+    bestandsPerson = ereignis.target.value;
+    zeichneBestand();
+  });
   document.querySelectorAll("[data-bestand-filter]").forEach((knopf) => {
     knopf.addEventListener("click", () => {
       bestandsfilter = knopf.dataset.bestandFilter;
-      const ziel = document.getElementById("fgBestand");
-      if (ziel) ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter);
-      verdrahteBestand();
+      zeichneBestand();
     });
   });
+}
+
+function zeichneBestand() {
+  const ziel = document.getElementById("fgBestand");
+  if (!ziel) return;
+  ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter, bestandsPerson);
+  verdrahteBestand();
 }
 
 function kopf() {
@@ -101,8 +110,9 @@ function kopf() {
       <p class="fg-kicker">${sicher(stand.verein)} · Saison ${sicher(stand.saison.bezeichnung)}</p>
       <h1>Ausrüstung freigeben</h1>
       <p class="fg-einstieg">Unsere Schiedsrichter fragen Ausrüstung an. Bitte entscheide
-        je Zeile, ob der Verein das übernimmt. Du siehst hier genau die Vorgänge, die
-        dir der Schiedsrichter-Obmann über diesen Link vorgelegt hat.</p>
+        je Zeile, ob der Verein das übernimmt. ${persoenlich
+          ? "In deinem persönlichen Zugang erscheinen alle offenen Vorlagen des Vereins automatisch."
+          : "Dieser befristete Link enthält nur den dafür zusammengestellten Stapel."}</p>
 
       <div class="fg-kacheln">
         ${kachel("Wartet auf dich", k.offen_anzahl, luecke)}
@@ -180,6 +190,25 @@ function zahlungsKarte(zeile) {
     </article>`;
 }
 
+function entscheidungsGruppe(gruppe) {
+  const summe = gruppe.summe.cent ? euro(gruppe.summe.cent) : "kein Betrag";
+  const luecke = gruppe.summe.ohnePreis
+    ? ` · ${gruppe.summe.ohnePreis} ${gruppe.summe.ohnePreis === 1 ? "Preis fehlt" : "Preise fehlen"}`
+    : "";
+  const bestand = zugangsinfo?.art === "dauerhaft"
+    ? `<p class="fg-person-bestand"><b>Vorhanden:</b> ${sicher(bestandsKurztext(bestandsstand, gruppe.person))}</p>`
+    : "";
+  return `<section class="fg-anfrage-personengruppe">
+    <header class="fg-anfrage-person-kopf">
+      <div><h3>${sicher(gruppe.person)}</h3><small>${gruppe.eintraege.length}
+        ${gruppe.eintraege.length === 1 ? "offene Anfrage" : "offene Anfragen"}</small></div>
+      <strong>${summe}${sicher(luecke)}</strong>
+    </header>
+    ${bestand}
+    <div class="fg-liste">${gruppe.eintraege.map(entscheidungsKarte).join("")}</div>
+  </section>`;
+}
+
 function verlaufZeile(z) {
   return `
     <li class="fg-mini" data-stand="${sicher(z.freigabe_status)}">
@@ -199,27 +228,29 @@ function zeichne() {
   const offen = stand.offen || [];
   const zahlungen = stand.zahlungen || [];
   const rechnung = summeMitLuecken(offen);
+  const personengruppen = gruppiereNachPerson(offen);
   const verlauf = stand.verlauf || [];
 
   bereich.innerHTML = `
     ${kopf()}
 
-    ${zugangsinfo?.art === "dauerhaft" ? `<section class="fg-abschnitt fg-bestand">
-      <div class="fg-abschnitt-kopf"><div><p class="fg-kicker">Vereinsbestand</p>
+    ${zugangsinfo?.art === "dauerhaft" ? `<details id="fgBestandAbschnitt" class="fg-abschnitt fg-bestand">
+      <summary class="fg-abschnitt-kopf"><div><p class="fg-kicker">Vereinsbestand</p>
         <h2>Ausrüstung der Schiedsrichter</h2></div>
-        <p>Bestand prüfen, bevor der Verein eine weitere Anschaffung übernimmt.</p></div>
-      <div id="fgBestand">${bestandsInhalt(bestandsstand, bestandsfilter)}</div>
-    </section>` : ""}
+        <p>Aufklappen, nach Person und Kategorie filtern.</p></summary>
+      <div id="fgBestand">${bestandsInhalt(bestandsstand, bestandsfilter, bestandsPerson)}</div>
+    </details>` : ""}
 
-    <section class="fg-abschnitt">
-      <h2>Zu entscheiden${offen.length ? ` <span class="fg-anzahl">${offen.length}</span>` : ""}</h2>
+    <details class="fg-abschnitt fg-anfragen-bereich" open>
+      <summary class="fg-bereich-summary"><h2>Zu entscheiden${offen.length ? ` <span class="fg-anzahl">${offen.length}</span>` : ""}</h2>
+        <span>${personengruppen.length} ${personengruppen.length === 1 ? "Person" : "Personen"}</span></summary>
       ${offen.length ? `
         ${rechnung.ohnePreis ? `<p class="fg-warnung">Bei ${rechnung.ohnePreis === 1
           ? "einer Anfrage" : `${rechnung.ohnePreis} Anfragen`} fehlt der Betrag.
           Die Summe oben ist deshalb unvollständig – bitte frag beim Obmann nach.</p>` : ""}
-        <div class="fg-liste">${offen.map(entscheidungsKarte).join("")}</div>`
+        <div class="fg-personengruppen">${personengruppen.map(entscheidungsGruppe).join("")}</div>`
         : `<p class="fg-leer">Zurzeit liegt nichts zur Entscheidung an. Danke!</p>`}
-    </section>
+    </details>
 
     ${zahlungen.length ? `
     <section class="fg-abschnitt">
@@ -297,10 +328,12 @@ function verdrahte() {
   bereich.querySelectorAll("[data-bestand-oeffnen]").forEach((knopf) => {
     knopf.addEventListener("click", () => {
       bestandsfilter = bestandsgruppe(knopf.dataset.bestandKategorie).id;
+      bestandsPerson = knopf.dataset.bestandOeffnen;
+      const abschnitt = document.getElementById("fgBestandAbschnitt");
+      if (abschnitt) abschnitt.open = true;
+      zeichneBestand();
       const ziel = document.getElementById("fgBestand");
       if (!ziel) return;
-      ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter);
-      verdrahteBestand();
       const person = [...ziel.querySelectorAll("[data-bestand-person]")]
         .find((element) => element.dataset.bestandPerson === knopf.dataset.bestandOeffnen);
       if (person) person.open = true;

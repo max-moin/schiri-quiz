@@ -12,7 +12,8 @@ const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
 
 export const BESTANDSGRUPPEN = Object.freeze([
   { id: "trikot", titel: "Trikots", kategorien: ["trikot"], symbol: "trikot" },
-  { id: "hose-stutzen", titel: "Hosen & Stutzen", kategorien: ["hose", "stutzen"], symbol: "hose" },
+  { id: "hose", titel: "Hosen", kategorien: ["hose"], symbol: "hose" },
+  { id: "stutzen", titel: "Stutzen", kategorien: ["stutzen"], symbol: "stutzen" },
   { id: "schuhe", titel: "Schuhe", kategorien: ["schuhe"], symbol: "schuhe" },
   { id: "equipment", titel: "Equipment", kategorien: ["spielnotizkarten", "spesenquittungen",
     "schiedsrichtermappe", "gelbe_karte", "rote_karte", "pfeife", "sporttasche"], symbol: "equipment" },
@@ -53,8 +54,10 @@ export function bestandsgruppe(kategorie) {
 
 function symbol(art) {
   const pfade = {
+    alle: '<path d="M5 6h7v7H5V6Zm11 0h7v7h-7V6ZM5 17h7v7H5v-7Zm11 0h7v7h-7v-7Z"/>',
     trikot: '<path d="M8 5 11 3h6l3 2 4 2-2 5-3-1v10H9V11l-3 1-2-5 4-2Z"/>',
     hose: '<path d="M8 4h8l2 17-5-1-1-8-1 8-5 1L8 4Z"/>',
+    stutzen: '<path d="M7 4h5v12l-2 7H5l2-7V4Zm9 0h5v12l2 7h-5l-2-7V4Z"/>',
     schuhe: '<path d="M4 15c4 1 6-5 8-5 1 4 3 5 8 6v4H4v-5Z"/>',
     equipment: '<path d="M5 8h14v12H5V8Zm4 0V5h6v3M8 13h8M8 17h5"/>',
     technik: '<path d="M6 13v-2a6 6 0 0 1 12 0v2M6 12H4v6h4v-6H6Zm12 0h2v6h-4v-6h2Z"/>',
@@ -65,7 +68,8 @@ function symbol(art) {
       ${pfade[art] || pfade.sonstiges}</g></svg>`;
 }
 
-function eintraegeDerPerson(person, gruppe) {
+function eintraegeDerPerson(person, gruppe = null) {
+  if (!gruppe) return person.bestand || [];
   return (person.bestand || []).filter((eintrag) => gruppe.kategorien.includes(eintrag.kategorie)
     || (gruppe.id === "sonstiges" && !BESTANDSGRUPPEN.some((g) => g.id !== "sonstiges"
       && g.kategorien.includes(eintrag.kategorie))));
@@ -93,25 +97,59 @@ function eintragHtml(eintrag, gruppe) {
   </li>`;
 }
 
-export function bestandsInhalt(bestandsstand, filter = "trikot") {
-  const personen = bestandsstand?.personen || [];
-  const gruppe = BESTANDSGRUPPEN.find((g) => g.id === filter) || BESTANDSGRUPPEN[0];
-  const zaehler = BESTANDSGRUPPEN.map((g) => ({
+export function bestandsKurztext(bestandsstand, personName) {
+  const person = (bestandsstand?.personen || []).find((p) => p.name === personName);
+  if (!person) return "Noch kein Bestand eingetragen.";
+  const bezeichnungen = {
+    trikot: ["Trikot", "Trikots"], hose: ["Hose", "Hosen"],
+    stutzen: ["Paar Stutzen", "Paar Stutzen"], schuhe: ["Paar Schuhe", "Paar Schuhe"],
+    equipment: ["Equipment-Eintrag", "Equipment-Einträge"],
+    technik: ["Technik-Eintrag", "Technik-Einträge"],
+    sonstiges: ["sonstiger Eintrag", "sonstige Einträge"],
+  };
+  const teile = BESTANDSGRUPPEN.map((gruppe) => {
+    const menge = anzahl(eintraegeDerPerson(person, gruppe));
+    if (!menge) return "";
+    const namen = bezeichnungen[gruppe.id];
+    return `${menge} ${namen[menge === 1 ? 0 : 1]}`;
+  }).filter(Boolean);
+  return teile.length ? teile.join(" · ") : "Noch kein Bestand eingetragen.";
+}
+
+export function bestandsInhalt(bestandsstand, filter = "alle", personFilter = "") {
+  const allePersonen = [...(bestandsstand?.personen || [])]
+    .sort((a, b) => String(a.name).localeCompare(String(b.name), "de"));
+  const personen = personFilter
+    ? allePersonen.filter((person) => person.name === personFilter)
+    : allePersonen;
+  const gruppe = filter === "alle" ? null
+    : BESTANDSGRUPPEN.find((g) => g.id === filter) || null;
+  const navigation = [{ id: "alle", titel: "Alles", symbol: "alle", kategorien: [] }, ...BESTANDSGRUPPEN];
+  const zaehler = navigation.map((g) => ({
     ...g,
-    anzahl: personen.reduce((summe, person) => summe + anzahl(eintraegeDerPerson(person, g)), 0),
+    anzahl: personen.reduce((summe, person) => summe
+      + anzahl(eintraegeDerPerson(person, g.id === "alle" ? null : g)), 0),
   }));
-  return `<div class="fg-bestand-tabs" role="tablist" aria-label="Ausrüstungskategorie">
+  return `<div class="fg-bestand-werkzeuge">
+      <label for="fgBestandPerson">Schiedsrichter</label>
+      <select id="fgBestandPerson" data-bestand-person-filter>
+        <option value="">Alle Schiedsrichter</option>
+        ${allePersonen.map((person) => `<option value="${sicher(person.name)}"${person.name === personFilter ? " selected" : ""}>${sicher(person.name)}</option>`).join("")}
+      </select>
+    </div>
+    <div class="fg-bestand-tabs" role="tablist" aria-label="Ausrüstungskategorie">
       ${zaehler.map((g) => `<button type="button" role="tab" data-bestand-filter="${g.id}"
-        aria-selected="${g.id === gruppe.id}">${symbol(g.symbol)}<span>${sicher(g.titel)}</span>
+        aria-selected="${g.id === (gruppe?.id || "alle")}">${symbol(g.symbol)}<span>${sicher(g.titel)}</span>
         <b>${g.anzahl}</b></button>`).join("")}
     </div>
     <div class="fg-bestand-personen">
       ${personen.map((person) => {
         const eintraege = eintraegeDerPerson(person, gruppe);
+        const bereich = gruppe?.titel || "allen Kategorien";
         return `<details class="fg-bestand-person" data-bestand-person="${sicher(person.name)}">
-          <summary><span><b>${sicher(person.name)}</b><small>${anzahl(eintraege)} in ${sicher(gruppe.titel)}</small></span>
+          <summary><span><b>${sicher(person.name)}</b><small>${anzahl(eintraege)} in ${sicher(bereich)}</small></span>
             <span class="fg-bestand-badge">${anzahl(eintraege)}</span></summary>
-          ${eintraege.length ? `<ul>${eintraege.map((x) => eintragHtml(x, gruppe)).join("")}</ul>`
+          ${eintraege.length ? `<ul>${eintraege.map((x) => eintragHtml(x, bestandsgruppe(x.kategorie))).join("")}</ul>`
             : `<p class="fg-bestand-leer">Kein Eintrag in dieser Kategorie.</p>`}
         </details>`;
       }).join("") || `<p class="fg-leer">Noch keine Schiedsrichter im Bestand.</p>`}

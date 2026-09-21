@@ -7,10 +7,9 @@
 //  auch mitten in der Sitzung. Dauerzugänge laufen nicht kalendarisch
 //  ab, können aber jederzeit im Obmann-Bereich widerrufen werden.
 //
-//  Seit v151 sieht ein Link außerdem nur noch seinen eigenen
-//  Stapel: genau die Anfragen, die unter diesem Link vorgelegt
-//  wurden. Vorher hätte ein laufender Link ohne Zutun immer
-//  neue Vorgänge angezeigt.
+//  Befristete Links sehen nur ihren zusammengestellten Stapel. Ein
+//  namentlicher Dauerzugang ist absichtlich ein lebendes Postfach und
+//  bekommt neue, vom Obmann vorgelegte Vorgänge automatisch dazu.
 //
 //  Die Rechenteile stehen hier und nicht in der Seite, damit sie
 //  prüfbar sind, ohne einen Browser zu bauen.
@@ -106,6 +105,19 @@ export function summeMitLuecken(zeilen) {
     ohnePreis: liste.filter((z) => !Number.isFinite(z.preis_cent)).length,
     anzahl: liste.length,
   };
+}
+
+/** Gruppiert den Entscheidungseingang stabil nach Person. */
+export function gruppiereNachPerson(zeilen) {
+  const gruppen = new Map();
+  for (const zeile of Array.isArray(zeilen) ? zeilen : []) {
+    const person = String(zeile?.person || "Unbekannt");
+    if (!gruppen.has(person)) gruppen.set(person, []);
+    gruppen.get(person).push(zeile);
+  }
+  return [...gruppen.entries()]
+    .sort(([a], [b]) => a.localeCompare(b, "de"))
+    .map(([person, eintraege]) => ({ person, eintraege, summe: summeMitLuecken(eintraege) }));
 }
 
 /**

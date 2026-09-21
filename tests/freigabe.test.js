@@ -12,10 +12,10 @@ import { readFileSync } from "node:fs";
 
 import {
   euro, betrag, datum, stueckText, QUELLE_TEXT, STAND_TEXT,
-  summeMitLuecken, saisonKontext,
+  summeMitLuecken, saisonKontext, gruppiereNachPerson,
 } from "../src/website/freigabe-zugriff.js";
 import { centAusEingabe } from "../src/admin/freigabe-editor.js";
-import { bestandsgruppe, bestandsInhalt } from "../src/website/freigabe-bestand.js";
+import { bestandsgruppe, bestandsInhalt, bestandsKurztext } from "../src/website/freigabe-bestand.js";
 
 const lies = (n) => readFileSync(new URL("../" + n, import.meta.url), "utf8");
 const DAUERZUGANG = "supabase/migrations/20260921095917_dauerzugang_vorstand.sql";
@@ -37,6 +37,17 @@ test("die Summe zaehlt nur, was einen Preis hat - und sagt, was fehlt", () => {
   assert.equal(r.ohnePreis, 1);
   assert.deepEqual(summeMitLuecken([]), { cent: 0, ohnePreis: 0, anzahl: 0 });
   assert.deepEqual(summeMitLuecken(null), { cent: 0, ohnePreis: 0, anzahl: 0 });
+});
+
+test("offene Anfragen werden stabil nach Person gruppiert", () => {
+  const gruppen = gruppiereNachPerson([
+    { person: "Peter G.", preis_cent: 3500 },
+    { person: "Josef G.", preis_cent: 800 },
+    { person: "Peter G.", preis_cent: 2000 },
+  ]);
+  assert.deepEqual(gruppen.map((g) => g.person), ["Josef G.", "Peter G."]);
+  assert.equal(gruppen[1].eintraege.length, 2);
+  assert.equal(gruppen[1].summe.cent, 5500);
 });
 
 test("leere Betraege werden als Strich gezeigt, nicht als 0,00", () => {
@@ -342,6 +353,8 @@ test("die Vorstandsseite zeigt bei Dauerzugang die feste Identitaet", () => {
 
 test("der Vereinsbestand gruppiert Gegenstaende und summiert echte Stueckzahlen", () => {
   assert.equal(bestandsgruppe("trikot").titel, "Trikots");
+  assert.equal(bestandsgruppe("hose").titel, "Hosen");
+  assert.equal(bestandsgruppe("stutzen").titel, "Stutzen");
   assert.equal(bestandsgruppe("headset").titel, "Technik");
   assert.equal(bestandsgruppe("unbekannt").titel, "Sonstiges");
 
@@ -359,6 +372,34 @@ test("der Vereinsbestand gruppiert Gegenstaende und summiert echte Stueckzahlen"
   assert.match(html, /× 2/);
   assert.match(html, /vom Verein bezahlt/);
   assert.match(html, /Finanzierung unbekannt/);
+});
+
+test("Bestand laesst sich nach Person und getrennten Kategorien filtern", () => {
+  const stand = { personen: [
+    { name: "Anna A.", bestand: [
+      { kategorie: "hose", anzahl: 1, zustand: "einsatzbereit" },
+      { kategorie: "stutzen", anzahl: 2, zustand: "einsatzbereit" },
+    ] },
+    { name: "Berta B.", bestand: [{ kategorie: "headset", anzahl: 1, zustand: "einsatzbereit" }] },
+  ] };
+  const hosen = bestandsInhalt(stand, "hose", "Anna A.");
+  assert.match(hosen, /<span>Hosen<\/span>/);
+  assert.match(hosen, /<span>Stutzen<\/span>/);
+  assert.match(hosen, /<span>Alles<\/span>/);
+  assert.match(hosen, /Anna A./);
+  assert.doesNotMatch(hosen, /data-bestand-person="Berta B\."/);
+  assert.match(hosen, /value="Anna A\." selected/);
+  assert.equal(bestandsKurztext(stand, "Anna A."), "1 Hose · 2 Paar Stutzen");
+  assert.equal(bestandsKurztext(stand, "Niemand"), "Noch kein Bestand eingetragen.");
+});
+
+test("Bestand und Anfragen sind aufklappbar und nach Person verbunden", () => {
+  const seite = lies("src/website/freigabe-seite.js");
+  assert.match(seite, /id="fgBestandAbschnitt" class="fg-abschnitt fg-bestand"/);
+  assert.match(seite, /class="fg-abschnitt fg-anfragen-bereich" open/);
+  assert.match(seite, /gruppiereNachPerson\(offen\)/);
+  assert.match(seite, /bestandsPerson = knopf\.dataset\.bestandOeffnen/);
+  assert.match(seite, /bei einer Ablehnung bitte ausfüllen/);
 });
 
 test("Bestandsangaben werden nie als HTML eingesetzt", () => {
