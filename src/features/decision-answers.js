@@ -613,9 +613,17 @@
     }
 
     function antwortTexte(wert) {
+      const fortsetzungen = Array.isArray(wert?.spielfortsetzungen_gueltig)
+        && wert.spielfortsetzungen_gueltig.length
+        ? wert.spielfortsetzungen_gueltig
+        : [wert?.spielfortsetzung].filter(Boolean);
+      const fortsetzung = fortsetzungen.map((eintrag) =>
+        optionen.fortsetzungLabel(eintrag)
+        + (optionen.brauchtRichtung(eintrag) && wert?.fortsetzung_fuer
+          ? ` für ${optionen.mannschaftLabel(wert.fortsetzung_fuer)}` : "")
+      ).join(" oder ");
       return {
-        fortsetzung: optionen.fortsetzungLabel(wert?.spielfortsetzung)
-          + (wert?.fortsetzung_fuer ? ` für ${optionen.mannschaftLabel(wert.fortsetzung_fuer)}` : ""),
+        fortsetzung,
         ort: optionen.brauchtOrt(wert?.spielfortsetzung) ? wert?.fortsetzung_ort : "Entfällt",
       };
     }

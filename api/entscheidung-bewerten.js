@@ -341,7 +341,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const ergebnis = await supabaseRpc("entscheidung_antwort_speichern", {
+    const ergebnis = await supabaseRpc("entscheidung_antwort_speichern_v2", {
       p_schiedsrichter_id: schiedsrichterId,
       p_frage_id: frageId,
       p_pin: pin,

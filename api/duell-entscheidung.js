@@ -68,7 +68,7 @@ export default async function handler(req, res) {
   }
 
   try {
-    const ergebnis = await supabaseRpc("duell_entscheidung_speichern", {
+    const ergebnis = await supabaseRpc("duell_entscheidung_speichern_v2", {
       p_zugang: zugang,
       p_frage_id: frageId,
       p_antwort: antwort,
