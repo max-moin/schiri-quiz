@@ -21,6 +21,9 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 
 import { saisonKontext } from "../src/website/freigabe-zugriff.js";
+import {
+  bestandsFarbwert, bestandsInhalt,
+} from "../src/website/freigabe-bestand.js";
 
 const lies = (n) => readFileSync(new URL("../" + n, import.meta.url), "utf8");
 
@@ -30,6 +33,7 @@ const POSTFACH = lies("supabase/migrations/20260917200000_v151_ausruestung_postf
 const EINGANG = lies("supabase/migrations/20260917210000_v152_eingang_prozess_status.sql");
 const VORSTANDSBESTAND = lies("supabase/migrations/20260921100503_vorstandsbestand.sql");
 const DAUERPOSTFACH = lies("supabase/migrations/20260921155744_dauerzugang_offene_anfragen.sql");
+const FREIGABE_CSS = lies("stil/freigabe.css");
 
 /* ============================================================
    Die Zustaende
@@ -232,6 +236,39 @@ test("Bestand ist nur im persoenlichen Dauerzugang und auf den eigenen Verein be
     assert.match(bestand, new RegExp(gruppe.replace(/[&]/g, "&")), gruppe);
   }
   assert.match(seite, /Bestand von \$\{sicher\(zeile\.person\)\} ansehen/);
+});
+
+test("Toms Kategorien bleiben ohne Seitwaertsscrollen voll sichtbar", () => {
+  assert.match(FREIGABE_CSS, /grid-template-columns:\s*repeat\(8,\s*minmax\(0,\s*1fr\)\)/);
+  assert.doesNotMatch(FREIGABE_CSS, /\.fg-bestand-tabs[^}]*overflow-x:\s*auto/);
+  assert.match(FREIGABE_CSS, /max-width:\s*960px[\s\S]*?\.fg-bestand-tabs\s*\{\s*grid-template-columns:\s*repeat\(4/);
+  assert.match(FREIGABE_CSS, /max-width:\s*430px[\s\S]*?\.fg-bestand-tabs\s*\{\s*grid-template-columns:\s*repeat\(2/);
+});
+
+test("Bestand und Entscheidungen zeigen Farbname und echten Farbpunkt", () => {
+  assert.equal(bestandsFarbwert("Blau"), "#2474d2");
+  const html = bestandsInhalt({ personen: [{
+    name: "Test Schiri",
+    bestand: [{ kategorie: "trikot", bezeichnung: "Trikot", farbe: "Blau",
+      groesse: "M", aermellaenge: "kurz", anzahl: 1, zustand: "einsatzbereit",
+      finanzierung: "verein" }],
+  }] });
+  assert.match(html, /--farbe:#2474d2/);
+  assert.match(html, />Blau<\/span>/);
+  assert.match(html, /Größe M/);
+
+  const seite = lies("src/website/freigabe-seite.js");
+  assert.match(seite, /anfrageAusstattung\(zeile\)/);
+  assert.match(seite, /bestandsFarbwert\(zeile\.farbe\)/);
+  assert.match(seite, /fg-anfrage-ausstattung/);
+});
+
+test("ein Bestandsfehler sperrt Toms Entscheidungen nicht", () => {
+  const seite = lies("src/website/freigabe-seite.js");
+  assert.match(seite, /bestandsfehler\s*=\s*fehler\.message/);
+  assert.match(seite, /data-bestand-neuladen/);
+  assert.match(seite, /Entscheidungen bleiben weiterhin möglich/);
+  assert.match(seite, /bestandsOffen\s*=\s*true/);
 });
 
 test("der Saisonkontext nennt eine Zahl und sonst nichts", () => {

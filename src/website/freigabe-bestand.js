@@ -47,12 +47,16 @@ const FARBEN = Object.freeze({
   gruen: "#258a4b", blau: "#2474d2", violett: "#7b4cc9", pink: "#d94f9d",
 });
 
+export function bestandsFarbwert(farbe) {
+  return FARBEN[String(farbe || "").trim().toLocaleLowerCase("de")] || "";
+}
+
 export function bestandsgruppe(kategorie) {
   return BESTANDSGRUPPEN.find((gruppe) => gruppe.kategorien.includes(kategorie))
     || BESTANDSGRUPPEN.at(-1);
 }
 
-function symbol(art) {
+export function bestandsSymbol(art) {
   const pfade = {
     alle: '<path d="M5 6h7v7H5V6Zm11 0h7v7h-7V6ZM5 17h7v7H5v-7Zm11 0h7v7h-7v-7Z"/>',
     trikot: '<path d="M8 5 11 3h6l3 2 4 2-2 5-3-1v10H9V11l-3 1-2-5 4-2Z"/>',
@@ -68,6 +72,10 @@ function symbol(art) {
       ${pfade[art] || pfade.sonstiges}</g></svg>`;
 }
 
+export function bestandsBezeichnung(eintrag) {
+  return eintrag?.bezeichnung || KATEGORIENAMEN[eintrag?.kategorie] || "Ausrüstung";
+}
+
 function eintraegeDerPerson(person, gruppe = null) {
   if (!gruppe) return person.bestand || [];
   return (person.bestand || []).filter((eintrag) => gruppe.kategorien.includes(eintrag.kategorie)
@@ -80,8 +88,8 @@ function anzahl(eintraege) {
 }
 
 function eintragHtml(eintrag, gruppe) {
-  const name = eintrag.bezeichnung || KATEGORIENAMEN[eintrag.kategorie] || "Ausrüstung";
-  const farbwert = FARBEN[String(eintrag.farbe || "").toLocaleLowerCase("de")];
+  const name = bestandsBezeichnung(eintrag);
+  const farbwert = bestandsFarbwert(eintrag.farbe);
   const merkmale = [
     eintrag.farbe && `<span>${farbwert ? `<i class="fg-farbpunkt" style="--farbe:${farbwert}"></i>` : ""}${sicher(eintrag.farbe)}</span>`,
     eintrag.groesse && `<span>Größe ${sicher(eintrag.groesse)}</span>`,
@@ -90,7 +98,7 @@ function eintragHtml(eintrag, gruppe) {
     `<span data-finanzierung="${sicher(eintrag.finanzierung || "unbekannt")}">${sicher(FINANZIERUNG[eintrag.finanzierung || "unbekannt"])}</span>`,
   ].filter(Boolean).join("");
   return `<li class="fg-bestand-eintrag">
-    <span class="fg-bestand-icon">${symbol(gruppe.symbol)}</span>
+    <span class="fg-bestand-icon">${bestandsSymbol(gruppe.symbol)}</span>
     <span class="fg-bestand-text"><b>${sicher(name)}</b><small>${merkmale}</small>
       ${eintrag.anmerkung ? `<em>${sicher(eintrag.anmerkung)}</em>` : ""}</span>
     ${Number(eintrag.anzahl) > 1 ? `<strong class="fg-bestand-menge">× ${Number(eintrag.anzahl)}</strong>` : ""}
@@ -139,7 +147,7 @@ export function bestandsInhalt(bestandsstand, filter = "alle", personFilter = ""
     </div>
     <div class="fg-bestand-tabs" role="tablist" aria-label="Ausrüstungskategorie">
       ${zaehler.map((g) => `<button type="button" role="tab" data-bestand-filter="${g.id}"
-        aria-selected="${g.id === (gruppe?.id || "alle")}">${symbol(g.symbol)}<span>${sicher(g.titel)}</span>
+        aria-selected="${g.id === (gruppe?.id || "alle")}">${bestandsSymbol(g.symbol)}<span>${sicher(g.titel)}</span>
         <b>${g.anzahl}</b></button>`).join("")}
     </div>
     <div class="fg-bestand-personen">

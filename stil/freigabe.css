@@ -102,6 +102,13 @@
   border-left: 4px solid #d9a520; }
 .fg-zeile-kopf { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
 .fg-zeile-kopf b { display: block; font-size: 1.04rem; line-height: 1.35; }
+.fg-anfrage-ausstattung { display: grid; grid-template-columns: 40px minmax(0, 1fr);
+  align-items: center; gap: 10px; min-width: 0; }
+.fg-anfrage-ausstattung-text { display: grid; gap: 5px; min-width: 0; }
+.fg-anfrage-ausstattung-text small { display: flex; flex-wrap: wrap; gap: 5px; }
+.fg-anfrage-ausstattung-text small > span { display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px; border-radius: 999px; background: #eef1ef; color: #435047;
+  font-size: .75rem; font-weight: 650; }
 .fg-person { font-size: .86rem; color: var(--fg-leise); font-weight: 400; }
 .fg-preis { text-align: right; }
 .fg-preis b { font-size: 1.14rem; font-variant-numeric: tabular-nums; }
@@ -140,20 +147,23 @@
 .fg-bestand-werkzeuge label { font-size: .82rem; font-weight: 700; color: var(--fg-leise); }
 .fg-bestand-werkzeuge select { min-height: 44px; border: 1px solid #c8cfc8; border-radius: 10px;
   padding: 8px 36px 8px 11px; background: #fff; color: var(--fg-tinte); font: inherit; }
-.fg-bestand-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
-  gap: 8px; overflow-x: auto; padding-bottom: 4px; }
-.fg-bestand-tabs button { min-height: 72px; display: grid; grid-template-columns: 28px 1fr auto;
-  align-items: center; gap: 7px; padding: 10px; border: 1px solid var(--fg-linie);
+.fg-bestand-tabs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 7px; }
+.fg-bestand-tabs button { position: relative; box-sizing: border-box; min-width: 0;
+  min-height: 62px; display: grid; grid-template-columns: 20px minmax(0, 1fr);
+  align-items: center; gap: 5px; padding: 9px 31px 9px 8px; border: 1px solid var(--fg-linie);
   border-radius: 12px; background: #f7f8f7; color: var(--fg-tinte); font: inherit;
   text-align: left; cursor: pointer; }
 .fg-bestand-tabs button[aria-selected="true"] { border-color: #72ad84; background: var(--fg-gruen-hell);
   box-shadow: inset 0 0 0 1px #72ad84; }
-.fg-bestand-tabs button > span { font-size: .82rem; font-weight: 700; line-height: 1.2; }
-.fg-bestand-tabs button > b { display: grid; place-items: center; min-width: 25px; height: 25px;
+.fg-bestand-tabs button > span { min-width: 0; font-size: .72rem; font-weight: 700;
+  line-height: 1.15; white-space: nowrap; }
+.fg-bestand-tabs button > b { position: absolute; top: 7px; right: 7px;
+  display: grid; place-items: center; min-width: 24px; height: 24px;
   padding: 0 5px; border-radius: 999px; background: #e2e7e3; font-size: .75rem;
   font-variant-numeric: tabular-nums; }
 .fg-bestand-tabs button[aria-selected="true"] > b { background: var(--fg-gruen); color: #fff; }
-.fg-bestand-symbol { width: 28px; height: 28px; display: block; }
+.fg-bestand-symbol { width: 20px; height: 20px; display: block; }
 
 .fg-bestand-personen { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px; margin-top: 14px; }
@@ -186,10 +196,16 @@
 .fg-bestand-text small > span[data-zustand="fehlt"] { color: var(--fg-rot); background: var(--fg-rot-hell); }
 .fg-bestand-text em { color: var(--fg-leise); font-size: .76rem; font-style: normal;
   overflow-wrap: anywhere; }
-.fg-farbpunkt { width: 10px; height: 10px; display: inline-block; border-radius: 50%;
+.fg-farbpunkt { width: 12px; height: 12px; flex: 0 0 12px; display: inline-block; border-radius: 50%;
   background: var(--farbe); box-shadow: inset 0 0 0 1px rgba(0,0,0,.2); }
 .fg-bestand-menge { font-size: .8rem; font-variant-numeric: tabular-nums; }
 .fg-bestand-leer { margin: 0; padding: 15px 13px; color: var(--fg-leise); font-size: .84rem; }
+.fg-bestand-fehler { padding: 16px; border: 1px solid #e8beb8; border-radius: 11px;
+  background: var(--fg-rot-hell); color: #64251d; }
+.fg-bestand-fehler p { margin: 5px 0 12px; font-size: .84rem; line-height: 1.45; }
+.fg-bestand-fehler button { min-height: 44px; padding: 8px 14px; border: 0;
+  border-radius: 9px; background: var(--fg-tinte); color: #fff; font: inherit;
+  font-weight: 700; cursor: pointer; }
 
 /* ---------- Kleine Zeilen (Verlauf) ---------- */
 .fg-mini-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
@@ -236,6 +252,10 @@
   .fg-liste { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+@media (max-width: 960px) {
+  .fg-bestand-tabs { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+
 @media (max-width: 760px) {
   .fg-inhalt { padding-inline: 12px; }
   .fg-kacheln { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -247,8 +267,10 @@
   .fg-anfrage-person-kopf strong { font-size: .88rem; }
   .fg-bestand { padding: 16px 12px; }
   .fg-bestand-werkzeuge { grid-template-columns: 1fr; justify-content: stretch; }
-  .fg-bestand-tabs { grid-template-columns: none; grid-auto-flow: column;
-    grid-auto-columns: minmax(136px, 1fr); margin-inline: -2px; }
   .fg-bestand-personen { grid-template-columns: 1fr; }
   .fg-anfrage-personengruppe { padding: 12px; }
+}
+
+@media (max-width: 430px) {
+  .fg-bestand-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }

@@ -39,7 +39,10 @@ import {
   erstelleFreigabeZugriff, euro, betrag, datum, stueckText,
   QUELLE_TEXT, STAND_TEXT, summeMitLuecken, saisonKontext, gruppiereNachPerson,
 } from "./freigabe-zugriff.js";
-import { bestandsgruppe, bestandsInhalt, bestandsKurztext } from "./freigabe-bestand.js";
+import {
+  bestandsBezeichnung, bestandsFarbwert, bestandsgruppe, bestandsInhalt,
+  bestandsKurztext, bestandsSymbol,
+} from "./freigabe-bestand.js";
 
 const bereich = document.getElementById("freigabeBereich");
 const zugriff = erstelleFreigabeZugriff({
@@ -54,6 +57,8 @@ let zugangsinfo = null;
 let bestandsstand = { personen: [] };
 let bestandsfilter = "alle";
 let bestandsPerson = "";
+let bestandsfehler = "";
+let bestandsOffen = false;
 
 const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
@@ -80,6 +85,11 @@ function kachel(titel, wert, zusatz = "") {
 }
 
 function verdrahteBestand() {
+  const abschnitt = document.getElementById("fgBestandAbschnitt");
+  if (abschnitt && !abschnitt.dataset.aufklappenVerdrahtet) {
+    abschnitt.dataset.aufklappenVerdrahtet = "true";
+    abschnitt.addEventListener("toggle", () => { bestandsOffen = abschnitt.open; });
+  }
   document.querySelector("[data-bestand-person-filter]")?.addEventListener("change", (ereignis) => {
     bestandsPerson = ereignis.target.value;
     zeichneBestand();
@@ -90,13 +100,47 @@ function verdrahteBestand() {
       zeichneBestand();
     });
   });
+  document.querySelector("[data-bestand-neuladen]")?.addEventListener("click", async (ereignis) => {
+    const knopf = ereignis.currentTarget;
+    knopf.disabled = true;
+    knopf.textContent = "Wird geladen …";
+    try {
+      bestandsstand = await zugriff.bestand(token);
+      bestandsfehler = "";
+      bestandsOffen = true;
+      zeichneBestand();
+    } catch (fehler) {
+      bestandsfehler = fehler.message || "Der Bestand konnte nicht geladen werden.";
+      zeichneBestand();
+    }
+  });
 }
 
 function zeichneBestand() {
   const ziel = document.getElementById("fgBestand");
   if (!ziel) return;
-  ziel.innerHTML = bestandsInhalt(bestandsstand, bestandsfilter, bestandsPerson);
+  ziel.innerHTML = bestandsfehler
+    ? `<div class="fg-bestand-fehler" role="alert"><b>Der Vereinsbestand konnte nicht geladen werden.</b>
+       <p>${sicher(bestandsfehler)}</p>
+       <button type="button" data-bestand-neuladen>Erneut laden</button></div>`
+    : bestandsInhalt(bestandsstand, bestandsfilter, bestandsPerson);
   verdrahteBestand();
+}
+
+function anfrageAusstattung(zeile) {
+  const gruppe = bestandsgruppe(zeile.kategorie);
+  const farbwert = bestandsFarbwert(zeile.farbe);
+  const merkmale = [
+    zeile.farbe && `<span>${farbwert
+      ? `<i class="fg-farbpunkt" style="--farbe:${farbwert}" aria-hidden="true"></i>` : ""}${sicher(zeile.farbe)}</span>`,
+    zeile.groesse && `<span>Größe ${sicher(zeile.groesse)}</span>`,
+    zeile.aermellaenge && `<span>${sicher(zeile.aermellaenge)}er Arm</span>`,
+  ].filter(Boolean).join("");
+  return `<div class="fg-anfrage-ausstattung">
+    <span class="fg-bestand-icon">${bestandsSymbol(gruppe.symbol)}</span>
+    <span class="fg-anfrage-ausstattung-text"><b>${sicher(bestandsBezeichnung(zeile))}</b>
+      ${merkmale ? `<small>${merkmale}</small>` : ""}</span>
+  </div>`;
 }
 
 function kopf() {
@@ -147,7 +191,7 @@ function entscheidungsKarte(zeile) {
     <article class="fg-zeile" data-id="${sicher(zeile.id)}">
       <div class="fg-zeile-kopf">
         <div>
-          <b>${sicher(stueckText(zeile))}</b>
+          ${anfrageAusstattung(zeile)}
           <span class="fg-person">für ${sicher(zeile.person)} · angefragt am ${datum(zeile.erstellt_am)}</span>
         </div>
         <div class="fg-preis">
@@ -234,7 +278,7 @@ function zeichne() {
   bereich.innerHTML = `
     ${kopf()}
 
-    ${zugangsinfo?.art === "dauerhaft" ? `<details id="fgBestandAbschnitt" class="fg-abschnitt fg-bestand">
+    ${zugangsinfo?.art === "dauerhaft" ? `<details id="fgBestandAbschnitt" class="fg-abschnitt fg-bestand"${bestandsOffen ? " open" : ""}>
       <summary class="fg-abschnitt-kopf"><div><p class="fg-kicker">Vereinsbestand</p>
         <h2>Ausrüstung der Schiedsrichter</h2></div>
         <p>Aufklappen, nach Person und Kategorie filtern.</p></summary>
@@ -329,6 +373,7 @@ function verdrahte() {
     knopf.addEventListener("click", () => {
       bestandsfilter = bestandsgruppe(knopf.dataset.bestandKategorie).id;
       bestandsPerson = knopf.dataset.bestandOeffnen;
+      bestandsOffen = true;
       const abschnitt = document.getElementById("fgBestandAbschnitt");
       if (abschnitt) abschnitt.open = true;
       zeichneBestand();
@@ -349,9 +394,18 @@ async function laden() {
       zugriff.zugang(token),
     ]);
     if (zugangsinfo?.art === "dauerhaft" && zugangsinfo?.name) name = zugangsinfo.name;
-    bestandsstand = zugangsinfo?.art === "dauerhaft"
-      ? await zugriff.bestand(token)
-      : { personen: [] };
+    bestandsstand = { personen: [] };
+    bestandsfehler = "";
+    if (zugangsinfo?.art === "dauerhaft") {
+      try {
+        bestandsstand = await zugriff.bestand(token);
+      } catch (fehler) {
+        // Entscheidungen bleiben weiterhin möglich. Ein einzelner Fehler
+        // der ergänzenden Bestandsansicht darf Toms ganzes Dashboard nicht
+        // fälschlich als ungültigen Link darstellen.
+        bestandsfehler = fehler.message || "Der Bestand konnte nicht geladen werden.";
+      }
+    }
     zeichne();
   } catch (fehler) {
     bereich.innerHTML = `
