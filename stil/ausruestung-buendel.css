@@ -1,0 +1,18 @@
+/* Gemeinsame Anfragen auf der Bestandsseite; Prozesskarten bleiben pro Stück. */
+.bestand-anfrage-buendel {
+  margin-bottom: 14px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--marke-lighter);
+}
+.bestand-anfrage-buendel-kopf {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0 2px 10px;
+}
+.bestand-anfrage-buendel-kopf span,
+.bestand-anfrage-buendel-notiz { color: var(--muted); }
+.bestand-anfrage-buendel-notiz { margin: 0 2px 10px; font-size: .85rem; }
+.bestand-anfrage-buendel .bestand-anfrage:last-child { margin-bottom: 0; }

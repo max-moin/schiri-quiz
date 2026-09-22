@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { betreffFuer } from "./betreff.js";
+import { vorstandMail } from "./vorstand-mail.js";
 
 type Auftrag = {
   auftrag_id: string;
@@ -8,6 +9,8 @@ type Auftrag = {
   metadaten: Record<string, unknown> | null;
   versuch: number;
   idempotenzschluessel: string;
+  empfaenger_schluessel: string;
+  ziel_email: string | null;
 };
 
 const LEERER_INHALT = "<!doctype html><html lang=\"de\"><head><meta charset=\"utf-8\"><title>SR-Obmann</title></head><body><p>&nbsp;</p></body></html>";
@@ -50,7 +53,7 @@ Deno.serve(async (anfrage: Request) => {
 
   let auftraege: Auftrag[];
   try {
-    auftraege = await rpc<Auftrag[]>("benachrichtigung_auftraege_beanspruchen", { p_limit: 10 });
+    auftraege = await rpc<Auftrag[]>("benachrichtigung_auftraege_v2_beanspruchen", { p_limit: 10 });
   } catch (fehler) {
     console.error("Benachrichtigungs-Claim fehlgeschlagen", fehler instanceof Error ? fehler.message : "unbekannt");
     return Response.json({ fehler: "claim_fehlgeschlagen" }, { status: 503 });
@@ -61,9 +64,9 @@ Deno.serve(async (anfrage: Request) => {
   }
 
   const resendKey = umgebung("RESEND_API_KEY");
-  const empfaenger = umgebung("OBMANN_NOTIFICATION_TO");
+  const obmannEmpfaenger = umgebung("OBMANN_NOTIFICATION_TO");
   const absender = umgebung("OBMANN_NOTIFICATION_FROM");
-  if (!resendKey || !empfaenger || !absender) {
+  if (!resendKey || !absender) {
     await Promise.all(auftraege.map((a) => alsFehlerMarkieren(a, "versand_config_missing")));
     return Response.json({ fehler: "versand_nicht_konfiguriert" }, { status: 503 });
   }
@@ -73,6 +76,14 @@ Deno.serve(async (anfrage: Request) => {
 
   for (const auftrag of auftraege) {
     try {
+      const istObmann = auftrag.empfaenger_schluessel === "max";
+      const empfaenger = istObmann ? obmannEmpfaenger : auftrag.ziel_email;
+      if (!empfaenger) {
+        await alsFehlerMarkieren(auftrag, "empfaenger_fehlt", true);
+        fehlgeschlagen += 1;
+        continue;
+      }
+      const vorstand = istObmann ? null : vorstandMail(auftrag.metadaten || {});
       const antwort = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -83,9 +94,12 @@ Deno.serve(async (anfrage: Request) => {
         body: JSON.stringify({
           from: absender,
           to: [empfaenger],
-          subject: betreffFuer(auftrag.typ, auftrag.metadaten || {}),
-          html: LEERER_INHALT,
-          text: "",
+          subject: istObmann
+            ? betreffFuer(auftrag.typ, auftrag.metadaten || {})
+            : vorstand?.betreff,
+          ...(istObmann
+            ? { html: LEERER_INHALT, text: "" }
+            : { text: vorstand?.text }),
         }),
       });
 
@@ -114,4 +128,3 @@ Deno.serve(async (anfrage: Request) => {
 
   return Response.json({ beansprucht: auftraege.length, versendet, fehlgeschlagen });
 });
-

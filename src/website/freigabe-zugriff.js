@@ -38,6 +38,7 @@ export function erstelleFreigabeZugriff({ adresse, oeffentlicherSchluessel }) {
   return Object.freeze({
     zugang: (token) => rufe("freigabe_zugang", { p_token: token }),
     dashboard: (token) => rufe("freigabe_dashboard", { p_token: token }),
+    buendelZuordnung: (token) => rufe("freigabe_ausruestungsbuendel_zuordnung", { p_token: token }),
     bestand: (token) => rufe("freigabe_bestand", { p_token: token }),
     entscheiden: (token, id, entscheidung, name, notiz) => rufe("freigabe_entscheiden", {
       p_token: token, p_id: id, p_entscheidung: entscheidung,

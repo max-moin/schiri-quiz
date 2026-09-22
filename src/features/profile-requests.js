@@ -101,6 +101,11 @@
     const anfrageBeschaffungswegAuswahl = () => document.querySelector('input[name="anfrage-beschaffungsweg"]:checked');
     const anfrageBeschaffungSelbst = document.getElementById("anfrage-beschaffung-selbst");
     const anfrageAnmerkungEingabe = document.getElementById("anfrage-anmerkung-eingabe");
+    const anfrageGesamtAnmerkung = document.getElementById("anfrage-gesamt-anmerkung");
+    const anfragePositionHinzufuegen = document.getElementById("anfrage-position-hinzufuegen");
+    const anfragePositionenListe = document.getElementById("anfrage-positionen-liste");
+    const anfragePositionenLeer = document.getElementById("anfrage-positionen-leer");
+    const anfragePositionenAnzahl = document.getElementById("anfrage-positionen-anzahl");
     const anfrageFormularHinweis = document.getElementById("anfrage-formular-hinweis");
     const anfrageAbsendenButton = document.getElementById("anfrage-absenden-button");
     const rechnungUploadOverlay = document.getElementById("rechnung-upload-overlay");
@@ -190,7 +195,100 @@
       schliesseProfilPanel();
     });
 
+    let anfragePositionen = [];
+    let anfrageAbsendeId = null;
+
+    function zeichneAnfragePositionen() {
+      anfragePositionenListe.replaceChildren();
+      anfragePositionenAnzahl.textContent = `${anfragePositionen.length} ${anfragePositionen.length === 1 ? "Stück" : "Stücke"}`;
+      anfragePositionenLeer.hidden = anfragePositionen.length > 0;
+      anfragePositionen.forEach((position, index) => {
+        const zeile = document.createElement("li");
+        const text = document.createElement("span");
+        const fach = findeKategorie(position.kategorie);
+        text.textContent = [fach.wort, position.farbe, position.groesse && `Größe ${position.groesse}`,
+          position.aermellaenge && `${position.aermellaenge}er Arm`,
+          position.preis_cent != null && `ca. ${(position.preis_cent / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}`,
+          position.anmerkung].filter(Boolean).join(" · ");
+        const entfernen = document.createElement("button");
+        entfernen.type = "button";
+        entfernen.textContent = "Entfernen";
+        entfernen.setAttribute("aria-label", `${fach.wort} aus der Anfrage entfernen`);
+        entfernen.addEventListener("click", () => {
+          anfragePositionen.splice(index, 1);
+          zeichneAnfragePositionen();
+        });
+        zeile.append(text, entfernen);
+        anfragePositionenListe.append(zeile);
+      });
+    }
+
+    function anfrageHinweis(text, feld = null) {
+      anfrageFormularHinweis.textContent = text;
+      anfrageFormularHinweis.dataset.art = "fehler";
+      anfrageFormularHinweis.hidden = false;
+      feld?.focus();
+    }
+
+    function aktuellePosition() {
+      const kategorie = anfrageKategorieAuswahl.value;
+      if (!kategorie) {
+        anfrageHinweis("Bitte wähle aus, was du brauchst.", anfrageKategorieAuswahl);
+        return null;
+      }
+      if (kategorie === "sonstiges" && anfrageAnmerkungEingabe.value.trim().length < 2) {
+        anfrageHinweis("Bitte beschreibe kurz, welches Equipment du brauchst.", anfrageAnmerkungEingabe);
+        return null;
+      }
+      const preisCent = preisInCent();
+      if (Number.isNaN(preisCent)) {
+        anfrageHinweis("Bitte den Preis wie 35 oder 35,50 eingeben – oder das Feld leer lassen.", anfragePreisEingabe);
+        return null;
+      }
+      return {
+        kategorie,
+        farbe: anfrageFarbeEingabe.value.trim() || null,
+        groesse: anfrageGroesseEingabe.value.trim() || null,
+        aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
+        anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
+        preis_cent: preisCent,
+      };
+    }
+
+    function positionsEditorLeeren() {
+      anfrageKategorieAuswahl.value = "";
+      anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
+      anfrageFarbeEingabe.value = "";
+      anfrageAndereFarbe.value = "";
+      anfrageAndereFarbe.hidden = true;
+      anfrageGroesseEingabe.value = "";
+      anfrageAermellaengeAuswahl.value = "";
+      anfrageAnmerkungEingabe.value = "";
+      if (anfragePreisEingabe) anfragePreisEingabe.value = "";
+      aktualisiereAnfrageFelder();
+    }
+
+    function fuegeAktuellePositionHinzu() {
+      if (anfragePositionen.length >= 12) {
+        anfrageHinweis("Eine Anfrage kann höchstens zwölf Stücke enthalten.");
+        return false;
+      }
+      const position = aktuellePosition();
+      if (!position) return false;
+      anfragePositionen.push(position);
+      positionsEditorLeeren();
+      zeichneAnfragePositionen();
+      anfrageFormularHinweis.hidden = true;
+      return true;
+    }
+
+    anfragePositionHinzufuegen.addEventListener("click", fuegeAktuellePositionHinzu);
+
     function setzeAnfrageFormularZurueck(vorbelegung = {}) {
+      anfragePositionen = [];
+      anfrageAbsendeId = crypto.randomUUID();
+      zeichneAnfragePositionen();
+      anfrageGesamtAnmerkung.value = "";
       anfrageKategorieAuswahl.value = "";
       anfrageFarbeEingabe.value = "";
       anfrageAndereFarbe.value = "";
@@ -198,6 +296,7 @@
       anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
       anfrageGroesseEingabe.value = "";
       anfrageAermellaengeAuswahl.value = "";
+      if (anfragePreisEingabe) anfragePreisEingabe.value = "";
       if (anfrageBeschaffungSelbst) anfrageBeschaffungSelbst.checked = true;
       aktualisiereAnfrageFelder();
       anfrageAnmerkungEingabe.value = "";
@@ -249,24 +348,12 @@
     let anfrageWirdGesendet = false;
     anfrageAbsendenButton.addEventListener("click", async () => {
       if (anfrageWirdGesendet) return;
-      const kategorie = anfrageKategorieAuswahl.value;
-      if (!kategorie) {
-        anfrageFormularHinweis.textContent = "Bitte wähle aus, was du brauchst.";
-        anfrageFormularHinweis.hidden = false;
-        return;
-      }
-      if (kategorie === "sonstiges" && anfrageAnmerkungEingabe.value.trim().length < 2) {
-        anfrageFormularHinweis.textContent = "Bitte beschreibe kurz, welches Equipment du brauchst.";
-        anfrageFormularHinweis.hidden = false;
-        anfrageAnmerkungEingabe.focus();
-        return;
-      }
-
-      const preisCent = preisInCent();
-      if (Number.isNaN(preisCent)) {
-        anfrageFormularHinweis.textContent = "Bitte den Preis wie 35 oder 35,50 eingeben – oder das Feld leer lassen.";
-        anfrageFormularHinweis.hidden = false;
-        anfragePreisEingabe.focus();
+      // Das einzelne noch ausgefuellte Stueck darf wie bisher unmittelbar
+      // abgeschickt werden. Bei einem Uebertragungsfehler bleibt es danach
+      // im Korb; ein Retry verwendet dieselbe Absende-ID und denselben Inhalt.
+      if (anfrageKategorieAuswahl.value && !fuegeAktuellePositionHinzu()) return;
+      if (!anfragePositionen.length) {
+        anfrageHinweis("Bitte füge mindestens ein Stück hinzu.", anfrageKategorieAuswahl);
         return;
       }
 
@@ -275,16 +362,13 @@
       anfrageAbsendenButton.disabled = true;
       let error;
       try {
-        ({ error } = await sb.rpc("schiri_anfrage_erstellen", {
+        ({ error } = await sb.rpc("schiri_ausruestungsbuendel_erstellen", {
           p_schiedsrichter_id: getZugang().schiedsrichterId,
           p_pin: getZugang().pin,
-          p_kategorie: kategorie,
-          p_farbe: anfrageFarbeEingabe.value.trim() || null,
-          p_groesse: anfrageGroesseEingabe.value.trim() || null,
-          p_aermellaenge: anfrageAermellaengeBereich.hidden ? null : anfrageAermellaengeAuswahl.value || null,
-          p_anmerkung: anfrageAnmerkungEingabe.value.trim() || null,
+          p_absende_id: anfrageAbsendeId,
+          p_positionen: anfragePositionen,
+          p_gesamt_anmerkung: anfrageGesamtAnmerkung.value.trim() || null,
           p_beschaffungsweg: anfrageBeschaffungswegAuswahl()?.value || "weg2_schiri_besorgt",
-          p_preis_schiri_cent: preisCent,
         }));
       } catch (fehler) {
         error = fehler;
@@ -293,9 +377,7 @@
       anfrageAbsendenButton.disabled = false;
 
       if (error) {
-        anfrageFormularHinweis.textContent = "Anfrage konnte nicht gespeichert werden: " + error.message;
-        anfrageFormularHinweis.dataset.art = "fehler";
-        anfrageFormularHinweis.hidden = false;
+        anfrageHinweis("Anfrage konnte nicht gespeichert werden: " + error.message);
         return;
       }
 

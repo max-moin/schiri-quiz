@@ -347,13 +347,12 @@ async function ladeBestand() {
 
 async function ladeAnfragen() {
   const p = ich();
-  // Zwei Aufrufe, aber nur EINE Wahrheit: die Liste liefert die Stammdaten
-  // der Anfrage, die Prozessliste die Schritte. Abgeleitet wird hier
-  // nichts mehr - genau das hat vorher dafuer gesorgt, dass diese Seite
-  // etwas anderes anzeigte als "Meine Anliegen" oder die Obmann-App.
-  const [liste, prozesse] = await Promise.all([
+  // Die Positionen behalten ihre eigene Prozesskette. Die Zuordnung liefert
+  // lediglich den gemeinsamen Kopf einer gebuendelten Anfrage.
+  const [liste, prozesse, zuordnung] = await Promise.all([
     rpc.rpc("schiri_anfragen_liste", { p_schiedsrichter_id: p.id, p_pin: p.pin }),
     rpc.rpc("schiri_prozess_liste", { p_schiedsrichter_id: p.id, p_pin: p.pin }),
+    rpc.rpc("schiri_ausruestungsbuendel_zuordnung", { p_schiedsrichter_id: p.id, p_pin: p.pin }),
   ]);
   if (liste.error) {
     $("bestand-anfragen").innerHTML = '<p class="bestand-leer-zeile">Anfragen konnten nicht geladen werden.</p>';
@@ -371,7 +370,17 @@ async function ladeAnfragen() {
     return;
   }
 
-  $("bestand-anfragen").innerHTML = anfragen.map((a) => {
+  const buendelNachPosition = new Map((Array.isArray(zuordnung.data) ? zuordnung.data : [])
+    .map((eintrag) => [String(eintrag.anfrage_id), eintrag]));
+  const gruppen = new Map();
+  for (const a of anfragen) {
+    const info = buendelNachPosition.get(String(a.id));
+    const schluessel = info ? String(info.buendel_id) : String(a.id);
+    if (!gruppen.has(schluessel)) gruppen.set(schluessel, { info, positionen: [] });
+    gruppen.get(schluessel).positionen.push(a);
+  }
+
+  const karte = (a) => {
     const vorgang = kette.get(String(a.id)) || null;
     const name = fach(a.kategorie)?.wort || a.kategorie || "Ausrüstung";
     const merkmale = [];
@@ -408,6 +417,21 @@ async function ladeAnfragen() {
       + (stand ? `<p class="bestand-anfrage-stand">${esc(stand)}</p>` : "")
       + (knoepfe.length ? `<div class="bestand-anfrage-aktionen">${knoepfe.join("")}</div>` : "")
       + "</article>";
+  };
+  $("bestand-anfragen").innerHTML = [...gruppen.values()].map(({ info, positionen }) => {
+    if (!info) return karte(positionen[0]);
+    positionen.sort((a, b) =>
+      (buendelNachPosition.get(String(a.id))?.buendel_position || 0)
+      - (buendelNachPosition.get(String(b.id))?.buendel_position || 0));
+    return '<section class="bestand-anfrage-buendel">'
+      + '<header class="bestand-anfrage-buendel-kopf">'
+      + `<strong>Anfrage vom ${esc(datum(info.erstellt_am))}</strong><span>${positionen.length} ${positionen.length === 1 ? "Stück" : "Stücke"}</span>`
+      + "</header>"
+      + (info.gesamt_anmerkung
+        ? `<p class="bestand-anfrage-buendel-notiz">Zur gesamten Anfrage: „${esc(info.gesamt_anmerkung)}“</p>`
+        : "")
+      + positionen.map(karte).join("")
+      + "</section>";
   }).join("");
 
   const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;

@@ -35,6 +35,8 @@ export function betreffFuer(typ, metadaten = {}) {
   const basis = FESTE_BETREFFE[typ] || "— SR-OBMANN · EINGANG — Neuer Eintrag";
   if (TYPEN_OHNE_PERSON.has(typ)) return basis;
   const name = saubererAnzeigename(metadaten?.anzeigename);
-  return name ? `${basis}: ${name}` : basis;
+  const anzahl = Number(metadaten?.anzahl);
+  const umfang = typ === "ausruestung.eingereicht" && Number.isInteger(anzahl) && anzahl > 1
+    ? ` (${Math.min(anzahl, 12)} Teile)` : "";
+  return name ? `${basis}: ${name}${umfang}` : basis + umfang;
 }
-

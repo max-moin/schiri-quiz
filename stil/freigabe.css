@@ -98,6 +98,18 @@
 
 /* ---------- Entscheidungskarten ---------- */
 .fg-liste { display: grid; gap: 12px; }
+.fg-buendel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--fg-linie);
+  border-radius: 16px;
+  background: #eef5ee;
+}
+.fg-buendel-kopf { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 12px; }
+.fg-buendel-kopf small, .fg-buendel-notiz { color: var(--fg-leise); }
+.fg-buendel-notiz { margin: 0; font-size: .88rem; }
+.fg-buendel .fg-zeile { background: #fff; }
 .fg-zeile { background: #fff; border-radius: 14px; padding: 17px 16px;
   border-left: 4px solid #d9a520; }
 .fg-zeile-kopf { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
@@ -250,6 +262,8 @@
 
 @media (min-width: 800px) {
   .fg-liste { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fg-buendel { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fg-buendel-kopf, .fg-buendel-notiz { grid-column: 1 / -1; }
 }
 
 @media (max-width: 960px) {

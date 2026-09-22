@@ -163,6 +163,45 @@
 }
 .profil-fenster .sekundaer-button:hover { background: var(--marke-lighter); }
 
+.profil-fenster #anfrage-position-hinzufuegen {
+  width: 100%;
+  margin: 0 0 12px;
+}
+.profil-fenster .anfrage-sammelkorb {
+  margin: 0 0 16px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--card);
+}
+.profil-fenster .anfrage-sammelkorb h4 {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 0 0 8px;
+  font-size: .96rem;
+}
+.profil-fenster .anfrage-sammelkorb h4 span { color: var(--muted); font-weight: 500; }
+.profil-fenster .anfrage-sammelkorb ul { list-style: none; padding: 0; margin: 0; }
+.profil-fenster .anfrage-sammelkorb li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 0;
+  border-top: 1px solid var(--border);
+  overflow-wrap: anywhere;
+}
+.profil-fenster .anfrage-sammelkorb li span { min-width: 0; }
+.profil-fenster .anfrage-sammelkorb li button {
+  min-height: 44px;
+  padding: 7px 11px;
+  background: transparent;
+  color: var(--red);
+  flex: none;
+}
+.profil-fenster #anfrage-positionen-leer { margin: 0; color: var(--muted); font-size: .84rem; }
+
 /* Der Weg zum neuen Anliegen steht unter der Liste und ueber die ganze
    Breite: er ist in dieser Sicht die einzige Handlung (08.09.2026). */
 .profil-fenster #meine-anfragen-anliegen-button { width: 100%; margin-top: 14px; }

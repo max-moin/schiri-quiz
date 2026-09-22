@@ -59,6 +59,7 @@ let bestandsfilter = "alle";
 let bestandsPerson = "";
 let bestandsfehler = "";
 let bestandsOffen = false;
+let buendelZuordnung = new Map();
 
 const sicher = (wert) => String(wert ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
@@ -242,6 +243,25 @@ function entscheidungsGruppe(gruppe) {
   const bestand = zugangsinfo?.art === "dauerhaft"
     ? `<p class="fg-person-bestand"><b>Vorhanden:</b> ${sicher(bestandsKurztext(bestandsstand, gruppe.person))}</p>`
     : "";
+  const anfragen = new Map();
+  for (const zeile of gruppe.eintraege) {
+    const info = buendelZuordnung.get(String(zeile.id));
+    const schluessel = info ? String(info.buendel_id) : String(zeile.id);
+    if (!anfragen.has(schluessel)) anfragen.set(schluessel, { info, zeilen: [] });
+    anfragen.get(schluessel).zeilen.push(zeile);
+  }
+  const karten = [...anfragen.values()].map(({ info, zeilen }) => {
+    if (!info) return entscheidungsKarte(zeilen[0]);
+    zeilen.sort((a, b) =>
+      (buendelZuordnung.get(String(a.id))?.buendel_position || 0)
+      - (buendelZuordnung.get(String(b.id))?.buendel_position || 0));
+    return `<div class="fg-buendel">
+      <div class="fg-buendel-kopf"><strong>Gemeinsame Anfrage · ${zeilen.length} ${zeilen.length === 1 ? "Stück" : "Stücke"}</strong>
+        <small>vom ${datum(info.erstellt_am)}</small></div>
+      ${info.gesamt_anmerkung ? `<p class="fg-buendel-notiz">Zur gesamten Anfrage: „${sicher(info.gesamt_anmerkung)}“</p>` : ""}
+      ${zeilen.map(entscheidungsKarte).join("")}
+    </div>`;
+  }).join("");
   return `<section class="fg-anfrage-personengruppe">
     <header class="fg-anfrage-person-kopf">
       <div><h3>${sicher(gruppe.person)}</h3><small>${gruppe.eintraege.length}
@@ -249,7 +269,7 @@ function entscheidungsGruppe(gruppe) {
       <strong>${summe}${sicher(luecke)}</strong>
     </header>
     ${bestand}
-    <div class="fg-liste">${gruppe.eintraege.map(entscheidungsKarte).join("")}</div>
+    <div class="fg-liste">${karten}</div>
   </section>`;
 }
 
@@ -394,6 +414,13 @@ async function laden() {
       zugriff.zugang(token),
     ]);
     if (zugangsinfo?.art === "dauerhaft" && zugangsinfo?.name) name = zugangsinfo.name;
+    try {
+      const daten = await zugriff.buendelZuordnung(token);
+      buendelZuordnung = new Map((Array.isArray(daten) ? daten : [])
+        .map((eintrag) => [String(eintrag.anfrage_id), eintrag]));
+    } catch {
+      buendelZuordnung = new Map();
+    }
     bestandsstand = { personen: [] };
     bestandsfehler = "";
     if (zugangsinfo?.art === "dauerhaft") {

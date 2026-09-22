@@ -275,6 +275,8 @@ test("jede obmann_-Funktion des Web-Editors ist auch fuer angemeldete Rollen fre
     "supabase/migrations/20260917140000_v147_obmann_freigabe_auch_fuer_angemeldete.sql",
     "supabase/migrations/20260917190000_v150_ausruestung_aktionen_und_zeitleiste.sql",
     DAUERZUGANG,
+    "supabase/migrations/20260922195634_ausruestungsanfragen_buendeln.sql",
+    "supabase/migrations/20260922213000_vorstandsbenachrichtigung_buendel.sql",
   ].map(lies).join("\n");
   for (const funktion of alle) {
     // "to anon, authenticated" und "to authenticated" sind beide gueltig -

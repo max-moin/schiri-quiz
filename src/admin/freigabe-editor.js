@@ -73,18 +73,24 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
 
   let anfragen = [];
   let links = [];
+  let linkMails = [];
   let preise = [];
+  let buendel = [];
+  let buendelNachPosition = new Map();
   // Der frisch erzeugte Token steht genau einmal zur Verfügung. Er wird
   // deshalb hier gehalten, bis die Ansicht neu gebaut wird - danach ist
   // er weg, auch für uns.
   let neuerLink = null;
 
   async function laden() {
-    [anfragen, links, preise] = await Promise.all([
+    [anfragen, links, preise, buendel, linkMails] = await Promise.all([
       rufe("obmann_freigabe_anfragen"),
       rufe("obmann_freigabe_links"),
       rufe("obmann_ausruestung_preise"),
+      rufe("obmann_ausruestungsbuendel_zuordnung"),
+      rufe("obmann_vorstandsbenachrichtigungen"),
     ]);
+    buendelNachPosition = new Map(buendel.map((x) => [String(x.anfrage_id), x]));
     zeichne();
   }
 
@@ -115,7 +121,8 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
           ${a.freigabe_notiz ? `<br /><small><em>${sicher(a.freigabe_notiz)}</em></small>` : ""}</td>
         <td class="admin-tat">
           <button type="button" class="knopf" data-preis-speichern>Preis</button>
-          ${offen ? `<button type="button" class="knopf knopf-primaer" data-vorlegen>Vorlegen</button>`
+          ${offen && !buendelNachPosition.has(String(a.id))
+                    ? `<button type="button" class="knopf knopf-primaer" data-vorlegen>Vorlegen</button>`
                   : a.freigabe_status === "vorgelegt"
                     ? `<button type="button" class="knopf" data-zurueckziehen>Zurückziehen</button>` : ""}
         </td>
@@ -137,10 +144,20 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
     const dauerhaft = !l.gueltig_bis;
     const abgelaufen = !dauerhaft && new Date(l.gueltig_bis) < new Date();
     const tot = l.widerrufen_am || abgelaufen;
+    const mail = linkMails.find((eintrag) => eintrag.link_id === l.id);
     return `
       <tr data-id="${sicher(l.id)}">
         <td>${sicher(l.beschriftung || "ohne Beschriftung")}<br />
-          <small>erstellt ${datum(l.erstellt_am)}${l.zuletzt_genutzt_am ? ` · zuletzt benutzt ${datum(l.zuletzt_genutzt_am)}` : " · noch nie benutzt"}</small></td>
+          <small>erstellt ${datum(l.erstellt_am)}${l.zuletzt_genutzt_am ? ` · zuletzt benutzt ${datum(l.zuletzt_genutzt_am)}` : " · noch nie benutzt"}</small>
+          ${tot ? "" : `<div class="admin-link-mail">
+            <label>E-Mail bei neuen Vorlagen
+              <input type="email" data-link-mail autocomplete="email"
+                placeholder="Nur nach Absprache eintragen" value="${sicher(mail?.email || "")}" />
+            </label>
+            <label class="admin-link-mail-schalter"><input type="checkbox" data-link-mail-aktiv
+              ${mail?.aktiv ? "checked" : ""} /> Benachrichtigen</label>
+            <button type="button" class="knopf" data-link-mail-speichern>Mail-Einstellung speichern</button>
+          </div>`}</td>
         <td>${l.widerrufen_am ? "widerrufen" : abgelaufen ? "abgelaufen"
           : dauerhaft ? "dauerhaft · bis zum Widerruf" : `gültig bis ${datum(l.gueltig_bis)}`}</td>
         <td class="admin-tat">${tot ? "" : `<button type="button" class="knopf" data-link-widerrufen>Widerrufen</button>`}</td>
@@ -151,6 +168,28 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
     const offeneSumme = anfragen
       .filter((a) => a.freigabe_status === "vorgelegt")
       .reduce((s, a) => s + (a.preis_cent || 0), 0);
+    const gruppen = new Map();
+    for (const anfrage of anfragen) {
+      const info = buendelNachPosition.get(String(anfrage.id));
+      const id = info ? String(info.buendel_id) : String(anfrage.id);
+      if (!gruppen.has(id)) gruppen.set(id, { info, positionen: [] });
+      gruppen.get(id).positionen.push(anfrage);
+    }
+    const zeilen = [...gruppen.values()].map(({ info, positionen }) => {
+      if (!info) return anfrageHtml(positionen[0]);
+      positionen.sort((a, b) =>
+        (buendelNachPosition.get(String(a.id))?.buendel_position || 0)
+        - (buendelNachPosition.get(String(b.id))?.buendel_position || 0));
+      const offen = positionen.filter((a) => a.freigabe_status === "nicht_vorgelegt").length;
+      return `<tr class="admin-buendel-kopf" data-buendel-id="${sicher(info.buendel_id)}">
+          <td colspan="4"><strong>Gemeinsame Anfrage · ${positionen.length} ${positionen.length === 1 ? "Stück" : "Stücke"}</strong>
+            <small> vom ${datum(info.erstellt_am)}</small>
+            ${info.gesamt_anmerkung ? `<p>${sicher(info.gesamt_anmerkung)}</p>` : ""}
+            ${offen ? `<button type="button" class="knopf knopf-primaer" data-buendel-vorlegen>
+              ${offen} ${offen === 1 ? "Stück" : "Stücke"} prüfen und zusammen vorlegen</button>` : ""}
+          </td></tr>`
+        + positionen.map(anfrageHtml).join("");
+    }).join("");
 
     inhalt.innerHTML = `
       <section class="admin-panel">
@@ -158,7 +197,7 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
           <p>${anfragen.length} offen · beim Vorstand liegen ${euro(offeneSumme)}</p></div>
         ${anfragen.length ? `<table class="admin-tabelle">
           <thead><tr><th>Stück</th><th>Preis</th><th>Stand</th><th></th></tr></thead>
-          <tbody>${anfragen.map(anfrageHtml).join("")}</tbody></table>`
+          <tbody>${zeilen}</tbody></table>`
           : `<p class="admin-leer">Zurzeit keine offene Ausrüstungsanfrage.</p>`}
       </section>
 
@@ -217,6 +256,14 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
   }
 
   function verdrahte() {
+    inhalt.querySelectorAll("[data-buendel-vorlegen]").forEach((knopf) => {
+      knopf.addEventListener("click", () => {
+        mit("Die gesamte Anfrage wird vorgelegt …", () =>
+          rufe("obmann_ausruestungsbuendel_vorlegen", {
+            p_buendel_id: knopf.closest("tr").dataset.buendelId,
+          }));
+      });
+    });
     inhalt.querySelectorAll("[data-preis-speichern]").forEach((knopf) => {
       knopf.addEventListener("click", () => {
         const zeile = knopf.closest("tr");
@@ -298,6 +345,18 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
         const zeile = knopf.closest("tr");
         mit("Link wird widerrufen …", () =>
           rufe("obmann_freigabe_link_widerrufen", { p_id: zeile.dataset.id }));
+      });
+    });
+
+    inhalt.querySelectorAll("[data-link-mail-speichern]").forEach((knopf) => {
+      knopf.addEventListener("click", () => {
+        const zeile = knopf.closest("tr");
+        const email = zeile.querySelector("[data-link-mail]").value.trim();
+        const aktiv = zeile.querySelector("[data-link-mail-aktiv]").checked;
+        mit("Mail-Einstellung wird gesichert …", () =>
+          rufe("obmann_vorstandsbenachrichtigung_setzen", {
+            p_link_id: zeile.dataset.id, p_email: email, p_aktiv: aktiv,
+          }));
       });
     });
   }

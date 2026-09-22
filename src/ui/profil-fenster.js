@@ -86,16 +86,28 @@
           <p>Das ist dein Wunsch. Der Obmann kann den Weg bei der Prüfung noch anpassen.</p>
         </fieldset>
 
-        <label for="anfrage-anmerkung-eingabe">Anmerkung (optional)</label>
-        <textarea id="anfrage-anmerkung-eingabe" rows="3" placeholder="Sonstiges, was wir wissen sollten ..."></textarea>
+        <label for="anfrage-anmerkung-eingabe">Anmerkung zu diesem Stück (optional)</label>
+        <textarea id="anfrage-anmerkung-eingabe" rows="2" maxlength="1000"
+                  placeholder="z. B. Ersatz für ein verschlissenes Trikot"></textarea>
+        <button id="anfrage-position-hinzufuegen" class="sekundaer-button" type="button">+ Stück hinzufügen</button>
+
+        <section class="anfrage-sammelkorb" aria-labelledby="anfrage-sammelkorb-titel">
+          <h4 id="anfrage-sammelkorb-titel">Deine Anfrage <span id="anfrage-positionen-anzahl">0 Stücke</span></h4>
+          <ul id="anfrage-positionen-liste"></ul>
+          <p id="anfrage-positionen-leer">Füge mindestens ein Stück hinzu. Du kannst auch ein einzelnes Stück direkt absenden.</p>
+        </section>
+
+        <label for="anfrage-gesamt-anmerkung">Anmerkung zur gesamten Anfrage (optional)</label>
+        <textarea id="anfrage-gesamt-anmerkung" rows="2" maxlength="1500"
+                  placeholder="Was sollen wir zur ganzen Anfrage wissen?"></textarea>
 
         <p id="anfrage-formular-hinweis" class="hinweis" hidden></p>
-        <button id="anfrage-absenden-button" type="button">Absenden</button>
+        <button id="anfrage-absenden-button" type="button">Anfrage absenden</button>
       </div>
 
       <div id="anfrage-formular-erfolg" hidden>
         <h3>Anfrage gesendet</h3>
-        <p>Dein gewünschter Beschaffungsweg wurde mitgeschickt. Der Obmann prüft die Anfrage, kann den Weg bei Bedarf anpassen und setzt sie auf angenommen oder abgelehnt.</p>
+        <p>Alle Stücke wurden gemeinsam eingereicht; dein gewünschter Beschaffungsweg wurde mitgeschickt. Der Obmann prüft sie, und der Verein kann über jedes Stück einzeln entscheiden.</p>
         <p>Wenn du selbst einkaufst, kannst du den Kauf nach der Freigabe bestätigen und die Rechnung sofort oder später hochladen. Bewahre den Originalbeleg bis zur Erstattung auf.</p>
         <button id="anfrage-formular-erfolg-schliessen-button" class="sekundaer-button" type="button">Schließen</button>
       </div>

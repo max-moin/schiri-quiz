@@ -38,7 +38,7 @@ test("Supabase-RPCs liegen in Fachmodulen und nicht im Einstieg", () => {
 
   assert.match(access, /verein_zugang/);
   assert.match(access, /schiri_anmelden/);
-  assert.match(anfragen, /schiri_anfrage_erstellen/);
+  assert.match(anfragen, /schiri_ausruestungsbuendel_erstellen/);
   assert.match(wochenQuiz, /wochen_fragen/);
   assert.match(historie, /historie_naechste_frage/);
 });
