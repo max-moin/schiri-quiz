@@ -90,9 +90,10 @@ test("Obmann-Benachrichtigung nennt bei Gruppen nur die Anzahl statt mehrerer Ma
 });
 
 test("Vorstand bekommt erst nach Vorlage genau eine Mail mit allen Positionen", () => {
-  const mailSql = lies("supabase/migrations/20260922213000_vorstandsbenachrichtigung_buendel.sql");
-  assert.match(mailSql, /new\.prozess_status <> 'vorgelegt'/);
-  assert.match(mailSql, /a\.freigabe_status = 'nicht_vorgelegt'/);
+  const mailSql = lies("supabase/migrations/20260923181500_buendel_vorpruefung.sql");
+  assert.match(mailSql, /a\.prozess_status in \('eingereicht', 'geprueft'\)/);
+  assert.match(mailSql, /new\.prozess_status = 'abgelehnt'/);
+  assert.match(mailSql, /v_marker::text/);
   assert.match(mailSql, /on conflict \(ereignis_id, empfaenger_schluessel, kanal\) do nothing/);
   assert.match(mailSql, /k\.email_aktiv and k\.email_ziel is not null/);
   assert.match(mailSql, /l\.widerrufen_am is null/);
@@ -110,4 +111,22 @@ test("Vorstand bekommt erst nach Vorlage genau eine Mail mit allen Positionen", 
   assert.match(mail.text, /Alte gerissen/);
   assert.match(mail.text, /Grundausstattung/);
   assert.doesNotMatch(mail.text, /freigabe\.html\?code=/);
+});
+
+test("Obmann prueft alle noch offenen Gruppenpositionen in einer Transaktion", () => {
+  const migration = lies("supabase/migrations/20260923181500_buendel_vorpruefung.sql");
+  assert.match(migration, /jsonb_array_length\(p_entscheidungen\) <> v_offen/);
+  assert.match(migration, /v_e\.id = any\(v_gesehen\)/);
+  assert.match(migration, /v_e\.entscheidung not in \('vorlegen', 'ablehnen'\)/);
+  assert.match(migration, /char_length\(btrim\(coalesce\(v_e\.grund, ''\)\)\) < 5/);
+  assert.match(migration, /perform public\.obmann_anfrage_ablehnen/);
+  assert.match(migration, /perform public\.obmann_anfrage_direkt_vorlegen/);
+  assert.match(migration, /where a\.buendel_id = p_buendel_id[\s\S]*a\.prozess_status in \('eingereicht', 'geprueft'\)/);
+});
+
+test("Beschaffungsfilter kann abgeschlossene Vorgänge wieder einblenden", () => {
+  const migration = lies("supabase/migrations/20260923184500_beschaffung_abgeschlossene_liste.sql");
+  assert.match(migration, /create or replace function public\.obmann_prozess_liste/);
+  assert.doesNotMatch(migration, /a\.prozess_status <> 'abgeschlossen'/);
+  assert.match(migration, /public\.ausruestung_prozess_jsonb\(a\.id, 'obmann'\)/);
 });
