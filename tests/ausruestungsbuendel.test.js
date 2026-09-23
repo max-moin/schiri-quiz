@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { betreffFuer } from "../supabase/functions/obmann-benachrichtigungen/betreff.js";
-import { vorstandMail } from "../supabase/functions/obmann-benachrichtigungen/vorstand-mail.js";
+import { vorstandMail, vorstandZahlungMail } from "../supabase/functions/obmann-benachrichtigungen/vorstand-mail.js";
 
 const lies = (pfad) => readFileSync(new URL("../" + pfad, import.meta.url), "utf8");
 const sql = lies("supabase/migrations/20260922195634_ausruestungsanfragen_buendeln.sql");
@@ -31,6 +31,55 @@ test("Website kann mehrere Stuecke mit je eigener und gemeinsamer Anmerkung einr
   assert.match(steuerung, /schiri_ausruestungsbuendel_erstellen/);
   assert.match(steuerung, /p_positionen: anfragePositionen/);
   assert.match(steuerung, /p_absende_id: anfrageAbsendeId/);
+});
+
+test("Anfrage zeigt kein irrefuehrendes Null-Stuecke und erlaubt das Bearbeiten vor Versand", () => {
+  const formular = lies("src/ui/profil-fenster.js");
+  const steuerung = lies("src/features/profile-requests.js");
+  const css = lies("stil/profil.css");
+  assert.match(formular, /Noch kein Stück/);
+  assert.match(formular, /Dieses Stück übernehmen/);
+  assert.match(steuerung, /anfrageAbsendenButton\.disabled = !anfragePositionen\.length/);
+  assert.match(steuerung, /bearbeitetePosition = index/);
+  assert.match(steuerung, /Änderung übernehmen/);
+  assert.match(steuerung, /Bitte übernimm zuerst dieses Stück/);
+  assert.doesNotMatch(steuerung, /if \(anfrageKategorieAuswahl\.value && !fuegeAktuellePositionHinzu\(\)\)/);
+  assert.match(css, /input:checked \+ span::after \{ content: "✓"/);
+});
+
+test("Kauf erzeugt keine Obmann-Mail und der Preisvergleich bleibt getrennt", () => {
+  const nachzug = lies("supabase/migrations/20260923123000_anfrage_klartext_und_preisvergleich.sql");
+  assert.match(nachzug, /'preis_richtwert_cent', a\.preis_richtwert_cent/);
+  assert.match(nachzug, /'preis_schiri_cent', a\.preis_schiri_cent/);
+  assert.match(nachzug, /\('eingereicht', 'beleg_hochgeladen', 'geld_erhalten'\)/);
+  assert.doesNotMatch(nachzug, /\('eingereicht', 'gekauft', 'beleg_hochgeladen'/);
+});
+
+test("Zahlungsauftrag und Ausführung sind zwei getrennte, berechtigte Schritte", () => {
+  const migration = lies("supabase/migrations/20260923133000_zahlung_zweistufig.sql");
+  assert.match(migration, /'beleg_geprueft','zahlung_beauftragt'/);
+  assert.match(migration, /'zahlung_beauftragt','zahlung_angewiesen'/);
+  assert.doesNotMatch(migration, /'beleg_geprueft','zahlung_angewiesen'/);
+  assert.match(migration, /p_email boolean default true/);
+  assert.match(migration, /if v_notiz is null or char_length\(v_notiz\) < 10/);
+  assert.match(migration, /a\.prozess_status = 'zahlung_beauftragt'/);
+  assert.match(migration, /public\.freigabe_verein\(p_token\)/);
+  assert.match(migration, /'zahlung_beauftragt' then 8/);
+  assert.match(migration, /'zahlung_angewiesen' then 9/);
+  const eingang = lies("supabase/migrations/20260923134500_zahlung_im_obmann_eingang.sql");
+  assert.match(eingang, /new\.schritt = 'zahlung_angewiesen'/);
+  assert.match(eingang, /new\.akteur_rolle = 'vorstand'/);
+  const portal = lies("src/website/freigabe-seite.js");
+  assert.match(portal, /zugriff\.zahlungen\(token\)/);
+  assert.match(portal, /stand\.zahlungen = \[\]/);
+  const mail = vorstandZahlungMail({
+    person: "Testperson", bezeichnung: "Hose", farbe: "Blau",
+    groesse: "M", betrag_cent: 3500,
+    hinweis: "Papierbeleg liegt im Fach",
+  });
+  assert.match(mail.betreff, /ZAHLUNG.*35,00/);
+  assert.match(mail.text, /Papierbeleg liegt im Fach/);
+  assert.doesNotMatch(mail.text, /code=|Passwort/);
 });
 
 test("Obmann-Benachrichtigung nennt bei Gruppen nur die Anzahl statt mehrerer Mails", () => {

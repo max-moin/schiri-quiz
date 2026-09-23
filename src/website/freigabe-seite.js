@@ -24,11 +24,9 @@
 //
 //  2. "Freigegeben" heißt freigegebenes Budget, nicht ausgegebenes
 //     Geld. Deshalb gibt es unten einen zweiten Abschnitt: Vorgänge,
-//     bei denen der Beleg geprüft ist und nur noch die Überweisung
-//     fehlt. Wer sie gemacht hat, weiß nur der Vereinsverantwortliche
-//     selbst - also trägt er es hier ein, wenn er mag. Muss er nicht:
-//     der Obmann kann denselben Schritt auch nach einer Nachricht
-//     setzen. In beiden Fällen steht hinterher da, wer es war.
+//     die der Obmann ausdrücklich zur Zahlung beauftragt hat.
+//     Der Vereinsverantwortliche bestätigt die Ausführung; der
+//     Schiedsrichter bestätigt anschließend den Geldeingang.
 //
 //  Der Bestand ist nur im namentlichen Dauerzugang sichtbar, automatisch
 //  nach Gegenstandsgruppen sortiert und ohne PINs, Kontaktdaten oder
@@ -58,6 +56,7 @@ let bestandsstand = { personen: [] };
 let bestandsfilter = "alle";
 let bestandsPerson = "";
 let bestandsfehler = "";
+let zahlungenFehler = "";
 let bestandsOffen = false;
 let buendelZuordnung = new Map();
 
@@ -222,13 +221,13 @@ function zahlungsKarte(zeile) {
       <div class="fg-zeile-kopf">
         <div>
           <b>${sicher(stueckText(zeile))}</b>
-          <span class="fg-person">für ${sicher(zeile.person)} · freigegeben am ${datum(zeile.freigabe_am)}</span>
+          <span class="fg-person">für ${sicher(zeile.person)} · beauftragt am ${datum(zeile.beauftragt_am)}</span>
         </div>
         <div class="fg-preis"><b>${euro(zeile.preis_cent) || "kein Betrag"}</b></div>
       </div>
-      <p class="fg-kontext">Der Beleg liegt vor und ist geprüft. Sobald du das Geld
-        überwiesen hast, trag es hier ein – der Schiedsrichter bestätigt anschließend
-        selbst, dass es angekommen ist.</p>
+      <p class="fg-kontext">Der Beleg wurde geprüft und die Zahlung beauftragt.
+        Bitte bestätige erst nach der tatsächlichen Überweisung.</p>
+      ${zeile.hinweis ? `<p class="fg-kontext"><b>Hinweis von Max:</b> ${sicher(zeile.hinweis)}</p>` : ""}
       <div class="fg-knoepfe">
         <button type="button" class="fg-ja" data-zahlung>Habe ich überwiesen</button>
       </div>
@@ -316,11 +315,13 @@ function zeichne() {
         : `<p class="fg-leer">Zurzeit liegt nichts zur Entscheidung an. Danke!</p>`}
     </details>
 
+    ${zahlungenFehler ? `<p class="fg-warnung">Zahlungsaufträge konnten nicht geladen werden:
+      ${sicher(zahlungenFehler)} <button type="button" data-zahlungen-neuladen>Erneut laden</button></p>` : ""}
     ${zahlungen.length ? `
     <section class="fg-abschnitt">
-      <h2>Zahlung anweisen <span class="fg-anzahl">${zahlungen.length}</span></h2>
-      <p class="fg-hinweis">Freigegeben heißt noch nicht bezahlt. Diese Vorgänge warten
-        auf die Überweisung an den Schiedsrichter.</p>
+      <h2>Zahlungsaufträge <span class="fg-anzahl">${zahlungen.length}</span></h2>
+      <p class="fg-hinweis">Nur von Max beauftragte Zahlungen erscheinen hier.
+        Nach deiner Überweisung bestätigt der Schiedsrichter den Eingang.</p>
       <div class="fg-liste">${zahlungen.map(zahlungsKarte).join("")}</div>
     </section>` : ""}
 
@@ -389,6 +390,10 @@ function verdrahte() {
     });
   });
 
+  bereich.querySelector("[data-zahlungen-neuladen]")?.addEventListener("click", () => {
+    void laden();
+  });
+
   bereich.querySelectorAll("[data-bestand-oeffnen]").forEach((knopf) => {
     knopf.addEventListener("click", () => {
       bestandsfilter = bestandsgruppe(knopf.dataset.bestandKategorie).id;
@@ -413,6 +418,21 @@ async function laden() {
       zugriff.dashboard(token),
       zugriff.zugang(token),
     ]);
+    // Die alte Dashboard-Aggregation enthält noch beleg_geprueft.
+    // Solche Vorgänge dürfen Tom nicht als Zahlungsauftrag angeboten werden.
+    stand.zahlungen = [];
+    stand.kennzahlen.zahlung_anzahl = 0;
+    stand.kennzahlen.zahlung_cent = 0;
+    zahlungenFehler = "";
+    try {
+      const auftraege = await zugriff.zahlungen(token);
+      stand.zahlungen = Array.isArray(auftraege) ? auftraege : [];
+      stand.kennzahlen.zahlung_anzahl = stand.zahlungen.length;
+      stand.kennzahlen.zahlung_cent = stand.zahlungen.reduce(
+        (summe, zeile) => summe + (Number(zeile.preis_cent) || 0), 0);
+    } catch (fehler) {
+      zahlungenFehler = fehler.message || "Bitte später erneut laden.";
+    }
     if (zugangsinfo?.art === "dauerhaft" && zugangsinfo?.name) name = zugangsinfo.name;
     try {
       const daten = await zugriff.buendelZuordnung(token);

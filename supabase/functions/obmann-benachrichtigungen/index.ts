@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { betreffFuer } from "./betreff.js";
-import { vorstandMail } from "./vorstand-mail.js";
+import { vorstandMail, vorstandZahlungMail } from "./vorstand-mail.js";
 
 type Auftrag = {
   auftrag_id: string;
@@ -83,7 +83,10 @@ Deno.serve(async (anfrage: Request) => {
         fehlgeschlagen += 1;
         continue;
       }
-      const vorstand = istObmann ? null : vorstandMail(auftrag.metadaten || {});
+      const vorstand = istObmann ? null
+        : auftrag.typ === "ausruestung.zahlung_beauftragt"
+          ? vorstandZahlungMail(auftrag.metadaten || {})
+          : vorstandMail(auftrag.metadaten || {});
       const antwort = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {

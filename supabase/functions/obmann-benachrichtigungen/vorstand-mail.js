@@ -30,3 +30,27 @@ export function vorstandMail(meta = {}) {
     "Diese Mail enthält bewusst keinen Zugangscode.");
   return { betreff, text: zeilen.join("\n") };
 }
+
+export function vorstandZahlungMail(meta = {}) {
+  const person = sauber(meta.person, 80) || "ein Schiedsrichter";
+  const gegenstand = [meta.bezeichnung, meta.farbe,
+    meta.groesse && `Größe ${meta.groesse}`]
+    .map((wert) => sauber(wert, 80)).filter(Boolean).join(" · ");
+  const zeilen = [
+    `Für ${person} wurde die Zahlung beauftragt.`,
+    `Gegenstand: ${gegenstand || "Ausrüstung"}`,
+    `Freigegebener Betrag: ${euro(meta.betrag_cent)}`,
+  ];
+  if (meta.hinweis) {
+    zeilen.push(`Hinweis zum Beleg/Übergang: ${sauber(meta.hinweis, 500)}`);
+  }
+  zeilen.push("",
+    "Bitte öffne deinen gespeicherten persönlichen Freigabe-Link.",
+    "Bestätige dort erst nach der tatsächlichen Überweisung die Zahlung.",
+    "Danach bestätigt der Schiedsrichter den Geldeingang.",
+    "Diese Mail enthält bewusst keinen Zugangscode.");
+  return {
+    betreff: `[SR-ZAHLUNG] ${person}: ${euro(meta.betrag_cent)} beauftragt`,
+    text: zeilen.join("\n"),
+  };
+}

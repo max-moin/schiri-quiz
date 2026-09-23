@@ -14,7 +14,7 @@ const FESTE_BETREFFE = Object.freeze({
   "ausruestung.abgelehnt": "— SR-OBMANN · AUSRÜSTUNG — Anfrage abgelehnt",
   "ausruestung.gekauft": "— SR-OBMANN · AUSRÜSTUNG — Kauf bestätigt",
   "ausruestung.beleg_hochgeladen": "— SR-OBMANN · AUSRÜSTUNG — Neuer Beleg",
-  "ausruestung.zahlung_angewiesen": "— SR-OBMANN · AUSRÜSTUNG — Zahlung angewiesen",
+  "ausruestung.zahlung_angewiesen": "— SR-OBMANN · AUSRÜSTUNG — Zahlung ausgeführt",
   "ausruestung.geld_erhalten": "— SR-OBMANN · AUSRÜSTUNG — Zahlung erhalten",
 });
 

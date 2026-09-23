@@ -103,6 +103,7 @@
     const anfrageAnmerkungEingabe = document.getElementById("anfrage-anmerkung-eingabe");
     const anfrageGesamtAnmerkung = document.getElementById("anfrage-gesamt-anmerkung");
     const anfragePositionHinzufuegen = document.getElementById("anfrage-position-hinzufuegen");
+    const anfrageBearbeitenAbbrechen = document.getElementById("anfrage-position-bearbeiten-abbrechen");
     const anfragePositionenListe = document.getElementById("anfrage-positionen-liste");
     const anfragePositionenLeer = document.getElementById("anfrage-positionen-leer");
     const anfragePositionenAnzahl = document.getElementById("anfrage-positionen-anzahl");
@@ -197,11 +198,14 @@
 
     let anfragePositionen = [];
     let anfrageAbsendeId = null;
+    let bearbeitetePosition = null;
 
     function zeichneAnfragePositionen() {
       anfragePositionenListe.replaceChildren();
-      anfragePositionenAnzahl.textContent = `${anfragePositionen.length} ${anfragePositionen.length === 1 ? "Stück" : "Stücke"}`;
+      anfragePositionenAnzahl.textContent = anfragePositionen.length
+        ? `${anfragePositionen.length} ${anfragePositionen.length === 1 ? "Stück" : "Stücke"}` : "Noch kein Stück";
       anfragePositionenLeer.hidden = anfragePositionen.length > 0;
+      anfrageAbsendenButton.disabled = !anfragePositionen.length || bearbeitetePosition !== null;
       anfragePositionen.forEach((position, index) => {
         const zeile = document.createElement("li");
         const text = document.createElement("span");
@@ -210,15 +214,41 @@
           position.aermellaenge && `${position.aermellaenge}er Arm`,
           position.preis_cent != null && `ca. ${(position.preis_cent / 100).toLocaleString("de-DE", { style: "currency", currency: "EUR" })}`,
           position.anmerkung].filter(Boolean).join(" · ");
+        const bearbeiten = document.createElement("button");
+        bearbeiten.type = "button";
+        bearbeiten.textContent = "Bearbeiten";
+        bearbeiten.setAttribute("aria-label", `${fach.wort} in der Anfrage bearbeiten`);
+        bearbeiten.addEventListener("click", () => {
+          bearbeitetePosition = index;
+          anfrageKategorieAuswahl.value = position.kategorie;
+          aktualisiereAnfrageFelder();
+          anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
+          const farbe = FARBEN.find((eintrag) => eintrag.wert === position.farbe);
+          const radio = anfrageFarbwahl.querySelector(`input[value="${farbe?.wert || "__andere__"}"]`);
+          if (position.farbe && radio) radio.checked = true;
+          anfrageFarbeEingabe.value = position.farbe || "";
+          anfrageAndereFarbe.hidden = !position.farbe || !!farbe;
+          anfrageAndereFarbe.value = farbe ? "" : (position.farbe || "");
+          anfrageGroesseEingabe.value = position.groesse || "";
+          anfrageAermellaengeAuswahl.value = position.aermellaenge || "";
+          anfragePreisEingabe.value = position.preis_cent == null ? "" : (position.preis_cent / 100).toFixed(2).replace(".", ",");
+          anfrageAnmerkungEingabe.value = position.anmerkung || "";
+          anfragePositionHinzufuegen.textContent = "Änderung übernehmen";
+          anfrageBearbeitenAbbrechen.hidden = false;
+          zeichneAnfragePositionen();
+          anfrageKategorieAuswahl.focus();
+        });
         const entfernen = document.createElement("button");
         entfernen.type = "button";
         entfernen.textContent = "Entfernen";
         entfernen.setAttribute("aria-label", `${fach.wort} aus der Anfrage entfernen`);
         entfernen.addEventListener("click", () => {
           anfragePositionen.splice(index, 1);
+          if (bearbeitetePosition === index) positionsEditorLeeren();
+          else if (bearbeitetePosition !== null && bearbeitetePosition > index) bearbeitetePosition--;
           zeichneAnfragePositionen();
         });
-        zeile.append(text, entfernen);
+        zeile.append(text, bearbeiten, entfernen);
         anfragePositionenListe.append(zeile);
       });
     }
@@ -256,6 +286,10 @@
     }
 
     function positionsEditorLeeren() {
+      bearbeitetePosition = null;
+      anfragePositionHinzufuegen.textContent = anfragePositionen.length
+        ? "Weiteres Stück übernehmen" : "Dieses Stück übernehmen";
+      anfrageBearbeitenAbbrechen.hidden = true;
       anfrageKategorieAuswahl.value = "";
       anfrageFarbwahl.querySelectorAll("input").forEach((input) => { input.checked = false; });
       anfrageFarbeEingabe.value = "";
@@ -269,13 +303,14 @@
     }
 
     function fuegeAktuellePositionHinzu() {
-      if (anfragePositionen.length >= 12) {
+      if (bearbeitetePosition === null && anfragePositionen.length >= 12) {
         anfrageHinweis("Eine Anfrage kann höchstens zwölf Stücke enthalten.");
         return false;
       }
       const position = aktuellePosition();
       if (!position) return false;
-      anfragePositionen.push(position);
+      if (bearbeitetePosition === null) anfragePositionen.push(position);
+      else anfragePositionen[bearbeitetePosition] = position;
       positionsEditorLeeren();
       zeichneAnfragePositionen();
       anfrageFormularHinweis.hidden = true;
@@ -283,11 +318,18 @@
     }
 
     anfragePositionHinzufuegen.addEventListener("click", fuegeAktuellePositionHinzu);
+    anfrageBearbeitenAbbrechen.addEventListener("click", () => {
+      positionsEditorLeeren();
+      zeichneAnfragePositionen();
+    });
 
     function setzeAnfrageFormularZurueck(vorbelegung = {}) {
       anfragePositionen = [];
+      bearbeitetePosition = null;
       anfrageAbsendeId = crypto.randomUUID();
       zeichneAnfragePositionen();
+      anfragePositionHinzufuegen.textContent = "Dieses Stück übernehmen";
+      anfrageBearbeitenAbbrechen.hidden = true;
       anfrageGesamtAnmerkung.value = "";
       anfrageKategorieAuswahl.value = "";
       anfrageFarbeEingabe.value = "";
@@ -348,10 +390,16 @@
     let anfrageWirdGesendet = false;
     anfrageAbsendenButton.addEventListener("click", async () => {
       if (anfrageWirdGesendet) return;
-      // Das einzelne noch ausgefuellte Stueck darf wie bisher unmittelbar
-      // abgeschickt werden. Bei einem Uebertragungsfehler bleibt es danach
-      // im Korb; ein Retry verwendet dieselbe Absende-ID und denselben Inhalt.
-      if (anfrageKategorieAuswahl.value && !fuegeAktuellePositionHinzu()) return;
+      // Nur sichtbar übernommene Stücke absenden. Ein nicht gespeicherter
+      // Editorentwurf darf weder still ergänzt noch versehentlich vergessen werden.
+      if (bearbeitetePosition !== null) {
+        anfrageHinweis("Bitte übernimm zuerst deine Änderung.", anfragePositionHinzufuegen);
+        return;
+      }
+      if (anfrageKategorieAuswahl.value) {
+        anfrageHinweis("Bitte übernimm zuerst dieses Stück mit dem Button oben.", anfragePositionHinzufuegen);
+        return;
+      }
       if (!anfragePositionen.length) {
         anfrageHinweis("Bitte füge mindestens ein Stück hinzu.", anfrageKategorieAuswahl);
         return;

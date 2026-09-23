@@ -89,12 +89,13 @@
         <label for="anfrage-anmerkung-eingabe">Anmerkung zu diesem Stück (optional)</label>
         <textarea id="anfrage-anmerkung-eingabe" rows="2" maxlength="1000"
                   placeholder="z. B. Ersatz für ein verschlissenes Trikot"></textarea>
-        <button id="anfrage-position-hinzufuegen" class="sekundaer-button" type="button">+ Stück hinzufügen</button>
+        <button id="anfrage-position-hinzufuegen" class="sekundaer-button" type="button">Dieses Stück übernehmen</button>
+        <button id="anfrage-position-bearbeiten-abbrechen" class="sekundaer-button" type="button" hidden>Bearbeitung abbrechen</button>
 
         <section class="anfrage-sammelkorb" aria-labelledby="anfrage-sammelkorb-titel">
-          <h4 id="anfrage-sammelkorb-titel">Deine Anfrage <span id="anfrage-positionen-anzahl">0 Stücke</span></h4>
+          <h4 id="anfrage-sammelkorb-titel">Deine Anfrage <span id="anfrage-positionen-anzahl">Noch kein Stück</span></h4>
           <ul id="anfrage-positionen-liste"></ul>
-          <p id="anfrage-positionen-leer">Füge mindestens ein Stück hinzu. Du kannst auch ein einzelnes Stück direkt absenden.</p>
+          <p id="anfrage-positionen-leer">Übernimm dein erstes Stück mit dem Button oben. Danach kannst du weitere hinzufügen.</p>
         </section>
 
         <label for="anfrage-gesamt-anmerkung">Anmerkung zur gesamten Anfrage (optional)</label>
