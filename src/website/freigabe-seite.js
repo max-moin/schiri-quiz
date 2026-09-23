@@ -77,6 +77,77 @@ function nameFehlt() {
   return true;
 }
 
+function bestaetigeAuswahl({ art, zeilen, buendelId = null, entscheidung = null }) {
+  if (nameFehlt()) return;
+  const dialog = document.getElementById("fgBestaetigung");
+  const ziel = document.getElementById("fgDialogInhalt");
+  const zahlung = art === "zahlung";
+  const mehrere = zeilen.length > 1;
+  const titel = zahlung ? "Überweisung bestätigen"
+    : entscheidung === "freigegeben" ? "Ausrüstung freigeben" : "Ausrüstung ablehnen";
+  const ausgang = summeMitLuecken(zeilen);
+  ziel.innerHTML = `<h2 id="fgDialogTitel">${titel}</h2>
+    <p class="fg-dialog-hinweis">${zahlung
+      ? "Bestätige nur Positionen, deren Betrag du tatsächlich überwiesen hast."
+      : "Nur die ausgewählten Positionen werden gemeinsam entschieden. Nicht ausgewählte bleiben offen."}</p>
+    <fieldset class="fg-dialog-auswahl"><legend>${mehrere ? "Positionen auswählen" : "Position"}</legend>
+      ${zeilen.map((z) => `<label><input type="checkbox" value="${sicher(z.id)}" checked>
+        <span><b>${sicher(stueckText(z))}</b><small>${sicher(z.person)} · ${euro(z.preis_cent) || "kein Betrag"}</small></span>
+      </label>`).join("")}</fieldset>
+    <p class="fg-dialog-summe">Ausgewählt: <strong data-auswahl-summe>${euro(ausgang.cent)}${ausgang.ohnePreis
+      ? ` · ${ausgang.ohnePreis} ohne Preis` : ""}</strong></p>
+    ${!zahlung ? `<label class="fg-notiz">${entscheidung === "abgelehnt" ? "Begründung (Pflicht)" : "Notiz (optional)"}
+      <input data-dialog-notiz type="text" maxlength="200"
+        placeholder="${entscheidung === "abgelehnt" ? "Warum kann der Verein das nicht übernehmen?" : "Wird dem Schiedsrichter angezeigt"}"></label>` : ""}
+    <p class="fg-dialog-fehler" role="alert" hidden></p>
+    <div class="fg-dialog-aktionen"><button type="button" data-dialog-abbruch>Abbrechen</button>
+      <button type="button" data-dialog-bestaetigen class="${zahlung || entscheidung === "freigegeben" ? "fg-ja" : "fg-nein"}">
+        ${zahlung ? "Überweisung bestätigen" : entscheidung === "freigegeben" ? "Auswahl freigeben" : "Auswahl ablehnen"}</button></div>`;
+  const fehlerfeld = ziel.querySelector(".fg-dialog-fehler");
+  const fehler = (text) => { fehlerfeld.textContent = text; fehlerfeld.hidden = false; };
+  let speichert = false;
+  dialog.oncancel = (ereignis) => { if (speichert) ereignis.preventDefault(); };
+  const gepruefteAuswahl = () => zeilen.filter((z) =>
+    [...ziel.querySelectorAll(".fg-dialog-auswahl input:checked")]
+      .some((input) => input.value === String(z.id)));
+  ziel.querySelectorAll(".fg-dialog-auswahl input").forEach((input) => input.addEventListener("change", () => {
+    const betrag = summeMitLuecken(gepruefteAuswahl());
+    ziel.querySelector("[data-auswahl-summe]").textContent = `${euro(betrag.cent)}${betrag.ohnePreis
+      ? ` · ${betrag.ohnePreis} ohne Preis` : ""}`;
+    fehlerfeld.hidden = true;
+  }));
+  ziel.querySelector("[data-dialog-abbruch]").addEventListener("click", () => dialog.close());
+  ziel.querySelector("[data-dialog-bestaetigen]").addEventListener("click", async () => {
+    const auswahl = gepruefteAuswahl();
+    const notiz = ziel.querySelector("[data-dialog-notiz]")?.value.trim() || "";
+    if (!auswahl.length) { fehler("Bitte mindestens eine Position auswählen."); return; }
+    if (!zahlung && entscheidung === "abgelehnt" && notiz.length < 3) {
+      fehler("Bitte begründe die Ablehnung kurz für den Schiedsrichter.");
+      ziel.querySelector("[data-dialog-notiz]")?.focus(); return;
+    }
+    speichert = true;
+    dialog.querySelectorAll("button").forEach((b) => { b.disabled = true; });
+    try {
+      if (zahlung) {
+        if (buendelId) await zugriff.buendelZahlungBestaetigen(
+          token, buendelId, auswahl.map((z) => z.id), name.trim());
+        else await zugriff.zahlungAngewiesen(token, auswahl[0].id, name.trim());
+      } else {
+        await zugriff.buendelEntscheiden(
+          token, buendelId, auswahl.map((z) => z.id), entscheidung, name.trim(), notiz);
+      }
+      dialog.close();
+      await laden();
+      meldung(`${auswahl.length} ${auswahl.length === 1 ? "Position" : "Positionen"} gespeichert.`, "erfolg");
+    } catch (problem) {
+      fehler(problem.message || "Die Auswahl konnte nicht gespeichert werden.");
+      speichert = false;
+      dialog.querySelectorAll("button").forEach((b) => { b.disabled = false; });
+    }
+  });
+  dialog.showModal();
+}
+
 /* ---------------- Bausteine ---------------- */
 
 function kachel(titel, wert, zusatz = "") {
@@ -153,8 +224,8 @@ function kopf() {
     <section class="fg-kopf">
       <p class="fg-kicker">${sicher(stand.verein)} · Saison ${sicher(stand.saison.bezeichnung)}</p>
       <h1>Ausrüstung freigeben</h1>
-      <p class="fg-einstieg">Unsere Schiedsrichter fragen Ausrüstung an. Bitte entscheide
-        je Zeile, ob der Verein das übernimmt. ${persoenlich
+      <p class="fg-einstieg">Unsere Schiedsrichter fragen Ausrüstung an. Du kannst Positionen
+        einzeln oder als gemeinsame Anfrage entscheiden. ${persoenlich
           ? "In deinem persönlichen Zugang erscheinen alle offenen Vorlagen des Vereins automatisch."
           : "Dieser befristete Link enthält nur den dafür zusammengestellten Stapel."}</p>
 
@@ -258,6 +329,12 @@ function entscheidungsGruppe(gruppe) {
       <div class="fg-buendel-kopf"><strong>Gemeinsame Anfrage · ${zeilen.length} ${zeilen.length === 1 ? "Stück" : "Stücke"}</strong>
         <small>vom ${datum(info.erstellt_am)}</small></div>
       ${info.gesamt_anmerkung ? `<p class="fg-buendel-notiz">Zur gesamten Anfrage: „${sicher(info.gesamt_anmerkung)}“</p>` : ""}
+      ${zeilen.length > 1 ? `<div class="fg-buendel-aktionen">
+        <button type="button" class="fg-ja" data-buendel-entscheidung="freigegeben"
+          data-buendel-id="${sicher(info.buendel_id)}">Auswahl gemeinsam freigeben</button>
+        <button type="button" class="fg-nein" data-buendel-entscheidung="abgelehnt"
+          data-buendel-id="${sicher(info.buendel_id)}">Auswahl gemeinsam ablehnen</button>
+      </div>` : ""}
       ${zeilen.map(entscheidungsKarte).join("")}
     </div>`;
   }).join("");
@@ -270,6 +347,27 @@ function entscheidungsGruppe(gruppe) {
     ${bestand}
     <div class="fg-liste">${karten}</div>
   </section>`;
+}
+
+function zahlungsGruppen(zeilen) {
+  const gruppen = new Map();
+  for (const zeile of zeilen) {
+    const info = buendelZuordnung.get(String(zeile.id));
+    const schluessel = info?.buendel_id || zeile.id;
+    if (!gruppen.has(schluessel)) gruppen.set(schluessel, { info, zeilen: [] });
+    gruppen.get(schluessel).zeilen.push(zeile);
+  }
+  return [...gruppen.values()].map(({ info, zeilen: teile }) => {
+    if (!info || teile.length < 2) return teile.map(zahlungsKarte).join("");
+    const summe = teile.reduce((wert, z) => wert + (Number(z.preis_cent) || 0), 0);
+    return `<div class="fg-buendel">
+      <div class="fg-buendel-kopf"><strong>Gemeinsame Anfrage · ${teile.length} offene Zahlungsaufträge</strong>
+        <small>${euro(summe)}</small></div>
+      <div class="fg-buendel-aktionen"><button type="button" class="fg-ja"
+        data-buendel-zahlung="${sicher(info.buendel_id)}">Auswahl als überwiesen bestätigen</button></div>
+      ${teile.map(zahlungsKarte).join("")}
+    </div>`;
+  }).join("");
 }
 
 function verlaufZeile(z) {
@@ -322,7 +420,7 @@ function zeichne() {
       <h2>Zahlungsaufträge <span class="fg-anzahl">${zahlungen.length}</span></h2>
       <p class="fg-hinweis">Nur von Max beauftragte Zahlungen erscheinen hier.
         Nach deiner Überweisung bestätigt der Schiedsrichter den Eingang.</p>
-      <div class="fg-liste">${zahlungen.map(zahlungsKarte).join("")}</div>
+      <div class="fg-liste">${zahlungsGruppen(zahlungen)}</div>
     </section>` : ""}
 
     ${verlauf.length ? `
@@ -340,6 +438,15 @@ function zeichne() {
 function verdrahte() {
   const feld = document.getElementById("fgName");
   if (feld) feld.addEventListener("input", () => { name = feld.value; });
+
+  bereich.querySelectorAll("[data-buendel-entscheidung]").forEach((knopf) => {
+    knopf.addEventListener("click", () => {
+      const zeilen = (stand.offen || []).filter((z) =>
+        String(buendelZuordnung.get(String(z.id))?.buendel_id) === knopf.dataset.buendelId);
+      bestaetigeAuswahl({ art: "entscheidung", zeilen,
+        buendelId: knopf.dataset.buendelId, entscheidung: knopf.dataset.buendelEntscheidung });
+    });
+  });
 
   bereich.querySelectorAll("[data-entscheidung]").forEach((knopf) => {
     knopf.addEventListener("click", async () => {
@@ -373,20 +480,19 @@ function verdrahte() {
     });
   });
 
+  bereich.querySelectorAll("[data-buendel-zahlung]").forEach((knopf) => {
+    knopf.addEventListener("click", () => {
+      const zeilen = (stand.zahlungen || []).filter((z) =>
+        String(buendelZuordnung.get(String(z.id))?.buendel_id) === knopf.dataset.buendelZahlung);
+      bestaetigeAuswahl({ art: "zahlung", zeilen, buendelId: knopf.dataset.buendelZahlung });
+    });
+  });
+
   bereich.querySelectorAll("[data-zahlung]").forEach((knopf) => {
-    knopf.addEventListener("click", async () => {
+    knopf.addEventListener("click", () => {
       const artikel = knopf.closest(".fg-zeile");
-      if (nameFehlt()) return;
-      knopf.disabled = true;
-      meldung("Wird gespeichert …");
-      try {
-        await zugriff.zahlungAngewiesen(token, artikel.dataset.zahlungId, name.trim());
-        await laden();
-        meldung("Als überwiesen eingetragen.", "erfolg");
-      } catch (fehler) {
-        knopf.disabled = false;
-        meldung(fehler.message, "fehler");
-      }
+      const zeile = (stand.zahlungen || []).find((z) => String(z.id) === artikel.dataset.zahlungId);
+      if (zeile) bestaetigeAuswahl({ art: "zahlung", zeilen: [zeile] });
     });
   });
 

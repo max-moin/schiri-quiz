@@ -110,6 +110,9 @@
 .fg-buendel-kopf small, .fg-buendel-notiz { color: var(--fg-leise); }
 .fg-buendel-notiz { margin: 0; font-size: .88rem; }
 .fg-buendel .fg-zeile { background: #fff; }
+.fg-buendel-aktionen { display: flex; flex-wrap: wrap; gap: 8px; }
+.fg-buendel-aktionen button { min-height: 44px; padding: 8px 14px; border: 0;
+  border-radius: 10px; font: inherit; font-size: .85rem; font-weight: 750; cursor: pointer; }
 .fg-zeile { background: #fff; border-radius: 14px; padding: 17px 16px;
   border-left: 4px solid #d9a520; }
 .fg-zeile-kopf { display: flex; gap: 12px; justify-content: space-between; flex-wrap: wrap; }
@@ -253,6 +256,34 @@
 
 .fg-fuss { text-align: center; padding: 0 16px 26px; font-size: .82rem; color: var(--fg-leise); }
 .fg-fuss a { color: inherit; }
+
+/* Eine echte Bestätigung vor Geld-/Sammelaktionen, mit einzeln abwählbaren Stücken. */
+.fg-dialog { box-sizing: border-box; width: min(560px, calc(100vw - 28px)); max-height: min(85vh, 760px);
+  overflow-y: auto; border: 0; border-radius: 18px; padding: 22px;
+  background: #fff; color: var(--fg-tinte); box-shadow: 0 20px 65px rgba(0,0,0,.24); }
+.fg-dialog::backdrop { background: rgba(15, 23, 18, .58); }
+.fg-dialog h2 { margin: 0 44px 8px 0; font-size: 1.25rem; }
+.fg-dialog-schliessen { position: absolute; top: 12px; right: 12px; width: 44px; height: 44px;
+  border: 0; border-radius: 50%; background: #eef1ef; color: var(--fg-tinte);
+  font: inherit; font-size: 1.55rem; cursor: pointer; }
+.fg-dialog-hinweis { margin: 0 0 14px; color: var(--fg-leise); line-height: 1.5; }
+.fg-dialog-auswahl { border: 1px solid var(--fg-linie); border-radius: 12px;
+  padding: 5px 12px 10px; margin: 0; }
+.fg-dialog-auswahl legend { font-weight: 750; padding: 0 5px; }
+.fg-dialog-auswahl label { display: flex; align-items: center; gap: 12px; padding: 10px 2px;
+  border-bottom: 1px solid var(--fg-linie); cursor: pointer; }
+.fg-dialog-auswahl label:last-child { border-bottom: 0; }
+.fg-dialog-auswahl input { width: 21px; height: 21px; flex: 0 0 21px; accent-color: var(--fg-gruen); }
+.fg-dialog-auswahl span { min-width: 0; display: grid; gap: 2px; overflow-wrap: anywhere; }
+.fg-dialog-auswahl small { color: var(--fg-leise); }
+.fg-dialog-summe { text-align: right; font-variant-numeric: tabular-nums; }
+.fg-dialog-fehler { padding: 10px; background: var(--fg-rot-hell); color: var(--fg-rot);
+  border-radius: 9px; line-height: 1.45; }
+.fg-dialog-aktionen { display: flex; justify-content: end; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+.fg-dialog-aktionen button { min-height: 48px; padding: 10px 15px; border: 0;
+  border-radius: 10px; font: inherit; font-weight: 750; cursor: pointer; }
+.fg-dialog-aktionen button:first-child { background: #eef1ef; color: var(--fg-tinte); }
+.fg-dialog-aktionen button:disabled { opacity: .5; cursor: default; }
 
 @media (max-width: 430px) {
   .fg-preis { text-align: left; }

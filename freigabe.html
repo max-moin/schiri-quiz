@@ -27,6 +27,12 @@
     <p class="fg-leer">Wird geladen …</p>
   </main>
 
+  <dialog id="fgBestaetigung" class="fg-dialog" aria-labelledby="fgDialogTitel">
+    <form method="dialog"><button class="fg-dialog-schliessen" value="abbrechen"
+      aria-label="Abbrechen und schließen" type="submit">×</button></form>
+    <div id="fgDialogInhalt"></div>
+  </dialog>
+
   <div class="fg-meldung" id="freigabeMeldung" role="status" hidden></div>
 
   <footer class="fg-fuss">

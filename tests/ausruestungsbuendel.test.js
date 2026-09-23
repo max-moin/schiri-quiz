@@ -130,3 +130,22 @@ test("Beschaffungsfilter kann abgeschlossene Vorgänge wieder einblenden", () =>
   assert.doesNotMatch(migration, /a\.prozess_status <> 'abgeschlossen'/);
   assert.match(migration, /public\.ausruestung_prozess_jsonb\(a\.id, 'obmann'\)/);
 });
+
+test("Tom kann eine Teilmenge eines Bündels atomar entscheiden oder als bezahlt bestätigen", () => {
+  const migration = lies("supabase/migrations/20260923234000_freigabe_buendelaktionen.sql");
+  const seite = lies("src/website/freigabe-seite.js");
+  const html = lies("freigabe.html");
+  assert.match(migration, /create function public\.freigabe_buendel_entscheiden/);
+  assert.match(migration, /create function public\.freigabe_buendel_zahlung_bestaetigen/);
+  assert.match(migration, /a\.buendel_id = p_buendel_id/);
+  assert.match(migration, /a\.prozess_status = 'vorgelegt'/);
+  assert.match(migration, /a\.prozess_status = 'zahlung_beauftragt'/);
+  assert.match(migration, /v_anzahl <> array_length\(p_ids, 1\)/);
+  assert.match(migration, /perform public\.freigabe_entscheiden/);
+  assert.match(migration, /perform public\.freigabe_zahlung_angewiesen/);
+  assert.match(seite, /data-buendel-entscheidung/);
+  assert.match(seite, /data-buendel-zahlung/);
+  assert.match(seite, /zugriff\.buendelZahlungBestaetigen/);
+  assert.match(html, /<dialog id="fgBestaetigung"/);
+  assert.doesNotMatch(seite, /\[data-zahlung\][\s\S]{0,400}await zugriff\.zahlungAngewiesen/);
+});

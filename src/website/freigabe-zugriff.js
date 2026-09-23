@@ -45,12 +45,21 @@ export function erstelleFreigabeZugriff({ adresse, oeffentlicherSchluessel }) {
       p_token: token, p_id: id, p_entscheidung: entscheidung,
       p_name: name, p_notiz: notiz || null,
     }),
+    buendelEntscheiden: (token, buendelId, ids, entscheidung, name, notiz) =>
+      rufe("freigabe_buendel_entscheiden", {
+        p_token: token, p_buendel_id: buendelId, p_ids: ids,
+        p_entscheidung: entscheidung, p_name: name, p_notiz: notiz || null,
+      }),
     // "Freigegeben" heißt freigegebenes Budget, nicht ausgegebenes Geld.
     // Die Überweisung ist ein eigener Schritt - und wer ihn gemacht hat,
     // weiß nur der Vereinsverantwortliche selbst.
     zahlungAngewiesen: (token, id, name) => rufe("freigabe_zahlung_angewiesen", {
       p_token: token, p_id: id, p_name: name,
     }),
+    buendelZahlungBestaetigen: (token, buendelId, ids, name) =>
+      rufe("freigabe_buendel_zahlung_bestaetigen", {
+        p_token: token, p_buendel_id: buendelId, p_ids: ids, p_name: name,
+      }),
   });
 }
 
