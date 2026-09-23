@@ -50,8 +50,10 @@ test("ein freigegebener Selbstkauf kann vor dem spaeteren Rechnungsupload bestae
 
 test("ein direkter Rechnungsupload bestaetigt den Kauf ebenfalls", () => {
   assert.match(selbstkaufMigration, /rechnung_hochgeladen_am = now\(\).*selbstkauf_bestaetigt = true/s);
-  // Der Belegupload ist seit v150 selbst ein Prozessschritt. Er erscheint
-  // genau dann, wenn der Server ihn in "meine_aktionen" mitgibt.
-  assert.match(bestand, /schritt === "beleg_hochgeladen"/);
-  assert.match(bestand, /Beleg hochladen/);
+  // Beim ersten Upload gilt die Serveraktion, vor der Pruefung darf ein
+  // bereits eingereichter Beleg ohne Ruecksprung ersetzt werden.
+  assert.match(bestand, /belegAktion\(vorgang\)/);
+  assert.match(linie, /schritt === "beleg_hochgeladen"/);
+  assert.match(linie, /Beleg hochladen/);
+  assert.match(linie, /Beleg ersetzen/);
 });

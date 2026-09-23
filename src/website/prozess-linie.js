@@ -93,7 +93,9 @@ export function prozessLinieHtml(vorgang, esc) {
   const schritte = alsListe(vorgang && vorgang.schritte);
   if (!schritte.length) return "";
   const zeilen = schritte.map((schritt) => {
-    const zusatz = [schritt.wert, kurzesDatum(schritt.zeitpunkt)].filter(Boolean).join(" · ");
+    const warSchonFaellig = schritt.stand === "erledigt" || schritt.stand === "gestoppt";
+    const zusatz = [warSchonFaellig ? schritt.wert : "",
+      warSchonFaellig ? kurzesDatum(schritt.zeitpunkt) : ""].filter(Boolean).join(" · ");
     return `<li class="prozess-schritt" data-stand="${esc(schritt.stand)}">
       <span class="prozess-punkt" aria-hidden="true"></span>
       <span class="prozess-wort">${esc(schritt.titel)}</span>
@@ -122,6 +124,15 @@ export function schiriAktionen(vorgang) {
   return alsListe(vorgang && vorgang.meine_aktionen)
     .filter((a) => a.schritt === "gekauft" || a.schritt === "geld_erhalten")
     .map((a) => ({ schritt: a.schritt, wort: SCHRITT_KNOPF[a.schritt] || a.titel }));
+}
+
+/** Ein noch ungeprüfter Beleg darf ersetzt werden, ohne den Prozess
+ * künstlich auf „gekauft“ zurückzusetzen. Die Aktion wird serverseitig
+ * durch schiri_anfrage_rechnung_hochladen geprüft. */
+export function belegAktion(vorgang) {
+  if (vorgang?.prozess_status === "beleg_hochgeladen") return "Beleg ersetzen";
+  return alsListe(vorgang?.meine_aktionen).some((a) => a.schritt === "beleg_hochgeladen")
+    ? "Beleg hochladen" : null;
 }
 
 /** Aus einer Prozessliste eine Zuordnung nach Anfrage-Id. */

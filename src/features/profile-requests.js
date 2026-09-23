@@ -513,6 +513,9 @@
 
       rechnungUploadInhalt.hidden = true;
       rechnungUploadErfolg.hidden = false;
+      // Auch die eigenstaendige Bestandsseite muss ihren Prozessstand sofort
+      // aktualisieren. Sonst bleibt dort nach dem Upload der alte Knopf.
+      document.dispatchEvent(new Event("schiri:beleg-aktualisiert"));
     });
 
     // Prüft beim Anmelden, ob es unerledigte Status-Änderungen gibt (Ersatz für

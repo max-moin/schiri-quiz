@@ -29,7 +29,7 @@
 
 import { DATENBANK } from "../../verein.config.js";
 import {
-  prozessLinieHtml, schiriAktionen, naechsterSchrittText, nachId,
+  prozessLinieHtml, schiriAktionen, belegAktion, naechsterSchrittText, nachId,
 } from "./prozess-linie.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
@@ -395,12 +395,12 @@ async function ladeAnfragen() {
     // dabei derselbe Schritt wie jeder andere - er braucht nur eine
     // Dateiauswahl statt eines einfachen Klicks.
     const aktionen = schiriAktionen(vorgang);
-    const belegMoeglich = (vorgang?.meine_aktionen || []).some((x) => x.schritt === "beleg_hochgeladen");
+    const belegKnopf = belegAktion(vorgang);
     const knoepfe = [
       ...aktionen.map((x) =>
         `<button type="button" class="bestand-knopf-sekundaer" data-schritt="${esc(x.schritt)}" data-anfrage="${esc(a.id)}">${esc(x.wort)}</button>`),
-      belegMoeglich
-        ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">Beleg hochladen</button>`
+      belegKnopf
+        ? `<button type="button" class="bestand-knopf-sekundaer" data-rechnung="${esc(a.id)}">${esc(belegKnopf)}</button>`
         : "",
     ].filter(Boolean);
     const stand = naechsterSchrittText(vorgang);
@@ -494,6 +494,7 @@ function richteAnfrageKnopfEin() {
     return;
   }
   knopf.addEventListener("click", () => profil.oeffneAusruestungsAnfrage());
+  document.addEventListener("schiri:beleg-aktualisiert", () => { void ladeAnfragen(); });
   // Nach dem Schliessen der Maske die Anfrageliste neu einlesen - sonst
   // stuende die frische Anfrage erst beim naechsten Seitenaufruf da.
   for (const kennung of ["anfrage-formular-schliessen-button", "anfrage-formular-erfolg-schliessen-button"]) {
