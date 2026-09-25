@@ -33,9 +33,9 @@ export const VEREIN = {
   // ============================================================
   // Benachrichtigungen (Web Push).
   //
-  // Solange hier kein oeffentlicher Schluessel steht, erscheint der
-  // Schalter auf installieren.html GAR NICHT. Das ist die Sperre - es
-  // gibt bewusst kein zweites Ja/Nein-Feld, das man vergessen koennte.
+  // Der Schalter erscheint erst, wenn der Schluessel vorhanden UND der
+  // Ereignisversand end-to-end getestet ist. Ein VAPID-Schluessel allein
+  // bedeutet noch nicht, dass Quiz-/Terminereignisse verschickt werden.
   //
   // Der Schluessel ist der OEFFENTLICHE Teil des VAPID-Paares und darf
   // im Browser stehen; er ist die Absenderkennung, kein Geheimnis. Der
@@ -45,7 +45,7 @@ export const VEREIN = {
   //
   // Erzeugen mit:  node server/vapid-schluessel.mjs
   // ============================================================
-  push: { oeffentlicherSchluessel: "" },
+  push: { oeffentlicherSchluessel: "", versandAktiv: false },
 
   // ============================================================
   // Schlüssel für die Terminabfrage der Startseite.

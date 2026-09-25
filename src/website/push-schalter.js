@@ -8,10 +8,9 @@
 //  wer es noch nicht installiert hat, liest die Begruendung direkt
 //  darueber.
 //
-//  SPERRE: Steht in verein.config.js kein oeffentlicher Schluessel,
-//  wird hier gar nichts gebaut. Kein zweites Ja/Nein-Feld, das man
-//  vergessen koennte - ohne Schluessel gibt es keinen Absender, also
-//  auch keinen Schalter.
+//  SPERRE: Schluessel UND freigegebener Ereignisversand muessen
+//  vorhanden sein. Ein Schluessel allein ist keine Zusage, dass
+//  Quiz-, Termin- oder persoenliche Ereignisse verschickt werden.
 // ============================================================
 
 import { DATENBANK, VEREIN } from "../../verein.config.js";
@@ -39,7 +38,7 @@ async function rpc(name, parameter) {
 }
 
 export function montierePushSchalter(halter, anmeldung, loginDialog) {
-  if (!halter || !SCHLUESSEL) return null;
+  if (!halter || !SCHLUESSEL || VEREIN.push?.versandAktiv !== true) return null;
 
   const lage = lagebericht();
   halter.hidden = false;

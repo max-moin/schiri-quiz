@@ -402,7 +402,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     anmeldung,
     loginDialog,
     profilAktionen: profilVerfuegbar ? [
-      { text: "Meine Daten", tun: () => { window.location.href = "meine-daten.html"; } },
+      { text: "Einstellungen", tun: () => { window.location.href = "einstellungen.html"; } },
       { text: "Meine Quizstatistik", tun: () => { window.location.href = "meine-statistik.html"; } },
       { text: "Mein Ausrüstungsbestand", tun: () => { window.location.href = "ausruestung.html"; } },
       { text: "Meine Anliegen", punkt: true, tun: () => { window.location.href = "meine-anliegen.html"; } },

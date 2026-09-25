@@ -1,0 +1,47 @@
+.einstellungen-seite { max-width: 790px; }
+.einstellungen-seite [hidden] { display: none !important; }
+.einstellungen-kopf { margin: 4px 0 26px; }
+.einstellungen-ueberzeile { margin: 0 0 5px; color: var(--marke); font-size: .78rem; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.einstellungen-kopf h1 { margin: 0; font-family: var(--font-titel); font-size: clamp(2rem, 5vw, 2.8rem); line-height: 1.15; }
+.einstellungen-kopf > p:last-child { margin: 10px 0 0; color: var(--muted); line-height: 1.5; }
+.einstellungen-bereiche { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.einstellungen-bereiche a { display: flex; align-items: center; gap: 15px; min-width: 0; min-height: 100px; padding: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); color: var(--text); text-decoration: none; }
+.einstellungen-bereiche a:hover { border-color: var(--marke); background: var(--marke-lighter); }
+.einstellungen-bereiche a > span:nth-child(2) { flex: 1; min-width: 0; }
+.einstellungen-bereiche strong,.einstellungen-bereiche small { display: block; }
+.einstellungen-bereiche strong { font-family: var(--font-titel); font-size: 1.05rem; }
+.einstellungen-bereiche small { margin-top: 4px; color: var(--muted); font-size: .85rem; line-height: 1.4; }
+.einstellungen-symbol { display: grid; place-items: center; width: 48px; height: 48px; flex: none; border-radius: 15px; background: var(--marke-lighter); color: var(--marke); }
+.einstellungen-symbol svg { width: 25px; height: 25px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.einstellungen-pfeil { color: var(--muted); font-size: 1.6rem; }
+.mitteilungen-status,.mitteilungen-arten { padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--card); box-shadow: var(--shadow); }
+.mitteilungen-status-kopf { display: flex; align-items: center; gap: 14px; }
+.mitteilungen-status h2,.mitteilungen-arten h2 { margin: 0; font-family: var(--font-titel); font-size: 1.2rem; }
+.mitteilungen-status-kopf p { margin: 5px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.4; }
+.mitteilungen-fakten { display: grid; gap: 0; margin: 20px 0 0; border-top: 1px solid var(--border); }
+.mitteilungen-fakten div { display: flex; justify-content: space-between; gap: 14px; padding: 12px 0; border-bottom: 1px solid var(--border); }
+.mitteilungen-fakten dt { color: var(--muted); }
+.mitteilungen-fakten dd { margin: 0; font-weight: 700; text-align: right; }
+.mitteilungen-hinweis { margin: 16px 0 0; color: var(--muted); line-height: 1.55; }
+.mitteilungen-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--marke); font-weight: 700; }
+.mitteilungen-arten { margin-top: 18px; }
+.mitteilungen-abschnitt-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.mitteilungen-abschnitt-kopf p { max-width: 54ch; margin: 7px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.5; }
+.mitteilungen-vorschau { flex: none; padding: 5px 9px; border-radius: 999px; background: var(--marke-lighter); color: var(--marke); font-size: .75rem; font-weight: 800; }
+.mitteilungen-arten ul { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--border); }
+.mitteilungen-arten li { min-height: 65px; padding: 14px 0; border-bottom: 1px solid var(--border); }
+.mitteilungen-arten li:last-child { border-bottom: 0; padding-bottom: 0; }
+.mitteilungen-arten strong,.mitteilungen-arten small { display: block; }
+.mitteilungen-arten strong { font-weight: 750; }
+.mitteilungen-arten small { margin-top: 4px; color: var(--muted); font-size: .86rem; line-height: 1.4; }
+.mitteilungen-abschluss { margin: 17px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.5; }
+@media (max-width: 650px) {
+  .einstellungen-bereiche { grid-template-columns: 1fr; }
+  .mitteilungen-abschnitt-kopf { display: block; }
+  .mitteilungen-vorschau { display: inline-block; margin-top: 11px; }
+}
+@media (max-width: 450px) {
+  .mitteilungen-status,.mitteilungen-arten { padding: 18px; }
+  .mitteilungen-fakten div { display: block; }
+  .mitteilungen-fakten dd { margin-top: 3px; text-align: left; }
+}

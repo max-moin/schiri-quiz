@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="manifest" href="app.webmanifest" />
+  <link rel="apple-touch-icon" href="bilder/apple-touch-icon.png" />
+  <meta name="theme-color" content="#1f2937" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Kickers SR" />
+  <title>Einstellungen – FV Löbtauer Kickers</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="bilder/logo.png" />
+  <link rel="stylesheet" href="stil/basis.css" />
+  <link rel="stylesheet" href="stil/kopf-fuss.css" />
+  <link rel="stylesheet" href="stil/bausteine.css" />
+  <link rel="stylesheet" href="stil/anmeldung.css" />
+  <link rel="stylesheet" href="stil/profil.css" />
+  <link rel="stylesheet" href="stil/meine-anliegen.css" />
+  <link rel="stylesheet" href="stil/einstellungen.css" />
+</head>
+<body data-seitenname="Einstellungen">
+  <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+  <header class="seiten-kopf"><div class="kopf-innen">
+    <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" /><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
+    <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+    <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="index.html">Start</a><a href="termine.html">Termine</a><span class="nav-deaktiviert" aria-disabled="true">Spesen<small>In Prüfung</small></span><span class="nav-deaktiviert" aria-disabled="true">Regeln<small>In Prüfung</small></span><a href="informationen.html">Unterlagen</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
+  </div></header>
+  <main class="inhalt einstellungen-seite" id="inhalt" tabindex="-1">
+    <section id="einstellungen-zugang" class="meine-zugang" hidden>
+      <h1>Einstellungen</h1>
+      <p>Melde dich an, um deine persönlichen Einstellungen zu öffnen.</p>
+      <button id="einstellungen-anmelden" type="button" class="meine-hauptknopf">Als Vereinsmitglied anmelden</button>
+    </section>
+    <div id="einstellungen-inhalt" hidden>
+      <header class="einstellungen-kopf">
+        <p class="einstellungen-ueberzeile">Dein Konto</p>
+        <h1>Einstellungen</h1>
+        <p>Deine Angaben und Mitteilungen an einem Ort.</p>
+      </header>
+      <nav class="einstellungen-bereiche" aria-label="Einstellungsbereiche">
+        <a href="meine-daten.html">
+          <span class="einstellungen-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 20c.5-4 3-6 7-6s6.5 2 7 6"/></svg></span>
+          <span><strong>Meine Daten</strong><small>Name und Verein ansehen</small></span><span class="einstellungen-pfeil" aria-hidden="true">›</span>
+        </a>
+        <a href="mitteilungen.html">
+          <span class="einstellungen-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></svg></span>
+          <span><strong>Mitteilungen</strong><small>Gerätestatus und künftige Benachrichtigungen</small></span><span class="einstellungen-pfeil" aria-hidden="true">›</span>
+        </a>
+      </nav>
+    </div>
+  </main>
+  <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/einstellungen-seite.js"></script>
+</body>
+</html>

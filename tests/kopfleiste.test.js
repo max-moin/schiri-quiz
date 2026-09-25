@@ -394,7 +394,8 @@ test("Impressum, Datenschutz und Nutzungsbedingungen stehen in jeder Fusszeile",
 
 test("die Fusszeile bleibt auf Rechtliches, Installation und Obmann-Zugang begrenzt", () => {
   const seiten = [...SEITEN_MIT_LEISTE, "ausruestung.html", "frage-vorschlagen.html",
-    "installieren.html", "meine-anliegen.html", "meine-daten.html", "meine-statistik.html"];
+    "installieren.html", "meine-anliegen.html", "meine-daten.html", "meine-statistik.html",
+    "einstellungen.html", "mitteilungen.html"];
   for (const seite of seiten) {
     const html = lies(seite);
     const fuss = html.slice(html.indexOf('<footer class="seiten-fuss"'), html.indexOf("</footer>") + 9);

@@ -53,11 +53,11 @@ export const BAUM = Object.freeze({
   "entscheiden.html": { titel: "Entscheiden", eltern: "modus.html" },
   "duell.html": { titel: "Quiz-Duell", eltern: "modus.html" },
 
-  // Der eigene Bereich haengt am Kontomenue, und das gibt es auf JEDER
-  // Seite. Einen Elternknoten hat er trotzdem, sonst waere er der einzige
-  // Ort ohne Weg zurueck. "Mein Konto" steht als Zwischenschritt im Pfad,
-  // ist aber kein Link - die Seite dazu gibt es nicht.
-  "meine-daten.html": { titel: "Meine Daten", eltern: "index.html", zwischen: "Mein Konto" },
+  // Kontomenue -> Einstellungen -> zwei Unterbereiche. Die anderen
+  // persoenlichen Bereiche bleiben direkte Menuepunkte.
+  "einstellungen.html": { titel: "Einstellungen", eltern: "index.html", zwischen: "Mein Konto" },
+  "meine-daten.html": { titel: "Meine Daten", eltern: "einstellungen.html" },
+  "mitteilungen.html": { titel: "Mitteilungen", eltern: "einstellungen.html" },
   "meine-statistik.html": { titel: "Meine Statistik", eltern: "index.html", zwischen: "Mein Konto" },
   "meine-anliegen.html": { titel: "Meine Anliegen", eltern: "index.html", zwischen: "Mein Konto" },
   "ausruestung.html": { titel: "Meine Ausrüstung", eltern: "index.html", zwischen: "Mein Konto" },

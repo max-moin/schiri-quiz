@@ -171,10 +171,10 @@ test("v134 erlaubt denselben Katalog fuer Bestand und Anfrage", () => {
     "Auch der Server muss Aermellaengen bei Hosen und Equipment ablehnen.");
 });
 
-test("das Kontomenue trennt die vier persoenlichen Bereiche", () => {
+test("das Kontomenue bietet Einstellungen statt direktem Daten-Link", () => {
   const ohne = ohneJsKommentare(seiteJs);
   const punkte = [...ohne.matchAll(/\{ text: "([^"]+)"/g)].map((t) => t[1]);
-  assert.deepEqual(punkte, ["Meine Daten", "Meine Quizstatistik", "Mein Ausrüstungsbestand", "Meine Anliegen"]);
+  assert.deepEqual(punkte, ["Einstellungen", "Meine Quizstatistik", "Mein Ausrüstungsbestand", "Meine Anliegen"]);
   assert.match(ohne, /punkt: true/,
     "Der blaue Neuigkeiten-Punkt ist verschwunden.");
   assert.match(ohne, /window\.location\.href = "meine-anliegen\.html"/,

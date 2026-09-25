@@ -16,7 +16,7 @@ test("der Kontobereich bleibt persoenlich und dupliziert den Quizknopf nicht", (
   assert.doesNotMatch(konto, /href="modus\.html"/);
   assert.match(lies("seite.js"), /text: "Mein Ausrüstungsbestand"/);
   assert.match(lies("seite.js"), /text: "Meine Anliegen"/);
-  assert.match(lies("seite.js"), /text: "Meine Daten"/);
+  assert.match(lies("seite.js"), /text: "Einstellungen"/);
   assert.match(lies("seite.js"), /text: "Meine Quizstatistik"/);
   assert.match(lies("seite.js"), /meine-anliegen\.html/);
 });

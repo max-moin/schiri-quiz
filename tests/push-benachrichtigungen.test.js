@@ -62,15 +62,16 @@ test("jede Zustellung wird sichtbar - sonst entzieht iOS die Erlaubnis", () => {
   assert.match(ohneKommentare(lies("sw.js")), /showNotification/);
 });
 
-test("ohne hinterlegten Schluessel gibt es den Schalter gar nicht", () => {
-  // Das ist die Sperre vor dem Start am 14.09. Bewusst kein zweites
-  // Ja/Nein-Feld: ohne Absender kein Schalter.
+test("Schluessel allein schaltet den Versand noch nicht frei", () => {
+  // Erst Schluessel UND fertig getesteter Ereignisversand duerfen den
+  // Schalter zeigen: eine technische Absenderkennung ist kein Produkt.
   const config = lies("verein.config.js");
   assert.match(config, /push:\s*\{\s*oeffentlicherSchluessel:\s*""/,
     "in verein.config.js steht jetzt ein Schluessel - dann ist der Schalter oeffentlich sichtbar");
   const schalter = lies("src/website/push-schalter.js");
-  assert.match(schalter, /if \(!halter \|\| !SCHLUESSEL\) return null;/,
-    "der Schalter baut sich jetzt auch ohne Schluessel auf");
+  assert.match(config, /versandAktiv: false/);
+  assert.match(schalter, /if \(!halter \|\| !SCHLUESSEL \|\| VEREIN\.push\?\.versandAktiv !== true\) return null;/,
+    "der Schalter baut sich auf, bevor der Versand freigegeben ist");
   assert.match(lies("installieren.html"), /id="push-schalter"[^>]*hidden/,
     "der Abschnitt ist im HTML nicht mehr versteckt");
 });

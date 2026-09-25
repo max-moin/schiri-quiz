@@ -49,6 +49,8 @@ const VEREINSSEITEN = [
   "vorlagen.html",
   "schiri-werden.html",
   "melden.html",
+  "einstellungen.html",
+  "mitteilungen.html",
 ];
 
 const BAUSTEINE = ["src/core/anmeldung.js", "src/ui/masked-input.js", "src/ui/login-dialog.js"];
