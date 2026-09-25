@@ -72,8 +72,10 @@ test("Schluessel allein schaltet den Versand noch nicht frei", () => {
   assert.match(config, /versandAktiv: false/);
   assert.match(schalter, /if \(!halter \|\| !SCHLUESSEL \|\| VEREIN\.push\?\.versandAktiv !== true\) return null;/,
     "der Schalter baut sich auf, bevor der Versand freigegeben ist");
-  assert.match(lies("installieren.html"), /id="push-schalter"[^>]*hidden/,
-    "der Abschnitt ist im HTML nicht mehr versteckt");
+  assert.match(lies("mitteilungen.html"), /id="mitteilungen-steuerung"[^>]*hidden/,
+    "die persoenliche Auswahl ist im HTML nicht mehr versteckt");
+  assert.doesNotMatch(lies("installieren.html"), /installieren-push\.js/,
+    "es gibt zwei konkurrierende Push-Schalter");
 });
 
 test("der PRIVATE VAPID-Schluessel steht nirgends im Browser-Code", () => {

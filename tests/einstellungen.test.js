@@ -22,13 +22,16 @@ test("Einstellungen hat zwei echte Unterbereiche ohne neue Hauptnavigation", () 
   assert.match(lies("mitteilungen.html"), /id="einstellungen-inhalt"[^>]*hidden/);
 });
 
-test("Mitteilungen behauptet keinen aktiven Versand und fragt beim Laden keine Erlaubnis an", () => {
+test("Mitteilungen bleiben bis zur Pilotfreigabe gesperrt und fragen beim Laden keine Erlaubnis an", () => {
   const html = lies("mitteilungen.html");
   const skript = lies("src/website/einstellungen-seite.js");
-  assert.match(html, /Noch werden keine Mitteilungen an Schiedsrichter versendet/);
+  const steuerung = lies("src/website/mitteilungen-steuerung.js");
   assert.match(html, /Noch nicht gestartet/);
   assert.doesNotMatch(skript, /requestPermission|\.subscribe\(/);
-  assert.doesNotMatch(html, /<input[^>]*type="checkbox"/);
+  assert.match(html, /id="mitteilungen-steuerung"[^>]*hidden/);
+  assert.match(steuerung, /\/api\/push-bereitschaft/);
+  assert.match(lies("verein.config.js"), /versandAktiv: false/);
+  assert.doesNotMatch(lies("verein.config.js"), /pilotSchiedsrichterId/);
 });
 
 test("der bisherige Installationsschalter braucht Schluessel UND freigegebenen Versand", () => {

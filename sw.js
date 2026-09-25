@@ -34,6 +34,12 @@ const STANDARD = {
   ziel: "/",
 };
 
+function sicheresZiel(wert) {
+  if (wert === "/mitteilungen.html") return wert;
+  if (typeof wert === "string" && /^\/meine-anliegen\.html#feedback=[0-9a-f-]{36}$/i.test(wert)) return wert;
+  return STANDARD.ziel;
+}
+
 self.addEventListener("push", (ereignis) => {
   let daten = {};
   try {
@@ -48,9 +54,7 @@ self.addEventListener("push", (ereignis) => {
 
   const titel = String(daten.titel || STANDARD.titel).slice(0, 120);
   const text = String(daten.text || STANDARD.text).slice(0, 400);
-  const ziel = typeof daten.ziel === "string" && daten.ziel.startsWith("/")
-    ? daten.ziel
-    : STANDARD.ziel;
+  const ziel = sicheresZiel(daten.ziel);
 
   ereignis.waitUntil(self.registration.showNotification(titel, {
     body: text,
@@ -64,7 +68,7 @@ self.addEventListener("push", (ereignis) => {
     // Gleiches "tag" heisst: eine neue Nachricht ersetzt die alte,
     // statt sich zu stapeln. Bei einer Vereinsseite mit einer Handvoll
     // Nachrichten pro Woche ist ein Stapel nur Laerm.
-    tag: String(daten.gruppe || "allgemein"),
+    tag: String(daten.gruppe || "allgemein").slice(0, 100),
     renotify: true,
     data: { ziel },
   }));
@@ -72,7 +76,7 @@ self.addEventListener("push", (ereignis) => {
 
 self.addEventListener("notificationclick", (ereignis) => {
   ereignis.notification.close();
-  const ziel = ereignis.notification.data?.ziel || STANDARD.ziel;
+  const ziel = sicheresZiel(ereignis.notification.data?.ziel);
   ereignis.waitUntil((async () => {
     const fenster = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     // Ist die App schon offen, wird sie nach vorn geholt und umgeleitet -

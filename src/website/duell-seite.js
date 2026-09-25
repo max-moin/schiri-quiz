@@ -535,6 +535,13 @@ async function frageAnsicht(f, stand = null) {
   root.querySelector("[data-antwort]").addEventListener("submit", antwortenAbgeben);
 }
 
+// Leere Pflichtangaben am Feld melden statt oben (25.09.2026, siehe
+// src/ui/pflichtfeld.js). Gibt false zurueck, wenn der Baustein fehlt -
+// dann uebernimmt der bisherige Fehlerweg.
+function pflichtfeld(ziel, text) {
+  return Boolean(ziel && globalThis.SchiriPflichtfeld?.melde(ziel, text));
+}
+
 async function antwortenAbgeben(event) {
   event.preventDefault();
   versteckeFehler();
@@ -543,8 +550,12 @@ async function antwortenAbgeben(event) {
   knopf.disabled = true;
   try {
     if (frage.antworttyp === "freitext") {
-      const text = form.querySelector('[name="freitext"]').value.trim();
-      if (!text) throw new Error("Bitte erst eine Antwort eingeben.");
+      const feld = form.querySelector('[name="freitext"]');
+      const text = feld.value.trim();
+      if (!text) {
+        if (pflichtfeld(feld, "Das Feld ist noch leer. Bitte schreib deine Entscheidung – und, wenn die Frage danach fragt, die Begründung.")) { knopf.disabled = false; return; }
+        throw new Error("Bitte erst eine Antwort eingeben.");
+      }
       if (text.length > FREITEXT_ZEICHENLIMIT) throw new Error(`Deine Antwort ist ${text.length - FREITEXT_ZEICHENLIMIT} Zeichen zu lang. Bitte kürze sie.`);
       const ergebnis = await api.freitext(sitzung.zugang, frage.id, text);
       zeigeFreitextErgebnis(frage, text, ergebnis);
@@ -553,12 +564,23 @@ async function antwortenAbgeben(event) {
       const wert = Number(rohwert.replace(",", "."));
       const feste = frage.zahl_einheiten?.length === 1 ? frage.zahl_einheiten[0].einheit : null;
       const einheit = feste || form.querySelector('[name="einheit"]')?.value || "";
-      if (!rohwert || !Number.isFinite(wert) || !einheit) throw new Error("Bitte gib eine gültige Zahl und Einheit ein.");
+      if (!rohwert || !Number.isFinite(wert) || !einheit) {
+        const zeile = form.querySelector('[name="zahl"]')?.closest(".zahl-eingabe-zeile");
+        const text = !rohwert ? "Bitte eine Zahl eingeben."
+          : !Number.isFinite(wert) ? "Bitte nur eine Zahl eingeben, zum Beispiel 9,15."
+          : "Bitte eine Einheit wählen.";
+        if (pflichtfeld(zeile, text)) { knopf.disabled = false; return; }
+        throw new Error("Bitte gib eine gültige Zahl und Einheit ein.");
+      }
       const ergebnis = await api.zahl(sitzung.zugang, frage.id, wert, einheit);
       zeigeZahlErgebnis(frage, wert, einheit, ergebnis);
     } else {
       const auswahl = [...form.querySelectorAll('[name="auswahl"]:checked')].map((x) => x.value);
-      if (!auswahl.length) throw new Error("Bitte wähle erst eine Antwort aus.");
+      if (!auswahl.length) {
+        const gruppe = form.querySelector('[name="auswahl"]')?.closest("label")?.parentElement;
+        if (pflichtfeld(gruppe, "Bitte wähle erst eine Antwort aus.")) { knopf.disabled = false; return; }
+        throw new Error("Bitte wähle erst eine Antwort aus.");
+      }
       const ergebnis = await api.antworten(sitzung.zugang, frage.id, auswahl);
       zeigeAuswahlErgebnis(frage, auswahl, ergebnis);
     }
@@ -630,8 +652,13 @@ async function ergaenzungAbschicken(event, f, ersterText) {
   const form = event.currentTarget;
   const knopf = form.querySelector("button");
   knopf.disabled = true;
-  const zweiterText = form.querySelector('[name="ergaenzung"]').value.trim();
-  if (!zweiterText) { knopf.disabled = false; fehler(new Error("Bitte erst eine Ergänzung eingeben.")); return; }
+  const ergaenzungsFeld = form.querySelector('[name="ergaenzung"]');
+  const zweiterText = ergaenzungsFeld.value.trim();
+  if (!zweiterText) {
+    knopf.disabled = false;
+    if (!pflichtfeld(ergaenzungsFeld, "Das Feld ist noch leer. Bitte ergänze hier, was in deiner Antwort gefehlt hat.")) fehler(new Error("Bitte erst eine Ergänzung eingeben."));
+    return;
+  }
   if (zweiterText.length > FREITEXT_ZEICHENLIMIT) { knopf.disabled = false; fehler(new Error(`Deine Ergänzung ist ${zweiterText.length - FREITEXT_ZEICHENLIMIT} Zeichen zu lang.`)); return; }
   try {
     const ergebnis = await api.freitextErgaenzung(sitzung.zugang, f.id, zweiterText);
@@ -731,7 +758,11 @@ async function uebersichtAnsicht(weiterspielenErlaubt) {
         const knopf = formular.querySelector("button");
         knopf.disabled = true;
         const zweiterText = feld.value.trim();
-        if (!zweiterText) { knopf.disabled = false; fehler(new Error("Bitte erst eine Ergänzung eingeben.")); return; }
+        if (!zweiterText) {
+          knopf.disabled = false;
+          if (!pflichtfeld(feld, "Das Feld ist noch leer. Bitte ergänze hier, was in deiner Antwort gefehlt hat.")) fehler(new Error("Bitte erst eine Ergänzung eingeben."));
+          return;
+        }
         try {
           await api.freitextErgaenzung(sitzung.zugang, f.frage_id, zweiterText);
           await uebersichtAnsicht(weiterspielenErlaubt);

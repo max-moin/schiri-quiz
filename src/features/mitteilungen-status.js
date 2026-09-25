@@ -44,7 +44,7 @@ export function erklaereMitteilungsstatus(lage, erlaubnis, versandBereit) {
     kurz: "Dieses Gerät kann Mitteilungen empfangen",
     browser: "Geeignet",
     erlaubnis: erlaubnisText,
-    hinweis: "Ob dieses Gerät angemeldet ist, kannst du auf der Installationsseite prüfen und dort ändern.",
-    installationZeigen: true,
+    hinweis: "Die persönliche Auswahl und die Geräte-Abos kannst du unten ändern.",
+    installationZeigen: false,
   };
 }

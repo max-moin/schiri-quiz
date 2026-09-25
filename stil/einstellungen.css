@@ -35,6 +35,23 @@
 .mitteilungen-arten strong { font-weight: 750; }
 .mitteilungen-arten small { margin-top: 4px; color: var(--muted); font-size: .86rem; line-height: 1.4; }
 .mitteilungen-abschluss { margin: 17px 0 0; color: var(--muted); font-size: .87rem; line-height: 1.5; }
+.mitteilungen-wahl { display: flex; align-items: center; justify-content: space-between; gap: 18px; min-height: 74px; margin-top: 16px; padding: 14px 0; border-top: 1px solid var(--border); cursor: pointer; }
+.mitteilungen-wahl strong,.mitteilungen-wahl small { display: block; }
+.mitteilungen-wahl small { margin-top: 4px; color: var(--muted); line-height: 1.4; }
+.mitteilungen-wahl input { width: 23px; height: 23px; flex: none; accent-color: var(--marke); }
+.mitteilungen-geraeteteil { margin-top: 22px; padding-top: 22px; border-top: 1px solid var(--border); }
+.mitteilungen-geraeteteil > p { line-height: 1.5; }
+.mitteilungen-aktionen { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.mitteilungen-aktionen button,.mitteilungen-zweitknopf,.mitteilungen-geraete button { min-height: 44px; }
+.mitteilungen-zweitknopf,.mitteilungen-geraete button { border: 1px solid var(--border); border-radius: 10px; padding: 9px 13px; background: var(--card); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.mitteilungen-aktionen button:disabled,.mitteilungen-geraete button:disabled { opacity: .6; cursor: wait; }
+.mitteilungen-kleindruck { color: var(--muted); font-size: .83rem; }
+.mitteilungen-geraete { list-style: none; margin: 12px 0 0; padding: 0; }
+.mitteilungen-geraete li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 60px; padding: 10px 0; border-top: 1px solid var(--border); }
+.mitteilungen-geraete li > span { min-width: 0; overflow-wrap: anywhere; }
+.mitteilungen-geraete li > button { flex: none; }
+.mitteilungen-geraete small { display: block; margin-top: 3px; color: var(--muted); }
+.mitteilungen-geraete .ist-aktuell { color: var(--marke); font-weight: 700; }
 @media (max-width: 650px) {
   .einstellungen-bereiche { grid-template-columns: 1fr; }
   .mitteilungen-abschnitt-kopf { display: block; }

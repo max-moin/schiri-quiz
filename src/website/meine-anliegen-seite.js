@@ -198,6 +198,7 @@ function vorgangElement(vorgang) {
   const details = document.createElement("details");
   details.className = "meine-vorgang";
   details.dataset.art = vorgang.art;
+  if (vorgang.id) details.id = vorgang.id;
   // Eine neue Antwort soll man nicht erst suchen muessen.
   if (vorgang.neu) details.open = true;
 
@@ -365,6 +366,7 @@ function ausQuizFeedback(zeilen) {
     const editierbar = letzter?.id && ["offen", "gelesen"].includes(letzter?.status || m.status);
     return {
       art: "quiz",
+      id: `feedback-${m.meldung_id}`,
       artName: "Quiz-Feedback",
       titel: nummer + frage,
       status: m.status,
@@ -525,6 +527,18 @@ async function ladeVorgaenge(person) {
 
   zeichneFilter();
   zeichneVorgaenge();
+
+  // Das Push-Ziel enthaelt nur eine Meldungs-ID im Fragment. Keine PIN,
+  // kein Antworttext und keine Server-URL-Query. Die eigene RPC liefert
+  // ohnehin nur Vorgänge dieser Person; fremde IDs öffnen nichts.
+  const ziel = /^#feedback=([0-9a-f-]{36})$/i.exec(globalThis.location?.hash || "");
+  if (ziel) {
+    const karte = $("feedback-" + ziel[1]);
+    if (karte) {
+      karte.open = true;
+      karte.scrollIntoView({ block: "center", behavior: "smooth" });
+    }
+  }
 
   if (aufrufe.some((ergebnis) => ergebnis.status === "rejected")) {
     const hinweis = document.createElement("p");

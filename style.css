@@ -3358,3 +3358,32 @@ body.melde-dialog-offen {
 .wegweiser-pfad a { color: var(--muted); }
 .wegweiser-pfad [aria-current="page"] { color: var(--text); font-weight: 650; }
 @media (min-width: 640px) { .wegweiser-pfad { display: block; } }
+
+/* ============================================================
+   Pflichtangaben am Feld (25.09.2026, src/ui/pflichtfeld.js)
+   Roter Rahmen UND ein Satz darunter - Farbe allein reicht nicht
+   (WCAG 1.4.1). #991b1b auf Weiss: 8,3:1.
+   ============================================================ */
+.pflicht-fehler {
+  border-color: var(--red) !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, .18);
+  border-radius: 12px;
+}
+div.pflicht-fehler:not(.zahl-eingabe-zeile) { outline: 2px solid var(--red); outline-offset: 4px; box-shadow: none; }
+.zahl-eingabe-zeile.pflicht-fehler { box-shadow: none; }
+.zahl-eingabe-zeile.pflicht-fehler input { border-color: var(--red); box-shadow: 0 0 0 3px rgba(220, 38, 38, .18); }
+.pflicht-meldung {
+  margin: 8px 0 0;
+  color: #991b1b;
+  font-size: .88rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+/* Icon-Antworten: was fehlt noch, bevor der Knopf frei wird? */
+.entscheidung-offen {
+  margin: 8px 0 0;
+  color: var(--muted);
+  font-size: .85rem;
+  line-height: 1.45;
+}
+

@@ -125,9 +125,10 @@
     // Ein einziger Weg zum Server. Bewusst ohne die Supabase-Bibliothek:
     // die Vereinsseiten laden sie nicht, und fuer drei Aufrufe lohnt sich
     // kein zusaetzliches Skript auf jeder Seite.
-    async function rufe(name, parameter) {
+    async function rufe(name, parameter, optionen = {}) {
       const antwort = await global.fetch(`${adresse}/rest/v1/rpc/${name}`, {
         method: "POST",
+        signal: optionen.signal,
         headers: {
           "Content-Type": "application/json",
           apikey: oeffentlicherSchluessel,
@@ -170,7 +171,36 @@
       loescheRoh(SCHLUESSEL_KENNUNG);
     }
 
-    function abmelden() {
+    async function pushAufDiesemGeraetBeenden(person) {
+      if (!person || !global.navigator?.serviceWorker) return;
+      const registrierung = await global.navigator.serviceWorker.getRegistration("/sw.js");
+      const abo = await registrierung?.pushManager?.getSubscription();
+      if (!abo) return;
+      // Ein nicht erreichbarer Server darf die Abmeldung nicht unbegrenzt
+      // blockieren. Nach vier Sekunden wird zumindest das Browser-Abo geloest.
+      const abbruch = new AbortController();
+      const zeitlimit = setTimeout(() => abbruch.abort(), 4000);
+      let serverOkay = false;
+      try {
+        await rufe("push_abo_loeschen", {
+          p_schiedsrichter_id: person.id, p_pin: person.pin, p_endpunkt: abo.endpoint,
+        }, { signal: abbruch.signal });
+        serverOkay = true;
+      } catch { /* Geraet wird trotzdem lokal abgemeldet */ }
+      finally { clearTimeout(zeitlimit); }
+      let lokalOkay = false;
+      try { lokalOkay = await abo.unsubscribe(); } catch { /* Serverwiderruf kann reichen */ }
+      if (!serverOkay && !lokalOkay) {
+        throw new Error("Benachrichtigungen konnten nicht abgeschaltet werden. Bitte versuche es erneut.");
+      }
+    }
+
+    async function abmelden() {
+      // Vor dem Entfernen der PIN erst das persoenliche Push-Abo loesen.
+      // Sonst koennte der naechste Benutzer des Geraets fremde Hinweise
+      // bekommen. Wenn weder Server noch Browser erreichbar sind, nicht
+      // stillschweigend behaupten, dass die Abmeldung vollstaendig war.
+      await pushAufDiesemGeraetBeenden(lesen());
       loescheRoh(SCHLUESSEL_SITZUNG);
       vergissGeraet();
       // Die Vereinskennung bleibt bewusst stehen. Sie ist kein
@@ -219,6 +249,11 @@
       });
       const treffer = Array.isArray(daten) ? daten[0] : daten;
       if (!treffer || !treffer.schiedsrichter_id) return null;
+
+      const bisher = lesen();
+      if (bisher && bisher.id !== treffer.schiedsrichter_id) {
+        await pushAufDiesemGeraetBeenden(bisher);
+      }
 
       // Den vom Server gelieferten Namen uebernehmen, nicht den getippten -
       // sonst stuende bei abweichender Gross-/Kleinschreibung die Eingabe

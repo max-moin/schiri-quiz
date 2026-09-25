@@ -116,7 +116,8 @@
       button.addEventListener("click", async () => {
         const auswahl = Array.from(liste.querySelectorAll("input:checked"), (input) => input.value);
         if (auswahl.length === 0) {
-          zeigeFehler(mehrfach ? "Bitte mindestens eine Antwort auswählen." : "Bitte eine Antwort auswählen.");
+          const text = mehrfach ? "Bitte mindestens eine Antwort auswählen." : "Bitte eine Antwort auswählen.";
+          if (!global.SchiriPflichtfeld?.melde(liste, text)) zeigeFehler(text);
           return;
         }
         versteckeFehler();
@@ -218,7 +219,11 @@
         const wert = Number(rohwert.replace(",", "."));
         const einheitWert = String(leseEinheit() || "").trim();
         if (rohwert === "" || !Number.isFinite(wert) || !einheitWert) {
-          zeigeFehler("Bitte eine gültige Zahl und Einheit eingeben.");
+          // Sagen, WAS nicht stimmt: leer, keine Zahl oder keine Einheit.
+          const text = rohwert === "" ? "Bitte eine Zahl eingeben."
+            : !Number.isFinite(wert) ? "Bitte nur eine Zahl eingeben, zum Beispiel 9,15."
+            : "Bitte eine Einheit wählen.";
+          if (!global.SchiriPflichtfeld?.melde(zeile, text)) zeigeFehler("Bitte eine gültige Zahl und Einheit eingeben.");
           return;
         }
         versteckeFehler();

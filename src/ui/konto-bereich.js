@@ -118,9 +118,13 @@ export function montiereKontoBereich({ kopfInnen, anmeldung, loginDialog, profil
   // damit wieder in der quiz-eigenen Anmeldemaske (Max: "Das soll halt
   // nicht passieren."). Eine Vereinsseite ist ohne Anmeldung vollstaendig
   // lesbar - man bleibt einfach stehen, wo man ist.
-  bereich.querySelector("[data-abmelden]").addEventListener("click", () => {
-    anmeldung.abmelden();
-    schliesseKontoMenue();
+  bereich.querySelector("[data-abmelden]").addEventListener("click", async () => {
+    try {
+      await anmeldung.abmelden();
+      schliesseKontoMenue();
+    } catch (fehler) {
+      globalThis.alert?.(fehler.message || "Abmelden ist gerade nicht möglich.");
+    }
   });
 
   document.addEventListener("click", (e) => {

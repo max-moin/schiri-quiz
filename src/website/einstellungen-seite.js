@@ -21,7 +21,7 @@ function zeigeStatus() {
   $("mitteilungen-kurzstatus").textContent = status.kurz;
   $("mitteilungen-browser").textContent = status.browser;
   $("mitteilungen-erlaubnis").textContent = status.erlaubnis;
-  $("mitteilungen-versand").textContent = versandBereit ? "Technisch freigegeben" : "Noch nicht gestartet";
+  $("mitteilungen-versand").textContent = versandBereit ? "Freigegeben" : "Noch nicht gestartet";
   $("mitteilungen-hinweis").textContent = status.hinweis;
   $("mitteilungen-installieren").hidden = !status.installationZeigen;
 }

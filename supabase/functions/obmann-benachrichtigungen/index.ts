@@ -46,20 +46,49 @@ async function alsFehlerMarkieren(auftrag: Auftrag, code: string, endgueltig = f
   });
 }
 
+// Derselbe zweiminütige Cron kann den getrennten Web-Push-Dispatcher
+// anstoßen. Er schickt KEINE Ziele oder Texte: Die Vercel Function holt
+// eigene, bereits serverseitig autorisierte Aufträge aus der Datenbank.
+// Fehlt die ausdrückliche Freigabe, bleibt dieser Kanal vollständig aus.
+async function schiriPushAnstossen(): Promise<void> {
+  if (umgebung("SCHIRI_PUSH_CRON_AKTIV") !== "true") return;
+  const geheimnis = umgebung("PUSH_SENDE_SCHLUESSEL");
+  if (!geheimnis) {
+    console.error("Schiri-Push: Sendegeheimnis fehlt");
+    return;
+  }
+  try {
+    const antwort = await fetch("https://www.schiri-loebtauer-kickers.com/api/push-auftraege", {
+      method: "POST",
+      headers: { "x-push-schluessel": geheimnis },
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!antwort.ok) console.error("Schiri-Push: Dispatcher HTTP", antwort.status);
+  } catch (fehler) {
+    console.error("Schiri-Push: Dispatcher nicht erreichbar", fehler instanceof Error ? fehler.message : "unbekannt");
+  }
+}
+
 Deno.serve(async (anfrage: Request) => {
   if (anfrage.method !== "POST") {
     return Response.json({ fehler: "methode_nicht_erlaubt" }, { status: 405 });
   }
+
+  // Parallel starten: ein langsamer Push-Dienst darf Obmann-E-Mails nicht
+  // vor dem eigentlichen Versand um bis zu 15 Sekunden verzoegern.
+  const pushLauf = schiriPushAnstossen();
 
   let auftraege: Auftrag[];
   try {
     auftraege = await rpc<Auftrag[]>("benachrichtigung_auftraege_v2_beanspruchen", { p_limit: 10 });
   } catch (fehler) {
     console.error("Benachrichtigungs-Claim fehlgeschlagen", fehler instanceof Error ? fehler.message : "unbekannt");
+    await pushLauf;
     return Response.json({ fehler: "claim_fehlgeschlagen" }, { status: 503 });
   }
 
   if (!Array.isArray(auftraege) || auftraege.length === 0) {
+    await pushLauf;
     return Response.json({ beansprucht: 0, versendet: 0, fehlgeschlagen: 0 });
   }
 
@@ -68,6 +97,7 @@ Deno.serve(async (anfrage: Request) => {
   const absender = umgebung("OBMANN_NOTIFICATION_FROM");
   if (!resendKey || !absender) {
     await Promise.all(auftraege.map((a) => alsFehlerMarkieren(a, "versand_config_missing")));
+    await pushLauf;
     return Response.json({ fehler: "versand_nicht_konfiguriert" }, { status: 503 });
   }
 
@@ -129,5 +159,6 @@ Deno.serve(async (anfrage: Request) => {
     }
   }
 
+  await pushLauf;
   return Response.json({ beansprucht: auftraege.length, versendet, fehlgeschlagen });
 });

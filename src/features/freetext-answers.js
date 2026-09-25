@@ -221,7 +221,11 @@
     async function freitextErgaenzungAbschicken(frageId, wrap, button, textarea) {
       const ergaenzung = textarea.value.trim();
       if (ergaenzung.length === 0) {
-        zeigeFehler("Bitte erst eine Ergänzung eingeben.");
+        // Fehler am Feld statt oben auf der Seite (25.09.2026, siehe
+        // src/ui/pflichtfeld.js). Faellt der Baustein aus, bleibt der alte Weg.
+        if (!global.SchiriPflichtfeld?.melde(textarea, "Das Feld ist noch leer. Bitte ergänze hier, was in deiner Antwort gefehlt hat.")) {
+          zeigeFehler("Bitte erst eine Ergänzung eingeben.");
+        }
         return;
       }
       versteckeFehler();
@@ -384,7 +388,9 @@
     async function freitextAntwortAbschicken(frageId, container, button, textarea) {
       const freitext = textarea.value.trim();
       if (freitext.length === 0) {
-        zeigeFehler("Bitte erst eine Antwort eingeben.");
+        if (!global.SchiriPflichtfeld?.melde(textarea, "Das Feld ist noch leer. Bitte schreib deine Entscheidung – und, wenn die Frage danach fragt, die Begründung.")) {
+          zeigeFehler("Bitte erst eine Antwort eingeben.");
+        }
         return;
       }
       versteckeFehler();

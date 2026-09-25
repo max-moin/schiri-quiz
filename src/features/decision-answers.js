@@ -338,6 +338,11 @@
       senden.textContent = "Entscheidung abschicken";
       senden.addEventListener("click", () => abschicken(frage, container, wahl, senden));
       form.appendChild(senden);
+      const offen = document.createElement("p");
+      offen.className = "entscheidung-offen";
+      offen.id = `entscheidung-offen-${frage.id || frage.frage_id || Date.now().toString(36)}`;
+      senden.setAttribute("aria-describedby", offen.id);
+      form.appendChild(offen);
       const feedback = document.createElement("p");
       feedback.className = "feedback entscheidung-feedback";
       feedback.setAttribute("role", "status");
@@ -470,35 +475,54 @@
     // Prueft nur, was die Frage verlangt. Der Server prueft dasselbe noch
     // einmal (v101) - diese Fassung sorgt bloss dafuer, dass der
     // Absenden-Knopf grau bleibt, statt eine Fehlermeldung zu ernten.
+    // Die eigentliche Pruefung steht in fehlendeTeile() direkt darunter -
+    // bewusst zwischen istVollstaendig und aktualisiereSenden, dort sucht
+    // sie auch tests/icon-antwort-schalter.test.js.
     function istVollstaendig(wahl, frage) {
-      if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) return false;
+      return fehlendeTeile(wahl, frage).length === 0;
+    }
+
+    // 25.09.2026: dieselbe Pruefung, aber mit Worten statt nur ja/nein.
+    // Vorher blieb der Knopf einfach grau - wer nicht sah, welcher Teil
+    // fehlte, tippte ins Leere. Jetzt steht darunter "Noch offen: ...".
+    // Die Reihenfolge der Bedingungen ist unveraendert; jede frueher
+    // "return false" liefert jetzt ein Wort.
+    function fehlendeTeile(wahl, frage) {
+      const fehlt = [];
+      if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) fehlt.push("Spielfortsetzung");
       // Weder "Keine" noch ein Block: die Frage ist unbeantwortet.
       if (verlangt(frage, "fordert_strafe") && !wahl.keine_strafe
-          && wahl.strafen.length === 0) return false;
+          && wahl.strafen.length === 0) fehlt.push("persönliche Strafe (oder „Keine“)");
       if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_fuer")
-          && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) return false;
+          && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) fehlt.push("für welche Mannschaft");
       if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_ort")
           && optionen.brauchtOrt(wahl.spielfortsetzung)
-          && !String(wahl.fortsetzung_ort || "").trim()) return false;
+          && !String(wahl.fortsetzung_ort || "").trim()) fehlt.push("Ausführungsort");
       if (verlangt(frage, "fordert_strafe")) {
-        if (wahl.strafen.length > HOECHSTENS_STRAFEN) return false;
+        if (wahl.strafen.length > HOECHSTENS_STRAFEN) fehlt.push(`höchstens ${HOECHSTENS_STRAFEN} Strafen`);
         for (const eintrag of wahl.strafen) {
           // Ein frisch hinzugefuegter Block hat noch keine Karte.
-          if (!eintrag.strafe || eintrag.strafe === "keine") return false;
-          if (verlangt(frage, "fordert_strafe_mannschaft") && !eintrag.fuer_mannschaft) return false;
-          if (verlangt(frage, "fordert_strafe_rolle") && !eintrag.strafe_fuer_rolle) return false;
+          if (!eintrag.strafe || eintrag.strafe === "keine") fehlt.push("Karte bei jeder Strafe");
+          if (verlangt(frage, "fordert_strafe_mannschaft") && !eintrag.fuer_mannschaft) fehlt.push("Mannschaft bei der Strafe");
+          if (verlangt(frage, "fordert_strafe_rolle") && !eintrag.strafe_fuer_rolle) fehlt.push("Rolle bei der Strafe");
           if (frage?.fordert_strafe_nummer === true
-              && !istRueckennummer(eintrag.rueckennummer)) return false;
-          if (eintrag.rueckennummer != null
-              && !istRueckennummer(eintrag.rueckennummer)) return false;
+              && !istRueckennummer(eintrag.rueckennummer)) fehlt.push("Rückennummer (1–99)");
+          else if (eintrag.rueckennummer != null
+              && !istRueckennummer(eintrag.rueckennummer)) fehlt.push("Rückennummer (1–99)");
         }
       }
-      return true;
+      return [...new Set(fehlt)];
     }
 
     function aktualisiereSenden(form, wahl, frage) {
       const button = form.querySelector(".entscheidung-absenden");
-      if (button) button.disabled = !istVollstaendig(wahl, frage);
+      const fehlt = fehlendeTeile(wahl, frage);
+      if (button) button.disabled = fehlt.length > 0;
+      const hinweis = form.querySelector(".entscheidung-offen");
+      if (hinweis) {
+        hinweis.hidden = fehlt.length === 0;
+        hinweis.textContent = fehlt.length ? "Noch offen: " + fehlt.join(", ") : "";
+      }
     }
 
     // ============================================================

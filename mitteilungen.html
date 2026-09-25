@@ -37,7 +37,7 @@
       <header class="einstellungen-kopf">
         <p class="einstellungen-ueberzeile">Dein Konto</p>
         <h1>Mitteilungen</h1>
-        <p>Hier siehst du, ob dieses Gerät Benachrichtigungen empfangen könnte.</p>
+        <p>Hier entscheidest du, welche Hinweise dieses Gerät erhalten soll.</p>
       </header>
       <section class="mitteilungen-status" aria-labelledby="mitteilungen-status-titel">
         <div class="mitteilungen-status-kopf">
@@ -53,18 +53,30 @@
         <a id="mitteilungen-installieren" class="mitteilungen-link" href="installieren.html" hidden>So fügst du die Seite zum Home-Bildschirm hinzu</a>
       </section>
       <section class="mitteilungen-arten" aria-labelledby="mitteilungen-arten-titel">
-        <div class="mitteilungen-abschnitt-kopf"><div><h2 id="mitteilungen-arten-titel">Wofür Hinweise gedacht sind</h2><p>Noch werden keine Mitteilungen an Schiedsrichter versendet. Die Auswahl wird erst freigeschaltet, wenn der Versand geprüft ist.</p></div><span class="mitteilungen-vorschau">In Vorbereitung</span></div>
+        <div class="mitteilungen-abschnitt-kopf"><div><h2 id="mitteilungen-arten-titel">Wofür Hinweise gedacht sind</h2><p id="mitteilungen-arten-hinweis">Quiz- und Terminhinweise folgen später. Antworten auf eigenes Fragenfeedback werden zuerst mit einem Konto getestet.</p></div><span id="mitteilungen-vorschau" class="mitteilungen-vorschau">In Vorbereitung</span></div>
         <ul>
           <li><span><strong>Neues Wochenquiz</strong><small>Montags, wenn eine neue Runde bereitsteht.</small></span></li>
           <li><span><strong>Quiz-Erinnerungen</strong><small>Freitag und Sonntag – nur solange deine Runde offen ist.</small></span></li>
           <li><span><strong>Termine</strong><small>Für deine Zusagen und Pflichttermine deines Vereins.</small></span></li>
-          <li><span><strong>Persönliche Rückmeldungen</strong><small>Wenn eine Antwort oder ein wichtiger Anfragestatus für dich vorliegt.</small></span></li>
+          <li><span><strong>Ausrüstungsanfragen</strong><small>Wichtige Änderungen an deinem Antrag – in einem späteren Schritt.</small></span></li>
         </ul>
       </section>
-      <p class="mitteilungen-abschluss">Mitteilungen werden später freiwillig sein. Deine Antworten, Termine und Anliegen bleiben auch ohne Push auf der Website erreichbar.</p>
+      <section id="mitteilungen-steuerung" class="mitteilungen-arten" aria-label="Mitteilungen einstellen" hidden>
+        <h2>Deine Auswahl</h2>
+        <label class="mitteilungen-wahl" for="mitteilungen-feedback"><span><strong>Antworten auf dein Fragenfeedback</strong><small>Nur Antworten auf Hinweise, die du selbst abgegeben hast.</small></span><input type="checkbox" id="mitteilungen-feedback" /></label>
+        <p id="mitteilungen-speicherstand" class="mitteilungen-hinweis" role="status" aria-live="polite"></p>
+        <div class="mitteilungen-geraeteteil">
+          <h2>Dieses Gerät</h2>
+          <p id="mitteilungen-abo-stand" role="status" aria-live="polite">Wird geprüft …</p>
+          <div class="mitteilungen-aktionen"><button id="mitteilungen-abo-knopf" type="button" class="meine-hauptknopf" hidden>Auf diesem Gerät einschalten</button><button id="mitteilungen-test-knopf" type="button" class="mitteilungen-zweitknopf" hidden>Testmitteilung senden</button></div>
+          <p class="mitteilungen-kleindruck">Die Zustimmung gilt nur für dieses Gerät. Beim Abmelden wird sie hier beendet; du kannst weitere Geräte unten einzeln entfernen.</p>
+        </div>
+        <div class="mitteilungen-geraeteteil"><h2>Deine Geräte</h2><ul id="mitteilungen-geraete" class="mitteilungen-geraete"></ul></div>
+      </section>
+      <p class="mitteilungen-abschluss">Push ist freiwillig. Antworten und Anliegen bleiben auch ohne Mitteilung auf der Website erreichbar.</p>
     </div>
   </main>
   <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>
-  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/einstellungen-seite.js"></script>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/einstellungen-seite.js"></script><script type="module" src="src/website/mitteilungen-steuerung.js"></script>
 </body>
 </html>

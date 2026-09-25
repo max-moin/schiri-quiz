@@ -132,24 +132,29 @@ export async function einschalten({ oeffentlicherSchluessel, speichern }) {
   }
 
   const registrierung = await workerBereit();
-  // Ein bestehendes Abo kann auf einen alten VAPID-Schluessel lauten -
-  // dann scheitert "subscribe" mit InvalidStateError. Erst abmelden,
-  // dann neu abonnieren ist der einzige Weg da heraus.
+  // Ein bestehendes Abo auf demselben VAPID-Schluessel wiederverwenden:
+  // sonst erhaelt der Browser bei jedem Einschalten einen neuen Endpunkt.
+  // Nur bei Schluesselwechsel muss das alte Abo geloest werden.
   const vorhanden = await registrierung.pushManager.getSubscription();
-  if (vorhanden) await vorhanden.unsubscribe().catch(() => {});
-
-  const abo = await registrierung.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: schluesselAlsBytes(oeffentlicherSchluessel),
+  const gleicherSchluessel = vorhanden?.options?.applicationServerKey
+    && bytesAlsBase64url(vorhanden.options.applicationServerKey) === oeffentlicherSchluessel;
+  if (vorhanden && !gleicherSchluessel) await vorhanden.unsubscribe();
+  const abo = gleicherSchluessel ? vorhanden : await registrierung.pushManager.subscribe({
+    userVisibleOnly: true, applicationServerKey: schluesselAlsBytes(oeffentlicherSchluessel),
   });
 
   const roh = abo.toJSON?.() || {};
-  await speichern({
-    endpunkt: abo.endpoint,
-    p256dh: roh.keys?.p256dh || bytesAlsBase64url(abo.getKey("p256dh")),
-    auth: roh.keys?.auth || bytesAlsBase64url(abo.getKey("auth")),
-    geraet: geraetebeschreibung(),
-  });
+  try {
+    await speichern({
+      endpunkt: abo.endpoint,
+      p256dh: roh.keys?.p256dh || bytesAlsBase64url(abo.getKey("p256dh")),
+      auth: roh.keys?.auth || bytesAlsBase64url(abo.getKey("auth")),
+      geraet: geraetebeschreibung(),
+    });
+  } catch (fehler) {
+    if (!gleicherSchluessel) await abo.unsubscribe().catch(() => {});
+    throw fehler;
+  }
   return abo;
 }
 
@@ -162,6 +167,11 @@ export async function ausschalten({ loeschen }) {
   const abo = await aktuellesAbo();
   if (!abo) return;
   const endpunkt = abo.endpoint;
-  await abo.unsubscribe().catch(() => {});
-  await loeschen({ endpunkt });
+  let geloescht = false;
+  try { await loeschen({ endpunkt }); geloescht = true; } catch { /* lokaler Widerruf folgt */ }
+  let abgemeldet = false;
+  try { abgemeldet = await abo.unsubscribe(); } catch { /* Serverwiderruf kann reichen */ }
+  if (!geloescht && !abgemeldet) {
+    throw new Error("Das Gerät konnte nicht abgemeldet werden. Bitte versuche es erneut.");
+  }
 }
