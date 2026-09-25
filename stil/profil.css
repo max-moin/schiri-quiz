@@ -128,7 +128,7 @@
 
 .profil-fenster select:focus,
 .profil-fenster input:focus,
-.profil-fenster textarea:focus { outline: none; border-color: var(--marke-hell); }
+.profil-fenster textarea:focus { outline: none; border-color: var(--marke-hell); box-shadow: 0 0 0 3px rgba(31, 41, 55, .18); }
 
 .profil-fenster button {
   font-family: inherit;

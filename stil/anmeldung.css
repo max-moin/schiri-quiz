@@ -214,7 +214,7 @@
   font-size: 16px;
 }
 .anmelde-feld input:focus,
-.anmelde-feld select:focus { outline: none; border-color: var(--marke-hell); }
+.anmelde-feld select:focus { outline: none; border-color: var(--marke-hell); box-shadow: 0 0 0 3px rgba(31, 41, 55, .18); }
 
 .anmelde-merken,
 .login-merken {

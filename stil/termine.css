@@ -201,7 +201,7 @@ a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--
 .td-knopf.nein:hover { border-color: var(--red); background: var(--red-hell); color: #991b1b; }
 /* Der gewaehlte Zustand ist gefuellt, nicht nur umrandet - man soll auf
    dem Handy im Vorbeigehen sehen, was man geantwortet hat. */
-.td-knopf.ja.an { background: var(--green); border-color: var(--green); color: #fff; }
+.td-knopf.ja.an { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 .td-knopf.nein.an { background: var(--red); border-color: var(--red); color: #fff; }
 
 .td-grundbox {
@@ -238,12 +238,18 @@ a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--
   border: 1px solid var(--border); border-radius: 10px;
   padding: 10px 12px; font: inherit; font-size: .85rem; background: #fff; resize: vertical;
 }
-.td-kommentar textarea:focus { outline: none; border-color: var(--marke-hell); }
+.td-kommentar textarea:focus { outline: none; border-color: var(--marke-hell); box-shadow: 0 0 0 3px rgba(31, 41, 55, .18); }
 
 .td-meldung { margin: 12px 0 0; padding: 10px 13px; border-radius: 9px; font-size: .83rem; }
 .td-meldung[data-art="erfolg"] { background: var(--green-light); color: var(--green-dark); }
 .td-meldung[data-art="fehler"] { background: var(--red-hell); color: #991b1b; }
 .td-meldung[data-art="info"] { background: var(--marke-lighter); color: var(--marke-hell); }
+
+.td-frist-hinweis {
+  margin: 0 0 12px; padding: 10px 13px; border-radius: 9px;
+  background: var(--karte-gelb-hell); color: #5c4400; font-size: .83rem; line-height: 1.5;
+}
+.td-knopf:disabled { opacity: .55; cursor: not-allowed; }
 
 .td-abgelaufen {
   margin: 20px 0 0; padding: 13px 15px;
@@ -328,7 +334,7 @@ a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--
   font: inherit; font-size: .8rem; font-weight: 700; cursor: pointer;
 }
 .tf-stimme:hover { border-color: var(--marke-hell); }
-.tf-stimme.ja.an         { background: var(--green); border-color: var(--green); color: #fff; }
+.tf-stimme.ja.an         { background: var(--green-dark); border-color: var(--green-dark); color: #fff; }
 .tf-stimme.vielleicht.an { background: var(--karte-gelb); border-color: var(--karte-gelb); color: #713f12; }
 .tf-stimme.nein.an       { background: var(--red); border-color: var(--red); color: #fff; }
 

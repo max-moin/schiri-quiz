@@ -288,11 +288,28 @@
   font-weight: 800;
   white-space: nowrap;
 }
+/* Neue Obmann-Antwort (25.09.2026): Wort statt Punkt, damit die Marke
+   auch ohne Farbwahrnehmung verstanden wird. Weiss auf --blau: 5,2:1.
+   Eigener Klassenname: ".meine-neu" ist schon der Knopf "+ Neu" oben. */
+.meine-neue-antwort {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--blau);
+  color: #fff;
+  font-size: .75rem;
+  font-weight: 700;
+  letter-spacing: .01em;
+  white-space: nowrap;
+}
+.meine-verlauf .meine-schritt-kopf .meine-neue-antwort { margin-left: 6px; color: #fff; font-size: .72rem; }
+.meine-vorgang-meta .meine-neue-antwort { margin-right: 2px; }
+
 .meine-status.in-pruefung,
 .meine-status.rueckfrage { background: var(--karte-gelb-hell); color: #755700; }
 .meine-status.angenommen,
 .meine-status.erledigt { background: var(--green-light); color: var(--green-dark); }
-.meine-status.abgelehnt { background: var(--red-hell); color: var(--red); }
+.meine-status.abgelehnt { background: var(--red-hell); color: #991b1b; }
 
 .meine-vorgang-inhalt {
   padding: 0 14px 14px;

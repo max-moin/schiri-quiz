@@ -96,8 +96,11 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
   const hatAntworttermine = kuenftig.some((t) =>
     t.rueckmeldung_erforderlich === true);
 
+  // Seit 25.09.2026 zaehlen nur Termine, auf die man wirklich noch
+  // antworten kann - nicht mehr ein laufender Termin.
   const offen = kuenftig.filter((t) => t.mitgliedSicht
-    && t.rueckmeldung_erforderlich === true && t.mein_status == null).length;
+    && t.rueckmeldung_erforderlich === true && t.mein_status == null
+    && t.absage_moeglich !== false).length;
 
   const kopf = `
     <h1 class="seiten-titel">Termine</h1>
@@ -265,7 +268,9 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
          : ["Wann", sicher(datumLang(termin.datum))],
     termin.ort ? ["Ort", sicher(termin.ort)] : null,
     brauchtAntwort && termin.rueckmeldung_bis && !termin.vergangen
-      ? ["Antwort bis", sicher(datumLang(termin.rueckmeldung_bis))] : null,
+      ? ["Antwort bis", sicher(datumLang(termin.rueckmeldung_bis))
+          + (termin.rueckmeldefrist_abgelaufen === true ? ' <span class="td-neben">(abgelaufen)</span>' : "")]
+      : null,
     termin.beschreibung ? ["Thema", sicher(termin.beschreibung)] : null,
   ].filter(Boolean).map(([titel, wert]) =>
     `<div class="td-zeile"><div class="td-l">${titel}</div><div class="td-v">${wert}</div></div>`
@@ -279,6 +284,8 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
     antwort = '<p class="td-abgelaufen">Dieser Termin dient nur zur Information. Eine Zu- oder Absage ist nicht erforderlich.</p>';
   } else if (termin.vergangen) {
     antwort = '<p class="td-abgelaufen">Dieser Termin ist vorbei.</p>';
+  } else if (darfAntworten && termin.absage_moeglich === false) {
+    antwort = '<p class="td-abgelaufen">Der Termin hat bereits begonnen. Eine Zu- oder Absage ist nicht mehr möglich.</p>';
   } else if (!ich) {
     antwort = `
       <p class="td-frage">Bist du dabei?</p>
@@ -295,10 +302,15 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   } else {
     const jaAn = termin.mein_status === "zu" ? " an" : "";
     const neinAn = termin.mein_status === "ab" ? " an" : "";
+    // Nach der Rueckmeldefrist nimmt der Server keine neue Zusage mehr an;
+    // absagen geht bis zum Beginn. Der Knopf verschwindet nicht
+    // kommentarlos, sondern bleibt mit Begruendung sichtbar.
+    const zusageZu = zusageGesperrt(termin);
     antwort = `
       <p class="td-frage">Bist du dabei?</p>
+      <p class="td-frist-hinweis" data-frist-hinweis ${zusageZu ? "" : "hidden"}>Die Rückmeldefrist ist abgelaufen. Absagen geht weiterhin; für eine Zusage sprich bitte direkt den Obmann an.</p>
       <div class="td-knopfpaar">
-        <button type="button" class="td-knopf ja${jaAn}" data-status="zu">Ja, ich komme</button>
+        <button type="button" class="td-knopf ja${jaAn}" data-status="zu"${zusageZu ? " disabled" : ""}>Ja, ich komme</button>
         <button type="button" class="td-knopf nein${neinAn}" data-status="ab">Kann nicht</button>
       </div>
       <div class="td-grundbox" data-grundbox ${termin.mein_status === "ab" ? "" : "hidden"}>
@@ -351,7 +363,13 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
 
   bereich.querySelector("[data-kalender]")?.addEventListener("click", () =>
     ladeTerminInKalender(termin, location.href));
-  if (darfAntworten && !termin.vergangen) bindeAntwort(termin);
+  if (darfAntworten && !termin.vergangen && termin.absage_moeglich !== false) bindeAntwort(termin);
+}
+
+// Eine eigene, bereits bestehende Zusage darf man nach der Frist erneut
+// bestaetigen - nur eine NEUE Zusage ist gesperrt.
+function zusageGesperrt(termin) {
+  return termin.zusage_moeglich === false && termin.mein_status !== "zu";
 }
 
 function bindeAntwort(termin) {
@@ -378,13 +396,19 @@ function bindeAntwort(termin) {
       termin.mein_status = status;
       termin.mein_grund = status === "ab" ? grund : null;
       termin.mein_kommentar = status === "ab" ? kommentar : null;
+      // Wer nach der Frist absagt, kann nicht mehr selbst zusagen - genau
+      // wie der Server es sieht.
+      if (termin.rueckmeldefrist_abgelaufen === true && status === "ab") termin.zusage_moeglich = false;
       return true;
     } catch (fehler) {
       zeige(`Antwort konnte nicht gespeichert werden: ${fehler.message}`, "fehler");
       return false;
     } finally {
       sendet = false;
-      knoepfe.forEach((k) => { k.disabled = false; });
+      const gesperrt = zusageGesperrt(termin);
+      knoepfe.forEach((k) => { k.disabled = k.dataset.status === "zu" && gesperrt; });
+      const hinweis = bereich.querySelector("[data-frist-hinweis]");
+      if (hinweis) hinweis.hidden = !gesperrt;
     }
   }
 

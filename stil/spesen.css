@@ -30,7 +30,7 @@
   color: inherit;
 }
 .q-eingabe:hover { border-color: var(--border); }
-.q-eingabe:focus { border-color: var(--marke-hell); background: var(--card); outline: none; }
+.q-eingabe:focus { border-color: var(--marke-hell); background: var(--card); outline: none; box-shadow: 0 0 0 3px rgba(31, 41, 55, .18); }
 .q-eingabe.geaendert { border-color: var(--karte-gelb); background: var(--karte-gelb-hell); }
 
 .q-summen { border-top: 1px solid var(--border); }

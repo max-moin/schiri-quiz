@@ -291,12 +291,15 @@
    Seitenende zog optisch stark nach unten. */
 .seiten-fuss { background: var(--marke-lighter); color: var(--muted); margin-top: 44px; border-top: 1px solid var(--border); }
 .fuss-innen { max-width: 1140px; margin: 0 auto; padding: 24px 20px; font-size: .78rem; line-height: 1.7; }
-.fuss-innen a { color: var(--marke-hell); text-decoration: none; margin-right: 16px; font-weight: 500; }
+.fuss-innen a {
+  color: var(--marke-hell); text-decoration: none; margin-right: 16px; font-weight: 500;
+  display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap;
+}
 .fuss-innen a:hover { text-decoration: underline; }
 /* opacity entfernt: mischte den Text auf 4,05:1 herunter und lag damit
    unter der WCAG-AA-Schwelle von 4,5:1. */
 .fuss-zeile { margin-top: 11px; }
-.fuss-obmann { opacity: .72; }
+.fuss-obmann { color: var(--muted) !important; }
 
 /* ============================================================
    Wegweiser: der Weg eine Ebene hoch (12.09.2026)

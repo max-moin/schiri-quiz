@@ -575,9 +575,22 @@
         p_schiedsrichter_id: getZugang().schiedsrichterId,
         p_pin: getZugang().pin,
       });
-      if (error || !data) return;
+      const anfragenNeu = !error && Array.isArray(data) && data.some((anfrage) => !anfrage.schiri_gesehen);
 
-      const gibtUngeseheneUpdates = data.some((anfrage) => !anfrage.schiri_gesehen);
+      // Seit 25.09.2026 zaehlt auch eine ungelesene Obmann-Antwort auf
+      // Quiz-Feedback. Nur abfragen, wenn die Anfragen nicht schon reichen -
+      // ein Aufruf weniger pro Seitenaufruf.
+      let antwortenNeu = false;
+      if (!anfragenNeu) {
+        const antwort = await sb.rpc("meine_neuen_antworten", {
+          p_schiedsrichter_id: getZugang().schiedsrichterId,
+          p_pin: getZugang().pin,
+        });
+        antwortenNeu = !antwort.error && Number(antwort.data) > 0;
+      }
+      if (error && !antwortenNeu) return;
+
+      const gibtUngeseheneUpdates = anfragenNeu || antwortenNeu;
       if (profilStatusPunkt) profilStatusPunkt.hidden = !gibtUngeseheneUpdates;
       if (panelAnfragenStatusPunkt) panelAnfragenStatusPunkt.hidden = !gibtUngeseheneUpdates;
       if (beiStatusPunkt) beiStatusPunkt(gibtUngeseheneUpdates);

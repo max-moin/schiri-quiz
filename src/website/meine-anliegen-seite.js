@@ -154,6 +154,7 @@ function verlaufBlock(vorgang) {
       zeit.textContent = zeitpunkt;
       kopf.appendChild(zeit);
     }
+    if (schritt.neu) kopf.appendChild(neuMarke("Neu"));
     eintrag.appendChild(kopf);
     if (text(schritt.text)) {
       const inhalt = document.createElement("p");
@@ -184,10 +185,21 @@ function standSchritt(status, wartetext) {
   };
 }
 
+// Ein Wort statt eines blossen Punkts: "Neue Antwort" ist auch ohne Farbe
+// und fuer Screenreader eindeutig.
+function neuMarke(wort) {
+  const marke = document.createElement("span");
+  marke.className = "meine-neue-antwort";
+  marke.textContent = wort;
+  return marke;
+}
+
 function vorgangElement(vorgang) {
   const details = document.createElement("details");
   details.className = "meine-vorgang";
   details.dataset.art = vorgang.art;
+  // Eine neue Antwort soll man nicht erst suchen muessen.
+  if (vorgang.neu) details.open = true;
 
   const summary = document.createElement("summary");
   const titel = document.createElement("span");
@@ -209,6 +221,7 @@ function vorgangElement(vorgang) {
   const zeit = document.createElement("span");
   zeit.className = "meine-vorgang-datum";
   zeit.textContent = datum(vorgang.zeit);
+  if (vorgang.neu) meta.appendChild(neuMarke("Neue Antwort"));
   meta.append(statusBadge, zeit);
   summary.append(titel, meta);
 
@@ -356,6 +369,10 @@ function ausQuizFeedback(zeilen) {
       titel: nummer + frage,
       status: m.status,
       zeit: m.aktualisiert_am || m.erstellt_am,
+      // Seit 25.09.2026 datiert der Server jede Obmann-Antwort und merkt
+      // sich, ob sie schon gesehen wurde. "Neu" gilt genau fuer diesen
+      // Besuch; danach quittiert ladeVorgaenge() den Lesestand.
+      neu: eintraege.some((e) => e.rueckmeldung_neu === true),
       fall: [
         ["Die Frage", m.frage_text],
         ["Woche", m.runde_bezeichnung],
@@ -369,7 +386,13 @@ function ausQuizFeedback(zeilen) {
             text: e.text,
           }];
           if (text(e.rueckmeldung_obmann)) {
-            schritte.push({ wer: "obmann", titel: "Antwort des Obmanns", text: e.rueckmeldung_obmann });
+            schritte.push({
+              wer: "obmann",
+              titel: "Antwort des Obmanns",
+              zeit: e.rueckmeldung_am,
+              text: e.rueckmeldung_obmann,
+              neu: e.rueckmeldung_neu === true,
+            });
           }
           return schritte;
         }),
@@ -517,6 +540,16 @@ async function ladeVorgaenge(person) {
     p_schiedsrichter_id: person.id,
     p_pin: person.pin,
   });
+
+  // Neue Obmann-Antworten zum Quiz-Feedback: Sie sind jetzt angezeigt
+  // (mit "Neu"), also gelten sie ab dem naechsten Besuch als gelesen.
+  // Damit geht auch der blaue Punkt im Kontomenue aus.
+  if (vorgaenge.some((v) => v.neu)) {
+    void rpc.rpc("meine_antworten_gelesen", {
+      p_schiedsrichter_id: person.id,
+      p_pin: person.pin,
+    });
+  }
 }
 
 function starte() {

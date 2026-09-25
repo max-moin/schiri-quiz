@@ -267,7 +267,7 @@
   border: 1px solid var(--border); border-radius: 10px;
   padding: 9px 13px; font: inherit; font-size: .84rem; background: #fff;
 }
-.admin-inhalt-suche input:focus { border-color: var(--marke-hell); outline: none; }
+.admin-inhalt-suche input:focus { border-color: var(--marke-hell); outline: none; box-shadow: 0 0 0 3px rgba(31, 41, 55, .18); }
 
 .admin-regel-untergruppe { padding: 0 12px; }
 .admin-regel-untergruppe + .admin-regel-untergruppe { margin-top: 6px; }

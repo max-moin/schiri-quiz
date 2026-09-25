@@ -167,6 +167,22 @@ export async function leseRpcAntwort(antwort) {
   return Array.isArray(daten) ? daten : [];
 }
 
+// Die Datenbank begruendet eine Ablehnung in einem ganzen deutschen Satz
+// ("Die Rückmeldefrist ist abgelaufen ..."). Bis zum 25.09.2026 wurde daraus
+// "Server antwortet mit 400" - korrekt, aber fuer niemanden hilfreich.
+// Nur fachliche Meldungen (Postgres-Code P0001 aus "raise exception")
+// werden durchgereicht; technische Fehler bleiben neutral.
+export async function serverMeldung(antwort) {
+  const neutral = `Server antwortet mit ${antwort.status}`;
+  try {
+    const daten = JSON.parse(await antwort.text());
+    if (daten && daten.code === "P0001" && typeof daten.message === "string" && daten.message.trim()) {
+      return daten.message.trim().slice(0, 240);
+    }
+  } catch { /* kein JSON - neutrale Meldung */ }
+  return neutral;
+}
+
 // Berechtigungen kommen aus dem jeweiligen RPC, niemals nur aus „angemeldet“.
 export function verbindeTerminSichten(oeffentlich, eigene) {
   const termine = new Map(oeffentlich.map(t => [t.id, {
@@ -196,7 +212,7 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
       },
       body: JSON.stringify(parameter),
     });
-    if (!antwort.ok) throw new Error(`Server antwortet mit ${antwort.status}`);
+    if (!antwort.ok) throw new Error(await serverMeldung(antwort));
     return leseRpcAntwort(antwort);
   }
 
@@ -281,10 +297,16 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   if (termin.rueckmeldung_erforderlich === true) {
     if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
     else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
-    else if (termin.mein_status === null && !termin.vergangen) {
-      stand = '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
+    // Seit 25.09.2026 liefert die personalisierte Sicht, ob eine Antwort
+    // ueberhaupt noch geht. Nur dann ist "Noch keine Rückmeldung" eine
+    // Aufforderung - sonst waere es ein Vorwurf ohne Handlungsmoeglichkeit.
+    else if (termin.mein_status === null && !termin.vergangen && termin.absage_moeglich !== false) {
+      stand = termin.zusage_moeglich === false
+        ? '<span class="wortmarke offen">Rückmeldefrist abgelaufen</span>'
+        : '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
     }
   }
+  if (termin.laeuft === true) marken.unshift('<span class="wortmarke gruen">Läuft gerade</span>');
 
   const innen = `
     <span class="tk-oben">
@@ -311,6 +333,9 @@ export const STIMMEN = [
 export function findungKarte(findung) {
   const vorschlaege = Array.isArray(findung.vorschlaege) ? findung.vorschlaege : [];
   const entschieden = findung.status === "entschieden";
+  // Frist abgelaufen, aber noch nicht entschieden: Der Server nimmt keine
+  // Stimmen mehr an (25.09.2026), also auch keine Knoepfe mehr zeigen.
+  const geschlossen = !entschieden && findung.frist_abgelaufen === true;
 
   const zeilen = vorschlaege.map((v) => {
     const gewaehlt = entschieden && v.id === findung.gewaehlter_vorschlag;
@@ -321,17 +346,21 @@ export function findungKarte(findung) {
 
     // Nach der Entscheidung sind die Knoepfe sinnlos - dann zaehlt nur
     // noch, welcher Vorschlag es geworden ist.
-    const knoepfe = entschieden ? "" : `
+    const knoepfe = entschieden || geschlossen ? "" : `
       <div class="tf-stimmen">
         ${STIMMEN.map(([wert, text]) => `
           <button type="button" class="tf-stimme ${wert}${v.meine_antwort === wert ? " an" : ""}"
                   data-vorschlag="${sicher(v.id)}" data-antwort="${wert}">${text}</button>`).join("")}
       </div>`;
 
+    // Ohne Knoepfe sieht man die eigene Wahl sonst nirgends mehr.
+    const eigene = geschlossen && v.meine_antwort
+      ? `deine Antwort: ${(STIMMEN.find(([w]) => w === v.meine_antwort) || [, v.meine_antwort])[1]}` : "";
     const stand = [
       Number(v.ja) ? `${v.ja} ja` : "",
       Number(v.vielleicht) ? `${v.vielleicht} vielleicht` : "",
       Number(v.nein) ? `${v.nein} nein` : "",
+      eigene,
     ].filter(Boolean).join(" · ");
 
     return `<div class="tf-vorschlag${gewaehlt ? " gewaehlt" : ""}">
@@ -345,8 +374,10 @@ export function findungKarte(findung) {
       </div>`;
   }).join("");
 
-  const frist = findung.antwort_bis && !entschieden
-    ? `<p class="tf-frist">Antwort bis ${sicher(datumLang(findung.antwort_bis))}</p>` : "";
+  const frist = !findung.antwort_bis || entschieden ? ""
+    : geschlossen
+      ? `<p class="tf-frist">Abstimmung geschlossen (Frist war der ${sicher(datumLang(findung.antwort_bis))}). Der Obmann legt den Termin jetzt fest.</p>`
+      : `<p class="tf-frist">Antwort bis ${sicher(datumLang(findung.antwort_bis))}</p>`;
 
   return `<article class="terminfindung${entschieden ? " entschieden" : ""}" data-findung="${sicher(findung.id)}">
       <div class="tf-kopf">

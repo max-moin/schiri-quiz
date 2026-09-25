@@ -102,7 +102,7 @@
 }
 
 .modus-pille.erledigt { background: var(--green-light); color: var(--green-dark); }
-.modus-pille.neu      { background: var(--blau-hell);   color: var(--blau); }
+.modus-pille.neu      { background: var(--blau-hell);   color: #1d4ed8; }
 .modus-pille.serie    { background: var(--karte-gelb-hell); color: #854d0e; }
 
 .hervorgehoben .modus-pille.erledigt,

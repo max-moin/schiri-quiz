@@ -71,13 +71,22 @@ body {
 
 [hidden] { display: none !important; }
 
-/* Sichtbarer Fokus überall - Tastaturbedienung muss nachvollziehbar sein. */
+/* Sichtbarer Fokus überall - Tastaturbedienung muss nachvollziehbar sein.
+   25.09.2026: zweifarbig. Der gelbe Ring allein hatte auf Weiß nur 1,5:1
+   Kontrast (WCAG 1.4.11 verlangt 3:1). Der dunkle Innenring trägt den
+   Kontrast auf hellem Grund, der gelbe auf dunklem (Startseiten-Aufmacher,
+   dunkle Knöpfe). Dazu textarea, summary und Tabstopps ohne eigenes Element. */
 a:focus-visible,
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[tabindex]:not([tabindex="-1"]):focus-visible {
   outline: 3px solid var(--karte-gelb);
   outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--marke-dunkel);
 }
 
 /* Nur für Screenreader. */
