@@ -39,7 +39,22 @@ class TestKnoten {
   }
   get classList() {
     const knoten = this;
-    return { add(name) { knoten.className = `${knoten.className} ${name}`.trim(); } };
+    const liste = () => String(knoten.className).split(/\s+/).filter(Boolean);
+    return {
+      add(name) { if (!liste().includes(name)) knoten.className = `${knoten.className} ${name}`.trim(); },
+      remove(name) { knoten.className = liste().filter((n) => n !== name).join(" "); },
+      contains(name) { return liste().includes(name); },
+      toggle(name, an) { if (an) this.add(name); else this.remove(name); },
+    };
+  }
+  getAttribute(name) { return this.attribute[name] ?? null; }
+  closest(auswahl) {
+    for (let k = this; k; k = k.parentNode) if (passt(k, auswahl)) return k;
+    return null;
+  }
+  querySelectorAll(auswahl) {
+    if (auswahl === "[data-pflicht]") return alleKnoten(this).filter((k) => k.dataset.pflicht);
+    return alle(this, auswahl);
   }
   setAttribute(name, wert) { this.attribute[name] = String(wert); }
   addEventListener(art, fn) { (this.hoerer[art] ||= []).push(fn); }
@@ -81,6 +96,10 @@ function textKnoten(text) {
 function passt(knoten, auswahl) {
   if (auswahl.startsWith(".")) return String(knoten.className).split(/\s+/).includes(auswahl.slice(1));
   return knoten.tagName === auswahl.toUpperCase();
+}
+
+function alleKnoten(wurzel) {
+  return wurzel.children.flatMap((kind) => [kind, ...alleKnoten(kind)]);
 }
 
 function alle(wurzel, auswahl) {
@@ -146,6 +165,10 @@ const FRAGE = {
 const knoepfe = (wurzel) => alle(wurzel, ".entscheidung-knopf");
 const bloecke = (wurzel) => alle(wurzel, ".entscheidung-strafblock");
 const senden = (wurzel) => wurzel.querySelector(".entscheidung-absenden");
+// Seit 26.09.2026 ist der Knopf nicht mehr "disabled", sondern nur als
+// unvollstaendig gekennzeichnet - er muss den Tipp annehmen, um zeigen zu
+// koennen, was fehlt. "Gesperrt" heisst deshalb: Klasse "unvollstaendig".
+const gesperrt = (knopf) => knopf.classList.contains("unvollstaendig");
 
 function klickeWert(wurzel, wert) {
   const knopf = knoepfe(wurzel).find((k) => k.dataset.wert === wert);
@@ -192,7 +215,7 @@ test("zwei Karten fuer denselben Spieler landen als Liste im Antwort-JSON", asyn
   mehr.ausloesen("click");
 
   assert.equal(bloecke(karte).length, 2, "der zweite Block ist nicht aufgegangen");
-  assert.equal(senden(karte).disabled, true,
+  assert.equal(gesperrt(senden(karte)), true,
     "ein Block ohne Karte darf nicht abschickbar sein");
 
   // Max: "dann kommt nochmal das Fenster auf, und dann klickst du auf
@@ -206,7 +229,7 @@ test("zwei Karten fuer denselben Spieler landen als Liste im Antwort-JSON", asyn
   fuellePerson(karte, 1, "gast", "auswechselspieler", 19);
 
   const knopf = senden(karte);
-  assert.equal(knopf.disabled, false, "vollstaendige Antwort bleibt gesperrt");
+  assert.equal(gesperrt(knopf), false, "vollstaendige Antwort bleibt gesperrt");
   knopf.ausloesen("click");
   await new Promise((weiter) => setTimeout(weiter, 0));
 
@@ -228,14 +251,18 @@ test("\"Keine\" zeigt keinen Block und schickt eine leere Liste", async () => {
   const modul = await baueModul();
   const karte = modul.baueFrageElement(FRAGE);
 
-  assert.equal(senden(karte).disabled, true, "ohne jede Wahl darf nichts abgehen");
+  assert.equal(gesperrt(senden(karte)), true, "ohne jede Wahl darf nichts abgehen");
+  gesendet = null;
+  senden(karte).ausloesen("click");
+  await new Promise((weiter) => setTimeout(weiter, 0));
+  assert.equal(gesendet, null, "ein unvollstaendiger Tipp auf den Knopf hat trotzdem gesendet");
   klickeWert(karte, "keine");
   assert.equal(bloecke(karte).length, 0, "\"Keine\" zeigt trotzdem einen Strafblock");
   assert.equal(karte.querySelector(".entscheidung-strafe-mehr"), null,
     "\"Keine\" bietet trotzdem eine weitere Strafe an");
 
   const knopf = senden(karte);
-  assert.equal(knopf.disabled, false, "\"Keine\" gilt nicht als Antwort");
+  assert.equal(gesperrt(knopf), false, "\"Keine\" gilt nicht als Antwort");
   knopf.ausloesen("click");
   await new Promise((weiter) => setTimeout(weiter, 0));
   assert.deepEqual(gesendet.koerper.antwort.strafen, []);
@@ -247,12 +274,12 @@ test("der letzte entfernte Block ist nicht dasselbe wie \"Keine\"", async () => 
   const karte = modul.baueFrageElement(FRAGE);
   klickeWert(karte, "gelb");
   fuellePerson(karte, 0, "heim", "feldspieler", 7);
-  assert.equal(senden(karte).disabled, false);
+  assert.equal(gesperrt(senden(karte)), false);
 
   alle(karte, ".entscheidung-strafe-entfernen")[0].ausloesen("click");
   assert.equal(bloecke(karte).length, 0);
   // Sonst gaebe ein Fehlgriff stillschweigend "keine Strafe" ab.
-  assert.equal(senden(karte).disabled, true,
+  assert.equal(gesperrt(senden(karte)), true,
     "eine geleerte Liste zaehlt als ausdrueckliches \"Keine\"");
 });
 

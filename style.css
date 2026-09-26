@@ -3374,3 +3374,18 @@ div.pflicht-fehler:not(.zahl-eingabe-zeile) { outline: 2px solid var(--red); out
 .zahl-eingabe-zeile.pflicht-fehler { box-shadow: none; }
 .zahl-eingabe-zeile.pflicht-fehler input { border-color: var(--red); box-shadow: 0 0 0 3px rgba(220, 38, 38, .18); }
 
+/* Icon-Antworten (26.09.2026): Der Absenden-Knopf ist nicht mehr gesperrt,
+   solange etwas fehlt - er sieht nur so aus. Ein Tipp darauf umrandet die
+   offenen Bloecke rot (src/features/decision-answers.js). */
+.frage-karte .absenden-button.unvollstaendig,
+.frage-karte .absenden-button.unvollstaendig:hover {
+  background: #cfd8d3;
+  color: #fff;
+}
+.entscheidung-form .pflicht-fehler {
+  outline: 2px solid var(--red);
+  outline-offset: 4px;
+  border-radius: 12px;
+  box-shadow: none;
+}
+

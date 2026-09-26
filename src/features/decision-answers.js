@@ -165,6 +165,7 @@
 
       if (verlangt(frage, "fordert_fortsetzung")) {
       const fortsetzung = feldset("Wie geht es weiter?");
+      fortsetzung.dataset.pflicht = "fortsetzung";
       const fortRaster = document.createElement("div");
       fortRaster.className = "entscheidung-raster fortsetzungen";
       for (const eintrag of optionen.FORTSETZUNGEN) {
@@ -188,6 +189,7 @@
       if (optionen.brauchtRichtung(wahl.spielfortsetzung)
           && verlangt(frage, "fordert_fortsetzung_fuer")) {
         const richtung = feldset("Für welche Mannschaft?");
+        richtung.dataset.pflicht = "richtung";
         const reihe = document.createElement("div");
         reihe.className = "entscheidung-raster zwei";
         ["heim", "gast"].forEach((seite) => reihe.appendChild(trikotButton(
@@ -211,6 +213,7 @@
         // ist eine freie Antwort, die die KI bewertet, und sechs
         // Vorgaben decken nicht jede Szene ab.
         const ort = feldset("Wo wird fortgesetzt?");
+        ort.dataset.pflicht = "ort";
         const eigenerOrt = wahl.fortsetzung_ort !== "" && !ORTE.includes(wahl.fortsetzung_ort);
 
         const auswahl = document.createElement("select");
@@ -278,6 +281,7 @@
       // persoenliche Strafe hinzufuegen'. Du klickst darauf, dann kommt
       // nochmal das Fenster auf, und dann klickst du auf 'Gelbe Karte'."
       const strafe = feldset("Persönliche Strafe?");
+      strafe.dataset.pflicht = "strafe";
       const strafRaster = document.createElement("div");
       strafRaster.className = "entscheidung-raster strafen";
       for (const eintrag of optionen.STRAFEN) {
@@ -390,6 +394,7 @@
       if (stelle > 0) {
         const raster = document.createElement("div");
         raster.className = "entscheidung-raster strafen-weitere";
+        raster.dataset.pflicht = `karte-${stelle}`;
         for (const karte of optionen.STRAFEN.filter((k) => k.schluessel !== "keine")) {
           raster.appendChild(auswahlButton({
             text: karte.label, wert: karte.schluessel,
@@ -419,6 +424,7 @@
       if (willMannschaft) {
         const teams = document.createElement("div");
         teams.className = "entscheidung-raster zwei";
+        teams.dataset.pflicht = `mannschaft-${stelle}`;
         ["heim", "gast"].forEach((seite) => teams.appendChild(trikotButton(
           frage, seite, eintrag.fuer_mannschaft === seite,
           () => { eintrag.fuer_mannschaft = seite; zeichneForm(frage, container, wahl); }
@@ -430,6 +436,7 @@
       details.className = "entscheidung-person";
       if (willRolle) {
         const rollenLabel = document.createElement("label");
+        rollenLabel.dataset.pflicht = `rolle-${stelle}`;
         rollenLabel.append("Rolle");
         const select = document.createElement("select");
         Object.entries(optionen.ROLLEN).forEach(([wert, text]) => {
@@ -446,6 +453,7 @@
       }
       if (willNummer) {
         const nummerLabel = document.createElement("label");
+        nummerLabel.dataset.pflicht = `nummer-${stelle}`;
         nummerLabel.append("Rückennummer");
         const nummer = document.createElement("input");
         nummer.type = "number"; nummer.min = "1"; nummer.max = "99"; nummer.inputMode = "numeric";
@@ -468,29 +476,90 @@
     }
 
     // Prueft nur, was die Frage verlangt. Der Server prueft dasselbe noch
-    // einmal (v101) - diese Fassung sorgt bloss dafuer, dass der
-    // Absenden-Knopf grau bleibt, statt eine Fehlermeldung zu ernten.
+    // einmal (v101).
+    //
+    // 26.09.2026 - Liste statt ja/nein. Die Wochenauswertung zeigte: Icon-
+    // Fragen mit Video wurden nur zu 70 % beantwortet, alle anderen Arten
+    // zu 95-100 %. Nach "Direkter Freistoss" und "Rote Karte" erscheinen
+    // drei weitere Pflichtangaben (Mannschaft, Ort, wen trifft es) - und
+    // der Knopf blieb einfach grau, ohne zu sagen, warum. Wer das nicht
+    // fand, ging zur naechsten Frage und kam nicht wieder.
+    //
+    // Jetzt bleibt der Knopf tippbar. Fehlt etwas, werden genau die
+    // offenen Bloecke rot umrandet und der erste rueckt ins Bild - ohne
+    // zusaetzlichen Text (Max, 26.09.: "Einfach nur das Feld rot
+    // markieren. Das reicht."). Der Name je Block ist nur fuer
+    // Screenreader (siehe src/ui/pflichtfeld.js).
     function istVollstaendig(wahl, frage) {
-      if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) return false;
-      if (verlangt(frage, "fordert_strafe") && !wahl.keine_strafe && wahl.strafen.length === 0) return false;
-      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_fuer") && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) return false;
-      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_ort") && optionen.brauchtOrt(wahl.spielfortsetzung) && !String(wahl.fortsetzung_ort || "").trim()) return false;
-      if (verlangt(frage, "fordert_strafe")) {
-        if (wahl.strafen.length > HOECHSTENS_STRAFEN) return false;
-        for (const eintrag of wahl.strafen) {
-          if (!eintrag.strafe || eintrag.strafe === "keine") return false;
-          if (verlangt(frage, "fordert_strafe_mannschaft") && !eintrag.fuer_mannschaft) return false;
-          if (verlangt(frage, "fordert_strafe_rolle") && !eintrag.strafe_fuer_rolle) return false;
-          if (frage?.fordert_strafe_nummer === true && !istRueckennummer(eintrag.rueckennummer)) return false;
-          if (eintrag.rueckennummer != null && !istRueckennummer(eintrag.rueckennummer)) return false;
-        }
+      if (verlangt(frage, "fordert_strafe") && wahl.strafen.length > HOECHSTENS_STRAFEN) return false;
+      return fehlendeAngaben(wahl, frage).length === 0;
+    }
+
+    function fehlendeAngaben(wahl, frage) {
+      const fehlt = [];
+      if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) {
+        fehlt.push(["fortsetzung", "Bitte wähle, wie es weitergeht."]);
       }
-      return true;
+      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_fuer")
+          && optionen.brauchtRichtung(wahl.spielfortsetzung) && !wahl.fortsetzung_fuer) {
+        fehlt.push(["richtung", "Bitte wähle, für welche Mannschaft es weitergeht."]);
+      }
+      if (verlangt(frage, "fordert_fortsetzung") && verlangt(frage, "fordert_fortsetzung_ort")
+          && optionen.brauchtOrt(wahl.spielfortsetzung) && !String(wahl.fortsetzung_ort || "").trim()) {
+        fehlt.push(["ort", "Bitte wähle, wo fortgesetzt wird."]);
+      }
+      if (verlangt(frage, "fordert_strafe")) {
+        if (!wahl.keine_strafe && wahl.strafen.length === 0) {
+          fehlt.push(["strafe", "Bitte wähle eine persönliche Strafe oder Keine."]);
+        }
+        wahl.strafen.forEach((eintrag, stelle) => {
+          if (!eintrag.strafe || eintrag.strafe === "keine") {
+            fehlt.push([`karte-${stelle}`, `Bitte wähle die Karte der ${stelle + 1}. Strafe.`]);
+          }
+          if (verlangt(frage, "fordert_strafe_mannschaft") && !eintrag.fuer_mannschaft) {
+            fehlt.push([`mannschaft-${stelle}`, "Bitte wähle, welche Mannschaft die Strafe trifft."]);
+          }
+          if (verlangt(frage, "fordert_strafe_rolle") && !eintrag.strafe_fuer_rolle) {
+            fehlt.push([`rolle-${stelle}`, "Bitte wähle die Rolle."]);
+          }
+          const nummerFehlt = frage?.fordert_strafe_nummer === true && !istRueckennummer(eintrag.rueckennummer);
+          const nummerFalsch = eintrag.rueckennummer != null && !istRueckennummer(eintrag.rueckennummer);
+          if (nummerFehlt || nummerFalsch) {
+            fehlt.push([`nummer-${stelle}`, "Bitte gib eine Rückennummer von 1 bis 99 ein."]);
+          }
+        });
+      }
+      return fehlt;
+    }
+
+    // Rot umranden, was fehlt; entfernen, was inzwischen da ist. Erst nach
+    // dem ersten Tippen auf "abschicken" (wahl.versucht) - vorher waere
+    // ein halb leeres Formular voller roter Rahmen nur Laerm.
+    function markiereFehlendes(form, wahl, frage, { fokus = false } = {}) {
+      const pflicht = global.SchiriPflichtfeld;
+      if (!pflicht) return;
+      const fehlt = new Map(fehlendeAngaben(wahl, frage));
+      let erstes = true;
+      form.querySelectorAll("[data-pflicht]").forEach((block) => {
+        const text = fehlt.get(block.dataset.pflicht);
+        if (!text) { pflicht.loesche(block); return; }
+        pflicht.melde(block, text, { fokus: fokus && erstes });
+        erstes = false;
+      });
     }
 
     function aktualisiereSenden(form, wahl, frage) {
       const button = form.querySelector(".entscheidung-absenden");
-      if (button) button.disabled = !istVollstaendig(wahl, frage);
+      const fertig = istVollstaendig(wahl, frage);
+      if (button) {
+        // Nicht mehr "disabled": ein gesperrter Knopf nimmt keinen Tipp an
+        // und kann deshalb auch nicht zeigen, was fehlt. Optisch bleibt er
+        // blass. Bewusst auch KEIN aria-disabled - Vorleseprogramme
+        // kuendigen den Knopf sonst als nicht bedienbar an, obwohl er genau
+        // das Richtige tut: er fuehrt zur offenen Angabe.
+        button.classList.toggle("unvollstaendig", !fertig);
+      }
+      if (wahl.versucht) markiereFehlendes(form, wahl, frage);
     }
 
     // ============================================================
@@ -532,7 +601,12 @@
     }
 
     async function abschicken(frage, container, wahl, button) {
-      if (!istVollstaendig(wahl, frage)) return;
+      if (!istVollstaendig(wahl, frage)) {
+        wahl.versucht = true;
+        const form = button.closest(".entscheidung-form");
+        if (form) markiereFehlendes(form, wahl, frage, { fokus: true });
+        return;
+      }
       versteckeFehler();
       button.disabled = true;
       button.textContent = "Wird geprüft …";
@@ -573,6 +647,7 @@
         feedback.textContent = fehler.message;
         button.disabled = false;
         button.textContent = "Entscheidung abschicken";
+        aktualisiereSenden(button.closest(".entscheidung-form") || container, wahl, frage);
       }
     }
 

@@ -101,9 +101,19 @@ test("alle Absende-Wege melden am Feld und behalten den alten Rueckfall", () => 
   assert.doesNotMatch(css, /\.pflicht-meldung \{/, "Meldung darf nicht sichtbar gestylt werden");
 });
 
-test("Icon-Antworten zeigen keinen \"Noch offen\"-Text (Knopf bleibt nur grau)", () => {
+test("Icon-Antworten zeigen keinen \"Noch offen\"-Text, markieren aber die offenen Bloecke", () => {
   const js = lies("src/features/decision-answers.js");
   assert.doesNotMatch(js, /Noch offen/);
   assert.doesNotMatch(js, /entscheidung-offen/);
   assert.doesNotMatch(lies("style.css"), /\.entscheidung-offen/);
+  // 26.09.2026: Ein gesperrter Knopf nimmt keinen Tipp an und kann deshalb
+  // nicht zeigen, was fehlt - Video-Icon-Fragen blieben so zu 30 % liegen.
+  assert.doesNotMatch(js, /button\.disabled = !istVollstaendig/);
+  assert.match(js, /markiereFehlendes\(form, wahl, frage, \{ fokus: true \}\)/);
+  for (const block of ["fortsetzung", "richtung", "ort", "strafe"]) {
+    assert.match(js, new RegExp(`dataset\\.pflicht = "${block}"`), block);
+  }
+  for (const block of ["karte", "mannschaft", "rolle", "nummer"]) {
+    assert.match(js, new RegExp("dataset\\.pflicht = `" + block + "-\\$\\{stelle\\}`"), block);
+  }
 });
