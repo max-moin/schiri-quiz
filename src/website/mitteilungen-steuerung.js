@@ -9,6 +9,11 @@ let aktuell = null;
 let geraete = [];
 let abo = null;
 let ladeNummer = 0;
+const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung"];
+
+function hatAuswahl() {
+  return auswahlIds.some((id) => $(id).checked);
+}
 
 async function rpc(name, parameter) {
   const antwort = await fetch(`${DATENBANK.adresse}/rest/v1/rpc/${name}`, {
@@ -114,7 +119,7 @@ async function lade(person) {
     schluessel = bereit.oeffentlicherSchluessel;
     abschnitt.hidden = false;
     $("mitteilungen-vorschau").textContent = bereit.modus === "pilot" ? "Pilot" : "Teilweise verfügbar";
-    $("mitteilungen-arten-hinweis").textContent = "Antworten auf dein eigenes Fragenfeedback kannst du unten einschalten. Quiz- und Terminhinweise folgen später.";
+    $("mitteilungen-arten-hinweis").textContent = "Wähle selbst, wofür du Hinweise erhalten möchtest. Termine folgen später.";
     $("mitteilungen-versand").textContent = bereit.modus === "pilot"
       ? "Nur für einen Gerätetest" : "Freigegeben";
     $("mitteilungen-kurzstatus").textContent = bereit.modus === "pilot"
@@ -130,7 +135,9 @@ async function lade(person) {
     const empfaengt = Boolean(abo && geraete.some((g) => g.endpunkt === abo.endpoint));
     const erlaubt = lagebericht();
     $("mitteilungen-feedback").checked = einstellungen?.feedback_antwort === true;
-    $("mitteilungen-feedback").disabled = false;
+    $("mitteilungen-quiz-neu").checked = einstellungen?.quiz_neu === true;
+    $("mitteilungen-quiz-erinnerung").checked = einstellungen?.quiz_erinnerung === true;
+    for (const id of auswahlIds) $(id).disabled = false;
     $("mitteilungen-speicherstand").textContent = "Deine Auswahl ist gespeichert.";
     $("mitteilungen-abo-stand").textContent = !erlaubt.moeglich ? erlaubt.grund
       : empfaengt ? "Dieses Gerät ist angemeldet."
@@ -138,12 +145,12 @@ async function lade(person) {
     const knopf = $("mitteilungen-abo-knopf");
     knopf.hidden = !erlaubt.moeglich;
     knopf.textContent = empfaengt ? "Auf diesem Gerät ausschalten" : "Auf diesem Gerät einschalten";
-    knopf.disabled = !empfaengt && !$("mitteilungen-feedback").checked;
+    knopf.disabled = !empfaengt && !hatAuswahl();
     $("mitteilungen-test-knopf").hidden = !empfaengt;
     zeichneGeraete();
   } catch (fehler) {
     $("mitteilungen-speicherstand").textContent = fehler.message;
-    $("mitteilungen-feedback").disabled = true;
+    for (const id of auswahlIds) $(id).disabled = true;
   }
 }
 
@@ -162,6 +169,29 @@ $("mitteilungen-feedback")?.addEventListener("change", async (event) => {
     $("mitteilungen-speicherstand").textContent = fehler.message;
   }
 });
+
+for (const id of ["mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung"]) {
+  $(id)?.addEventListener("change", async (event) => {
+    if (!aktuell) return;
+    const person = aktuell;
+    const feld = event.currentTarget;
+    const alterStand = !feld.checked;
+    for (const auswahlId of auswahlIds) $(auswahlId).disabled = true;
+    $("mitteilungen-speicherstand").textContent = "Wird gespeichert …";
+    try {
+      await rpc("schiri_push_quiz_setzen", {
+        ...parameter(person),
+        p_quiz_neu: $("mitteilungen-quiz-neu").checked,
+        p_quiz_erinnerung: $("mitteilungen-quiz-erinnerung").checked,
+      });
+      await lade(person);
+    } catch (fehler) {
+      feld.checked = alterStand;
+      for (const auswahlId of auswahlIds) $(auswahlId).disabled = false;
+      $("mitteilungen-speicherstand").textContent = fehler.message;
+    }
+  });
+}
 
 $("mitteilungen-abo-knopf")?.addEventListener("click", async (event) => {
   if (!aktuell) return;

@@ -20,7 +20,14 @@ export default async function handler(req, res) {
 
   let auftraege;
   try {
-    auftraege = await supabaseRpc("schiri_push_auftraege_beanspruchen", { p_limit: 10 });
+    const [feedback, quiz] = await Promise.all([
+      supabaseRpc("schiri_push_auftraege_beanspruchen", { p_limit: 10 }),
+      supabaseRpc("schiri_push_quiz_auftraege_beanspruchen", { p_limit: 10 }),
+    ]);
+    auftraege = [
+      ...(Array.isArray(feedback) ? feedback : []),
+      ...(Array.isArray(quiz) ? quiz : []),
+    ];
   } catch (fehler) {
     console.error("[API] Push-Claim fehlgeschlagen", fehler);
     return res.status(503).json({ fehler: "Versandaufträge konnten nicht geladen werden." });
@@ -37,7 +44,9 @@ export default async function handler(req, res) {
         fehlgeschlagen += 1;
         continue;
       }
-      const abos = await supabaseRpc("schiri_push_zustellliste", { p_auftrag_id: auftrag.auftrag_id });
+      const zustellliste = auftrag.typ === "quiz.neu" || auftrag.typ === "quiz.erinnerung"
+        ? "schiri_push_quiz_zustellliste" : "schiri_push_zustellliste";
+      const abos = await supabaseRpc(zustellliste, { p_auftrag_id: auftrag.auftrag_id });
       if (!Array.isArray(abos) || abos.length === 0) {
         await supabaseRpc("benachrichtigung_auftrag_fehlgeschlagen", {
           p_auftrag_id: auftrag.auftrag_id, p_fehlercode: "kein_aktives_geraet", p_endgueltig: true,

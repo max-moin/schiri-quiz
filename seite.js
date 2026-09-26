@@ -205,6 +205,14 @@ function zeigeGesperrteFunktion(inhalt, funktion) {
   const name = funktion === "spesen" ? "Spesenrechner" : "Regelübersicht";
   inhalt.hidden = false;
   inhalt.classList.add("funktions-sperre");
+  // 26.09.2026 (UI-Pruefung): Den alten Inhalt nur verstecken, nicht
+  // wegwerfen. Das Seitenskript von Regeluebersicht und Spesenrechner
+  // laeuft nach dem Laden der Inhalte weiter und sucht seine Felder
+  // (#ebeneFilter, #alter). Fehlten sie, warf es auf der gesperrten
+  // Seite einen TypeError in die Konsole.
+  const versteckt = document.createElement("div");
+  versteckt.hidden = true;
+  versteckt.append(...inhalt.childNodes);
   inhalt.replaceChildren();
   const kicker = document.createElement("span");
   kicker.className = "kicker";
@@ -219,7 +227,7 @@ function zeigeGesperrteFunktion(inhalt, funktion) {
   zurueck.className = "knopf knopf-haupt";
   zurueck.href = "index.html";
   zurueck.textContent = "Zur Startseite";
-  inhalt.append(kicker, titel, text, zurueck);
+  inhalt.append(kicker, titel, text, zurueck, versteckt);
 }
 
 void ladeFunktionsfreigaben({

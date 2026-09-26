@@ -3361,8 +3361,9 @@ body.melde-dialog-offen {
 
 /* ============================================================
    Pflichtangaben am Feld (25.09.2026, src/ui/pflichtfeld.js)
-   Roter Rahmen UND ein Satz darunter - Farbe allein reicht nicht
-   (WCAG 1.4.1). #991b1b auf Weiss: 8,3:1.
+   Nur der rote Rahmen (Max, 26.09.: kein Text darunter). Der Satz
+   dazu steht unsichtbar fuer Screenreader in .pflicht-meldung
+   (Klasse nur-screenreader, oben in dieser Datei).
    ============================================================ */
 .pflicht-fehler {
   border-color: var(--red) !important;
@@ -3372,18 +3373,4 @@ body.melde-dialog-offen {
 div.pflicht-fehler:not(.zahl-eingabe-zeile) { outline: 2px solid var(--red); outline-offset: 4px; box-shadow: none; }
 .zahl-eingabe-zeile.pflicht-fehler { box-shadow: none; }
 .zahl-eingabe-zeile.pflicht-fehler input { border-color: var(--red); box-shadow: 0 0 0 3px rgba(220, 38, 38, .18); }
-.pflicht-meldung {
-  margin: 8px 0 0;
-  color: #991b1b;
-  font-size: .88rem;
-  font-weight: 600;
-  line-height: 1.45;
-}
-/* Icon-Antworten: was fehlt noch, bevor der Knopf frei wird? */
-.entscheidung-offen {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-size: .85rem;
-  line-height: 1.45;
-}
 

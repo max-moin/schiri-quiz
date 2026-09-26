@@ -31,9 +31,20 @@ export function vapidKonfiguration(umgebung = process.env) {
 }
 
 export function nachrichtFuer(typ, meldungId, gruppe) {
-  if (typ !== "frage_feedback.antwort" || !/^[0-9a-f-]{36}$/i.test(meldungId || "")) {
+  if (!/^[0-9a-f-]{36}$/i.test(meldungId || "")) {
     return null;
   }
+  if (typ === "quiz.neu" || typ === "quiz.erinnerung") {
+    return JSON.stringify({
+      titel: typ === "quiz.neu" ? "Kickers · Neues Wochenquiz" : "Kickers · Quiz-Erinnerung",
+      text: typ === "quiz.neu"
+        ? "Deine Fragen für diese Woche sind bereit."
+        : "Deine Fragen dieser Woche sind noch offen.",
+      ziel: "/modus.html",
+      gruppe: String(gruppe || `quiz_${meldungId}`).slice(0, 100),
+    });
+  }
+  if (typ !== "frage_feedback.antwort") return null;
   // Kein Name, Fragentext oder Antwortinhalt auf fremden Sperrbildschirmen.
   return JSON.stringify({
     titel: "Kickers · Neue Antwort",

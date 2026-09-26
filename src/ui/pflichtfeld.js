@@ -3,8 +3,13 @@
 // ============================================================
 //  Backlog "Pflichtbegruendung sichtbar erzwingen" (25.09.2026): Eine leere
 //  Antwort darf nicht abgeschickt werden - und die Meldung dazu gehoert
-//  AN DAS FELD, wie in jedem Formular: roter Rahmen, ein Satz direkt
-//  darunter, der Cursor steht schon im Feld.
+//  AN DAS FELD, wie in jedem Formular: roter Rahmen, der Cursor steht
+//  schon im Feld.
+//
+//  26.09.2026 (Max): kein sichtbarer Satz unter dem Feld - "wieder viel
+//  Text". Der rote Rahmen reicht. Der Satz bleibt, aber nur fuer
+//  Screenreader (Klasse nur-screenreader), damit blinde Nutzer weiter
+//  hoeren, WAS fehlt.
 //
 //  Bis hierher erschien "Bitte erst eine Antwort eingeben." im
 //  allgemeinen Fehlerhinweis oben im Quiz. Bei Frage vier von fuenf ist
@@ -14,7 +19,8 @@
 //  Barrierefreiheit (WCAG 3.3.1 "Fehlererkennung"):
 //   - aria-invalid="true" am Feld, die Meldung per aria-describedby
 //     verbunden und mit role="alert" angesagt,
-//   - Farbe ist nicht der einzige Hinweis: Es steht immer ein Satz da,
+//   - Sehende bekommen Rahmen + Fokus + Sprung zum Feld, Screenreader
+//     den Satz (unsichtbar, aber vorgelesen),
 //   - die Markierung verschwindet von selbst, sobald man tippt oder waehlt.
 //
 //  Klassisches Skript wie zeichen-zaehler.js: das Quiz laedt klassische
@@ -68,7 +74,7 @@
     if (!meldung) {
       meldung = global.document.createElement("p");
       meldung.id = id;
-      meldung.className = "pflicht-meldung";
+      meldung.className = "pflicht-meldung nur-screenreader";
       meldung.setAttribute("role", "alert");
       ziel.insertAdjacentElement("afterend", meldung);
     }

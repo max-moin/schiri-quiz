@@ -146,10 +146,9 @@ test("VAPID: die Signatur ist roh (64 Byte r‖s), nicht DER", () => {
   });
 
   assert.equal(signatur.length, 64);
-  // Eine DER-Signatur fängt mit 0x30 (SEQUENCE) an und ist ~70 Byte
-  // lang. Genau dieser Fehler passiert, wenn dsaEncoding vergessen
-  // wird - und jeder Push-Dienst antwortet dann mit 401/403.
-  assert.notEqual(signatur[0], 0x30);
+  // Auch eine korrekte rohe Signatur kann zufaellig mit 0x30 beginnen
+  // (1/256 Wahrscheinlichkeit). Die feste Laenge unterscheidet P1363
+  // hier zuverlaessig von DER; der naechste Test prueft die Signatur.
 });
 
 test("VAPID: das JWT verifiziert gegen den öffentlichen Schlüssel", () => {

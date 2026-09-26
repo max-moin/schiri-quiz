@@ -45,6 +45,65 @@ function person() {
   return anmeldung?.lesen() || null;
 }
 
+async function protokollPdfLink(terminId, ich) {
+  const antwort = await fetch("/api/protokoll-link", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ terminId, schiedsrichterId: ich.id, pin: ich.pin }),
+  });
+  if (antwort.status === 404) return null;
+  if (!antwort.ok) throw new Error("PDF-Protokoll ist gerade nicht erreichbar.");
+  return antwort.json();
+}
+
+async function zeigePdfProtokoll(terminId, ich) {
+  const ziel = document.getElementById("termin-pdf");
+  if (!ziel?.querySelector?.("[data-pdf-name]")
+      || !ziel.querySelector("[data-pdf-fehler]")
+      || !ziel.querySelector("iframe")) return;
+  try {
+    const pdf = await protokollPdfLink(terminId, ich);
+    if (!pdf) return;
+    ziel.hidden = false;
+    ziel.querySelector("[data-pdf-name]").textContent = pdf.name || "Protokoll.pdf";
+    const rahmen = ziel.querySelector("iframe");
+    rahmen.src = pdf.vorschau;
+    const herunterladen = ziel.querySelector("[data-pdf-download]");
+    herunterladen.addEventListener("click", async (event) => {
+      event.preventDefault();
+      try {
+        const aktuell = await protokollPdfLink(terminId, ich);
+        if (!aktuell) throw new Error("PDF-Protokoll wurde entfernt.");
+        window.location.assign(aktuell.download);
+      } catch (fehler) {
+        ziel.querySelector("[data-pdf-fehler]").textContent = fehler.message;
+      }
+    });
+    ziel.querySelector("[data-pdf-neuer-tab]").addEventListener("click", async (event) => {
+      event.preventDefault();
+      // Das Fenster muss in derselben Tippgeste entstehen; Safari blockiert
+      // ein erst nach dem asynchronen Signieren geoeffnetes Fenster.
+      const fenster = window.open("about:blank", "_blank");
+      try {
+        const aktuell = await protokollPdfLink(terminId, ich);
+        if (!aktuell) throw new Error("PDF-Protokoll wurde entfernt.");
+        if (fenster) {
+          fenster.opener = null;
+          fenster.location.replace(aktuell.vorschau);
+        } else {
+          window.location.assign(aktuell.vorschau);
+        }
+      } catch (fehler) {
+        fenster?.close();
+        ziel.querySelector("[data-pdf-fehler]").textContent = fehler.message;
+      }
+    });
+  } catch (fehler) {
+    ziel.hidden = false;
+    ziel.querySelector("[data-pdf-fehler]").textContent = fehler.message;
+  }
+}
+
 // Eine Terminantwort veraendert den verbindlichen Stand. Vor dem Senden
 // steht deshalb noch einmal klar da, was gespeichert wird. Das Dialog-
 // Element bleibt auf der aktuellen Seite und ist auch per Escape schliessbar.
@@ -342,7 +401,15 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
         `<span class="td-name">${sicher(z.name)}</span>`).join("")}</div>
     </div>` : "";
 
-  const protokollHtml = protokoll ? `<section class="termin-protokoll"><span class="wortmarke blau">Für Mitglieder</span><h2>${sicher(protokoll.titel || "Protokoll")}</h2><div class="protokoll-text">${sicher(protokoll.inhalt).replace(/\n/g,"<br>")}</div></section>` : "";
+  const protokollHtml = protokoll?.inhalt ? `<section class="termin-protokoll"><span class="wortmarke blau">Für Mitglieder</span><h2>${sicher(protokoll.titel || "Protokoll")}</h2><div class="protokoll-text">${sicher(protokoll.inhalt).replace(/\n/g,"<br>")}</div></section>` : "";
+  const pdfHtml = ich && termin.mitgliedSicht && termin.eigenerVerein
+    ? `<section id="termin-pdf" class="termin-protokoll termin-pdf" hidden>
+        <span class="wortmarke blau">Für Mitglieder</span><h2>Protokoll als PDF</h2>
+        <p data-pdf-name></p><p data-pdf-fehler role="status"></p>
+        <div class="termin-pdf-aktionen"><a href="#" data-pdf-neuer-tab>In neuem Tab öffnen</a>
+          <a href="#" data-pdf-download>PDF herunterladen</a></div>
+        <iframe title="Vorschau des Terminprotokolls" loading="lazy"></iframe>
+      </section>` : "";
   bereich.innerHTML = `
     <article class="termindetail">
       <header class="td-kopf">
@@ -357,12 +424,14 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
         </button>
       ${antwort}
       ${protokollHtml}
+      ${pdfHtml}
         ${teilnehmer}
       </div>
     </article>`;
 
   bereich.querySelector("[data-kalender]")?.addEventListener("click", () =>
     ladeTerminInKalender(termin, location.href));
+  if (pdfHtml) void zeigePdfProtokoll(termin.id, ich);
   if (darfAntworten && !termin.vergangen && termin.absage_moeglich !== false) bindeAntwort(termin);
 }
 

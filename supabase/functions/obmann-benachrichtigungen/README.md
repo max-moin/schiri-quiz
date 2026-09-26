@@ -43,11 +43,12 @@ Es werden bewusst keine vorhandenen Eingänge nachträglich versendet.
 
 ## Persönlicher Web Push: Pilot und Freigabe
 
-Die Migration `20260925220500_schiri_push_antworten.sql` schaltet zunächst
-**nichts** ein. Nur Antworten auf selbst abgegebenes Fragenfeedback sind in
-diesem Bauschritt sendbar. Quiz, Termine und Ausrüstung sind ausdrücklich noch
-nicht aktiv. Weder vorhandene Antworten noch vorhandene Geräte werden
-nachträglich angeschrieben.
+Die Migrationen `20260925220500_schiri_push_antworten.sql` und
+`20260926014903_schiri_push_quiz_und_ifab.sql` schalten zunächst **nichts**
+ein. Antworten auf eigenes Fragenfeedback sowie Opt-ins für ein neues
+Wochenquiz und Erinnerungen an ein noch offenes Wochenquiz sind technisch
+sendbar. Termine und Ausrüstung sind noch nicht aktiv. Vorhandene Antworten
+oder Geräte werden nicht nachträglich angeschrieben.
 
 Für den Pilot braucht Vercel in **dem Projekt der neuen Vereinsseite** folgende
 Environment Variables für Production (gegebenenfalls auch Preview):
@@ -72,7 +73,7 @@ Deploy neu erzeugen, sonst werden bestehende Geräte-Abos ungültig.
 Der öffentliche Schlüssel wird erst nach gültiger PIN über
 `/api/push-bereitschaft` an dieses Konto geliefert. Der private Schlüssel
 gehört weder in `verein.config.js` noch in Git. Das Pilotkonto aktiviert
-zusätzlich auf `Einstellungen → Mitteilungen` erst das Thema und dann das
+zusätzlich auf `Einstellungen → Mitteilungen` erst die gewünschten Themen und dann das
 konkrete Gerät. Eine Testmitteilung kann dort höchstens einmal pro Minute
 ausgelöst werden. Auf iPhone/iPad muss die Seite vorher zum Home-Bildschirm
 hinzugefügt und **von dort** gestartet werden; im Safari-Tab ist Push nicht
@@ -87,7 +88,11 @@ Für echte Antworten nach bestandenem Pilot zusätzlich:
   `SCHIRI_PUSH_CRON_AKTIV=true`.
 
 Zuerst Vercel deployen und den Selbsttest prüfen, **danach** den Cron-Schalter
-setzen. Die bestehende Edge Function ruft dann alle zwei Minuten
+setzen. Die Edge Function prüft dann alle zwei Minuten serverseitig, ob
+Montag 10:00 Uhr ein neues Wochenquiz oder Freitag 15:00 Uhr bzw. Sonntag
+10:30 Uhr ein noch offenes Quiz erinnert werden soll. Ein 10-Minuten-Fenster
+federt kurze Cron-Verzögerungen ab; versäumte Zeitfenster werden nicht
+nachträglich versandt. Maßgeblich ist `Europe/Berlin`. Sie ruft außerdem
 `/api/push-auftraege` mit dem Sendegeheimnis auf. Der Endpunkt liest nur
 autorisierte, höchstens 24 Stunden alte Aufträge und verschickt neutrale
 Sperrbildschirmtexte ohne Frage, Antwort oder Namen. Die PIN wird allein zur

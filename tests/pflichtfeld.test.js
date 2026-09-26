@@ -1,8 +1,8 @@
 // ============================================================
 //  Pflichtangaben am Feld (25.09.2026)
 // ============================================================
-//  Leere Antworten werden am Feld gemeldet (roter Rahmen, Satz darunter,
-//  aria-invalid), nicht mehr nur oben auf der Seite. Geprueft wird der
+//  Leere Antworten werden am Feld gemeldet (roter Rahmen, aria-invalid,
+//  Satz nur fuer Screenreader), nicht mehr nur oben auf der Seite. Geprueft wird der
 //  Baustein selbst an einem winzigen Test-DOM und dass alle Absende-Wege
 //  ihn benutzen - mit dem alten Fehlerweg als Rueckfall.
 // ============================================================
@@ -46,7 +46,7 @@ function ladeBaustein() {
   return { ...dom, P: kontext.SchiriPflichtfeld };
 }
 
-test("ein leeres Feld bekommt Rahmen, Satz, aria-invalid und den Fokus", () => {
+test("ein leeres Feld bekommt Rahmen, aria-invalid, Fokus und einen unsichtbaren Vorlese-Satz", () => {
   const { El, P, alle } = ladeBaustein();
   const feld = new El("textarea");
   assert.equal(P.melde(feld, "Das Feld ist noch leer."), true);
@@ -56,6 +56,8 @@ test("ein leeres Feld bekommt Rahmen, Satz, aria-invalid und den Fokus", () => {
   assert.ok(meldung, "Meldung steht direkt am Feld");
   assert.equal(meldung.getAttribute("role"), "alert");
   assert.equal(meldung.textContent, "Das Feld ist noch leer.");
+  // Max, 26.09.: kein sichtbarer Text unter dem Feld - nur fuer Screenreader.
+  assert.equal(meldung.className, "pflicht-meldung nur-screenreader");
   assert.match(feld.getAttribute("aria-describedby"), new RegExp(meldung.id));
   assert.equal(feld.fokussiert, true);
 });
@@ -94,13 +96,14 @@ test("alle Absende-Wege melden am Feld und behalten den alten Rueckfall", () => 
   for (const seite of ["quiz.html", "duell.html"]) {
     assert.match(lies(seite), /src="src\/ui\/pflichtfeld\.js"/, seite);
   }
-  assert.match(lies("style.css"), /\.pflicht-meldung \{/);
+  const css = lies("style.css");
+  assert.match(css, /\.nur-screenreader \{/);
+  assert.doesNotMatch(css, /\.pflicht-meldung \{/, "Meldung darf nicht sichtbar gestylt werden");
 });
 
-test("Icon-Antworten sagen, was noch fehlt, statt nur grau zu bleiben", () => {
+test("Icon-Antworten zeigen keinen \"Noch offen\"-Text (Knopf bleibt nur grau)", () => {
   const js = lies("src/features/decision-answers.js");
-  assert.match(js, /function fehlendeTeile\(wahl, frage\)/);
-  assert.match(js, /return fehlendeTeile\(wahl, frage\)\.length === 0/);
-  assert.match(js, /"Noch offen: " \+ fehlt\.join\(", "\)/);
-  assert.match(js, /senden\.setAttribute\("aria-describedby", offen\.id\)/);
+  assert.doesNotMatch(js, /Noch offen/);
+  assert.doesNotMatch(js, /entscheidung-offen/);
+  assert.doesNotMatch(lies("style.css"), /\.entscheidung-offen/);
 });

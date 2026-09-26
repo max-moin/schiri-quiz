@@ -60,6 +60,8 @@
       textarea.maxLength = FREITEXT_ZEICHENLIMIT;
       textarea.rows = 3;
       textarea.placeholder = "Deine Antwort ...";
+      // Platzhalter verschwindet beim Tippen und ist kein Name (WCAG 3.3.2).
+      textarea.setAttribute("aria-label", "Deine Antwort");
       container.appendChild(textarea);
 
       const zaehler = document.createElement("div");
@@ -190,6 +192,8 @@
       textarea.maxLength = FREITEXT_ZEICHENLIMIT;
       textarea.rows = 3;
       textarea.placeholder = "Deine Ergänzung ...";
+      // Platzhalter verschwindet beim Tippen und ist kein Name (WCAG 3.3.2).
+      textarea.setAttribute("aria-label", "Deine Ergänzung");
       wrap.appendChild(textarea);
 
       const zaehler = document.createElement("div");
