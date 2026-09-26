@@ -275,8 +275,9 @@ function einladungsAnsicht(code) {
   stoppeWarteUhr();
   const person = anmeldung?.lesen();
   setzeKopf({ untertitel: "Du wurdest zu einem Duell eingeladen." });
-  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
-    <section class="card duell-karte duell-karte-haupt">
+  // 26.09.2026: Kein zweiter Zurueck-Knopf mehr ("← Modi") - der Kopf
+  // fuehrt mit "Quiz" bereits zu genau derselben Seite.
+  root.innerHTML = `    <section class="card duell-karte duell-karte-haupt">
       <span class="duell-symbol">✉️</span>
       <h2>Du bist eingeladen</h2>
       <p>Jemand hat ein Duell eröffnet und dir den Link geschickt. Trag deinen Namen ein – dann spielt ihr dieselben fünf Fragen.</p>
@@ -299,8 +300,9 @@ async function startAnsicht() {
 
   setzeKopf();
   const person = anmeldung?.lesen();
-  root.innerHTML = `<div class="historie-kopf"><a class="sekundaer-button duell-zurueck" href="modus.html">← Modi</a></div>
-    <div data-letzte-duelle></div>
+  // 26.09.2026: Kein zweiter Zurueck-Knopf mehr ("← Modi") - der Kopf
+  // fuehrt mit "Quiz" bereits zu genau derselben Seite.
+  root.innerHTML = `    <div data-letzte-duelle></div>
     <section class="card duell-karte duell-karte-haupt">
       <span class="duell-symbol">⚔️</span>
       <h2>Neues Duell eröffnen</h2>

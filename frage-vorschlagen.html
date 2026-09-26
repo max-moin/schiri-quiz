@@ -19,7 +19,7 @@
   <link rel="stylesheet" href="stil/profil.css" />
   <link rel="stylesheet" href="stil/frage-vorschlagen.css" />
 </head>
-<body>
+<body data-seitenname="Frage vorschlagen">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   
   <header class="seiten-kopf"><div class="kopf-innen">
@@ -33,11 +33,10 @@
       <a class="primaer-link" href="modus.html">Zum Anmelden</a>
     </div>
     <div id="vorschlag-inhalt" hidden>
-      <!-- Der Zurueck-Link muss hier in der Seite stehen: den Knopf oben im
-           Kopf entfernt src/ui/kopf-navigation.js beim Laden wieder
-           (jeder "a.sekundaer-button" mit "zurueck" im Text). Im
-           Usability-Test hatte die Seite deshalb gar keinen Rueckweg. -->
-      <a class="vorschlag-zurueck" href="melden.html">Zurück zu Ideen &amp; Feedback</a>
+      <!-- 26.09.2026: Der eigene Link "Zurück zu Ideen & Feedback" ist
+           entfallen. Er stammte aus der Zeit, als die Seite gar keinen
+           Rueckweg hatte; inzwischen setzt src/ui/wegweiser.js oben den
+           Knopf "‹ Ideen & Feedback" - beide standen direkt untereinander. -->
       <div class="vorschlag-kopf">
         <div><h1>Frage vorschlagen</h1><p>Arbeite die Frage mit Lösung und belastbarem Regelbeleg aus. Veröffentlicht wird sie erst nach Prüfung durch den Obmann.</p></div>
         <button id="neuer-vorschlag" type="button" class="neben-knopf">Neue Frage</button>

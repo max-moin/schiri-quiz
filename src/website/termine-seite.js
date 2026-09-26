@@ -159,7 +159,12 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
   // antworten kann - nicht mehr ein laufender Termin.
   const offen = kuenftig.filter((t) => t.mitgliedSicht
     && t.rueckmeldung_erforderlich === true && t.mein_status == null
-    && t.absage_moeglich !== false).length;
+    && t.absage_moeglich !== false
+    // 26.09.2026: Ist nur noch eine Absage moeglich (Frist vorbei), steht
+    // an der Karte "Rückmeldefrist abgelaufen" - dann darf der Kopf den
+    // Termin nicht als offene Aufgabe mitzaehlen. Gleiche Regel wie
+    // "Für dich" auf der Startseite (src/website/fuer-dich.js).
+    && t.zusage_moeglich !== false).length;
 
   const kopf = `
     <h1 class="seiten-titel">Termine</h1>
@@ -219,10 +224,13 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
     ${vorschlaege.length ? `<details class="eigene-vorschlaege"><summary>Meine Vorschläge (${vorschlaege.length})</summary>
       <div>${vorschlaege.map(v => `<div class="vorschlag-zeile"><span><strong>${sicher(v.titel)}</strong><small>${sicher(datumKurz(v.datum))}</small></span><span class="wortmarke">${sicher(({eingereicht:"Eingereicht",in_pruefung:"In Prüfung",angenommen:"Angenommen",abgelehnt:"Abgelehnt"})[v.status] || v.status)}</span>${v.obmann_rueckmeldung ? `<p>${sicher(v.obmann_rueckmeldung)}</p>` : ""}</div>`).join("")}</div></details>` : ""}` : "";
 
+  // 26.09.2026: Der Vorschlag steht UNTER der Liste. Oben verdraengte
+  // die grosse Karte das, weswegen man die Seite oeffnet - die naechsten
+  // Termine -, obwohl man nur selten selbst einen vorschlaegt.
   bereich.innerHTML = `${kopf}
-    ${vorschlagHtml}
     ${findungHtml}
     ${kuenftig.length ? kuenftigHtml : '<p class="keine">Zurzeit steht kein Termin an.</p>'}
+    ${vorschlagHtml}
     ${vergangenHtml}`;
 
   if (offeneFindungen.length) bindeStimmen();

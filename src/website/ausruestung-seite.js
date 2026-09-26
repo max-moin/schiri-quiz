@@ -321,6 +321,9 @@ async function ladeBestand() {
   }
   eintraege = Array.isArray(data) ? data : [];
   $("bestand-liste").innerHTML = eintraege.length ? schrankHtml() : leerHtml();
+  // Leerer Schrank: der Leerzustand bringt seinen eigenen Knopf mit.
+  // Zwei gleiche Knoepfe untereinander wirkten wie ein Fehler (26.09.2026).
+  $("bestand-hinzufuegen").hidden = !eintraege.length;
   $("bestand-liste").querySelectorAll("[data-bestand-bearbeiten]").forEach((knopf) => {
     knopf.addEventListener("click", () => oeffneEintrag(knopf.dataset.bestandBearbeiten));
   });

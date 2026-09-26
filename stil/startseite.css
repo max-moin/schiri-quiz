@@ -282,3 +282,14 @@
 .lz-marke.extern { background: var(--blau); }
 .lz-marke.land   { background: #7c3aed; }
 .lz-marke.dfb    { background: #b91c1c; }
+
+/* ---------- "Für dich" (26.09.2026) ----------
+   Dieselben Listenzeilen wie auf den Unterseiten (.liste/.lz), dazu ein
+   Farbstreifen je Art - Wortinhalt traegt die Aussage, die Farbe hilft
+   nur beim Wiedererkennen. */
+.fuer-dich-punkt { border-left: 4px solid transparent; }
+.fuer-dich-punkt.termin { border-left-color: #f59e0b; }
+.fuer-dich-punkt.abstimmung { border-left-color: #8b5cf6; }
+.fuer-dich-punkt.antwort { border-left-color: var(--green); }
+.fuer-dich-punkt .lz-rechts { padding-top: 2px; }
+.fuer-dich-leer { margin: 0; padding: 14px 16px; font-size: .88rem; color: var(--muted); }

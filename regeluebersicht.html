@@ -154,8 +154,12 @@
     <div id="regelBereich"></div>
     <p class="keine" id="keineTreffer" hidden>Keine Einträge gefunden.</p>
 
-    <section class="abschnitt" style="margin-top:40px">
-      <div class="abschnitt-kopf"><h2>Wo das herkommt</h2></div>
+    <!-- 26.09.2026: Die fuenf Quellen standen dauerhaft offen und machten
+         die Seite nach dem Ergebnis noch einmal drei Bildschirme lang.
+         Wer nachschlaegt, braucht sie selten - jede Regelkarte nennt ihre
+         Belege ohnehin selbst ("Dazu gehört"). Deshalb eingeklappt. -->
+    <details class="faltung quellen-falt" style="margin-top:40px">
+      <summary><h2 class="quellen-titel">Wo das herkommt</h2><span class="quellen-zahl">5 Dokumente</span></summary>
       <div class="liste">
         <a class="lz" href="https://www.sfv-online.de/fileadmin/content/PDFs/Spielbetrieb/Junioren/Saison_2026_2027/regelungsuebersicht.pdf"
            target="_blank" rel="noopener noreferrer">
@@ -205,7 +209,7 @@
           <span class="lz-rechts"><span class="abzeichen abz-extern">Stadtverband</span><span class="lz-pfeil" aria-hidden="true">↗</span></span>
         </a>
       </div>
-    </section>
+    </details>
   </main>
 
   <footer class="seiten-fuss">
@@ -270,6 +274,24 @@
       wechsel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v13m0 0-3-3m3 3 3-3M17 20V7m0 0-3 3m3-3 3 3"/></svg>',
     });
     let ebene = "svfd", art = "meister", spielklasse = "";
+
+    /* Die letzte Auswahl merken (26.09.2026). Die meisten pfeifen Woche
+       fuer Woche dieselbe Klasse - sie sollen beim naechsten Oeffnen
+       gleich ihre Karte sehen statt wieder drei Fragen zu beantworten.
+       Nur auf diesem Geraet; gemerkt werden Namen statt Listenplaetze,
+       damit eine geaenderte Regelliste nichts Falsches vorauswaehlt. */
+    const MERKER = "regeluebersicht.auswahl.v1";
+    function merke() {
+      const r = daten()[Number(spielklasse)];
+      try {
+        localStorage.setItem(MERKER, JSON.stringify({
+          ebene, art, alle: spielklasse === "alle", a: r?.a ?? null, k: r?.k ?? null,
+        }));
+      } catch { /* privates Fenster o. ae. - dann eben ohne Merken */ }
+    }
+    function gemerkt() {
+      try { return JSON.parse(localStorage.getItem(MERKER) || "null"); } catch { return null; }
+    }
     const $ = (id) => document.getElementById(id);
     const sicher = (s) => String(s).replace(/[&<>"']/g, (c) =>
       ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -619,20 +641,43 @@
       zeichneStand();
       baueSpielklassenAuswahl();
       zeichne();
+      merke();
     });
     segmentBinden("artFilter", "art", (wert) => {
       art = wert;
       $("freundschaftHinweis").hidden = art !== "freundschaft";
       baueSpielklassenAuswahl();
       zeichne();
+      merke();
     });
 
     $("spielklasseFilter").addEventListener("change", (event) => {
       spielklasse = event.currentTarget.value;
       zeichne();
+      merke();
     });
+
+    function knopfSetzen(id, feld, wert) {
+      $(id).querySelectorAll("button").forEach((b) =>
+        b.setAttribute("aria-pressed", String(b.dataset[feld] === wert)));
+    }
+    const vorher = gemerkt();
+    if (vorher && ["svfd", "sfv"].includes(vorher.ebene) && ["meister", "pokal", "freundschaft"].includes(vorher.art)) {
+      ebene = vorher.ebene;
+      art = vorher.art;
+      knopfSetzen("ebeneFilter", "ebene", ebene);
+      knopfSetzen("artFilter", "art", art);
+      $("freundschaftHinweis").hidden = art !== "freundschaft";
+    }
     zeichneStand();
     baueSpielklassenAuswahl();
+    if (vorher?.alle) {
+      spielklasse = "alle";
+    } else if (vorher?.k) {
+      const i = daten().findIndex((r) => r.a === vorher.a && r.k === vorher.k);
+      if (i >= 0) spielklasse = String(i);
+    }
+    $("spielklasseFilter").value = spielklasse;
     zeichne();
   </script>
 </body>

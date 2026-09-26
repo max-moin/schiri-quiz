@@ -158,7 +158,7 @@ body { overflow-x: hidden; }
 .lz-symbol.hier { background: var(--green-light); }
 .lz-symbol.extern { background: var(--blau-hell); }
 .lz-text { flex: 1; min-width: 0; display: block; }
-.lz-titel { display: block; font-size: .92rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.35; }
+.lz-titel { display: block; font-size: .92rem; font-weight: 600; font-family: var(--font-titel); line-height: 1.35; overflow-wrap: anywhere; hyphens: auto; }
 .lz-sub { display: block; font-size: .8rem; color: var(--muted); line-height: 1.5; margin-top: 3px; }
 .lz-rechts { flex: none; display: flex; align-items: center; gap: 9px; padding-top: 8px; }
 .lz-pfeil { color: var(--muted); font-size: .9rem; }
@@ -211,12 +211,14 @@ body { overflow-x: hidden; }
   max-width: 62ch;
 }
 .info-klapptext summary {
-  width: 38px;
-  height: 38px;
-  display: grid;
-  place-items: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px 0 6px;
+  font-size: .84rem;
   border: 1px solid var(--border);
-  border-radius: 50%;
+  border-radius: 999px;
   background: var(--card);
   color: var(--marke-hell);
   font-weight: 800;
@@ -224,6 +226,7 @@ body { overflow-x: hidden; }
   list-style: none;
 }
 .info-klapptext summary::-webkit-details-marker { display: none; }
+.info-klapptext-i { width: 28px; height: 28px; display: grid; place-items: center; border-radius: 50%; background: var(--marke-lighter); font-weight: 800; }
 .info-klapptext[open] summary { background: var(--marke-lighter); border-color: var(--marke-hell); }
 .info-klapptext p {
   margin: 10px 0 0;

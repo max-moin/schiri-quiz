@@ -62,4 +62,11 @@ ZUSTAENDE = {
         "sitzung": SITZUNG,
         "rpc": {**ANTWORTEN, "wochen_fragen_v2": FRAGEN, "meine_antworten_v2": []},
     },
+    # Wie "angemeldet", aber Spesenrechner und Regeluebersicht freigeschaltet
+    # (live sind sie derzeit gesperrt) - damit man sie ueberhaupt pruefen kann.
+    "freigeschaltet": {
+        "sitzung": SITZUNG,
+        "rpc": {**ANTWORTEN, "wochen_fragen_v2": FRAGEN, "meine_antworten_v2": []},
+        "rest": {"website_funktionsfreigaben": [{"spesen_aktiv": True, "regeln_aktiv": True}]},
+    },
 }

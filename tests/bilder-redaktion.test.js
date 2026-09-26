@@ -10,7 +10,7 @@ import {
   validiereWebsiteInhalt,
 } from "../src/website/content-config.js";
 import { waehleBildmotiv } from "../src/website/bild-motive.js";
-import { bildPfad, pruefeBilddatei, BILD_HOECHSTGROESSE } from "../src/admin/bilder-editor.js";
+import { bildPfad, pruefeBilddatei, BILD_HOECHSTGROESSE, zielMasse } from "../src/admin/bilder-editor.js";
 
 const editorQuelle = readFileSync(new URL("../src/admin/bilder-editor.js", import.meta.url), "utf8");
 
@@ -135,4 +135,13 @@ test("der Obmann-Bereich bietet Bilder als eigenen Reiter an", () => {
   // Gestaltung gehoert in stil/obmann.css, nicht in style.css.
   const stil = readFileSync(new URL("../stil/obmann.css", import.meta.url), "utf8");
   assert.match(stil, /\.admin-bild-zeile/);
+});
+
+test("Fotos werden vor dem Hochladen auf 1920 px Kante verkleinert, nie vergroessert", () => {
+  assert.deepEqual(zielMasse(4032, 3024), { breite: 1920, hoehe: 1440 });
+  assert.deepEqual(zielMasse(3024, 4032), { breite: 1440, hoehe: 1920 });
+  assert.deepEqual(zielMasse(800, 600), { breite: 800, hoehe: 600 });
+  assert.deepEqual(zielMasse(0, 0), { breite: 1, hoehe: 1 });
+  // Die Groesse wird NACH dem Verkleinern geprueft, der Typ davor.
+  assert.match(editorQuelle, /fuerWebVerkleinern\(original\)[\s\S]*pruefeBilddatei\(datei\)/);
 });

@@ -177,10 +177,16 @@
    Die 44 px Höhe sind gleich mit dabei: aus .segment kamen nur 40. */
 .regel-finder-schritt .segment {
   margin: 0;
-  display: flex;
-  flex-wrap: wrap;
+  /* 26.09.2026: Als umbrechende Pille wurde aus 2+1 Knoepfen ein Oval
+     mit einem einzelnen Knopf in der zweiten Reihe. Als Raster sind die
+     Knoepfe gleich breit - nebeneinander, wenn Platz ist, sonst sauber
+     untereinander. */
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  border-radius: 14px;
   max-width: 100%;
 }
+.regel-finder-schritt .segment button { border-radius: 10px; }
 .regel-finder-schritt .segment button {
   flex: 1 1 auto;
   min-width: 0;
@@ -437,7 +443,9 @@
    den Regeln: er ist der Beleg, nicht die Auskunft. */
 .rk-belege {
   margin-top: 12px;
-  padding-top: 11px;
+  /* Seitlicher Abstand wie die Kernwerte (26.09.2026): vorher klebten
+     "Dazu gehört" und die Links am linken Kartenrand. */
+  padding: 11px 17px 14px;
   border-top: 1px dashed var(--border);
 }
 .rk-belege h3 {
@@ -462,3 +470,8 @@
 }
 .rk-belege li > span { font-size: .84rem; color: var(--muted); line-height: 1.45; }
 @media print { .rk-belege { border-top-style: solid; } }
+
+/* Quellen am Seitenende, eingeklappt (26.09.2026) */
+.quellen-falt > summary .quellen-titel { margin: 0; font-size: 1.05rem; }
+.quellen-zahl { font-size: .78rem; font-weight: 600; color: var(--muted); font-family: var(--font-text, inherit); }
+.quellen-falt .liste { border: 0; border-top: 1px solid var(--border); border-radius: 0; }

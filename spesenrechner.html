@@ -62,7 +62,48 @@
 
   <main class="inhalt" id="inhalt" tabindex="-1" data-funktionsinhalt="spesen" hidden>
     <h1 class="seiten-titel" data-text="spesen.titel">Spesenrechner</h1>
-    <p class="seiten-unter" data-text="spesen.unter">Vier Schritte bis zur Berechnung. Jeden Betrag rechts kannst du von Hand überschreiben.</p>
+    <p class="seiten-unter" data-text="spesen.unter">Oben in zwei Klicks, darunter ganz genau. Jeden Betrag in der Quittung kannst du von Hand überschreiben.</p>
+
+    <!-- Schnellrechner (26.09.2026). Max: "dass man da einfach nur eine
+         Uebersicht bekommt, also direkt den Rechner." Die meisten wollen
+         nur wissen, was ihnen fuer ein normales Punktspiel zusteht. Dafuer
+         reichen zwei Angaben - Klasse und Funktion -, der Rest ist
+         vorbelegt (Meisterschaft, Spielort Dresden, Vereins-Postleitzahl).
+         Der Schnellrechner ist KEIN zweiter Rechner: er stellt dieselben
+         Felder des ausfuehrlichen Formulars darunter und zeigt dessen
+         Ergebnis an. Es gibt also nur eine Rechnung und nur einen Stand. -->
+    <section class="schnellrechner" id="schnellrechner" aria-labelledby="schnellTitel">
+      <div class="schnell-kopf">
+        <h2 id="schnellTitel">Schnell ausrechnen</h2>
+        <p>Klasse und Funktion wählen – das Ergebnis steht sofort da.</p>
+      </div>
+      <div class="schnell-felder">
+        <div>
+          <label class="feldname" for="schnellKlasse">Spielklasse</label>
+          <select class="feld" id="schnellKlasse"></select>
+        </div>
+        <div>
+          <label class="feldname" for="schnellFunktion">Du pfeifst als</label>
+          <select class="feld" id="schnellFunktion">
+            <option value="sr">Schiedsrichter</option>
+            <option value="sra">Assistent</option>
+          </select>
+        </div>
+      </div>
+      <dl class="schnell-ergebnis" aria-live="polite">
+        <div><dt>Spesen</dt><dd id="schnellSpesen">–</dd></div>
+        <div><dt>Fahrtkosten</dt><dd id="schnellFahrt">–</dd></div>
+        <div class="schnell-gesamt"><dt>Gesamt</dt><dd id="schnellGesamt">–</dd></div>
+      </dl>
+      <p class="schnell-annahme" id="schnellAnnahme"></p>
+      <div class="schnell-links">
+        <a class="schnell-link" href="#rechnerGenau">Pokal, Assistenten, Anreise oder Ausfall einstellen</a>
+        <button type="button" class="schnell-link" id="satzKnopf" aria-expanded="false" aria-controls="satzUebersicht">Alle Sätze auf einen Blick</button>
+      </div>
+      <div class="satz-uebersicht" id="satzUebersicht" hidden></div>
+    </section>
+
+    <h2 class="genau-titel" id="rechnerGenau" tabindex="-1">Genau rechnen</h2>
 
     <div class="rechner">
       <!-- Die Eingabespalte hat einen Namen, weil der Ausdruck sie
@@ -1037,7 +1078,150 @@
      "anreise", "ticketBetrag", "km", "cbMitnahme"]
       .forEach((id) => $(id).addEventListener("input", rechne));
 
+    /* ------------------------------------------------------------------
+       Schnellrechner (26.09.2026) - siehe Kommentar im Markup.
+
+       Er fuellt die Felder des ausfuehrlichen Formulars und liest das
+       Ergebnis aus der Quittung zurueck. Umgekehrt zieht er nach, wenn
+       jemand unten etwas aendert. So kann nie eine zweite, abweichende
+       Zahl entstehen.
+       ------------------------------------------------------------------ */
+    function sortierteLigen(gruppe) {
+      return [...gruppe.ligen].sort((a, b) => b.stufe - a.stufe);
+    }
+
+    function baueSchnellKlassen() {
+      const feld = $("schnellKlasse");
+      feld.replaceChildren();
+      ALTERSKLASSEN.forEach((gruppe, gi) => {
+        const og = document.createElement("optgroup");
+        og.label = gruppe.name;
+        sortierteLigen(gruppe).forEach((liga, li) => {
+          const o = document.createElement("option");
+          o.value = `${gi}:${li}`;
+          /* Ohne Betrag im Namen: der haengt an der Funktion (Schiri oder
+             Assistent) und steht ohnehin gleich darunter im Ergebnis. */
+          o.textContent = `${gruppe.name} · ${liga.kurz}`;
+          og.appendChild(o);
+        });
+        feld.appendChild(og);
+      });
+    }
+
+    function schnellAbgleich() {
+      const gi = $("alter").value;
+      const li = $("liga").value;
+      if (gi !== "" && li !== "") $("schnellKlasse").value = `${gi}:${li}`;
+      $("schnellFunktion").value = $("funktion").value;
+      $("schnellSpesen").textContent = $("qSpesen").textContent;
+      $("schnellFahrt").textContent = $("qFahrt").textContent;
+      $("schnellGesamt").textContent = $("qGesamt").textContent;
+      const annahme = $("qSub").textContent.trim();
+      $("schnellAnnahme").textContent = annahme && annahme !== "–" ? `Gerechnet für: ${annahme}` : "";
+    }
+
+    $("schnellKlasse").addEventListener("change", () => {
+      const [gi, li] = $("schnellKlasse").value.split(":");
+      /* Den Grobfilter zuruecknehmen - sonst fehlt die gewaehlte Klasse
+         womoeglich in der Liste unten, und das Setzen liefe ins Leere. */
+      schnellFilter.geschlecht = null;
+      schnellFilter.stufe = null;
+      $("schnellFilter").querySelectorAll("button")
+        .forEach((x) => x.setAttribute("aria-pressed", "false"));
+      baueAltersklassen();
+      $("alter").value = gi;
+      handEingaben.clear();
+      baueLigen();
+      $("liga").value = li;
+      if (typeof $("liga").onchange === "function") $("liga").onchange();
+      schnellAbgleich();
+    });
+
+    /* Auf dem Handy klebt unten die Ergebniszeile. Solange der
+       Schnellblock selbst im Bild ist, zeigt sie dieselbe Zahl ein
+       zweites Mal und verdeckt dessen Knoepfe - dann tritt sie zurueck. */
+    if ("IntersectionObserver" in window) {
+      new IntersectionObserver(([eintrag]) => {
+        document.querySelector(".ergebnis-leiste")
+          ?.classList.toggle("verdeckt", eintrag.isIntersecting);
+      }, { threshold: 0.15 }).observe($("schnellrechner"));
+    }
+
+    $("schnellFunktion").addEventListener("change", () => {
+      $("funktion").value = $("schnellFunktion").value;
+      $("funktion").dispatchEvent(new Event("change"));
+      schnellAbgleich();
+    });
+
+    /* Kurzuebersicht aller Saetze - dieselben Zahlen, aus denen der
+       Rechner rechnet, nur als Tabelle zum Nachschlagen. */
+    function baueSatzUebersicht() {
+      const ziel = $("satzUebersicht");
+      ziel.replaceChildren();
+      /* Elf Altersklassen untereinander sind auf dem Handy drei
+         Bildschirmlaengen. Deshalb je Klasse aufklappbar - offen ist nur
+         die, die oben gerade gewaehlt ist. */
+      const aktuell = Number($("alter").value);
+      ALTERSKLASSEN.forEach((gruppe, gi) => {
+        const gruppeKasten = document.createElement("details");
+        gruppeKasten.className = "satz-gruppe";
+        gruppeKasten.open = gi === aktuell;
+        const zusammenfassung = document.createElement("summary");
+        zusammenfassung.textContent = gruppe.name;
+        const tabelle = document.createElement("table");
+        tabelle.className = "satz-tabelle";
+        tabelle.setAttribute("aria-label", `Sätze ${gruppe.name}`);
+        const kopf = document.createElement("thead");
+        kopf.innerHTML = "<tr><th scope=\"col\">Klasse</th><th scope=\"col\">Schiri</th><th scope=\"col\">Assistent</th></tr>";
+        const koerper = document.createElement("tbody");
+        sortierteLigen(gruppe).forEach((liga) => {
+          const zeile = document.createElement("tr");
+          const name = document.createElement("th");
+          name.scope = "row";
+          name.textContent = liga.kurz;
+          const verband = document.createElement("span");
+          verband.className = `satz-verband vb-${liga.verband}`;
+          verband.textContent = VERBAENDE[liga.verband]?.kurz || liga.verband;
+          name.append(" ", verband);
+          const sr = document.createElement("td");
+          sr.textContent = liga.sr == null ? "–" : euro(liga.sr);
+          const sra = document.createElement("td");
+          sra.textContent = liga.sra == null ? "–" : euro(liga.sra);
+          zeile.append(name, sr, sra);
+          koerper.appendChild(zeile);
+        });
+        tabelle.append(kopf, koerper);
+        gruppeKasten.append(zusammenfassung, tabelle);
+        ziel.appendChild(gruppeKasten);
+      });
+      const fuss = document.createElement("p");
+      fuss.className = "hinweis-klein";
+      fuss.textContent = `Fahrtkosten Stadt: ${FAHRTKOSTEN.svfd.kartenJeZone} Einzelkarten je Tarifzone à ${euro(FAHRTKOSTEN.svfd.preisJeKarte)}. `
+        + `Landesebene: Auto ${euro(FAHRTKOSTEN.sfv.kmAuto)} je km, Monatskarte pauschal ${euro(FAHRTKOSTEN.sfv.monatskartePauschale)}. `
+        + `Spielausfall: ${Math.round(AUSFALL_ANTEIL * 100)} % der Pauschale.`;
+      ziel.appendChild(fuss);
+    }
+
+    $("satzKnopf").addEventListener("click", () => {
+      const ziel = $("satzUebersicht");
+      if (ziel.hidden) baueSatzUebersicht();
+      ziel.hidden = !ziel.hidden;
+      $("satzKnopf").setAttribute("aria-expanded", String(!ziel.hidden));
+      $("satzKnopf").textContent = ziel.hidden ? "Alle Sätze auf einen Blick" : "Sätze ausblenden";
+      if (!ziel.hidden) ziel.querySelector("details[open] summary")?.focus();
+    });
+
+    /* Jede Neuberechnung schreibt in die Quittung - genau dort hoert der
+       Schnellrechner zu, statt an jeder Aenderungsstelle einzeln. */
+    new MutationObserver(schnellAbgleich).observe($("quittung"), {
+      subtree: true, childList: true, characterData: true,
+    });
+    ["alter", "liga", "funktion"].forEach((id) =>
+      $(id).addEventListener("change", schnellAbgleich));
+
+    baueSchnellKlassen();
     baueLigen();
+    schnellAbgleich();
   </script>
 </body>
 </html>

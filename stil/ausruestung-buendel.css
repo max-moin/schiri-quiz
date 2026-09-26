@@ -16,3 +16,15 @@
 .bestand-anfrage-buendel-notiz { color: var(--muted); }
 .bestand-anfrage-buendel-notiz { margin: 0 2px 10px; font-size: .85rem; }
 .bestand-anfrage-buendel .bestand-anfrage:last-child { margin-bottom: 0; }
+
+/* "So läuft eine Anfrage ab" (26.09.2026): Die Klasse .faltung ist in
+   regeln.css gestaltet, die diese Seite nicht laedt - der Klapptext
+   stand deshalb als nacktes Browser-Dreieck da. Hier dieselbe Form wie
+   die uebrigen Klapptexte der Website. */
+.bestand-ablauf { margin: 10px 0 14px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--card); }
+.bestand-ablauf > summary { min-height: 44px; display: flex; align-items: center; gap: 10px; padding: 0 16px; font-weight: 600; font-size: .9rem; cursor: pointer; list-style: none; }
+.bestand-ablauf > summary::-webkit-details-marker { display: none; }
+.bestand-ablauf > summary::after { content: "+"; margin-left: auto; font-size: 1.2rem; color: var(--muted); }
+.bestand-ablauf[open] > summary::after { content: "−"; }
+.bestand-ablauf > ol, .bestand-ablauf > p { margin: 0 16px 12px; font-size: .86rem; color: var(--muted); line-height: 1.6; }
+.bestand-ablauf > ol { padding-left: 18px; }

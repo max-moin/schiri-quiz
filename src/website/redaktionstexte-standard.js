@@ -65,7 +65,7 @@ export const TEXTE_STANDARD = Object.freeze({
   "schiri-werden.schluss": "Bereit? Dann melde dich.",
   "schiri-werden.schluss-text": "\n            Schreib uns – oder sieh dir zuerst die Ausschreibung des Stadtverbands an.\n          ",
   "spesen.titel": "Spesenrechner",
-  "spesen.unter": "Vier Schritte bis zur Berechnung. Jeden Betrag rechts kannst du von Hand überschreiben.",
+  "spesen.unter": "Oben in zwei Klicks, darunter ganz genau. Jeden Betrag in der Quittung kannst du von Hand überschreiben.",
   "spesen.schritt-1": "Was für ein Spiel, und wer spielt?",
   "spesen.hinweis-schnellwahl": "grenzt die Liste darunter ein – oder überspring sie",
   "spesen.hinweis-turnier": "32 € für die ersten vier Stunden, danach 8 € je angefangene Stunde.",

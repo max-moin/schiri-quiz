@@ -157,6 +157,17 @@
     <section class="abschnitt aktuelles" id="aktuelles" hidden
              aria-label="Das steht an"></section>
 
+    <!-- ---------- "Für dich" (26.09.2026) ----------
+         Nur fuer Angemeldete: was gerade auf einen wartet (Zu-/Absage,
+         Terminabstimmung, Antwort vom Obmann). Steht bewusst NACH dem
+         Aufmacher - Max hat am 30.08. entschieden, dass "Schiri werden"
+         das Erste auf der Seite bleibt. Aufgebaut von
+         src/website/startseite-fuer-dich.js. -->
+    <section class="abschnitt fuer-dich" id="fuerDich" hidden aria-labelledby="fuerDichTitel">
+      <div class="abschnitt-kopf"><h2 id="fuerDichTitel">Für dich</h2></div>
+      <div class="liste" id="fuerDichListe"></div>
+    </section>
+
     <!-- Drei eindeutige Wege. Quiz bleibt als hervorgehobener Knopf im
          Seitenkopf und wird hier nicht ein zweites Mal angeboten. -->
     <section class="abschnitt">
@@ -243,6 +254,7 @@
   <script src="src/features/profile-requests.js"></script>
   <script type="module" src="seite.js"></script>
   <script type="module" src="src/website/startseite-aktuelles.js"></script>
+  <script type="module" src="src/website/startseite-fuer-dich.js"></script>
 
   <script type="module">
     /* ============================================================

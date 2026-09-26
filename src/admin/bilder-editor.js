@@ -61,6 +61,44 @@ export function pruefeBilddatei(datei) {
   return "";
 }
 
+/* Verkleinern vor dem Hochladen (26.09.2026)
+   Ein Handyfoto hat 4000 px Kante und 3-6 MB. Das Aufmacherbild ist das
+   groesste Element der Startseite (LCP) - jedes Megabyte davon wartet ein
+   Besucher im Mobilnetz ab. 1920 px reichen auch fuer breite Bildschirme
+   mit doppelter Pixeldichte im 960-px-Inhaltsbereich. Nebenbei faellt
+   beim Neuzeichnen der EXIF-Block weg (Aufnahmeort, Geraet). */
+export const BILD_KANTE = 1920;
+
+/** Zielmasse bei hoechstens `grenze` px langer Kante; nie vergroessern. */
+export function zielMasse(breite, hoehe, grenze = BILD_KANTE) {
+  const b = Math.max(1, Math.round(Number(breite) || 0));
+  const h = Math.max(1, Math.round(Number(hoehe) || 0));
+  const faktor = Math.min(1, grenze / Math.max(b, h));
+  return { breite: Math.max(1, Math.round(b * faktor)), hoehe: Math.max(1, Math.round(h * faktor)) };
+}
+
+async function fuerWebVerkleinern(datei) {
+  if (typeof createImageBitmap !== "function" || typeof document === "undefined") return datei;
+  const bild = await createImageBitmap(datei);
+  const { breite, hoehe } = zielMasse(bild.width, bild.height);
+  const leinwand = document.createElement("canvas");
+  leinwand.width = breite;
+  leinwand.height = hoehe;
+  leinwand.getContext("2d").drawImage(bild, 0, 0, breite, hoehe);
+  bild.close?.();
+  const alsBlob = (typ, guete) => new Promise((fertig) => leinwand.toBlob(fertig, typ, guete));
+  // WebP, wo der Browser es schreiben kann; sonst JPEG. Ein PNG bleibt
+  // dann lieber unveraendert - JPEG kennt keine Transparenz.
+  let blob = await alsBlob("image/webp", 0.82);
+  if (!blob || blob.type !== "image/webp") {
+    if (datei.type === "image/png") return datei;
+    blob = await alsBlob("image/jpeg", 0.85);
+  }
+  if (!blob || !BILD_TYPEN[blob.type] || blob.size >= datei.size) return datei;
+  const name = datei.name.replace(/\.[^.]+$/, "") + "." + BILD_TYPEN[blob.type];
+  return new File([blob], name, { type: blob.type });
+}
+
 /**
  * Der Pfad in der Ablage: "<seitenschluessel>/<motiv>-<zeitstempel>.<ext>".
  *
@@ -139,9 +177,21 @@ export function erstelleBilderEditor({ wurzel, client, verein, benutzer }) {
     });
 
     dateiFeld.addEventListener("change", async () => {
-      const datei = dateiFeld.files?.[0];
+      const original = dateiFeld.files?.[0];
       dateiFeld.value = "";
-      if (!datei) return;
+      if (!original) return;
+      // Erst den Typ pruefen, dann verkleinern, dann die Groesse: ein
+      // 5-MB-Handyfoto ist nach dem Verkleinern meist unter 1 MB und
+      // soll deshalb nicht vorher abgewiesen werden.
+      const typFehler = BILD_TYPEN[original.type] ? "" : pruefeBilddatei(original);
+      if (typFehler) {
+        fortschritt.textContent = typFehler;
+        fortschritt.dataset.art = "fehler";
+        return;
+      }
+      fortschritt.dataset.art = "info";
+      fortschritt.textContent = `„${original.name}“ wird für die Website verkleinert …`;
+      const datei = await fuerWebVerkleinern(original).catch(() => original);
       const beanstandung = pruefeBilddatei(datei);
       if (beanstandung) {
         fortschritt.textContent = beanstandung;
@@ -176,7 +226,7 @@ export function erstelleBilderEditor({ wurzel, client, verein, benutzer }) {
     const panel = document.createElement("section");
     panel.className = "admin-panel";
     panel.innerHTML = `<div class="admin-panel-kopf"><h2>Motive der Startseite</h2>
-      <p>JPG, PNG oder WebP bis 3 MB. Jedes Bild bekommt beim Hochladen eine eigene Adresse – so zeigt niemand nach dem Wechsel noch tagelang das alte Motiv.</p></div>`;
+      <p>JPG, PNG oder WebP. Große Fotos werden vor dem Hochladen auf 1920 px verkleinert (danach höchstens 3 MB). Jedes Bild bekommt beim Hochladen eine eigene Adresse – so zeigt niemand nach dem Wechsel noch tagelang das alte Motiv.</p></div>`;
     const liste = document.createElement("div");
     liste.className = "admin-bild-liste";
     BILD_MOTIVE.forEach((name) => liste.appendChild(motivZeile(name)));

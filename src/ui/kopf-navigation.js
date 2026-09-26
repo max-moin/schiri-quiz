@@ -111,7 +111,14 @@ export function vereinheitlicheHauptnavigation(kopfInnen) {
     const link = document.createElement("a");
     link.href = eintrag.href;
     link.textContent = eintrag.text;
-    if (eintrag.seiten.includes(aktuell)) link.setAttribute("aria-current", "page");
+    // 26.09.2026: "page" nur auf der Seite des Reiters selbst. Auf
+    // Unterseiten (schiri-werden.html, installieren.html unter "Hilfe";
+    // frage-vorschlagen.html unter "Ideen") heisst es "true" - wie in den
+    // statischen Leisten. Sonst stand oben auf "Schiri werden" der
+    // Seitenname "Hilfe".
+    if (eintrag.seiten.includes(aktuell)) {
+      link.setAttribute("aria-current", eintrag.href === aktuell ? "page" : "true");
+    }
     nav.appendChild(link);
   }
 

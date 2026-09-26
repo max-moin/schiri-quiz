@@ -183,7 +183,11 @@ async def lauf(args, ziel):
                         name = u.split("/rest/v1/rpc/")[1].split("?")[0]
                         return await route.fulfill(status=200, content_type="application/json", body=json.dumps(rpc.get(name, []), default=str))
                     if "/rest/v1/" in u:
-                        return await route.fulfill(status=200, content_type="application/json", body="[]")
+                        # Tabellen-Abfragen (z. B. Funktionsfreigaben) aus
+                        # zustand["rest"]; unbekannte Tabellen -> [].
+                        tabelle = u.split("/rest/v1/")[1].split("?")[0]
+                        daten = zustand.get("rest", {}).get(tabelle, [])
+                        return await route.fulfill(status=200, content_type="application/json", body=json.dumps(daten, default=str))
                     return await route.abort()
                 await ctx.route("**/*", weiche)
                 for seite in seiten:

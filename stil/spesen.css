@@ -259,6 +259,43 @@
    Zeile doppelt gemoppelt. */
 .ergebnis-leiste { display: none; }
 
+/* ---------- Schnell ausrechnen (26.09.2026) ----------
+   Max: "dass man da vielleicht auch einfach nur eine Übersicht bekommt,
+   also direkt den Rechner." Die meisten wollen nur wissen, was es für
+   ihr Spiel gibt: Spielklasse + Funktion, drei Zahlen, fertig. Der
+   ausfuehrliche Rechner darunter bleibt fuer Sonderfaelle; beide
+   rechnen mit derselben Logik (der Schnellblock liest die Quittung). */
+.schnellrechner { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; margin-bottom: 22px; }
+.schnell-kopf h2 { font-family: var(--font-titel); font-size: 1.15rem; margin: 0; }
+.schnell-kopf p { font-size: .84rem; color: var(--muted); margin: 4px 0 14px; }
+.schnell-felder { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; }
+.schnell-ergebnis { display: grid; grid-template-columns: 1fr 1fr 1.3fr; gap: 10px; margin: 16px 0 0; }
+.schnell-ergebnis > div { background: var(--bg-start); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; }
+.schnell-ergebnis dt { font-size: .74rem; font-weight: 600; color: var(--muted); }
+.schnell-ergebnis dd { margin: 2px 0 0; font-family: var(--font-titel); font-size: 1.1rem; font-variant-numeric: tabular-nums; }
+.schnell-ergebnis .schnell-gesamt { background: var(--green-light); border-color: transparent; }
+.schnell-gesamt dd { color: var(--green-dark); font-size: 1.35rem; }
+.schnell-annahme { font-size: .78rem; color: var(--muted); margin: 10px 0 0; line-height: 1.45; }
+.schnell-annahme:empty { display: none; }
+.schnell-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.schnell-link { display: inline-flex; align-items: center; min-height: 44px; padding: 0 14px; border: 1px solid var(--border); border-radius: 999px; background: var(--card); font: inherit; font-size: .82rem; font-weight: 600; color: var(--marke-hell); text-decoration: none; cursor: pointer; }
+.schnell-link:hover { border-color: var(--marke-hell); }
+.satz-uebersicht { margin-top: 14px; display: grid; gap: 8px; }
+.satz-gruppe { border: 1px solid var(--border); border-radius: 12px; background: var(--card); }
+.satz-gruppe > summary { min-height: 44px; display: flex; align-items: center; padding: 0 14px; font-weight: 700; font-family: var(--font-titel); cursor: pointer; }
+.satz-gruppe > summary::-webkit-details-marker { display: none; }
+.satz-gruppe > summary::after { content: "▾"; margin-left: auto; color: var(--muted); transition: transform .15s; }
+.satz-gruppe[open] > summary::after { transform: rotate(180deg); }
+.satz-gruppe > summary:focus-visible { outline: 3px solid var(--marke-hell); outline-offset: 2px; border-radius: 12px; }
+.satz-gruppe .satz-tabelle { margin: 0 0 6px; }
+.satz-gruppe .satz-tabelle th:first-child, .satz-gruppe .satz-tabelle td:last-child { padding-inline: 14px; }
+.satz-tabelle { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.satz-tabelle th, .satz-tabelle td { padding: 8px 6px; border-bottom: 1px solid var(--border); text-align: left; font-weight: 500; }
+.satz-tabelle thead th { font-size: .72rem; color: var(--muted); font-weight: 600; }
+.satz-tabelle td { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.satz-verband { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 6px; font-size: .66rem; font-weight: 700; }
+.genau-titel { font-family: var(--font-titel); font-size: 1.05rem; margin: 6px 0 12px; }
+
 @media (max-width: 880px) {
   .ergebnis-leiste {
     display: flex;
@@ -277,6 +314,7 @@
     border-top: 1px solid var(--border);
     box-shadow: 0 -6px 18px rgba(16, 24, 40, .10);
   }
+  .ergebnis-leiste.verdeckt { display: none; }
   .el-titel { font-size: .8rem; font-weight: 600; color: var(--muted); }
   .el-betrag {
     margin-left: auto;
@@ -300,7 +338,11 @@
 
   /* 16 px ist die Grenze, unter der iOS Safari beim Fokus hineinzoomt. */
   .rechner .feld,
+  .schnellrechner .feld,
   .rechner .q-eingabe { font-size: 16px; }
+  .schnell-felder { grid-template-columns: 1fr; }
+  .schnell-ergebnis { grid-template-columns: 1fr 1fr; }
+  .schnell-ergebnis .schnell-gesamt { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: baseline; }
   .rechner .feld { min-height: 48px; }
   .rechner .haken { min-height: 48px; }
   .rechner .wahl-knopf { min-height: 48px; font-size: 16px; }
@@ -350,6 +392,8 @@
   .seiten-fuss,
   .seiten-unter,
   .ergebnis-leiste,
+  .schnellrechner,
+  .genau-titel,
   .rechner-formular,
   .q-abschluss { display: none !important; }
 

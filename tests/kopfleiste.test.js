@@ -651,6 +651,10 @@ test("die Seiten mit eigenem Reiter tragen KEIN data-seitenname", () => {
   // beim Umbenennen des Reiters hinten runter.
   for (const seite of SEITEN_MIT_LEISTE) {
     if (seite === "modus.html" || seite === "entscheiden.html") continue;
+    // Unterseiten eines Reiters (26.09.2026): Ihr Reiter ist nur mit
+    // aria-current="true" markiert ("hier herum"), der eigene Name kommt
+    // deshalb vom body - sonst stuende auf "Schiri werden" oben "Hilfe".
+    if (seite === "schiri-werden.html" || seite === "frage-vorschlagen.html") continue;
     assert.doesNotMatch(lies(seite), /data-seitenname/,
       seite + " hat einen zweiten Namen am body, obwohl es einen Reiter gibt");
   }
