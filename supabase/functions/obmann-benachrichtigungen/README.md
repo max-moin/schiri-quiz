@@ -90,11 +90,20 @@ Für echte Antworten nach bestandenem Pilot zusätzlich:
 Zuerst Vercel deployen und den Selbsttest prüfen, **danach** den Cron-Schalter
 setzen. Die Edge Function prüft dann alle zwei Minuten serverseitig, ob
 Montag 10:00 Uhr ein neues Wochenquiz oder Freitag 15:00 Uhr bzw. Sonntag
-10:30 Uhr ein noch offenes Quiz erinnert werden soll. Ein 10-Minuten-Fenster
+10:30 Uhr ein noch offenes Quiz erinnert werden soll. Pro Termin kann Max
+`aus`, `Vortag 18:00`, `Termintag 09:00` oder `beide` einstellen. Bestehende
+Termine stehen nach der Migration auf `aus`. Nur Personen mit freiwilliger
+Kategorie `Termine` und aktivem Geräte-Abo kommen infrage: bei
+Pflichtterminen Mitglieder des eigenen Terminvereins, sonst nur Zugesagte.
+Öffentliche Sichtbarkeit allein reicht nicht. Ohne Beginnzeit oder bei
+Beginn spätestens um 09:00 entfällt die Tageserinnerung. Verschobene,
+gelöschte und zurückgenommene Termine werden vor dem Senden erneut geprüft.
+Ein 10-Minuten-Fenster
 federt kurze Cron-Verzögerungen ab; versäumte Zeitfenster werden nicht
 nachträglich versandt. Maßgeblich ist `Europe/Berlin`. Sie ruft außerdem
 `/api/push-auftraege` mit dem Sendegeheimnis auf. Der Endpunkt liest nur
-autorisierte, höchstens 24 Stunden alte Aufträge und verschickt neutrale
+autorisierte Aufträge (Termine maximal eine Stunde, Quiz/Feedback maximal
+24 Stunden alt) und verschickt neutrale
 Sperrbildschirmtexte ohne Frage, Antwort oder Namen. Die PIN wird allein zur
 Kontoprüfung genutzt, nicht in Aufträgen gespeichert.
 

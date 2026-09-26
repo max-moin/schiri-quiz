@@ -44,6 +44,14 @@ export function nachrichtFuer(typ, meldungId, gruppe) {
       gruppe: String(gruppe || `quiz_${meldungId}`).slice(0, 100),
     });
   }
+  if (typ === "termin.erinnerung") {
+    return JSON.stringify({
+      titel: "Kickers · Terminerinnerung",
+      text: "Ein Termin steht an. Die Details findest du auf der Vereinsseite.",
+      ziel: "/termine.html",
+      gruppe: String(gruppe || `termin_${meldungId}`).slice(0, 100),
+    });
+  }
   if (typ !== "frage_feedback.antwort") return null;
   // Kein Name, Fragentext oder Antwortinhalt auf fremden Sperrbildschirmen.
   return JSON.stringify({

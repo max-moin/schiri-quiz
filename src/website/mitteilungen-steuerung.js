@@ -9,7 +9,7 @@ let aktuell = null;
 let geraete = [];
 let abo = null;
 let ladeNummer = 0;
-const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung"];
+const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung", "mitteilungen-termine"];
 
 function hatAuswahl() {
   return auswahlIds.some((id) => $(id).checked);
@@ -119,7 +119,7 @@ async function lade(person) {
     schluessel = bereit.oeffentlicherSchluessel;
     abschnitt.hidden = false;
     $("mitteilungen-vorschau").textContent = bereit.modus === "pilot" ? "Pilot" : "Teilweise verfügbar";
-    $("mitteilungen-arten-hinweis").textContent = "Wähle selbst, wofür du Hinweise erhalten möchtest. Termine folgen später.";
+    $("mitteilungen-arten-hinweis").textContent = "Wähle selbst, wofür du Hinweise erhalten möchtest.";
     $("mitteilungen-versand").textContent = bereit.modus === "pilot"
       ? "Nur für einen Gerätetest" : "Freigegeben";
     $("mitteilungen-kurzstatus").textContent = bereit.modus === "pilot"
@@ -137,6 +137,7 @@ async function lade(person) {
     $("mitteilungen-feedback").checked = einstellungen?.feedback_antwort === true;
     $("mitteilungen-quiz-neu").checked = einstellungen?.quiz_neu === true;
     $("mitteilungen-quiz-erinnerung").checked = einstellungen?.quiz_erinnerung === true;
+    $("mitteilungen-termine").checked = einstellungen?.termine === true;
     for (const id of auswahlIds) $(id).disabled = false;
     $("mitteilungen-speicherstand").textContent = "Deine Auswahl ist gespeichert.";
     $("mitteilungen-abo-stand").textContent = !erlaubt.moeglich ? erlaubt.grund
@@ -192,6 +193,23 @@ for (const id of ["mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung"]) {
     }
   });
 }
+
+$("mitteilungen-termine")?.addEventListener("change", async (event) => {
+  if (!aktuell) return;
+  const person = aktuell;
+  const feld = event.currentTarget;
+  const neuerStand = feld.checked;
+  for (const auswahlId of auswahlIds) $(auswahlId).disabled = true;
+  $("mitteilungen-speicherstand").textContent = "Wird gespeichert …";
+  try {
+    await rpc("schiri_push_termine_setzen", { ...parameter(person), p_aktiv: neuerStand });
+    await lade(person);
+  } catch (fehler) {
+    feld.checked = !neuerStand;
+    for (const auswahlId of auswahlIds) $(auswahlId).disabled = false;
+    $("mitteilungen-speicherstand").textContent = fehler.message;
+  }
+});
 
 $("mitteilungen-abo-knopf")?.addEventListener("click", async (event) => {
   if (!aktuell) return;

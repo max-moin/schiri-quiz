@@ -61,6 +61,7 @@ async function schiriPushAnstossen(): Promise<void> {
     // Die Datenbank entscheidet nach Europe/Berlin, aktueller Runde,
     // Opt-in und Quizabschluss. Wiederholte Cron-Aufrufe sind idempotent.
     await rpc<number>("schiri_push_quiz_einreihen", {});
+    await rpc<number>("schiri_push_termine_einreihen", {});
     const antwort = await fetch("https://www.schiri-loebtauer-kickers.com/api/push-auftraege", {
       method: "POST",
       headers: { "x-push-schluessel": geheimnis },

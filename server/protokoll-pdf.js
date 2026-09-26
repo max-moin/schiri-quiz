@@ -26,13 +26,15 @@ function speicherSchluessel() {
   return schluessel;
 }
 
-function adresse(pfad) {
-  return `${SUPABASE_URL}/storage/v1/object/${pfad.split("/").map(encodeURIComponent).join("/")}`;
+export function storageAdresse(pfad) {
+  // Aufrufer uebergeben bereits den Storage-API-Pfad `object/...`.
+  // Das alte zusaetzliche `/object` erzeugte `/object/object/...` (404).
+  return `${SUPABASE_URL}/storage/v1/${pfad.split("/").map(encodeURIComponent).join("/")}`;
 }
 
 async function storageAnfrage(pfad, { method, body, contentType } = {}) {
   const schluessel = speicherSchluessel();
-  const antwort = await fetchMitZeitlimit(adresse(pfad), {
+  const antwort = await fetchMitZeitlimit(storageAdresse(pfad), {
     method,
     headers: {
       apikey: schluessel,

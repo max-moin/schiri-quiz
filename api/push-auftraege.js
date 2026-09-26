@@ -20,13 +20,15 @@ export default async function handler(req, res) {
 
   let auftraege;
   try {
-    const [feedback, quiz] = await Promise.all([
+    const [feedback, quiz, termine] = await Promise.all([
       supabaseRpc("schiri_push_auftraege_beanspruchen", { p_limit: 10 }),
       supabaseRpc("schiri_push_quiz_auftraege_beanspruchen", { p_limit: 10 }),
+      supabaseRpc("schiri_push_termin_auftraege_beanspruchen", { p_limit: 10 }),
     ]);
     auftraege = [
       ...(Array.isArray(feedback) ? feedback : []),
       ...(Array.isArray(quiz) ? quiz : []),
+      ...(Array.isArray(termine) ? termine : []),
     ];
   } catch (fehler) {
     console.error("[API] Push-Claim fehlgeschlagen", fehler);
@@ -44,8 +46,10 @@ export default async function handler(req, res) {
         fehlgeschlagen += 1;
         continue;
       }
-      const zustellliste = auftrag.typ === "quiz.neu" || auftrag.typ === "quiz.erinnerung"
-        ? "schiri_push_quiz_zustellliste" : "schiri_push_zustellliste";
+      const zustellliste = auftrag.typ === "termin.erinnerung"
+        ? "schiri_push_termin_zustellliste"
+        : (auftrag.typ === "quiz.neu" || auftrag.typ === "quiz.erinnerung")
+          ? "schiri_push_quiz_zustellliste" : "schiri_push_zustellliste";
       const abos = await supabaseRpc(zustellliste, { p_auftrag_id: auftrag.auftrag_id });
       if (!Array.isArray(abos) || abos.length === 0) {
         await supabaseRpc("benachrichtigung_auftrag_fehlgeschlagen", {
