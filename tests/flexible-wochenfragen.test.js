@@ -140,6 +140,7 @@ class TestElement {
     if (text === "input:checked") {
       return this.nachfahren().filter((el) => el.tag === "input" && el.checked === true);
     }
+    if (text === "input") return this.nachfahren().filter((el) => el.tag === "input");
     throw new Error("Der Test-DOM kennt diesen Waehler nicht: " + waehler);
   }
   querySelector(waehler) { return this.querySelectorAll(waehler)[0] || null; }
@@ -259,4 +260,79 @@ test("ein leeres Zahlenfeld wird nicht als Null abgeschickt", () => {
   fall.absenden.ausloesen("click");
   assert.deepEqual(fall.gerufen[0][0], "fehler",
     "ein leeres Feld geht als 0 an den Server");
+});
+
+function auswahlKarte({ senden, vorWochenantwort = null } = {}) {
+  neuerDom();
+  new Function(lies("src/features/flexible-answers.js"))();
+  const rpcs = [], fortschritt = [];
+  const antworten = globalThis.SchiriQuizFlexibleAnswers.erstelleFlexibleAntworten({
+    sb: { rpc: async (...args) => {
+      rpcs.push(args);
+      return senden ? senden() : { data: [{ korrekt: true, richtige_auswahl: ["b"], bereits_beantwortet: false }], error: null };
+    } },
+    getZugang: () => ({ schiedsrichterId: "s1", pin: "1234" }),
+    zeigeFehler() {}, versteckeFehler() {},
+    frageAnsicht: { baueBadges: () => null, baueFrageBild: () => null },
+    baueVideoEinbettungModal: () => null, baueVorlesenButton: () => null,
+    baueWarumButton: () => document.createElement("button"),
+    beiWochenfrageBeantwortet: (id) => fortschritt.push(id), vorWochenantwort,
+  });
+  const karte = antworten.baueFrageElement({ id: "f1", antworttyp: "multiple_choice", frage_text: "Entscheidung?",
+    antwortoptionen: ["a", "b", "c", "d"].map((key) => ({ schluessel: key, text: `Antwort ${key}` })) });
+  const inputs = karte.querySelectorAll("input");
+  inputs[1].checked = true;
+  return { karte, inputs, rpcs, fortschritt, button: karte.querySelector(".absenden-button") };
+}
+
+test("Multiple Choice mit mehr als drei Optionen speichert und zeigt den gruenen Haken", async () => {
+  const f = auswahlKarte();
+  f.button.ausloesen("click");
+  await naechsteRunde();
+  assert.equal(f.rpcs.length, 1);
+  assert.equal(f.rpcs[0][0], "antwort_auswahl_abgeben");
+  assert.deepEqual(f.rpcs[0][1].p_auswahl, ["b"]);
+  assert.ok(f.karte.classList.contains("richtig-karte"));
+  assert.equal(f.karte.querySelector(".ist-richtig").querySelector(".option-marke").textContent, "✓");
+  assert.deepEqual(f.fortschritt, ["f1"]);
+});
+
+test("Fehler steht an der MC-Karte, Auswahl bleibt erhalten und ist wieder bedienbar", async () => {
+  for (const senden of [
+    () => ({ data: null, error: { message: "Frage nicht gefunden oder falscher Antworttyp" } }),
+    () => { throw new Error("Load failed"); },
+    () => ({ data: [], error: null }),
+  ]) {
+    const f = auswahlKarte({ senden });
+    f.button.ausloesen("click");
+    await naechsteRunde();
+    assert.equal(f.button.disabled, false);
+    assert.ok(f.inputs.every((input) => !input.disabled));
+    assert.equal(f.inputs[1].checked, true);
+    assert.notEqual(f.karte.querySelector(".feedback").textContent, "Bitte versuche es noch einmal.");
+    assert.equal(f.karte.querySelector(".feedback").hidden, false);
+    assert.deepEqual(f.fortschritt, []);
+  }
+});
+
+test("veraltete Wochenkarte wird nicht an den Antwort-RPC geschickt", async () => {
+  const f = auswahlKarte({ vorWochenantwort: async () => { throw new Error("Die Quizfragen wurden aktualisiert."); } });
+  f.button.ausloesen("click");
+  await naechsteRunde();
+  assert.deepEqual(f.rpcs, []);
+  assert.equal(f.button.disabled, false);
+  assert.match(f.karte.querySelector(".feedback").textContent, /aktualisiert/);
+});
+
+test("mehrfaches Tippen sendet auch waehrend der Wochenpruefung nur einmal", async () => {
+  let fertig;
+  const warten = new Promise((resolve) => { fertig = resolve; });
+  const f = auswahlKarte({ vorWochenantwort: () => warten });
+  f.button.ausloesen("click");
+  f.button.ausloesen("click");
+  assert.deepEqual(f.rpcs, []);
+  fertig();
+  await naechsteRunde();
+  assert.equal(f.rpcs.length, 1);
+  assert.deepEqual(f.fortschritt, ["f1"]);
 });

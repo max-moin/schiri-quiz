@@ -11,6 +11,7 @@
     baueWarumButton,
     freitextStatus,
     beiWochenfrageBeantwortet,
+    vorWochenantwort = null,
   }) {
     // ============================================================
     // Freitext-Fragen mit KI-Auswertung (10.07.2026)
@@ -223,6 +224,7 @@
     }
 
     async function freitextErgaenzungAbschicken(frageId, wrap, button, textarea) {
+      if (button.disabled) return;
       const ergaenzung = textarea.value.trim();
       if (ergaenzung.length === 0) {
         // Fehler am Feld statt oben auf der Seite (25.09.2026, siehe
@@ -241,6 +243,7 @@
 
       let ergebnis;
       try {
+        if (vorWochenantwort) await vorWochenantwort(frageId);
         const antwort = await fetch("/api/freitext-bewerten", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -390,6 +393,7 @@
     }
 
     async function freitextAntwortAbschicken(frageId, container, button, textarea) {
+      if (button.disabled) return;
       const freitext = textarea.value.trim();
       if (freitext.length === 0) {
         if (!global.SchiriPflichtfeld?.melde(textarea, "Das Feld ist noch leer. Bitte schreib deine Entscheidung – und, wenn die Frage danach fragt, die Begründung.")) {
@@ -410,6 +414,7 @@
 
       let ergebnis;
       try {
+        if (vorWochenantwort) await vorWochenantwort(frageId);
         const antwort = await fetch("/api/freitext-bewerten", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -463,7 +468,7 @@
       // Auch eine offene Ergänzung zählt als beantwortet. Das ist bewusst so:
       // In der Auswertung ist die Frage damit erledigt, und wer nicht ergänzt,
       // hat sie falsch. Der Hinweistext auf der Karte sagt das auch so.
-      beiWochenfrageBeantwortet();
+      beiWochenfrageBeantwortet(frageId);
     }
 
     return Object.freeze({

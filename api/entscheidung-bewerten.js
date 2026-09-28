@@ -37,6 +37,15 @@ export function brauchtOrt(spielfortsetzung) {
   return !OHNE_ORTSFRAGE.has(spielfortsetzung);
 }
 
+function antworteBeiInaktiverFrage(res, fehler) {
+  if (!/Frage nicht gefunden oder aktuell nicht aktiv|Kein Kontext gefunden/.test(fehler.message || "")) return false;
+  res.status(409).json({
+    code: "QUIZ_QUESTION_INACTIVE",
+    fehler: "Diese Frage ist nicht mehr im aktuellen Wochenquiz. Bitte lade das Quiz neu.",
+  });
+  return true;
+}
+
 export function normalisiereOrt(wert) {
   return String(wert || "")
     .normalize("NFKD")
@@ -275,14 +284,18 @@ export default async function handler(req, res) {
     kontext = Array.isArray(daten) ? daten[0] : daten;
     if (!kontext) throw new Error("Kein Kontext gefunden");
   } catch (fehler) {
+    if (antworteBeiInaktiverFrage(res, fehler)) return;
+    const zugangFalsch = /PIN falsch|Schiedsrichter nicht gefunden|Schiedsrichter ist nicht aktiv/.test(fehler.message || "");
     antworteMitSicheremFehler(
       res,
-      istServerkonfigurationFehlt(fehler) ? 503 : istZeitueberschreitung(fehler) ? 504 : 400,
+      istZeitueberschreitung(fehler) ? 504 : zugangFalsch ? 401 : 503,
       istServerkonfigurationFehlt(fehler)
         ? "Die Serverfunktion ist vorübergehend nicht verfügbar."
         : istZeitueberschreitung(fehler)
         ? "Der Dienst antwortet gerade zu langsam. Bitte versuche es gleich noch einmal."
-        : "PIN falsch oder Frage ist nicht aktiv.",
+        : zugangFalsch
+        ? "Die Anmeldung ist nicht mehr gültig. Bitte melde dich erneut an."
+        : "Die Antwortprüfung ist vorübergehend nicht verfügbar. Bitte versuche es erneut.",
       fehler
     );
     return;
@@ -351,6 +364,7 @@ export default async function handler(req, res) {
     });
     res.status(200).json(ergebnis);
   } catch (fehler) {
+    if (antworteBeiInaktiverFrage(res, fehler)) return;
     antworteMitSicheremFehler(
       res,
       istServerkonfigurationFehlt(fehler) ? 503 : istZeitueberschreitung(fehler) ? 504 : 400,

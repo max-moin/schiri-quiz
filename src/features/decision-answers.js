@@ -14,6 +14,7 @@
     getZugang, zeigeFehler, versteckeFehler, frageAnsicht,
     baueVideoEinbettungModal, baueVorlesenButton, baueWarumButton,
     beiWochenfrageBeantwortet,
+    vorWochenantwort = null,
     entscheidungSenden = null,
     nachEntscheidung = null,
   }) {
@@ -601,6 +602,7 @@
     }
 
     async function abschicken(frage, container, wahl, button) {
+      if (button.disabled) return;
       if (!istVollstaendig(wahl, frage)) {
         wahl.versucht = true;
         const form = button.closest(".entscheidung-form");
@@ -617,6 +619,7 @@
         if (typeof entscheidungSenden === "function") {
           daten = await entscheidungSenden(frage, gegebeneAntwort);
         } else {
+          if (vorWochenantwort) await vorWochenantwort(frage.id);
           const zugang = getZugang();
           const antwort = await fetch("/api/entscheidung-bewerten", {
             method: "POST",
@@ -639,7 +642,7 @@
         if (typeof nachEntscheidung === "function") {
           nachEntscheidung(frage, daten, beantworteteKarte);
         } else {
-          beiWochenfrageBeantwortet();
+          beiWochenfrageBeantwortet(frage.id);
         }
       } catch (fehler) {
         feedback.hidden = false;

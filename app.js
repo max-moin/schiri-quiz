@@ -68,7 +68,8 @@ const freitext = erstelleFreitextAntworten({
   baueVorlesenButton,
   baueWarumButton,
   freitextStatus,
-  beiWochenfrageBeantwortet: () => wochenQuiz.registriereBeantwortung(),
+  vorWochenantwort: (frageId) => wochenQuiz.pruefeFrageAktuell(frageId),
+  beiWochenfrageBeantwortet: (frageId) => wochenQuiz.registriereBeantwortung(frageId),
 });
 
 const entscheidung = erstelleEntscheidungsAntworten({
@@ -79,7 +80,8 @@ const entscheidung = erstelleEntscheidungsAntworten({
   baueVideoEinbettungModal,
   baueVorlesenButton,
   baueWarumButton,
-  beiWochenfrageBeantwortet: () => wochenQuiz.registriereBeantwortung(),
+  vorWochenantwort: (frageId) => wochenQuiz.pruefeFrageAktuell(frageId),
+  beiWochenfrageBeantwortet: (frageId) => wochenQuiz.registriereBeantwortung(frageId),
 });
 
 const flexibel = erstelleFlexibleAntworten({
@@ -91,7 +93,8 @@ const flexibel = erstelleFlexibleAntworten({
   baueVideoEinbettungModal,
   baueVorlesenButton,
   baueWarumButton,
-  beiWochenfrageBeantwortet: () => wochenQuiz.registriereBeantwortung(),
+  vorWochenantwort: (frageId) => wochenQuiz.pruefeFrageAktuell(frageId),
+  beiWochenfrageBeantwortet: (frageId) => wochenQuiz.registriereBeantwortung(frageId),
 });
 
 historieController = erstelleHistorienModus({

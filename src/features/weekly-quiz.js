@@ -30,8 +30,76 @@
     let gesamtFragenAnzahl = 0;
     let beantworteFragenAnzahl = 0;
     let countdownInterval = null;
+    let ladeVersion = 0;
+    let geladenerZugang = null;
+    let geladeneFragen = new Map();
+    let beantworteteIds = new Set();
+    let standPruefung = null;
 
-    function registriereBeantwortung() {
+    const gleicherZugang = (a, b) => a?.schiedsrichterId === b?.schiedsrichterId && a?.pin === b?.pin;
+    const frageSignatur = (frage) => `${frage.typ || ""}:${frage.antworttyp || ""}`;
+
+    // Safari kann eine Quizseite tagelang im Hintergrund oder im Back/Forward-
+    // Cache behalten. Vor dem Absenden nur IDs/Antworttypen nachladen: keine
+    // Musterloesung und keine grossen Bilder. Die Wochenpruefung im Server
+    // bleibt unveraendert; alte Fragen werden niemals in die neue Woche gebucht.
+    async function pruefeQuizstand() {
+      const zugang = getZugang();
+      if (!zugang.schiedsrichterId || !zugang.pin || !geladenerZugang) return false;
+      if (standPruefung && gleicherZugang(standPruefung.zugang, zugang)) return standPruefung.promise;
+      const pruefung = { zugang };
+      pruefung.promise = (async () => {
+        const { data, error } = await sb.rpc("wochen_fragen_v2", {
+          p_schiedsrichter_id: zugang.schiedsrichterId,
+          p_pin: zugang.pin,
+        }).select("id,typ,antworttyp");
+        if (error || !Array.isArray(data)) {
+          throw new Error("Die aktuelle Quizwoche konnte nicht geladen werden. Bitte prüfe deine Verbindung und versuche es erneut.");
+        }
+        if (!gleicherZugang(zugang, getZugang())) return false;
+        const unveraendert = gleicherZugang(zugang, geladenerZugang)
+          && data.length === geladeneFragen.size
+          && data.every((frage) => geladeneFragen.get(frage.id) === frageSignatur(frage));
+        if (unveraendert) return true;
+        if (!await ladeFragenUndAntworten()) {
+          throw new Error("Die Quizfragen haben sich geändert, konnten aber noch nicht neu geladen werden. Bitte lade das Quiz erneut.");
+        }
+        zeigeFehler("Die Quizfragen wurden aktualisiert. Bitte beantworte die aktuellen Fragen.");
+        if (!document.getElementById("fragen-schritt")?.hidden) {
+          fragenListe.scrollIntoView?.({ block: "start" });
+        }
+        return false;
+      })();
+      standPruefung = pruefung;
+      try {
+        return await pruefung.promise;
+      } finally {
+        if (standPruefung === pruefung) standPruefung = null;
+      }
+    }
+
+    async function pruefeFrageAktuell(frageId) {
+      const zugang = getZugang();
+      if (!zugang.schiedsrichterId || !zugang.pin || !geladenerZugang) {
+        throw new Error("Das Quiz ist noch nicht geladen. Bitte lade die Seite neu und melde dich bei Bedarf erneut an.");
+      }
+      if (!await pruefeQuizstand() || !geladeneFragen.has(frageId)) {
+        throw new Error("Diese Frage gehört nicht mehr zum angezeigten Quiz. Die aktuellen Fragen wurden neu geladen.");
+      }
+    }
+
+    function beiRueckkehr() {
+      if (document.visibilityState === "hidden" || document.getElementById("fragen-schritt")?.hidden) return;
+      void pruefeQuizstand().catch((fehler) => zeigeFehler(fehler.message));
+    }
+    document.addEventListener("visibilitychange", beiRueckkehr);
+    global.addEventListener?.("pageshow", (ereignis) => {
+      if (ereignis.persisted) beiRueckkehr();
+    });
+
+    function registriereBeantwortung(frageId) {
+      if (frageId && (!geladeneFragen.has(frageId) || beantworteteIds.has(frageId))) return;
+      if (frageId) beantworteteIds.add(frageId);
       beantworteFragenAnzahl += 1;
       aktualisiereFortschritt();
       aktualisiereSammelButtonSichtbarkeit();
@@ -43,33 +111,30 @@
     }
 
     async function ladeFragenUndAntworten() {
+      const version = ++ladeVersion;
+      const zugang = getZugang();
       const [fragenErgebnis, antwortenErgebnis] = await Promise.all([
         // Früher die View "fragen_oeffentlich". Die kannte nur eine einzige
         // Wochenzuordnung für alle. Seit dem Mehr-Vereine-Umbau entscheidet der
         // Server anhand des angemeldeten Schiedsrichters, welche Woche gilt -
         // die Sortierung nach Fragennummer kommt gleich mit.
         sb.rpc("wochen_fragen_v2", {
-          p_schiedsrichter_id: getZugang().schiedsrichterId,
-          p_pin: getZugang().pin,
+          p_schiedsrichter_id: zugang.schiedsrichterId,
+          p_pin: zugang.pin,
         }),
         sb.rpc("meine_antworten_v2", {
-          p_schiedsrichter_id: getZugang().schiedsrichterId,
-          p_pin: getZugang().pin,
+          p_schiedsrichter_id: zugang.schiedsrichterId,
+          p_pin: zugang.pin,
         }),
       ]);
+      if (version !== ladeVersion || !gleicherZugang(zugang, getZugang())) return false;
 
       if (fragenErgebnis.error) {
         zeigeFehler("Fragen konnten nicht geladen werden: " + fragenErgebnis.error.message);
-        return;
+        return false;
       }
 
-      const fragen = fragenErgebnis.data;
-
-      if (!fragen || fragen.length === 0) {
-        keineFragenHinweis.hidden = false;
-        fortschrittWrap.hidden = true;
-        return;
-      }
+      const fragen = fragenErgebnis.data || [];
 
       // Falls das Nachladen der bisherigen Antworten fehlschlägt, zeigt die Seite
       // trotzdem alle Fragen ganz normal als offen an - kein Blocker fürs Mitmachen.
@@ -80,9 +145,6 @@
         }
       }
 
-      gesamtFragenAnzahl = fragen.length;
-      beantworteFragenAnzahl = 0;
-
       // Die Icon-/Textlabel-Liste ist dieselbe wie im separaten
       // Entscheidungs-Modus und wird als ES-Modul nur dann geladen, wenn
       // diese Woche wirklich eine strukturierte Entscheidung enthält.
@@ -92,9 +154,26 @@
         } catch (fehler) {
           zeigeFehler("Die Icon-Antworten konnten nicht geladen werden. Bitte lade die Seite neu.");
           console.error("Entscheidungsoptionen konnten nicht geladen werden", fehler);
-          return;
+          return false;
         }
       }
+      if (version !== ladeVersion || !gleicherZugang(zugang, getZugang())) return false;
+      // Erst nach erfolgreichem Laden ersetzen, niemals alte/neue Wochen
+      // aneinanderhaengen. Auch die Fertig-/Ueben-Anzeige gehoert zur Woche.
+      fragenListe.replaceChildren();
+      fertigHinweis.hidden = true;
+      keineFragenHinweis.hidden = fragen.length > 0;
+      fortschrittWrap.hidden = fragen.length === 0;
+      const uebenButton = document.getElementById("historie-start-button");
+      if (uebenButton) uebenButton.hidden = true;
+      clearInterval(countdownInterval);
+      countdownInterval = null;
+      naechsteRundeText.hidden = true;
+      geladenerZugang = zugang;
+      geladeneFragen = new Map(fragen.map((frage) => [frage.id, frageSignatur(frage)]));
+      beantworteteIds = new Set();
+      gesamtFragenAnzahl = fragen.length;
+      beantworteFragenAnzahl = 0;
 
       for (const [index, frage] of fragen.entries()) {
         // Feste Anzeigenummer je Frage (07.08.2026, Max' Wunsch "jede Frage
@@ -117,6 +196,7 @@
         const istEntscheidung = frage.antworttyp === "entscheidung" || frage.typ === "szenario";
         const istFlexibel = ["multiple_choice", "mehrfachauswahl", "zahl"].includes(frage.antworttyp);
         if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
+          beantworteteIds.add(frage.id);
           beantworteFragenAnzahl += 1;
           fragenListe.appendChild(
             istEntscheidung
@@ -143,11 +223,12 @@
       aktualisiereFortschritt();
       aktualisiereSammelButtonSichtbarkeit();
 
-      if (beantworteFragenAnzahl >= gesamtFragenAnzahl) {
+      if (gesamtFragenAnzahl > 0 && beantworteFragenAnzahl >= gesamtFragenAnzahl) {
         fertigHinweis.hidden = false;
         beiQuizFertig();
         zeigeNaechsteRundeCountdown();
       }
+      return true;
     }
 
     // Der gemeinsame Modal-first-Player für alle Videofragen liegt gekapselt in
@@ -322,6 +403,7 @@
     }
 
     async function antwortAbschicken(frageId, container, button) {
+      if (button.disabled) return;
       const gewaehlt = container.querySelector('input[type="radio"]:checked');
       if (!gewaehlt) {
         zeigeFehler("Bitte erst eine Antwort auswählen.");
@@ -332,12 +414,20 @@
       button.disabled = true;
       container.querySelectorAll('input[type="radio"]').forEach((r) => (r.disabled = true));
 
-      const { data, error } = await sb.rpc("antwort_abgeben", {
-        p_schiedsrichter_id: getZugang().schiedsrichterId,
-        p_frage_id: frageId,
-        p_gegebene_option: gewaehlt.value,
-        p_pin: getZugang().pin,
-      });
+      let data, error;
+      try {
+        await pruefeFrageAktuell(frageId);
+        const zugang = getZugang();
+        ({ data, error } = await sb.rpc("antwort_abgeben", {
+          p_schiedsrichter_id: zugang.schiedsrichterId,
+          p_frage_id: frageId,
+          p_gegebene_option: gewaehlt.value,
+          p_pin: zugang.pin,
+        }));
+        if (!error && !data?.[0]) throw new Error("Keine Bestätigung vom Server erhalten. Bitte versuche es erneut.");
+      } catch (fehler) {
+        error = fehler;
+      }
 
       const feedback = container.querySelector(".feedback");
       feedback.hidden = false;
@@ -372,7 +462,7 @@
       feedback.appendChild(document.createElement("br"));
       feedback.appendChild(baueWarumButton(frageId, false));
 
-      registriereBeantwortung();
+      registriereBeantwortung(frageId);
     }
 
     // Sammel-Button: schickt alle offenen Fragen ab, bei denen schon eine Antwort
@@ -442,8 +532,9 @@
     // egal ob man schon fertig war beim Laden oder gerade eben fertig geworden ist.
     async function zeigeNaechsteRundeCountdown() {
       if (countdownInterval) return;
-
+      const version = ladeVersion;
       const { data, error } = await sb.rpc("naechste_runde_start");
+      if (version !== ladeVersion) return;
       if (error || !data || data.length === 0) return;
 
       const zielZeit = new Date(data[0].startet_am).getTime();
@@ -472,7 +563,7 @@
       countdownInterval = setInterval(formatUndAktualisieren, 30000);
     }
 
-    return Object.freeze({ ladeFragenUndAntworten, registriereBeantwortung });
+    return Object.freeze({ ladeFragenUndAntworten, registriereBeantwortung, pruefeFrageAktuell });
   }
 
   global.SchiriQuizWeeklyQuiz = Object.freeze({ erstelleWochenQuiz });

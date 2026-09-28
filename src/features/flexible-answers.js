@@ -5,6 +5,7 @@
     sb, getZugang, zeigeFehler, versteckeFehler, frageAnsicht,
     baueVideoEinbettungModal, baueVorlesenButton, baueWarumButton,
     beiWochenfrageBeantwortet,
+    vorWochenantwort = null,
   }) {
     function kopf(frage, container) {
       const badges = frageAnsicht.baueBadges(frage);
@@ -114,6 +115,7 @@
 
       const button = absendenButton();
       button.addEventListener("click", async () => {
+        if (button.disabled) return;
         const auswahl = Array.from(liste.querySelectorAll("input:checked"), (input) => input.value);
         if (auswahl.length === 0) {
           const text = mehrfach ? "Bitte mindestens eine Antwort auswählen." : "Bitte eine Antwort auswählen.";
@@ -123,15 +125,24 @@
         versteckeFehler();
         button.disabled = true;
         liste.querySelectorAll("input").forEach((input) => (input.disabled = true));
-        const { data, error } = await sb.rpc("antwort_auswahl_abgeben", {
-          p_schiedsrichter_id: getZugang().schiedsrichterId,
-          p_frage_id: frage.id,
-          p_auswahl: auswahl,
-          p_pin: getZugang().pin,
-        });
-        if (error) return fehlerZuruecksetzen(karte, liste, button, error.message);
-        loeseAuswahlAuf(liste, new Set(data[0].richtige_auswahl || []), new Set(auswahl));
-        zeigeErgebnis(karte, frage.id, data[0].korrekt, data[0].bereits_beantwortet);
+        try {
+          if (vorWochenantwort) await vorWochenantwort(frage.id);
+          const zugang = getZugang();
+          const { data, error } = await sb.rpc("antwort_auswahl_abgeben", {
+            p_schiedsrichter_id: zugang.schiedsrichterId,
+            p_frage_id: frage.id,
+            p_auswahl: auswahl,
+            p_pin: zugang.pin,
+          });
+          if (error) throw error;
+          if (!data?.[0] || typeof data[0].korrekt !== "boolean") {
+            throw new Error("Keine Bestätigung vom Server erhalten. Bitte versuche es erneut.");
+          }
+          loeseAuswahlAuf(liste, new Set(data[0].richtige_auswahl || []), new Set(auswahl));
+          zeigeErgebnis(karte, frage.id, data[0].korrekt, data[0].bereits_beantwortet);
+        } catch (fehler) {
+          fehlerZuruecksetzen(karte, liste, button, fehler.message || "Die Verbindung ist unterbrochen. Bitte versuche es erneut.");
+        }
       });
       karte.appendChild(button);
       karte.appendChild(feedbackFeld());
@@ -215,6 +226,7 @@
 
       const button = absendenButton();
       button.addEventListener("click", async () => {
+        if (button.disabled) return;
         const rohwert = String(input.value || "").trim();
         const wert = Number(rohwert.replace(",", "."));
         const einheitWert = String(leseEinheit() || "").trim();
@@ -229,22 +241,29 @@
         versteckeFehler();
         button.disabled = true;
         felder.forEach((feld) => (feld.disabled = true));
-        const { data, error } = await sb.rpc("antwort_zahl_abgeben", {
-          p_schiedsrichter_id: getZugang().schiedsrichterId,
-          p_frage_id: frage.id,
-          p_wert: wert,
-          p_einheit: einheitWert,
-          p_pin: getZugang().pin,
-        });
-        if (error) {
+        try {
+          if (vorWochenantwort) await vorWochenantwort(frage.id);
+          const zugang = getZugang();
+          const { data, error } = await sb.rpc("antwort_zahl_abgeben", {
+            p_schiedsrichter_id: zugang.schiedsrichterId,
+            p_frage_id: frage.id,
+            p_wert: wert,
+            p_einheit: einheitWert,
+            p_pin: zugang.pin,
+          });
+          if (error) throw error;
+          if (!data?.[0] || typeof data[0].korrekt !== "boolean") {
+            throw new Error("Keine Bestätigung vom Server erhalten. Bitte versuche es erneut.");
+          }
+          const korrekt = data[0].korrekt;
+          const loesung = (data[0].richtige_antworten || [])
+            .map((item) => `${formatZahl(item.wert)} ${item.einheit}`).join(" oder ");
+          zeigeErgebnis(karte, frage.id, korrekt, data[0].bereits_beantwortet,
+            korrekt ? null : `Richtig wäre: ${loesung}`);
+        } catch (fehler) {
           felder.forEach((feld) => (feld.disabled = false));
-          return fehlerZuruecksetzen(karte, zeile, button, error.message);
+          fehlerZuruecksetzen(karte, zeile, button, fehler.message || "Die Verbindung ist unterbrochen. Bitte versuche es erneut.");
         }
-        const korrekt = data[0].korrekt;
-        const loesung = (data[0].richtige_antworten || [])
-          .map((item) => `${formatZahl(item.wert)} ${item.einheit}`).join(" oder ");
-        zeigeErgebnis(karte, frage.id, korrekt, data[0].bereits_beantwortet,
-          korrekt ? null : `Richtig wäre: ${loesung}`);
       });
       karte.appendChild(button);
       karte.appendChild(feedbackFeld());
@@ -282,7 +301,9 @@
       const feedback = karte.querySelector(".feedback");
       if (feedback) {
         feedback.hidden = false;
-        feedback.textContent = "Bitte versuche es noch einmal.";
+        feedback.textContent = /Frage nicht gefunden|Frage.*nicht aktiv/i.test(text)
+          ? "Diese Frage ist nicht mehr im aktuellen Wochenquiz. Bitte lade das Quiz neu."
+          : text;
         feedback.className = "feedback falsch";
       }
     }
@@ -322,7 +343,7 @@
         : korrekt ? "Richtig! ✅" : "Leider falsch.";
       if (zusatz) feedback.append(document.createElement("br"), zusatz);
       feedback.append(document.createElement("br"), baueWarumButton(frageId, false));
-      beiWochenfrageBeantwortet();
+      beiWochenfrageBeantwortet(frageId);
     }
 
     function formatZahl(wert) {
