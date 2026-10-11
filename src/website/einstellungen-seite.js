@@ -1,4 +1,4 @@
-import { DATENBANK, VEREIN } from "../../verein.config.js";
+import { DATENBANK } from "../../verein.config.js";
 import { lagebericht } from "../features/push-anmeldung.js";
 import { erklaereMitteilungsstatus } from "../features/mitteilungen-status.js";
 
@@ -15,13 +15,13 @@ function zeigeStatus() {
   if (!istMitteilungsseite) return;
   const lage = lagebericht();
   const erlaubnis = globalThis.Notification?.permission || "default";
-  const versandBereit = VEREIN.push?.versandAktiv === true
-    && Boolean(VEREIN.push?.oeffentlicherSchluessel);
+  // Die Kontofreigabe kommt vom Server, nicht aus der alten öffentlichen Konfiguration.
+  const versandBereit = "pruefen";
   const status = erklaereMitteilungsstatus(lage, erlaubnis, versandBereit);
   $("mitteilungen-kurzstatus").textContent = status.kurz;
   $("mitteilungen-browser").textContent = status.browser;
   $("mitteilungen-erlaubnis").textContent = status.erlaubnis;
-  $("mitteilungen-versand").textContent = versandBereit ? "Freigegeben" : "Noch nicht gestartet";
+  $("mitteilungen-versand").textContent = "Wird geprüft …";
   $("mitteilungen-hinweis").textContent = status.hinweis;
   $("mitteilungen-installieren").hidden = !status.installationZeigen;
 }

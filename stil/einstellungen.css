@@ -23,6 +23,11 @@
 .mitteilungen-fakten dt { color: var(--muted); }
 .mitteilungen-fakten dd { margin: 0; font-weight: 700; text-align: right; }
 .mitteilungen-hinweis { margin: 16px 0 0; color: var(--muted); line-height: 1.55; }
+.mitteilungen-status > button { margin-top: 14px; }
+.mitteilungen-status details { margin-top: 14px; border-top: 1px solid var(--border); line-height: 1.55; }
+.mitteilungen-status summary { min-height: 44px; padding: 12px 0; font-weight: 600; cursor: pointer; }
+.mitteilungen-status details li { margin-bottom: 8px; }
+.mitteilungen-zweitknopf:disabled { opacity: .6; cursor: wait; }
 .mitteilungen-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 8px; color: var(--marke); font-weight: 700; }
 .mitteilungen-arten { margin-top: 18px; }
 .mitteilungen-abschnitt-kopf { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }

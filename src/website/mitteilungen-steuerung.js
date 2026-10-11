@@ -1,5 +1,6 @@
 import { DATENBANK } from "../../verein.config.js";
 import { aktuellesAbo, ausschalten, einschalten, lagebericht } from "../features/push-anmeldung.js";
+import { erklaereMitteilungsstatus } from "../features/mitteilungen-status.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung;
 const $ = (id) => document.getElementById(id);
@@ -36,11 +37,26 @@ function parameter(person) {
 
 async function bereitschaft(person) {
   const antwort = await fetch("/api/push-bereitschaft", {
-    method: "POST", headers: { "Content-Type": "application/json" },
+    method: "POST", cache: "no-store", headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ schiedsrichterId: person.id, pin: person.pin }),
   });
-  if (!antwort.ok) return { bereit: false };
-  return antwort.json();
+  if (!antwort.ok) throw new Error(antwort.status === 403
+    ? "Deine Anmeldung konnte nicht bestätigt werden. Melde dich erneut an."
+    : "Der Versandstatus konnte nicht geladen werden. Bitte versuche es erneut.");
+  const daten = await antwort.json();
+  if (typeof daten?.bereit !== "boolean") throw new Error("Ungültige Antwort beim Prüfen des Versandstatus.");
+  return daten;
+}
+
+function zeigeVersandstatus(phase) {
+  const status = erklaereMitteilungsstatus(lagebericht(), globalThis.Notification?.permission || "default", phase);
+  $("mitteilungen-kurzstatus").textContent = status.kurz;
+  $("mitteilungen-browser").textContent = status.browser;
+  $("mitteilungen-erlaubnis").textContent = status.erlaubnis;
+  $("mitteilungen-hinweis").textContent = status.hinweis;
+  $("mitteilungen-installieren").hidden = !status.installationZeigen;
+  $("mitteilungen-versand").textContent = phase === "pruefen" ? "Wird geprüft …"
+    : phase === "fehler" ? "Prüfung fehlgeschlagen" : phase ? "Freigegeben" : "Noch nicht gestartet";
 }
 
 function datum(wert) {
@@ -111,13 +127,20 @@ async function lade(person) {
   abo = null;
   geraete = [];
   if (!person) return;
+  zeigeVersandstatus("pruefen");
   $("mitteilungen-speicherstand").textContent = "Einstellungen werden geladen …";
   try {
     const bereit = await bereitschaft(person);
     if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
-    if (!bereit.bereit || !bereit.oeffentlicherSchluessel) return;
+    if (!bereit.bereit) {
+      zeigeVersandstatus(false);
+      $("mitteilungen-vorschau").textContent = "In Vorbereitung";
+      $("mitteilungen-arten-hinweis").textContent = "Diese Themen werden nach der Freigabe einzeln einschaltbar.";
+      return;
+    }
+    if (!bereit.oeffentlicherSchluessel) throw new Error("Die Versandkonfiguration ist unvollständig. Bitte melde das dem Obmann.");
+    zeigeVersandstatus(true);
     schluessel = bereit.oeffentlicherSchluessel;
-    abschnitt.hidden = false;
     $("mitteilungen-vorschau").textContent = bereit.modus === "pilot" ? "Pilot" : "Teilweise verfügbar";
     $("mitteilungen-arten-hinweis").textContent = "Wähle selbst, wofür du Hinweise erhalten möchtest.";
     $("mitteilungen-versand").textContent = bereit.modus === "pilot"
@@ -149,7 +172,14 @@ async function lade(person) {
     knopf.disabled = !empfaengt && !hatAuswahl();
     $("mitteilungen-test-knopf").hidden = !empfaengt;
     zeichneGeraete();
+    // Erst nach den kontoeigenen Daten öffnen: beim Kontowechsel keine alte
+    // Geräte-/Themenauswahl kurz sichtbar werden lassen.
+    abschnitt.hidden = false;
   } catch (fehler) {
+    if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
+    zeigeVersandstatus("fehler");
+    abschnitt.hidden = true;
+    $("mitteilungen-hinweis").textContent = fehler.message;
     $("mitteilungen-speicherstand").textContent = fehler.message;
     for (const id of auswahlIds) $(id).disabled = true;
   }
@@ -254,6 +284,14 @@ $("mitteilungen-test-knopf")?.addEventListener("click", async (event) => {
   } catch (fehler) {
     $("mitteilungen-abo-stand").textContent = fehler.message;
   } finally { knopf.disabled = false; }
+});
+
+$("mitteilungen-status-neuladen")?.addEventListener("click", async (event) => {
+  const person = anmeldung?.lesen();
+  if (!person) return;
+  const knopf = event.currentTarget;
+  knopf.disabled = true;
+  try { await lade(person); } finally { knopf.disabled = false; }
 });
 
 anmeldung?.abonniere((person) => { void lade(person); });

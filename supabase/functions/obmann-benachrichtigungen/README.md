@@ -47,7 +47,9 @@ Die Migrationen `20260925220500_schiri_push_antworten.sql` und
 `20260926014903_schiri_push_quiz_und_ifab.sql` schalten zunächst **nichts**
 ein. Antworten auf eigenes Fragenfeedback sowie Opt-ins für ein neues
 Wochenquiz und Erinnerungen an ein noch offenes Wochenquiz sind technisch
-sendbar. Termine und Ausrüstung sind noch nicht aktiv. Vorhandene Antworten
+sendbar. Terminerinnerungen sind mit der Migration
+`20260926091250_schiri_push_termine_v2.sql` ebenfalls vorbereitet; Ausrüstung
+bleibt ein Folgeschritt. Der Versand ist nicht allein dadurch freigegeben. Vorhandene Antworten
 oder Geräte werden nicht nachträglich angeschrieben.
 
 Für den Pilot braucht Vercel in **dem Projekt der neuen Vereinsseite** folgende

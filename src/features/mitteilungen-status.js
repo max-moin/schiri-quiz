@@ -31,12 +31,23 @@ export function erklaereMitteilungsstatus(lage, erlaubnis, versandBereit) {
 
   const erlaubnisText = erlaubnis === "granted" ? "Bereits erteilt"
     : erlaubnis === "denied" ? "Blockiert" : "Noch nicht angefragt";
+  if (versandBereit === "pruefen" || versandBereit === "fehler") {
+    return {
+      kurz: versandBereit === "fehler" ? "Versandstatus konnte nicht geprüft werden" : "Versandfreigabe wird geprüft …",
+      browser: "Geeignet",
+      erlaubnis: erlaubnisText,
+      hinweis: versandBereit === "fehler"
+        ? "Prüfe deine Verbindung und lade den Status erneut. Ein Ladefehler bedeutet nicht, dass Mitteilungen ausgeschaltet sind."
+        : "Die Website prüft die Freigabe für dein Konto, ohne eine Browsererlaubnis anzufragen.",
+      installationZeigen: false,
+    };
+  }
   if (!versandBereit) {
     return {
       kurz: "Schiri-Mitteilungen sind noch in Vorbereitung",
       browser: "Geeignet",
       erlaubnis: erlaubnisText,
-      hinweis: "Du musst jetzt nichts freigeben. Die Mitteilungen werden erst angeboten, wenn ihr Versand zuverlässig funktioniert.",
+      hinweis: "Der Versand ist für dein Konto noch nicht freigegeben. Das kann nur der Obmann nach dem Gerätetest ändern. Die Browsererlaubnis allein schaltet den Versand nicht ein.",
       installationZeigen: false,
     };
   }

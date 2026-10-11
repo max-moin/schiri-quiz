@@ -1,0 +1,20 @@
+.hilfe-leitfaden {
+  margin-top: 32px;
+  padding: 22px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  scroll-margin-top: 100px;
+  overflow-wrap: anywhere;
+}
+.hilfe-leitfaden h2 { margin-top: 0; }
+.hilfe-schritte { padding-left: 1.5rem; }
+.hilfe-schritte li { padding: 8px 0 8px 6px; }
+.hilfe-schritte li::marker { color: var(--text); font-weight: 700; }
+.hilfe-schritte p { margin: 5px 0 0; }
+.hilfe-leitfaden p, .hilfe-leitfaden li { line-height: 1.6; }
+.hilfe-leitfaden details { border-top: 1px solid var(--border); margin-top: 18px; }
+.hilfe-leitfaden summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 600; }
+.hilfe-leitfaden a { text-underline-offset: 3px; }
+.hilfe-quellen { font-size: .875rem; color: var(--muted); }
+@media (max-width: 600px) { .hilfe-leitfaden { padding: 16px; } }
