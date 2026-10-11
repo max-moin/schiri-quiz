@@ -43,6 +43,15 @@ Es werden bewusst keine vorhandenen Eingänge nachträglich versendet.
 
 ## Persönlicher Web Push: Pilot und Freigabe
 
+**Pilotfestlegung 11.10.2026:** ausschließlich Max' bestehendes Konto `Max M.`
+bei Löbtauer Kickers, `PUSH_PILOT_SCHIRI_ID=33f0b111-d87c-4041-a65e-19438565d144`.
+Die vorhandenen Obmann-Mails an Proton und alle Resend-/Mail-Secrets bleiben
+unverändert. Keine neue APNs-Einrichtung. Die Vercel-Verbindung ist verfügbar,
+verweigert aber Projekt-/Environment-Zugriffe im Team `schiri-quiz` mit HTTP 403.
+Diese Festlegung ist keine Behauptung, dass die Variablen bereits gesetzt oder
+eine echte Mitteilung zugestellt wurden. Vorhandene
+VAPID-Schlüssel zuerst prüfen, nicht bei jedem Pilotversuch ersetzen.
+
 Die Migrationen `20260925220500_schiri_push_antworten.sql` und
 `20260926014903_schiri_push_quiz_und_ifab.sql` schalten zunächst **nichts**
 ein. Antworten auf eigenes Fragenfeedback sowie Opt-ins für ein neues

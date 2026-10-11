@@ -30,6 +30,7 @@ const WOCHENTAGE_KURZ = ["So", "Mo", "Di", "Mi", "Do", "Fr", "Sa"];
 
 // Wortmarken statt Symbole - Hausregel seit dem 21.08.2026.
 const ARTEN = {
+  hausregeltest: "Hausregeltest · Abgabe",
   lehrabend: "Lehrabend",
   lehrgang: "Lehrgang",
   treff: "Treff",
@@ -219,12 +220,12 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
   return Object.freeze({
     // Ohne Anmeldung: nur freigegebene Termine, keine Namen.
     alleOeffentlich: (seitenschluessel) =>
-      rufe("oeffentliche_termine_alle", { p_seitenschluessel: seitenschluessel }),
+      rufe("oeffentliche_termine_mit_fortbildung", { p_seitenschluessel: seitenschluessel }),
 
     // Mit Anmeldung: auch interne Termine des eigenen Vereins, dazu der
     // eigene Stand und die Zaehlstaende.
     alleFuerMitglied: (person, seitenschluessel) =>
-      rufe("termine_fuer_schiri_v2", {
+      rufe("termine_fuer_schiri_mit_fortbildung", {
         p_schiedsrichter_id: person.id,
         p_pin: person.pin,
         p_seitenschluessel: seitenschluessel,

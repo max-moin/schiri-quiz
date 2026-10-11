@@ -331,6 +331,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   ].filter(Boolean).join("");
 
   const zeilen = [
+    termin.zeitraum_von ? ["Bearbeitungszeitraum", `${sicher(datumLang(termin.zeitraum_von))} bis ${sicher(datumLang(termin.datum))} · Abgabe bis zu diesem Datum`] : null,
     zeit ? ["Wann", `${sicher(datumLang(termin.datum))}<br><span class="td-neben">${sicher(zeit)}</span>`]
          : ["Wann", sicher(datumLang(termin.datum))],
     termin.ort ? ["Ort", sicher(termin.ort)] : null,

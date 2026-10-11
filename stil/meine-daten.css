@@ -1,4 +1,22 @@
 /* Persoenliche Daten: ein freundlicher Profilkopf statt einer kahlen Tabelle. */
+.daten-punkte {margin-top:18px;padding:20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--card);}
+.punkte-kopf {display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.punkte-kopf h2 {margin:0;font-size:1.1rem;}
+.punkte-kopf select {min-height:44px;border:1px solid var(--border);border-radius:8px;background:var(--card);color:var(--text);padding:6px;}
+.punkte-zahl {font-weight:700;}
+.punkte-hinweis {font-size:.85rem;color:var(--muted);line-height:1.5;}
+.punkte-raster {display:grid;grid-template-columns:repeat(8,minmax(44px,1fr));gap:8px;}
+.punkte-kreis {aspect-ratio:1;max-width:64px;min-height:44px;border-radius:50%;border:2px solid transparent;font-weight:800;font-size:.8rem;cursor:pointer;}
+.punkte-kreis.leer {background:#e5e7eb;color:#4b5563;opacity:1;cursor:default;}
+.punkte-kreis.rla {background:#1e40af;color:white;}
+.punkte-kreis.hrt {background:#166534;color:white;}
+.punkte-kreis.jhv {background:#6b21a8;color:white;}
+.punkte-kreis.u18 {background:#9a3412;color:white;}
+.punkte-termine {display:grid;gap:8px;}
+.punkte-termine button {text-align:left;padding:12px;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--card);color:var(--text);cursor:pointer;}
+.punkte-detail:empty {display:none;}
+.punkte-detail {margin-top:12px;padding:16px;border-left:4px solid var(--marke);background:var(--marke-lighter);border-radius:8px;overflow-wrap:anywhere;}
+@media(max-width:540px) {.punkte-raster {grid-template-columns:repeat(4,minmax(44px,1fr));}}
 .meine-daten-seite { max-width: 760px; }
 .daten-profil {
   display: flex;
