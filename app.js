@@ -161,3 +161,7 @@ zugangController = erstelleZugang({
 
 void zugangController.start();
 montiereQuizVerlassen();
+// Dieselbe optionale Seitenhilfe wie auf den Vereinsseiten, ohne zweite
+// Anmeldung oder Eingriff in den Quiz-Antwortweg.
+void import('./src/ui/seitenhilfe.js').then(({ montiereSeitenhilfe }) =>
+  montiereSeitenhilfe({ anmeldung: { lesen: () => ({ id: getZugang().schiedsrichterId || mitgliedSession.lesen()?.id || null }) } }));

@@ -20,7 +20,7 @@
   <link rel="stylesheet" href="stil/meine-anliegen.css" />
   <link rel="stylesheet" href="stil/einstellungen.css" />
 </head>
-<body data-seitenname="Mitteilungen">
+<body data-seitenname="Mitteilungen" data-wegweiser="kompakt">
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
   <header class="seiten-kopf"><div class="kopf-innen">
     <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40" /><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
@@ -37,7 +37,7 @@
       <header class="einstellungen-kopf">
         <p class="einstellungen-ueberzeile">Dein Konto</p>
         <h1>Mitteilungen</h1>
-        <p>Hier entscheidest du, welche Hinweise dieses Gerät erhalten soll.</p>
+        <p>Wähle deine Hinweise und aktiviere jedes Gerät einzeln.</p>
       </header>
       <section class="mitteilungen-status" aria-labelledby="mitteilungen-status-titel">
         <div class="mitteilungen-status-kopf">
@@ -50,38 +50,34 @@
           <div><dt>Versand</dt><dd id="mitteilungen-versand">Noch nicht gestartet</dd></div>
         </dl>
         <p id="mitteilungen-hinweis" class="mitteilungen-hinweis"></p>
+        <p id="mitteilungen-abo-stand" role="status" aria-live="polite">Wird geprüft …</p>
+        <div class="mitteilungen-aktionen"><button id="mitteilungen-abo-knopf" type="button" class="meine-hauptknopf" hidden>Auf diesem Gerät einschalten</button><button id="mitteilungen-test-knopf" type="button" class="mitteilungen-zweitknopf" hidden>Testmitteilung senden</button></div>
         <a id="mitteilungen-installieren" class="mitteilungen-link" href="installieren.html" hidden>So fügst du die Seite zum Home-Bildschirm hinzu</a>
         <button id="mitteilungen-status-neuladen" type="button" class="mitteilungen-zweitknopf">Status neu laden</button>
-        <details><summary>Wie aktiviere ich Mitteilungen?</summary>
-          <ol><li>Auf iPhone/iPad die Website zum Home-Bildschirm hinzufügen und von dort öffnen.</li><li>Nach Freigabe für dein Konto unten mindestens ein Thema auswählen.</li><li>„Auf diesem Gerät einschalten“ antippen und die Browsererlaubnis bestätigen.</li><li>Eine Testmitteilung senden und prüfen, ob sie ankommt.</li></ol>
+        <details><summary>Hilfe zur Einrichtung</summary>
+          <ol><li>Auf iPhone/iPad die Website zum Home-Bildschirm hinzufügen und von dort öffnen.</li><li>Mindestens ein Thema auswählen und „Auswahl speichern“ drücken.</li><li>„Auf diesem Gerät einschalten“ antippen und die Browsererlaubnis bestätigen.</li><li>Eine Testmitteilung senden und prüfen, ob sie ankommt.</li></ol>
           <p>Fehlt die Auswahl, ist der Versand noch nicht freigegeben. Du brauchst nichts am Gerät zurückzusetzen. Mitteilungen bleiben freiwillig und lassen sich hier je Gerät ausschalten.</p>
+          <p>Kommt kein Banner, prüfe den Nichtstör-/Fokusmodus und die Mitteilungseinstellungen deines Geräts.</p>
         </details>
       </section>
-      <section class="mitteilungen-arten" aria-labelledby="mitteilungen-arten-titel">
-        <div class="mitteilungen-abschnitt-kopf"><div><h2 id="mitteilungen-arten-titel">Wofür Hinweise gedacht sind</h2><p id="mitteilungen-arten-hinweis">Du bestimmst selbst, zu welchen Themen du Hinweise erhältst.</p></div><span id="mitteilungen-vorschau" class="mitteilungen-vorschau">In Vorbereitung</span></div>
-        <ul>
-          <li><span><strong>Antworten auf dein Fragenfeedback</strong><small>Wenn der Obmann auf einen von dir eingereichten Hinweis antwortet.</small></span></li>
-          <li><span><strong>Neues Wochenquiz</strong><small>Montag um 10 Uhr, wenn eine neue Runde für dich offen ist.</small></span></li>
-          <li><span><strong>Quiz-Erinnerungen</strong><small>Freitag um 15 Uhr und Sonntag um 10:30 Uhr – nur solange deine Runde offen ist.</small></span></li>
-          <li><span><strong>Termine</strong><small>Nur bei Zusage oder Pflichttermin deines Vereins – wenn du diese Kategorie einschaltest.</small></span></li>
-          <li><span><strong>Ausrüstungsanfragen</strong><small>Wichtige Änderungen an deinem Antrag – in einem späteren Schritt.</small></span></li>
-        </ul>
-      </section>
       <section id="mitteilungen-steuerung" class="mitteilungen-arten" aria-label="Mitteilungen einstellen" hidden>
-        <h2>Deine Auswahl</h2>
+        <div class="mitteilungen-abschnitt-kopf"><div><h2>Deine Auswahl</h2><p id="mitteilungen-arten-hinweis">Wähle deine Themen und speichere deine Auswahl.</p></div><span id="mitteilungen-vorschau" class="mitteilungen-vorschau">In Vorbereitung</span></div>
         <label class="mitteilungen-wahl" for="mitteilungen-feedback"><span><strong>Antworten auf dein Fragenfeedback</strong><small>Nur Antworten auf Hinweise, die du selbst abgegeben hast.</small></span><input type="checkbox" id="mitteilungen-feedback" /></label>
         <label class="mitteilungen-wahl" for="mitteilungen-quiz-neu"><span><strong>Neues Wochenquiz</strong><small>Montag · 10:00 Uhr</small></span><input type="checkbox" id="mitteilungen-quiz-neu" /></label>
         <label class="mitteilungen-wahl" for="mitteilungen-quiz-erinnerung"><span><strong>Quiz-Erinnerungen</strong><small>Freitag · 15:00 Uhr und Sonntag · 10:30 Uhr; nur bei offener Runde</small></span><input type="checkbox" id="mitteilungen-quiz-erinnerung" /></label>
-        <label class="mitteilungen-wahl" for="mitteilungen-termine"><span><strong>Terminerinnerungen</strong><small>Wenn für den Termin aktiviert: am Vortag um 18 Uhr oder am Termintag um 9 Uhr.</small></span><input type="checkbox" id="mitteilungen-termine" /></label>
+        <label class="mitteilungen-wahl" for="mitteilungen-termine"><span><strong>Terminerinnerungen</strong><small>Bei Zusage oder Pflichttermin deines Vereins. Einzelne Termine kannst du unten ausschließen.</small></span><input type="checkbox" id="mitteilungen-termine" /></label>
+        <div class="mitteilungen-aktionen"><button id="mitteilungen-auswahl-speichern" type="button" class="meine-hauptknopf" disabled>Auswahl speichern</button></div>
         <p id="mitteilungen-speicherstand" class="mitteilungen-hinweis" role="status" aria-live="polite"></p>
-        <div class="mitteilungen-geraeteteil">
-          <h2>Dieses Gerät</h2>
-          <p id="mitteilungen-abo-stand" role="status" aria-live="polite">Wird geprüft …</p>
-          <div class="mitteilungen-aktionen"><button id="mitteilungen-abo-knopf" type="button" class="meine-hauptknopf" hidden>Auf diesem Gerät einschalten</button><button id="mitteilungen-test-knopf" type="button" class="mitteilungen-zweitknopf" hidden>Testmitteilung senden</button></div>
-          <p class="mitteilungen-kleindruck">Die Zustimmung gilt nur für dieses Gerät. Beim Abmelden wird sie hier beendet; du kannst weitere Geräte unten einzeln entfernen.</p>
-        </div>
+        <p class="mitteilungen-kleindruck">Deine Themen gelten auf allen angemeldeten Geräten. Jedes Gerät braucht zusätzlich die Browsererlaubnis; beim Abmelden wird das Geräte-Abo beendet.</p>
         <div class="mitteilungen-geraeteteil"><h2>Deine Geräte</h2><ul id="mitteilungen-geraete" class="mitteilungen-geraete"></ul></div>
       </section>
+      <section id="mitteilungen-terminbereich" class="mitteilungen-arten" aria-labelledby="mitteilungen-termin-titel" hidden>
+        <h2 id="mitteilungen-termin-titel">Einzelne Termine</h2>
+        <p class="mitteilungen-hinweis">Deine persönliche Auswahl gilt auf allen deinen Geräten. Eine Erinnerung kommt nur bei eingeschalteten Terminerinnerungen, aktiver Erinnerung am Termin und deiner Zusage oder einem Pflichttermin deines Vereins.</p>
+        <ul id="mitteilungen-terminliste" class="mitteilungen-terminliste"></ul>
+        <p id="mitteilungen-terminstand" role="status" aria-live="polite"></p>
+      </section>
+      <details class="mitteilungen-arten mitteilungen-ausblick"><summary>Was ist noch geplant?</summary><p>Hinweise zu Ausrüstungsanfragen folgen in einem eigenen Schritt.</p></details>
       <p class="mitteilungen-abschluss">Push ist freiwillig. Antworten und Anliegen bleiben auch ohne Mitteilung auf der Website erreichbar.</p>
     </div>
   </main>

@@ -87,7 +87,7 @@ const REIHENFOLGE = [
   // "aktuelles" steht hinter "termine": das Band der Startseite benutzt
   // dieselben Bausteine und darf sie ueberschreiben, nicht umgekehrt.
   "basis", "kopf-fuss", "startseite", "termine", "aktuelles", "regeln",
-  "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "obmann", "spesen",
+  "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "einstellungen", "obmann", "spesen",
   "modus", "entscheiden", "melden",
   // "druckblatt" steht ganz am Ende: es blendet im @media print alles
   // andere aus und muss deshalb nach allem stehen, was es ueberstimmt.

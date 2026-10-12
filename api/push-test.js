@@ -10,7 +10,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ fehler: "Nur POST erlaubt" });
   }
   const config = vapidKonfiguration();
-  if ((process.env.PUSH_TEST_AKTIV !== "true" && process.env.PUSH_DISPATCH_AKTIV !== "true") || !config
+  if ((process.env.PUSH_TEST_AKTIV !== "true" && process.env.PUSH_DISPATCH_AKTIV !== "true"
+      && process.env.PUSH_ANMELDUNG_AKTIV !== "true") || !config
       || !istSupabaseServerSchluesselKonfiguriert()) {
     return res.status(503).json({ fehler: "Testmitteilungen sind noch nicht eingerichtet." });
   }
@@ -22,6 +23,7 @@ export default async function handler(req, res) {
   // Der Pilot ist eine einzelne, auf dem Server konfigurierte Person.
   // Ein kopierter Frontend-Link allein erlaubt keinen Test für andere.
   if (process.env.PUSH_DISPATCH_AKTIV !== "true"
+      && process.env.PUSH_ANMELDUNG_AKTIV !== "true"
       && schiedsrichterId.toLowerCase() !== String(process.env.PUSH_PILOT_SCHIRI_ID || "").toLowerCase()) {
     return res.status(403).json({ fehler: "Testmitteilungen sind für dieses Konto nicht freigeschaltet." });
   }

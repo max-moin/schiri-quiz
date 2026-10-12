@@ -8,6 +8,7 @@
 // ============================================================
 
 import { DATENBANK, VEREIN } from "../../verein.config.js";
+import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
   teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
@@ -434,6 +435,11 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
       ${antwort}
       ${protokollHtml}
       ${pdfHtml}
+      ${ich && termin.mitgliedSicht && !termin.vergangen ? `<section id="termin-erinnerungen" class="termin-protokoll mitteilungen-arten">
+        <h2>Deine Erinnerung</h2><ul class="mitteilungen-terminliste" data-termin-erinnerung-liste></ul>
+        <p data-termin-erinnerung-status role="status" aria-live="polite"></p>
+        <a href="mitteilungen.html">Themen und Geräte verwalten</a>
+      </section>` : ""}
         ${teilnehmer}
       </div>
     </article>`;
@@ -441,6 +447,11 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   bereich.querySelector("[data-kalender]")?.addEventListener("click", () =>
     ladeTerminInKalender(termin, location.href));
   if (pdfHtml) void zeigePdfProtokoll(termin.id, ich);
+  const erinnerung = document.getElementById("termin-erinnerungen");
+  if (ich && termin.mitgliedSicht && !termin.vergangen && erinnerung) void montiereTerminerinnerungen(erinnerung.querySelector("[data-termin-erinnerung-liste]"), ich, {
+    terminId: termin.id, status: erinnerung.querySelector("[data-termin-erinnerung-status]"),
+    istAktuell: () => person()?.id === ich.id && document.getElementById("termin-erinnerungen") === erinnerung,
+  });
   if (darfAntworten && !termin.vergangen && termin.absage_moeglich !== false) bindeAntwort(termin);
 }
 

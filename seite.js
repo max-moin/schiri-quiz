@@ -29,6 +29,7 @@ import {
   zeigeSeitenname,
 } from "./src/ui/kopf-navigation.js";
 import { montiereWegweiser } from "./src/ui/wegweiser.js";
+import { montiereSeitenhilfe } from "./src/ui/seitenhilfe.js";
 
 // ---------- Vereinswerte einsetzen ----------
 
@@ -475,3 +476,4 @@ zeigeSeitenname(kopfInnen);
 // Home-Bildschirm laeuft: dann gibt es keine Browserleiste, und ohne
 // diesen Weg kommt man aus einer Unterseite nicht mehr heraus.
 montiereWegweiser(document.querySelector("main.inhalt"));
+montiereSeitenhilfe();

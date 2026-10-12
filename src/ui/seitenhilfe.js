@@ -1,0 +1,191 @@
+import { SEITENHILFE, EINRICHTUNG, tourSchritte, leseTour, leseFortschritt, speichereFortschritt } from '../website/hilfe-inhalte.js';
+
+export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung } = {}) {
+  const seite = location.pathname.split('/').pop() || 'index.html';
+  const main = document.querySelector('main');
+  if (!main || !SEITENHILFE[seite] || document.querySelector('[data-seitenhilfe]')) return;
+  const css = document.createElement('link');
+  css.rel = 'stylesheet'; css.href = new URL('../../stil/seitenhilfe.css', import.meta.url).href;
+  document.head.append(css);
+  // Speicher kann in privaten/gesperrten Browsern fehlen. Dann bleibt die
+  // Hilfe benutzbar; seitenuebergreifende Tour wird ausdruecklich abgelehnt.
+  const speicher = art => { try { return globalThis[art]; } catch { return null; } };
+  const local = speicher('localStorage'); const session = speicher('sessionStorage');
+  const lesen = () => anmeldung?.lesen()?.id || null;
+  let konto = lesen(); let stand = leseFortschritt(local, konto);
+  let tour = null; let dialog = null; let fokusZurueck = null; let animation = 0;
+  let geaendert = false; let liste = null;
+  const knopf = document.createElement('button');
+  knopf.type = 'button'; knopf.className = 'seitenhilfe-knopf'; knopf.dataset.seitenhilfe = '';
+  knopf.innerHTML = '<span aria-hidden="true">?</span> Hilfe zu dieser Seite';
+  main.prepend(knopf);
+  const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
+  const button = (text, label, aktion) => {
+    const b = el('button', text); b.type = 'button'; if (label) b.setAttribute('aria-label', label);
+    b.addEventListener('click', aktion); return b;
+  };
+  const notiz = el('p'); notiz.setAttribute('role', 'status');
+  const entfernen = () => { try { session?.removeItem('schiriTour.v1'); } catch {} };
+  function speichernTour() {
+    try { session.setItem('schiriTour.v1', JSON.stringify({ ...tour, zeit: Date.now(), konto })); return true; }
+    catch { return false; }
+  }
+  function schliessen() {
+    entfernen(); tour = null;
+    if (dialog) { dialog.close(); dialog.remove(); dialog = null; }
+    const rueckkehr = fokusZurueck?.isConnected && fokusZurueck !== document.body ? fokusZurueck : knopf;
+    rueckkehr.focus();
+  }
+  function neuesDialog(klasse) {
+    if (!dialog) fokusZurueck = document.activeElement;
+    else { dialog.close(); dialog.remove(); }
+    dialog = el('dialog'); dialog.className = `seitenhilfe-dialog ${klasse || ''}`;
+    dialog.setAttribute('aria-labelledby', 'seitenhilfe-titel');
+    dialog.addEventListener('cancel', e => { e.preventDefault(); schliessen(); });
+    document.body.append(dialog); return dialog;
+  }
+  function hilfeOeffnen() {
+    tour = null; entfernen();
+    const d = neuesDialog();
+    d.append(button('×', 'Hilfe schließen', schliessen)); d.firstChild.className = 'seitenhilfe-schliessen';
+    const h = el('h2', SEITENHILFE[seite].titel); h.id = 'seitenhilfe-titel'; d.append(h);
+    for (const s of SEITENHILFE[seite].schritte) {
+      d.append(el('h3', s.titel), el('p', s.text));
+    }
+    const aktionen = el('div'); aktionen.className = 'seitenhilfe-links';
+    aktionen.append(button('Diese Seite zeigen', null, () => starten('seite')),
+      button('Ausführliche Einstiegstour', null, () => starten('einstieg')));
+    const link = el('a', 'Alle Hilfen'); link.href = 'hilfe.html'; aktionen.append(link);
+    d.append(aktionen); d.showModal();
+  }
+  knopf.addEventListener('click', hilfeOeffnen);
+  document.querySelectorAll('[data-einstieg-starten]').forEach(b => b.addEventListener('click', () => starten('einstieg')));
+
+  function starten(art) {
+    // Andere Formulare nicht hinter einem zweiten modalen Fenster verstecken.
+    if (document.querySelector('dialog[open]:not(.seitenhilfe-dialog)')) {
+      globalThis.alert('Schließe zuerst das geöffnete Formular. Deine Eingaben bleiben erhalten.'); return;
+    }
+    konto = lesen(); stand = leseFortschritt(local, konto);
+    tour = { art, seite, index: 0, konto }; zeigeSchritt();
+  }
+  function wechseln(index) {
+    const schritte = tourSchritte(tour.art, tour.seite);
+    if (index >= schritte.length) {
+      if (tour.art === 'einstieg' && konto) {
+        stand.tour = 'angesehen'; speichereFortschritt(local, konto, stand); zeichneListe();
+      }
+      schliessen(); hilfeOeffnen();
+      dialog.querySelector('h2').textContent = 'Tour abgeschlossen';
+      return;
+    }
+    const s = schritte[index];
+    if (s.seite !== seite && geaendert && !globalThis.confirm('Für den nächsten Schritt wird die Seite gewechselt. Ungespeicherte Eingaben können verloren gehen. Trotzdem wechseln?')) return;
+    tour.index = index;
+    if (s.seite !== seite) {
+      if (!speichernTour()) { globalThis.alert('Der Browser erlaubt keinen Sitzungsspeicher. Nutze stattdessen „Diese Seite zeigen“ in der Seitenhilfe.'); return; }
+      location.assign(s.seite); return;
+    }
+    zeigeSchritt();
+  }
+  function sichtbaresZiel(s) {
+    for (const selector of s.ziel.split(',')) {
+      const ziel = [...document.querySelectorAll(selector.trim())].find(e => {
+        const geschlossen = e.closest('details:not([open])');
+        return e.getClientRects().length && !e.closest('[hidden]')
+          && (!geschlossen || geschlossen.querySelector('summary')?.contains(e))
+          && (typeof e.checkVisibility !== 'function' || e.checkVisibility({ checkVisibilityCSS: true }));
+      });
+      if (ziel) return ziel;
+    }
+    return knopf;
+  }
+  function platzieren() {
+    if (!tour || !dialog?.open) return;
+    const s = tourSchritte(tour.art, tour.seite)[tour.index];
+    const ziel = sichtbaresZiel(s); const rect = ziel.getBoundingClientRect();
+    const viewport = globalThis.visualViewport;
+    const w = viewport?.width || innerWidth; const h = viewport?.height || innerHeight;
+    const ox = viewport?.offsetLeft || 0; const oy = viewport?.offsetTop || 0;
+    const spot = dialog.querySelector('.seitenhilfe-spot'); const karte = dialog.querySelector('.seitenhilfe-karte');
+    const top = Math.max(oy + 6, rect.top - 5); const left = Math.max(ox + 6, rect.left - 5);
+    Object.assign(spot.style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, Math.min(rect.width + 10, ox + w - 6 - left))}px`, height: `${Math.max(0, Math.min(rect.height + 10, oy + h - 6 - top))}px` });
+    karte.style.maxHeight = `${h - 24}px`;
+    const kw = karte.offsetWidth; const kh = karte.offsetHeight;
+    let x = ox + w - kw - 12; let y = oy + h - kh - 12;
+    if (w > 700 && rect.right + kw + 28 <= ox + w) { x = rect.right + 16; y = Math.max(oy + 12, Math.min(rect.top, oy + h - kh - 12)); }
+    else if (rect.bottom + kh + 28 < oy + h) { x = Math.max(ox + 12, Math.min(rect.left, ox + w - kw - 12)); y = rect.bottom + 16; }
+    else if (rect.top - kh - 28 > oy) { x = Math.max(ox + 12, Math.min(rect.left, ox + w - kw - 12)); y = rect.top - kh - 16; }
+    Object.assign(karte.style, { left: `${x}px`, top: `${y}px` });
+  }
+  function aktualisieren() { cancelAnimationFrame(animation); animation = requestAnimationFrame(platzieren); }
+  function zeigeSchritt() {
+    const s = tourSchritte(tour.art, tour.seite)[tour.index];
+    if (s.seite !== seite) { wechseln(tour.index); return; }
+    const d = neuesDialog('seitenhilfe-tour');
+    const spot = el('div'); spot.className = 'seitenhilfe-spot'; spot.setAttribute('aria-hidden', 'true');
+    const karte = el('div'); karte.className = 'seitenhilfe-karte';
+    const zu = button('×', 'Tour beenden', schliessen); zu.className = 'seitenhilfe-schliessen';
+    const schritte = tourSchritte(tour.art, tour.seite);
+    const zaehler = el('p', `${tour.index + 1} / ${schritte.length} · ${SEITENHILFE[s.seite].titel}`); zaehler.className = 'seitenhilfe-zaehler';
+    const h = el('h2', s.titel); h.id = 'seitenhilfe-titel'; h.tabIndex = -1;
+    const text = el('p', s.text); text.id = 'seitenhilfe-beschreibung'; d.setAttribute('aria-describedby', text.id);
+    const steuerung = el('div'); steuerung.className = 'seitenhilfe-steuerung';
+    const zurueck = button('←', 'Vorheriger Schritt', () => wechseln(tour.index - 1)); zurueck.disabled = tour.index === 0;
+    const weiter = button(tour.index === schritte.length - 1 ? '✓' : '→', tour.index === schritte.length - 1 ? 'Tour abschließen' : 'Nächster Schritt', () => wechseln(tour.index + 1)); weiter.className = 'seitenhilfe-haupt';
+    steuerung.append(zurueck, weiter); karte.append(zu, zaehler, h, text, steuerung); d.append(spot, karte);
+    sichtbaresZiel(s).scrollIntoView({ block: 'center', behavior: 'instant' });
+    d.showModal(); platzieren(); h.focus({ preventScroll: true }); speichernTour();
+  }
+  window.addEventListener('resize', aktualisieren); window.addEventListener('scroll', aktualisieren, { passive: true });
+  globalThis.visualViewport?.addEventListener('resize', aktualisieren);
+  globalThis.visualViewport?.addEventListener('scroll', aktualisieren);
+  // Datenlisten werden asynchron ersetzt. Nur Aenderungen ausserhalb des
+  // Dialogs beobachten, damit die Positionspflege keine Schleife ausloest.
+  new MutationObserver(aktualisieren).observe(main, { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] });
+  main.addEventListener('input', e => { if (e.target.closest('form')) geaendert = true; });
+  main.addEventListener('change', e => { if (e.target.closest('form')) geaendert = true; });
+
+  function zeichneListe() {
+    const ziel = document.querySelector('#einstellungen-inhalt');
+    if (!ziel || !konto) { liste?.remove(); liste = null; return; }
+    if (!liste) {
+      liste = el('details'); liste.className = 'einrichtung'; liste.dataset.einrichtung = ''; ziel.append(liste);
+    }
+    const offen = liste.open; liste.replaceChildren(); liste.open = offen;
+    const fertig = EINRICHTUNG.filter(s => stand[s.id] === 'angesehen').length;
+    const ausgelassen = EINRICHTUNG.filter(s => stand[s.id] === 'ausgelassen').length;
+    liste.append(el('summary', `Dein Einstieg · ${fertig} von ${EINRICHTUNG.length} angesehen${ausgelassen ? ` · ${ausgelassen} ausgelassen` : ''}`));
+    const info = el('p', 'Freiwillig. Nur in diesem Browser für dein Konto gespeichert. Kein Vereinsnachweis und keine Pflicht zur Push-Erlaubnis.'); info.className = 'seitenhilfe-hinweis'; liste.append(info);
+    const ul = el('ul'); ul.className = 'einrichtung-liste';
+    for (const s of EINRICHTUNG) {
+      const li = el('li'); const status = stand[s.id];
+      li.append(el('strong', `${status === 'angesehen' ? '✓ ' : status === 'ausgelassen' ? '– ' : ''}${s.titel}`), el('p', s.text));
+      const aktionen = el('div'); aktionen.className = 'einrichtung-aktionen';
+      if (s.tour) aktionen.append(button('Tour starten', null, () => starten('einstieg')));
+      else { const a = el('a', 'Öffnen'); a.href = s.href; aktionen.append(a); }
+      for (const [wert, wort] of [['angesehen', 'Für mich erledigt'], ['ausgelassen', 'Auslassen']]) {
+        const b = button(wort, `${s.titel}: ${wort}`, () => {
+          if (stand[s.id] === wert) delete stand[s.id]; else stand[s.id] = wert;
+          const gespeichert = speichereFortschritt(local, konto, stand);
+          zeichneListe(); notiz.textContent = gespeichert ? 'Einrichtungsstand gespeichert.' : 'Nur für diese Seite gemerkt; der Browser erlaubt keinen dauerhaften Speicher.';
+          liste.querySelector(`[data-schritt="${s.id}"][data-zustand="${wert}"]`)?.focus();
+        }); b.dataset.schritt = s.id; b.dataset.zustand = wert;
+        b.setAttribute('aria-pressed', String(status === wert)); aktionen.append(b);
+      }
+      li.append(aktionen); ul.append(li);
+    }
+    liste.append(ul, notiz);
+  }
+  anmeldung?.abonniere?.(p => {
+    const neueId = p?.id || null;
+    if (neueId !== konto) { schliessen(); konto = neueId; stand = leseFortschritt(local, konto); notiz.textContent = ''; }
+    zeichneListe();
+  });
+  zeichneListe();
+  const fortsetzen = leseTour(session);
+  if (fortsetzen && (fortsetzen.konto || null) === konto
+      && tourSchritte(fortsetzen.art, fortsetzen.seite)[fortsetzen.index].seite === seite) { tour = fortsetzen; zeigeSchritt(); }
+  else entfernen();
+  return Object.freeze({ hilfeOeffnen, starten });
+}

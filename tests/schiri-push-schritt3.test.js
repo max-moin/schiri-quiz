@@ -40,7 +40,7 @@ test("Montag, Freitag und Sonntag sind explizit Europe/Berlin und nicht nachhole
 test("Einstellungen und Push-Inhalt sind sparsam und enthalten keine Quiz-Loesung", () => {
   assert.match(seite, /id="mitteilungen-quiz-neu"/);
   assert.match(seite, /id="mitteilungen-quiz-erinnerung"/);
-  assert.match(steuerung, /schiri_push_quiz_setzen/);
+  assert.match(steuerung, /schiri_push_auswahl_setzen/);
   for (const typ of ["quiz.neu", "quiz.erinnerung"]) {
     const nachricht = JSON.parse(nachrichtFuer(typ, runde, `quiz_${runde}`));
     assert.equal(nachricht.ziel, "/modus.html");

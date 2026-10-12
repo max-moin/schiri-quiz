@@ -1,6 +1,7 @@
 import { DATENBANK } from "../../verein.config.js";
 import { aktuellesAbo, ausschalten, einschalten, lagebericht } from "../features/push-anmeldung.js";
 import { erklaereMitteilungsstatus } from "../features/mitteilungen-status.js";
+import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung;
 const $ = (id) => document.getElementById(id);
@@ -10,10 +11,36 @@ let aktuell = null;
 let geraete = [];
 let abo = null;
 let ladeNummer = 0;
+let gespeichert = null;
+let speichert = false;
 const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung", "mitteilungen-termine"];
 
 function hatAuswahl() {
   return auswahlIds.some((id) => $(id).checked);
+}
+
+function leseAuswahl() {
+  return { feedback_antwort: $(auswahlIds[0]).checked, quiz_neu: $(auswahlIds[1]).checked,
+    quiz_erinnerung: $(auswahlIds[2]).checked, termine: $(auswahlIds[3]).checked };
+}
+
+function hatAenderungen() {
+  const wahl = leseAuswahl();
+  return gespeichert && Object.keys(wahl).some((k) => wahl[k] !== gespeichert[k]);
+}
+
+function zeichneAuswahlBedienung() {
+  const offen = hatAenderungen();
+  $("mitteilungen-auswahl-speichern").disabled = !offen || speichert;
+  for (const id of auswahlIds) $(id).disabled = speichert || !gespeichert;
+  const empfaengt = abo && geraete.some((g) => g.endpunkt === abo.endpoint);
+  $("mitteilungen-abo-knopf").disabled = speichert || offen || (!empfaengt && !hatAuswahl());
+  $("mitteilungen-test-knopf").disabled = speichert || offen;
+}
+
+function speicherstand(text, zustand = "") {
+  $("mitteilungen-speicherstand").textContent = text;
+  $("mitteilungen-speicherstand").dataset.zustand = zustand;
 }
 
 async function rpc(name, parameter) {
@@ -121,18 +148,23 @@ function zeichneGeraete() {
 
 async function lade(person) {
   const nummer = ++ladeNummer;
+  const kontoWechsel = aktuell?.id !== person?.id;
   aktuell = person;
-  abschnitt.hidden = true;
+  if (kontoWechsel || !gespeichert) abschnitt.hidden = true;
+  $("mitteilungen-terminbereich").hidden = true;
+  gespeichert = null;
+  speichert = false;
   schluessel = "";
   abo = null;
   geraete = [];
-  if (!person) return;
+  if (!person) { abschnitt.hidden = true; return; }
   zeigeVersandstatus("pruefen");
   $("mitteilungen-speicherstand").textContent = "Einstellungen werden geladen …";
   try {
     const bereit = await bereitschaft(person);
     if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
     if (!bereit.bereit) {
+      abschnitt.hidden = true;
       zeigeVersandstatus(false);
       $("mitteilungen-vorschau").textContent = "In Vorbereitung";
       $("mitteilungen-arten-hinweis").textContent = "Diese Themen werden nach der Freigabe einzeln einschaltbar.";
@@ -141,13 +173,14 @@ async function lade(person) {
     if (!bereit.oeffentlicherSchluessel) throw new Error("Die Versandkonfiguration ist unvollständig. Bitte melde das dem Obmann.");
     zeigeVersandstatus(true);
     schluessel = bereit.oeffentlicherSchluessel;
-    $("mitteilungen-vorschau").textContent = bereit.modus === "pilot" ? "Pilot" : "Teilweise verfügbar";
-    $("mitteilungen-arten-hinweis").textContent = "Wähle selbst, wofür du Hinweise erhalten möchtest.";
+    $("mitteilungen-vorschau").textContent = bereit.modus === "pilot" ? "Pilot"
+      : bereit.modus === "einrichtung" ? "Geräte freigegeben" : "Freigegeben";
+    $("mitteilungen-arten-hinweis").textContent = "Wähle deine Themen und speichere deine Auswahl.";
     $("mitteilungen-versand").textContent = bereit.modus === "pilot"
-      ? "Nur für einen Gerätetest" : "Freigegeben";
+      ? "Nur für einen Gerätetest" : bereit.modus === "einrichtung" ? "Gerätetests freigegeben · Erinnerungen noch aus" : "Freigegeben";
     $("mitteilungen-kurzstatus").textContent = bereit.modus === "pilot"
       ? "Testzugang für dieses Konto bereit" : "Persönliche Mitteilungen sind verfügbar";
-    $("mitteilungen-hinweis").textContent = "Wähle unten ein Thema und aktiviere dieses Gerät ausdrücklich.";
+    $("mitteilungen-hinweis").textContent = "Auswahl speichern, dann dieses Gerät einschalten. Ein Fokus-/Nichtstörmodus kann die Anzeige verzögern.";
     const [einstellungen, browserAbo] = await Promise.all([
       rpc("schiri_push_einstellungen", parameter(person)),
       aktuellesAbo().catch(() => null),
@@ -161,8 +194,9 @@ async function lade(person) {
     $("mitteilungen-quiz-neu").checked = einstellungen?.quiz_neu === true;
     $("mitteilungen-quiz-erinnerung").checked = einstellungen?.quiz_erinnerung === true;
     $("mitteilungen-termine").checked = einstellungen?.termine === true;
+    gespeichert = leseAuswahl();
     for (const id of auswahlIds) $(id).disabled = false;
-    $("mitteilungen-speicherstand").textContent = "Deine Auswahl ist gespeichert.";
+    speicherstand("Deine Auswahl ist gespeichert.");
     $("mitteilungen-abo-stand").textContent = !erlaubt.moeglich ? erlaubt.grund
       : empfaengt ? "Dieses Gerät ist angemeldet."
         : "Dieses Gerät erhält noch keine Mitteilungen.";
@@ -175,6 +209,12 @@ async function lade(person) {
     // Erst nach den kontoeigenen Daten öffnen: beim Kontowechsel keine alte
     // Geräte-/Themenauswahl kurz sichtbar werden lassen.
     abschnitt.hidden = false;
+    zeichneAuswahlBedienung();
+    $("mitteilungen-terminbereich").hidden = false;
+    void montiereTerminerinnerungen($("mitteilungen-terminliste"), person, {
+      istAktuell: () => nummer === ladeNummer && anmeldung.lesen()?.id === person.id,
+      status: $("mitteilungen-terminstand"),
+    });
   } catch (fehler) {
     if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
     zeigeVersandstatus("fehler");
@@ -185,64 +225,43 @@ async function lade(person) {
   }
 }
 
-$("mitteilungen-feedback")?.addEventListener("change", async (event) => {
-  if (!aktuell) return;
-  const feld = event.currentTarget;
-  const neuerStand = feld.checked;
-  feld.disabled = true;
-  $("mitteilungen-speicherstand").textContent = "Wird gespeichert …";
-  try {
-    await rpc("schiri_push_feedback_setzen", { ...parameter(aktuell), p_aktiv: neuerStand });
-    await lade(aktuell);
-  } catch (fehler) {
-    feld.checked = !neuerStand;
-    feld.disabled = false;
-    $("mitteilungen-speicherstand").textContent = fehler.message;
-  }
+// Keine RPC und kein Neuladen beim Anklicken. Die vier Werte werden
+// zusammen in EINER Datenbanktransaktion gespeichert.
+for (const id of auswahlIds) $(id)?.addEventListener("change", () => {
+  if (!aktuell || !gespeichert) return;
+  speicherstand(hatAenderungen() ? "Noch nicht gespeichert. Drücke „Auswahl speichern“." : "Deine Auswahl ist gespeichert.");
+  zeichneAuswahlBedienung();
 });
 
-for (const id of ["mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung"]) {
-  $(id)?.addEventListener("change", async (event) => {
-    if (!aktuell) return;
-    const person = aktuell;
-    const feld = event.currentTarget;
-    const alterStand = !feld.checked;
-    for (const auswahlId of auswahlIds) $(auswahlId).disabled = true;
-    $("mitteilungen-speicherstand").textContent = "Wird gespeichert …";
-    try {
-      await rpc("schiri_push_quiz_setzen", {
-        ...parameter(person),
-        p_quiz_neu: $("mitteilungen-quiz-neu").checked,
-        p_quiz_erinnerung: $("mitteilungen-quiz-erinnerung").checked,
-      });
-      await lade(person);
-    } catch (fehler) {
-      feld.checked = alterStand;
-      for (const auswahlId of auswahlIds) $(auswahlId).disabled = false;
-      $("mitteilungen-speicherstand").textContent = fehler.message;
-    }
-  });
-}
-
-$("mitteilungen-termine")?.addEventListener("change", async (event) => {
-  if (!aktuell) return;
+$("mitteilungen-auswahl-speichern")?.addEventListener("click", async () => {
+  if (!aktuell || speichert || !hatAenderungen()) return;
   const person = aktuell;
-  const feld = event.currentTarget;
-  const neuerStand = feld.checked;
-  for (const auswahlId of auswahlIds) $(auswahlId).disabled = true;
-  $("mitteilungen-speicherstand").textContent = "Wird gespeichert …";
+  const nummer = ladeNummer;
+  const wahl = leseAuswahl();
+  speichert = true;
+  zeichneAuswahlBedienung();
+  speicherstand("Wird gespeichert …");
   try {
-    await rpc("schiri_push_termine_setzen", { ...parameter(person), p_aktiv: neuerStand });
-    await lade(person);
+    await rpc("schiri_push_auswahl_setzen", { ...parameter(person),
+      p_feedback_antwort: wahl.feedback_antwort, p_quiz_neu: wahl.quiz_neu,
+      p_quiz_erinnerung: wahl.quiz_erinnerung, p_termine: wahl.termine });
+    if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
+    gespeichert = wahl;
+    speicherstand("Deine Auswahl ist gespeichert.", "erfolg");
+    void montiereTerminerinnerungen($("mitteilungen-terminliste"), person, {
+      istAktuell: () => nummer === ladeNummer && anmeldung.lesen()?.id === person.id,
+      status: $("mitteilungen-terminstand"),
+    });
   } catch (fehler) {
-    feld.checked = !neuerStand;
-    for (const auswahlId of auswahlIds) $(auswahlId).disabled = false;
-    $("mitteilungen-speicherstand").textContent = fehler.message;
+    if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
+    speicherstand(`${fehler.message} Deine Auswahl bleibt erhalten; versuche es erneut.`, "fehler");
+  } finally {
+    if (nummer === ladeNummer) { speichert = false; zeichneAuswahlBedienung(); }
   }
 });
 
 $("mitteilungen-abo-knopf")?.addEventListener("click", async (event) => {
-  if (!aktuell) return;
+  if (!aktuell || speichert || hatAenderungen()) return;
   const person = aktuell;
   const knopf = event.currentTarget;
   knopf.disabled = true;
@@ -269,7 +288,7 @@ $("mitteilungen-abo-knopf")?.addEventListener("click", async (event) => {
 });
 
 $("mitteilungen-test-knopf")?.addEventListener("click", async (event) => {
-  if (!aktuell || !abo) return;
+  if (!aktuell || !abo || speichert || hatAenderungen()) return;
   const knopf = event.currentTarget;
   knopf.disabled = true;
   $("mitteilungen-abo-stand").textContent = "Testmitteilung wird gesendet …";
@@ -289,9 +308,15 @@ $("mitteilungen-test-knopf")?.addEventListener("click", async (event) => {
 $("mitteilungen-status-neuladen")?.addEventListener("click", async (event) => {
   const person = anmeldung?.lesen();
   if (!person) return;
+  if (hatAenderungen() && !confirm("Ungespeicherte Auswahl verwerfen und den Status neu laden?")) return;
   const knopf = event.currentTarget;
   knopf.disabled = true;
   try { await lade(person); } finally { knopf.disabled = false; }
+});
+
+globalThis.addEventListener("beforeunload", (event) => {
+  if (!hatAenderungen()) return;
+  event.preventDefault(); event.returnValue = "";
 });
 
 anmeldung?.abonniere((person) => { void lade(person); });

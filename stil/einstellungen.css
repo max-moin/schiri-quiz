@@ -57,6 +57,16 @@
 .mitteilungen-geraete li > button { flex: none; }
 .mitteilungen-geraete small { display: block; margin-top: 3px; color: var(--muted); }
 .mitteilungen-geraete .ist-aktuell { color: var(--marke); font-weight: 700; }
+.mitteilungen-hinweis[data-zustand="fehler"],#mitteilungen-terminstand[data-zustand="fehler"] { color: var(--danger, #b91c1c); }
+.mitteilungen-hinweis[data-zustand="erfolg"] { color: var(--marke); }
+.mitteilungen-terminliste li { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.mitteilungen-terminliste li > span { min-width: 0; overflow-wrap: anywhere; }
+.mitteilungen-terminliste button { flex: none; min-height: 44px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--card); color: var(--text); font: inherit; font-weight: 700; cursor: pointer; }
+.mitteilungen-terminliste button[aria-pressed="true"] { background: var(--marke-lighter); border-color: var(--marke); }
+.mitteilungen-terminliste button:disabled { opacity: .65; cursor: wait; }
+.mitteilungen-ausblick summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; font-weight: 700; }
+.mitteilungen-ausblick p { color: var(--muted); line-height: 1.5; }
+body[data-wegweiser="kompakt"] .wegweiser { margin-bottom: 18px; }
 @media (max-width: 650px) {
   .einstellungen-bereiche { grid-template-columns: 1fr; }
   .mitteilungen-abschnitt-kopf { display: block; }
@@ -66,4 +76,5 @@
   .mitteilungen-status,.mitteilungen-arten { padding: 18px; }
   .mitteilungen-fakten div { display: block; }
   .mitteilungen-fakten dd { margin-top: 3px; text-align: left; }
+  .mitteilungen-terminliste li { align-items: flex-start; flex-direction: column; gap: 10px; }
 }

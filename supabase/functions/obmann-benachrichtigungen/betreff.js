@@ -32,11 +32,13 @@ export function saubererAnzeigename(wert) {
 }
 
 export function betreffFuer(typ, metadaten = {}) {
-  const basis = FESTE_BETREFFE[typ] || "— SR-OBMANN · EINGANG — Neuer Eintrag";
+  const basis = metadaten?.buendel_phase === 'entscheidung'
+    ? '— SR-OBMANN · AUSRÜSTUNG — Bündel entschieden'
+    : FESTE_BETREFFE[typ] || "— SR-OBMANN · EINGANG — Neuer Eintrag";
   if (TYPEN_OHNE_PERSON.has(typ)) return basis;
   const name = saubererAnzeigename(metadaten?.anzeigename);
   const anzahl = Number(metadaten?.anzahl);
-  const umfang = typ === "ausruestung.eingereicht" && Number.isInteger(anzahl) && anzahl > 1
+  const umfang = (typ === "ausruestung.eingereicht" || metadaten?.buendel_phase) && Number.isInteger(anzahl) && anzahl > 1
     ? ` (${Math.min(anzahl, 12)} Teile)` : "";
   return name ? `${basis}: ${name}${umfang}` : basis + umfang;
 }

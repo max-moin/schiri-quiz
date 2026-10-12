@@ -18,9 +18,12 @@ export default async function handler(req, res) {
     && schiedsrichterId.toLowerCase() === String(process.env.PUSH_PILOT_SCHIRI_ID || "").toLowerCase();
   const freigegeben = process.env.PUSH_DISPATCH_AKTIV === "true"
     && Boolean(process.env.PUSH_SENDE_SCHLUESSEL);
+  // Geräteanmeldung und Selbsttest können vor dem automatischen Versand
+  // für alle freigegeben werden. PIN und Geräte-Opt-in bleiben Pflicht.
+  const einrichtung = process.env.PUSH_ANMELDUNG_AKTIV === "true";
   const config = vapidKonfiguration();
   const oeffentlich = process.env.VAPID_OEFFENTLICHER_SCHLUESSEL || "";
-  if ((!pilot && !freigegeben) || !config || !istSupabaseServerSchluesselKonfiguriert()
+  if ((!pilot && !freigegeben && !einrichtung) || !config || !istSupabaseServerSchluesselKonfiguriert()
       || oeffentlich !== b64uKodieren(oeffentlicherSchluesselZu(config.vapidPrivatRoh))) {
     return res.status(200).json({ bereit: false });
   }
@@ -30,7 +33,7 @@ export default async function handler(req, res) {
     await supabaseRpc("schiri_push_einstellungen", {
       p_schiedsrichter_id: schiedsrichterId, p_pin: pin,
     });
-    return res.status(200).json({ bereit: true, modus: freigegeben ? "live" : "pilot",
+    return res.status(200).json({ bereit: true, modus: freigegeben ? "live" : einrichtung ? "einrichtung" : "pilot",
       oeffentlicherSchluessel: oeffentlich });
   } catch {
     return res.status(403).json({ fehler: "Anmeldung ungültig." });

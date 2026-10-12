@@ -607,12 +607,19 @@
         wahl.versucht = true;
         const form = button.closest(".entscheidung-form");
         if (form) markiereFehlendes(form, wahl, frage, { fokus: true });
+        const feedback = container.querySelector(".entscheidung-feedback");
+        if (feedback) {
+          feedback.hidden = false;
+          feedback.classList.add("falsch");
+          feedback.textContent = "Noch nicht abgeschickt: " + fehlendeAngaben(wahl, frage).map(([, text]) => text).join(" ");
+        }
         return;
       }
       versteckeFehler();
       button.disabled = true;
       button.textContent = "Wird geprüft …";
       const feedback = container.querySelector(".entscheidung-feedback");
+      if (feedback) { feedback.hidden = true; feedback.classList.remove("falsch"); }
       try {
         let daten;
         const gegebeneAntwort = baueAntwort(frage, wahl);

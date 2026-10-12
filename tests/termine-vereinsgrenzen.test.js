@@ -29,6 +29,7 @@ async function seite({ ich = { id: 'andere-person', pin: 'test' }, id = '', eige
   const kontext = vm.createContext({
     ...termine,
     erstelleTerminZugriff: () => rpc,
+    montiereTerminerinnerungen: async () => {},
     DATENBANK: {}, VEREIN: { seitenschluessel: 'kickers' },
     document: { getElementById: () => bereich }, location: { search: id ? `?termin=${id}` : '' },
     URLSearchParams,
