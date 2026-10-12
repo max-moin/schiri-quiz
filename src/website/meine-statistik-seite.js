@@ -1,4 +1,5 @@
 import { DATENBANK } from "../../verein.config.js";
+import { erstelleSerienSteuerung } from './wochenserie-ansicht.js';
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -11,6 +12,8 @@ const rpc = globalThis.SchiriRpc.erstelleRpc({
   oeffentlicherSchluessel: DATENBANK.oeffentlicherSchluessel,
 });
 const $ = (id) => document.getElementById(id);
+const serienSteuerung = erstelleSerienSteuerung({ ziel: $('meine-wochenserie'), rpc, anmeldung });
+let datenVersion = 0;
 
 function kennzahl(zahl, label, klasse = "") {
   const k = document.createElement("div");
@@ -151,12 +154,14 @@ function zeichne(wochen) {
   }
 }
 
-async function lade(person) {
+async function lade(person, version) {
   const { data, error } = await rpc.rpc("meine_quiz_statistik", {
     p_schiedsrichter_id: person.id,
     p_pin: person.pin,
     p_wochen: 26,
   });
+  const aktuell = anmeldung.lesen();
+  if (version !== datenVersion || aktuell?.id !== person.id || aktuell?.pin !== person.pin) return;
   if (error) {
     $("statistik-verlauf").innerHTML = '<p class="meine-leer">Dein Verlauf konnte gerade nicht geladen werden.</p>';
     $("statistik-zeitraum").textContent = "Nicht verfügbar";
@@ -167,10 +172,16 @@ async function lade(person) {
 }
 
 function starte() {
+  const version = ++datenVersion;
   const person = anmeldung.lesen();
   $("meine-zugang").hidden = !!person;
   $("meine-inhalt").hidden = !person;
-  if (person) void lade(person);
+  $('statistik-kennzahlen').replaceChildren();
+  $('statistik-deutung').replaceChildren();
+  $('statistik-verlauf').replaceChildren();
+  $('statistik-zeitraum').textContent = person ? 'Wird geladen …' : '';
+  void serienSteuerung.laden(person);
+  if (person) void lade(person, version);
 }
 
 $("meine-anmelden")?.addEventListener("click", async () => {
@@ -179,4 +190,6 @@ $("meine-anmelden")?.addEventListener("click", async () => {
   if (ergebnis.status === "angemeldet") starte();
 });
 
-starte();
+anmeldung.abonniere(starte);
+window.addEventListener('pageshow', event => { if(event.persisted) starte(); });
+document.addEventListener('visibilitychange', () => { if(!document.hidden) starte(); });

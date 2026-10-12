@@ -20,6 +20,21 @@ test('Seitentouren verweisen ausschließlich auf vorhandene lokale Seiten', () =
     assert.ok(hilfe.titel);
   }
 });
+test('Mitteilungshilfe trennt Gerät, Themen, Geräteverwaltung und Terminausnahmen', () => {
+  const s = tourSchritte('seite', 'mitteilungen.html');
+  assert.deepEqual(s.map(x => x.id), ['push', 'wahl', 'geraete', 'termine']);
+  assert.match(s[0].text, /nicht schon die automatischen Erinnerungen/);
+  assert.match(s[1].text, /Auswahl speichern/);
+  assert.match(s[2].text, /Nichtstörmodus/);
+  assert.match(s[3].text, /Zulassen allein/);
+  const html = readFileSync(new URL('../mitteilungen.html', import.meta.url), 'utf8');
+  for (const schritt of s) {
+    const anker = schritt.ziel.split(',')[0].trim();
+    assert.ok(anker.startsWith('#') ? html.includes(`id="${anker.slice(1)}"`)
+      : new RegExp(`class="[^"]*\\b${anker.slice(1)}\\b`).test(html), anker);
+    assert.match(schritt.ziel, /#einstellungen-zugang/);
+  }
+});
 test('Einrichtungsstand bleibt kontogetrennt und enthält nur bekannte Zustände', () => {
   const storage = speicher();
   assert.equal(speichereFortschritt(storage, 'a', { bestand:'angesehen', push:'ausgelassen', fremd:'angesehen', daten:'falsch' }), true);

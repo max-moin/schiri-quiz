@@ -445,8 +445,8 @@
     }
 
     async function historieFreitextAntwortAbschicken(frageId, container, button, textarea) {
-      const freitext = textarea.value.trim();
-      if (freitext.length === 0) {
+      const antwortText = textarea.value.trim();
+      if (antwortText.length === 0) {
         zeigeFehler("Bitte erst eine Antwort eingeben.");
         return;
       }
@@ -467,7 +467,7 @@
             schiedsrichterId: getZugang().schiedsrichterId,
             frageId,
             pin: getZugang().pin,
-            freitext,
+            freitext: antwortText,
             historie: true,
           }),
         });

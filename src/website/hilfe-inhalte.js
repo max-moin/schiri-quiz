@@ -15,6 +15,7 @@ export const SEITENHILFE = Object.freeze({
     schritt('szenario', 'main', 'Entscheidung und Begründung', 'Bearbeite die angezeigte Situation und beachte die Aufgabenstellung. Dieser eigene Modus ersetzt keine offenen Wochenquizfragen.'),
   ] },
   'meine-statistik.html': { titel: 'Meine Quizstatistik', schritte: [
+    schritt('serie', '#meine-wochenserie, #meine-zugang', 'Deine private Wochenserie', 'Vollständig beantwortete Quizwochen zählen unabhängig von der Trefferquote. Deine Serie und Abzeichen sind nur für dich. Eine verpasste Woche lässt sich in den sieben Tagen danach durch fünf verschiedene richtig beantwortete Übungsfragen retten; die normalen Quizantworten werden dadurch nicht verändert.'),
     schritt('statistik', '#statistik-kennzahlen, #meine-zugang', 'Deine eigene Entwicklung', 'Die Übersicht gehört nur zu deinem Konto. Sie zeigt deine Ergebnisse, nicht den Leistungsstand anderer Vereinsmitglieder.'),
     schritt('verlauf', '#statistik-verlauf, #meine-zugang', 'Über die Wochen', 'Im Verlauf siehst du auch Wochen ohne Teilnahme. Nutze ihn, um deinen eigenen Lernfortschritt einzuschätzen; eine leere Woche ist nicht dasselbe wie eine falsch beantwortete Frage.'),
   ] },
@@ -79,8 +80,10 @@ export const SEITENHILFE = Object.freeze({
     schritt('punkte', '#fortbildungspunkte, [data-fortbildungspunkte], main', 'Punkte genauer ansehen', 'Öffne einen bestätigten Punkt, um Anlass, Termin und Bestätigungsstand zu sehen. RLA, Hausregeltest und weitere Angebote werden unterscheidbar dargestellt.'),
   ] },
   'mitteilungen.html': { titel: 'Mitteilungen einrichten', schritte: [
-    schritt('push', 'main h1', 'Zuerst den Status prüfen', 'Geeignetes Gerät, Browser-Erlaubnis und serverseitige Freigabe sind getrennte Voraussetzungen. „In Vorbereitung“ bedeutet nicht, dass du etwas falsch gemacht hast.'),
-    schritt('wahl', 'main', 'Du bestimmst die Hinweise', 'Aktiviere das Gerät erst, wenn du Push möchtest. Du kannst Themen und Geräte später wieder ausschalten. Die Obmann-E-Mails sind davon unabhängig.'),
+    schritt('push', '.mitteilungen-status, #einstellungen-zugang', 'Dieses Gerät und der Versand', 'Geräteeignung, Browser-Erlaubnis und automatischer Versand sind getrennte Voraussetzungen. Eine erfolgreiche Testmitteilung bestätigt dieses Gerät, nicht schon die automatischen Erinnerungen. Auf dem iPhone öffnest du dafür die Home-Bildschirm-Webapp.'),
+    schritt('wahl', '#mitteilungen-steuerung, #einstellungen-zugang', 'Themen auswählen und speichern', 'Setze oder entferne die gewünschten Haken und drücke danach „Auswahl speichern“. Erst dann ist deine neue Auswahl übernommen. Die Themen gelten für dein Konto auf allen registrierten Geräten. Die Obmann-E-Mails bleiben davon unabhängig.'),
+    schritt('geraete', '.mitteilungen-geraeteteil, #einstellungen-zugang', 'Geräte einzeln verwalten', 'Jedes Gerät braucht eine eigene Registrierung und Erlaubnis. Hier kannst du nicht mehr benötigte Geräte entfernen. Kommt trotz erfolgreichem Test kein Banner, prüfe den Fokus-/Nichtstörmodus und die Mitteilungseinstellungen des Geräts.'),
+    schritt('termine', '#mitteilungen-terminbereich, #einstellungen-zugang', 'Einzelne Termine ausschließen', 'Du kannst einzelne Termine ausschließen und später wieder zulassen. Das gilt auf allen deinen Geräten. Zulassen allein löst noch keine Erinnerung aus: Die Themenauswahl, Erinnerung am Termin und deine Zusage oder ein Pflichttermin deines Vereins müssen ebenfalls passen.'),
   ] },
 });
 export const EINSTIEG = Object.freeze(['index.html', 'termine.html', 'modus.html', 'ausruestung.html', 'meine-anliegen.html', 'einstellungen.html']);

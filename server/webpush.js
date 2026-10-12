@@ -122,7 +122,12 @@ export function oeffentlicherSchluesselZu(privatRoh) {
 export function schluesselpaarErzeugen() {
   const ecdh = createECDH(KURVE);
   ecdh.generateKeys();
-  return { privat: ecdh.getPrivateKey(), oeffentlich: ecdh.getPublicKey() };
+  // OpenSSL gibt den Skalar ohne fuehrende Nullbytes zurueck.
+  // P-256/JWK benoetigt trotzdem immer die feste Breite von 32 Byte.
+  const skalar = ecdh.getPrivateKey();
+  const privat = Buffer.alloc(32);
+  skalar.copy(privat, privat.length - skalar.length);
+  return { privat, oeffentlich: ecdh.getPublicKey() };
 }
 
 export function vapidSchluesselpaarErzeugen() {

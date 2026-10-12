@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { randomBytes, verify } from "node:crypto";
+import { createECDH, randomBytes, verify } from "node:crypto";
 import test from "node:test";
 
 import {
@@ -228,6 +228,28 @@ test("frisch erzeugte VAPID-Schlüssel haben die richtigen Längen", () => {
   assert.equal(b64uDekodieren(oeffentlich)[0], 0x04);
   assert.equal(b64uDekodieren(privat).length, 32);
   assert.equal(b64uKodieren(oeffentlicherSchluesselZu(b64uDekodieren(privat))), oeffentlich);
+});
+
+test("VAPID: führende Nullbytes bleiben auch beim kürzesten Skalar erhalten", (t) => {
+  // Nur dieser Test setzt den oeffentlichen Testskalar 1; keine echten Keys.
+  const prototype = Object.getPrototypeOf(createECDH("prime256v1"));
+  t.mock.method(prototype, "generateKeys", function () {
+    this.setPrivateKey(Buffer.from([1]));
+    return this.getPublicKey();
+  });
+  const roh = schluesselpaarErzeugen();
+  assert.equal(roh.privat.length, 32);
+  assert.deepEqual(roh.privat.subarray(0, 31), Buffer.alloc(31));
+  assert.equal(roh.privat[31], 1);
+  assert.deepEqual(oeffentlicherSchluesselZu(roh.privat), roh.oeffentlich);
+  const paar = vapidSchluesselpaarErzeugen();
+  assert.equal(b64uDekodieren(paar.privat).length, 32);
+  assert.equal(b64uKodieren(oeffentlicherSchluesselZu(b64uDekodieren(paar.privat))), paar.oeffentlich);
+  const { jwt } = vapidHeader({ endpunkt: "https://web.push.apple.com/test", privatRoh: roh.privat, sub: "mailto:obmann@example.org" });
+  const [kopf, nutzlast, signatur] = jwt.split(".");
+  assert.equal(b64uDekodieren(signatur).length, 64);
+  assert.equal(verify("sha256", Buffer.from(`${kopf}.${nutzlast}`, "ascii"),
+    { key: oeffentlichesSchluesselObjekt(roh.oeffentlich), dsaEncoding: "ieee-p1363" }, b64uDekodieren(signatur)), true);
 });
 
 test("404 und 410 bedeuten: Abo ist tot", () => {
