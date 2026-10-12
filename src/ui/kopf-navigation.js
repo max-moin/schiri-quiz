@@ -124,8 +124,8 @@ export function vereinheitlicheHauptnavigation(kopfInnen) {
 
   const quiz = document.createElement("a");
   quiz.href = "modus.html";
-  quiz.className = "nav-anmelden";
-  quiz.innerHTML = '<span class="nav-quiz-lang">Zum Quiz</span><span class="nav-quiz-kurz">Quiz</span>';
+  quiz.className = "nav-anmelden nav-quiz";
+  quiz.innerHTML = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3"/><path d="m8 12 2 2 5-5M8 17h8"/></svg><span class="nav-quiz-lang">Zum Quiz</span><span class="nav-quiz-kurz">Quiz</span>';
   nav.appendChild(quiz);
   return nav;
 }

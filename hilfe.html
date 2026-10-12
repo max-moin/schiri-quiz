@@ -37,21 +37,21 @@
     </nav>
   </div></header>
   <main class="inhalt" id="inhalt" tabindex="-1">
-    <h1 class="seiten-titel">Hilfe</h1>
-    <section class="hilfe-leitfaden" aria-labelledby="einstieg-titel">
+    <h1 class="seiten-titel" id="hilfe-seitentitel">Hilfe</h1>
+    <section class="hilfe-leitfaden hilfe-einstieg" id="hilfe-einstieg" aria-labelledby="einstieg-titel">
       <h2 id="einstieg-titel">Die Website kennenlernen</h2>
-      <p>Ein geführter Rundgang zeigt dir die wichtigsten Wege und Funktionen. Du kannst jederzeit zurückgehen oder beenden; dabei wird nichts abgesendet.</p>
-      <button class="knopf-haupt" type="button" data-einstieg-starten>Ausführliche Einstiegstour starten</button>
-      <p>Die freiwillige Einrichtungscheckliste findest du nach Anmeldung unter <a href="einstellungen.html">Einstellungen</a>. Für einzelne Funktionen nutze „Hilfe zu dieser Seite“.</p>
+      <p>Schritt für Schritt – jederzeit beenden, ohne etwas abzusenden.</p>
+      <button class="knopf-haupt hilfe-tour-start" type="button" data-einstieg-starten><span aria-hidden="true">→</span> Einführungstour</button>
+      <p class="hilfe-quellen"><a href="einstellungen.html">Zur Einrichtungscheckliste</a></p>
     </section>
-    <div class="hilfe-raster">
-      <a class="funktions-kachel" href="#dfbnet"><strong>DFBnet und Sperrtermine</strong><span>Ansetzung prüfen, Verfügbarkeit pflegen, Spiel zurückgeben.</span></a>
-      <a class="funktions-kachel" href="#sonderbericht"><strong>Meine erste rote Karte</strong><span>Max anrufen, Fakten festhalten, Sonderbericht vorbereiten.</span></a>
+    <div class="hilfe-raster" id="hilfe-uebersicht">
+      <a class="funktions-kachel" href="#dfbnet"><span class="hilfe-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="5" width="16" height="16" rx="3"/><path d="M8 2v6M16 2v6M4 11h16m-12 5 3 3 5-5"/></svg></span><strong>DFBnet und Sperrtermine</strong><span>Ansetzungen und Verfügbarkeit.</span></a>
+      <a class="funktions-kachel" href="#sonderbericht"><span class="hilfe-icon hilfe-icon-rot" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="2" width="12" height="20" rx="2"/></svg></span><strong>Meine erste rote Karte</strong><span>Du bist damit nicht allein.</span></a>
       <a class="funktions-kachel" href="installieren.html"><strong>Website als App öffnen</strong><span>Zum Home-Bildschirm hinzufügen – für iPhone, iPad und Android.</span></a>
       <a class="funktions-kachel" href="mitteilungen.html"><strong>Mitteilungen einstellen</strong><span>Gerätestatus, freiwillige Auswahl und Testmitteilung.</span></a>
       <a class="funktions-kachel" href="modus.html"><strong>Anmeldung und Quiz</strong><span>Zum Wochenquiz, Üben oder Quiz-Duell.</span></a>
       <a class="funktions-kachel" href="ausruestung.html"><strong>Meine Ausrüstung</strong><span>Bestand pflegen, Ausrüstung anfragen und den Verlauf ansehen.</span></a>
-      <a class="funktions-kachel" href="#schiri-treff"><strong>Unser Schiri-Treff</strong><span>Vorbereiten, Themen einbringen, Protokoll nachlesen.</span></a>
+      <a class="funktions-kachel" href="#schiri-treff"><span class="hilfe-icon" aria-hidden="true">☷</span><strong>Unser Schiri-Treff</strong><span>Themen und Protokolle.</span></a>
       <a class="funktions-kachel" href="melden.html"><strong>Problem melden</strong><span>Technischen Fehler oder Feedback zur Website senden.</span></a>
       <a class="funktions-kachel" href="schiri-werden.html"><strong>Schiedsrichter werden</strong><span>Der Weg zur Pfeife und häufige Fragen.</span></a>
     </div>
@@ -69,6 +69,7 @@
     </section>
     <section class="hilfe-leitfaden" id="sonderbericht" aria-labelledby="sonderbericht-titel">
       <h2 id="sonderbericht-titel">Meine erste rote Karte / mein erster Sonderbericht</h2>
+      <a class="hilfe-anrufen" href="tel:+4917674782083">Max anrufen · 0176 74782083</a>
       <p>Ruf Max nach dem Spiel an, wenn du erstmals Rot gegeben hast oder Unterstützung beim Bericht brauchst. Gemeinsam klärt ihr das weitere Vorgehen.</p>
       <ol class="hilfe-schritte">
         <li><strong>Fakten direkt notieren</strong><p>Spielkennung, Spielminute, beteiligte Personen und deine eigene Wahrnehmung festhalten. Wer tat oder sagte was? Den Ablauf sachlich beschreiben, ohne Vermutungen.</p></li>
@@ -95,6 +96,6 @@
     <a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a>
     <div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div>
   </div></footer>
-  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script>
+  <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/hilfe-seite.js"></script>
 </body>
 </html>

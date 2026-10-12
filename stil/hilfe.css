@@ -8,6 +8,7 @@
   overflow-wrap: anywhere;
 }
 .hilfe-leitfaden h2 { margin-top: 0; }
+main.inhalt { scroll-margin-top:80px; }
 .hilfe-schritte { padding-left: 1.5rem; }
 .hilfe-schritte li { padding: 8px 0 8px 6px; }
 .hilfe-schritte li::marker { color: var(--text); font-weight: 700; }
@@ -17,4 +18,20 @@
 .hilfe-leitfaden summary { min-height: 44px; padding: 12px 0; cursor: pointer; font-weight: 600; }
 .hilfe-leitfaden a { text-underline-offset: 3px; }
 .hilfe-quellen { font-size: .875rem; color: var(--muted); }
+.hilfe-raster { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr)); gap:14px; margin:24px 0; }
+.hilfe-raster .funktions-kachel { padding:20px; min-height:112px; }
+.hilfe-einstieg { background:#eff6ff; border-color:#bfdbfe; }
+.hilfe-tour-start { display:inline-flex; align-items:center; justify-content:center; gap:16px; min-height:54px; padding:14px 24px; background:#1d4ed8; color:white; border:0; border-radius:12px; font:inherit; font-weight:700; cursor:pointer; }
+.hilfe-raster .hilfe-icon { display:inline-grid; place-items:center; width:38px; height:38px; border-radius:10px; background:#eff6ff; color:#1d4ed8; font-size:24px; margin-bottom:12px; }
+.hilfe-raster .hilfe-icon-rot { background:#fef2f2; color:#dc2626; }
+.hilfe-icon svg { display:block; width:26px; height:26px; }
+#sonderbericht { border-top:5px solid #dc2626; }
+#dfbnet, #schiri-treff { border-top:5px solid #1d4ed8; }
+.hilfe-anrufen { display:inline-flex; align-items:center; min-height:48px; padding:10px 18px; border-radius:12px; background:#b91c1c; color:white; font-weight:700; text-decoration:none; }
+.hilfe-leitfaden summary { display:flex; align-items:center; justify-content:space-between; gap:12px; list-style:none; padding:12px; margin-top:12px; border:1px solid #cbd5e1; border-radius:10px; background:#f8fafc; }
+.hilfe-leitfaden summary::-webkit-details-marker { display:none; }
+.hilfe-leitfaden summary::after { content:'+'; font-size:22px; flex:none; color:#1d4ed8; }
+.hilfe-leitfaden details[open] summary::after { content:'−'; }
+.hilfe-leitfaden[hidden], .hilfe-raster[hidden] { display:none; }
+.hilfe-tour-start:focus-visible, .hilfe-anrufen:focus-visible, .hilfe-leitfaden summary:focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
 @media (max-width: 600px) { .hilfe-leitfaden { padding: 16px; } }

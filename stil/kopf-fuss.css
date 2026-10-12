@@ -187,6 +187,9 @@
 .nav-striche { width: 18px; display: grid; gap: 4px; }
 .nav-striche i { height: 2px; border-radius: 2px; background: currentColor; display: block; }
 .nav-quiz-kurz { display: none; }
+.nav-anmelden.nav-quiz { display:inline-flex; align-items:center; gap:8px; background:#1d4ed8 !important; color:#fff !important; }
+.nav-anmelden.nav-quiz:hover { background:#1e40af !important; }
+.nav-quiz svg { flex:none; }
 
 @media (max-width: 960px) {
   .nav-knopf { display: inline-flex; }

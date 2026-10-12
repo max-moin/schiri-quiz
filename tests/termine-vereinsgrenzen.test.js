@@ -30,6 +30,7 @@ async function seite({ ich = { id: 'andere-person', pin: 'test' }, id = '', eige
     ...termine,
     erstelleTerminZugriff: () => rpc,
     montiereTerminerinnerungen: async () => {},
+    markiereTerminPdfs: async () => {},
     DATENBANK: {}, VEREIN: { seitenschluessel: 'kickers' },
     document: { getElementById: () => bereich }, location: { search: id ? `?termin=${id}` : '' },
     URLSearchParams,

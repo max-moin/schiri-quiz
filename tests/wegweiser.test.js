@@ -96,15 +96,12 @@ test("der Weg nach oben nennt sein Ziel statt nur 'zurueck'", () => {
   assert.equal(leiste.mitKlasse("wegweiser-ziel")[0].textContent, "Hilfe");
 });
 
-test("der Pfad zeigt die ganze Tiefe und markiert die aktuelle Seite", () => {
+test("ein tiefer Einstieg zeigt nur den eindeutigen Rückweg, ohne doppelten Pfad", () => {
   const leiste = baueWegweiser("frage-vorschlagen.html", testDokument);
   const punkte = leiste.alle().filter((k) => k.tag === "li");
-  assert.equal(punkte.length, 3, "Start > Ideen & Feedback > Frage vorschlagen");
-  assert.equal(punkte[0].textContent, "Start");
-  assert.equal(punkte[2].textContent, "Frage vorschlagen");
-  const jetzt = leiste.alle().filter((k) => k.getAttribute("aria-current") === "page");
-  assert.equal(jetzt.length, 1, "genau eine Angabe 'hier bist du'");
-  assert.equal(jetzt[0].textContent, "Frage vorschlagen");
+  assert.equal(punkte.length, 0);
+  assert.equal(leiste.mitKlasse('wegweiser-zurueck')[0].href, 'melden.html');
+  assert.equal(leiste.mitKlasse('wegweiser-ziel')[0].textContent, 'Ideen & Feedback');
 });
 
 test("auf der Startseite steht kein Wegweiser", () => {

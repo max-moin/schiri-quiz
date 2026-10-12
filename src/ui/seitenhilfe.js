@@ -1,4 +1,5 @@
 import { SEITENHILFE, EINRICHTUNG, tourSchritte, leseTour, leseFortschritt, speichereFortschritt } from '../website/hilfe-inhalte.js';
+import { tourRahmen } from './tour-position.js';
 
 export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung } = {}) {
   const seite = location.pathname.split('/').pop() || 'index.html';
@@ -17,8 +18,13 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
   let geaendert = false; let liste = null;
   const knopf = document.createElement('button');
   knopf.type = 'button'; knopf.className = 'seitenhilfe-knopf'; knopf.dataset.seitenhilfe = '';
-  knopf.innerHTML = '<span aria-hidden="true">?</span> Hilfe zu dieser Seite';
-  main.prepend(knopf);
+  knopf.innerHTML = '<span aria-hidden="true">?</span> Hilfe';
+  knopf.setAttribute('aria-label', 'Hilfe zu dieser Seite');
+  const werkzeuge = document.createElement('div');
+  werkzeuge.className = 'seiten-werkzeuge';
+  const weg = main.querySelector('.wegweiser');
+  if (weg) werkzeuge.append(weg);
+  werkzeuge.append(knopf); main.prepend(werkzeuge);
   const el = (tag, text) => { const e = document.createElement(tag); if (text) e.textContent = text; return e; };
   const button = (text, label, aktion) => {
     const b = el('button', text); b.type = 'button'; if (label) b.setAttribute('aria-label', label);
@@ -108,8 +114,8 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
     const w = viewport?.width || innerWidth; const h = viewport?.height || innerHeight;
     const ox = viewport?.offsetLeft || 0; const oy = viewport?.offsetTop || 0;
     const spot = dialog.querySelector('.seitenhilfe-spot'); const karte = dialog.querySelector('.seitenhilfe-karte');
-    const top = Math.max(oy + 6, rect.top - 5); const left = Math.max(ox + 6, rect.left - 5);
-    Object.assign(spot.style, { left: `${left}px`, top: `${top}px`, width: `${Math.max(0, Math.min(rect.width + 10, ox + w - 6 - left))}px`, height: `${Math.max(0, Math.min(rect.height + 10, oy + h - 6 - top))}px` });
+    const rahmen = tourRahmen(rect, { width: w, height: h, offsetLeft: ox, offsetTop: oy });
+    Object.assign(spot.style, Object.fromEntries(Object.entries(rahmen).map(([key, value]) => [key, `${value}px`])));
     karte.style.maxHeight = `${h - 24}px`;
     const kw = karte.offsetWidth; const kh = karte.offsetHeight;
     let x = ox + w - kw - 12; let y = oy + h - kh - 12;
@@ -150,21 +156,26 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
     const ziel = document.querySelector('#einstellungen-inhalt');
     if (!ziel || !konto) { liste?.remove(); liste = null; return; }
     if (!liste) {
-      liste = el('details'); liste.className = 'einrichtung'; liste.dataset.einrichtung = ''; ziel.append(liste);
+      liste = el('details'); liste.className = 'einrichtung'; liste.dataset.einrichtung = ''; liste.open = true; ziel.append(liste);
     }
     const offen = liste.open; liste.replaceChildren(); liste.open = offen;
     const fertig = EINRICHTUNG.filter(s => stand[s.id] === 'angesehen').length;
     const ausgelassen = EINRICHTUNG.filter(s => stand[s.id] === 'ausgelassen').length;
-    liste.append(el('summary', `Dein Einstieg · ${fertig} von ${EINRICHTUNG.length} angesehen${ausgelassen ? ` · ${ausgelassen} ausgelassen` : ''}`));
-    const info = el('p', 'Freiwillig. Nur in diesem Browser für dein Konto gespeichert. Kein Vereinsnachweis und keine Pflicht zur Push-Erlaubnis.'); info.className = 'seitenhilfe-hinweis'; liste.append(info);
+    const kopf = el('summary');
+    kopf.append(el('strong', 'Dein Einstieg'));
+    const zaehler = el('span', `${fertig} / ${EINRICHTUNG.length}`); zaehler.className = 'einrichtung-zaehler';
+    zaehler.setAttribute('aria-label', `${fertig} von ${EINRICHTUNG.length} angesehen${ausgelassen ? `, ${ausgelassen} ausgelassen` : ''}`);
+    kopf.append(zaehler); liste.append(kopf);
+    const info = el('p', 'Freiwillig · nur für dein Konto in diesem Browser.'); info.className = 'seitenhilfe-hinweis'; liste.append(info);
     const ul = el('ul'); ul.className = 'einrichtung-liste';
     for (const s of EINRICHTUNG) {
       const li = el('li'); const status = stand[s.id];
+      li.className = status === 'angesehen' ? 'einrichtung-erledigt' : status === 'ausgelassen' ? 'einrichtung-ausgelassen' : '';
       li.append(el('strong', `${status === 'angesehen' ? '✓ ' : status === 'ausgelassen' ? '– ' : ''}${s.titel}`), el('p', s.text));
       const aktionen = el('div'); aktionen.className = 'einrichtung-aktionen';
       if (s.tour) aktionen.append(button('Tour starten', null, () => starten('einstieg')));
       else { const a = el('a', 'Öffnen'); a.href = s.href; aktionen.append(a); }
-      for (const [wert, wort] of [['angesehen', 'Für mich erledigt'], ['ausgelassen', 'Auslassen']]) {
+      for (const [wert, wort] of [['angesehen', 'Erledigt'], ['ausgelassen', 'Auslassen']]) {
         const b = button(wort, `${s.titel}: ${wort}`, () => {
           if (stand[s.id] === wert) delete stand[s.id]; else stand[s.id] = wert;
           const gespeichert = speichereFortschritt(local, konto, stand);

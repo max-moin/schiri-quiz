@@ -9,6 +9,7 @@
 
 import { DATENBANK, VEREIN } from "../../verein.config.js";
 import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
+import { markiereTerminPdfs } from "./termin-pdf-markierungen.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
   teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
@@ -229,13 +230,14 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
   // die grosse Karte das, weswegen man die Seite oeffnet - die naechsten
   // Termine -, obwohl man nur selten selbst einen vorschlaegt.
   bereich.innerHTML = `${kopf}
+    ${vergangenHtml}
     ${findungHtml}
     ${kuenftig.length ? kuenftigHtml : '<p class="keine">Zurzeit steht kein Termin an.</p>'}
-    ${vorschlagHtml}
-    ${vergangenHtml}`;
+    ${vorschlagHtml}`;
 
   if (offeneFindungen.length) bindeStimmen();
   if (ich) bindeVorschlag();
+  if (ich) void markiereTerminPdfs(termine, ich, bereich, { person });
 }
 
 function bindeVorschlag() {

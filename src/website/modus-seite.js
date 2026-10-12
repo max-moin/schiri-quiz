@@ -43,6 +43,16 @@ const person = () => anmeldung?.lesen() || null;
 const sicher = (t) => String(t ?? "").replace(/[&<>"']/g,
   (z) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[z]));
 
+function symbol(art) {
+  const pfade = {
+    woche: '<rect x="5" y="3" width="14" height="18" rx="3"/><path d="m8 12 2 2 5-5M8 17h8"/>',
+    ueben: '<path d="M20 7v5h-5M4 17v-5h5"/><path d="M6 7a7 7 0 0 1 12-1l2 3M18 17a7 7 0 0 1-12 1l-2-3"/>',
+    entscheiden: '<path d="M12 21V4M12 12 5 5M12 12l7-7M3 5h4v4M17 5h4v4"/>',
+    duell: '<circle cx="7" cy="8" r="3"/><circle cx="17" cy="8" r="3"/><path d="M1 21v-3a6 6 0 0 1 12 0v3M13 13a6 6 0 0 1 10 5v3"/>',
+  };
+  return `<svg class="modus-symbol" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${pfade[art] || pfade.woche}</svg>`;
+}
+
 // ---------- Kacheln ----------
 
 // Usability-Test Runde 3 (iPhone): Die Testperson tippte in der Kopfleiste
@@ -67,17 +77,12 @@ function wochenKachel({ offen, gesamt, unbekannt }) {
   return `
     <a class="modus-kachel${fertig ? "" : " hervorgehoben"}" href="quiz.html">
       <div class="modus-kopf">
-        <span class="modus-name">Fragen dieser Woche</span>
+        <span class="modus-name">${symbol('woche')}Fragen dieser Woche</span>
         ${unbekannt ? ""
           : fertig
             ? '<span class="modus-pille erledigt">Erledigt</span>'
             : `<span class="modus-pille">${offen} offen</span>`}
       </div>
-      <p class="modus-text">
-        ${fertig
-          ? "Diese Woche hast du alles beantwortet. Nächste Woche gibt es neue."
-          : "Die Pflichtrunde: ein paar Regelfragen, in unter zwei Minuten erledigt."}
-      </p>
       ${unbekannt || gesamt === 0 ? "" : `
         <div class="modus-balken" role="img"
              aria-label="${gesamt - offen} von ${gesamt} beantwortet">
@@ -109,14 +114,11 @@ function entscheidenKachel(statistik, hervorgehoben) {
       <div class="modus-kachel modus-vorbereitung" aria-disabled="true"
            title="Für „Entscheiden“ sind noch keine Szenen freigegeben">
         <div class="modus-kopf">
-          <span class="modus-name">Entscheiden</span>
+          <span class="modus-name">${symbol('entscheiden')}Entscheiden</span>
           <span class="modus-pille vorbereitung">In Vorbereitung</span>
         </div>
-        <p class="modus-text">
-          Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?
-        </p>
         <span class="modus-fuss">
-          Noch keine Szenen freigegeben. Sobald die ersten fertig sind, kannst du hier starten.
+          Noch keine Szenen freigegeben.
         </span>
       </div>`;
   }
@@ -125,11 +127,11 @@ function entscheidenKachel(statistik, hervorgehoben) {
     return `
       <a class="modus-kachel${hervorgehoben ? " hervorgehoben" : ""}" href="entscheiden.html">
         <div class="modus-kopf">
-          <span class="modus-name">Entscheiden</span>
+          <span class="modus-name">${symbol('entscheiden')}Entscheiden</span>
           <span class="modus-pille neu">Neu</span>
         </div>
         <p class="modus-text">
-          Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?
+          Spielfortsetzung und persönliche Strafe.
         </p>
       </a>`;
   }
@@ -139,13 +141,13 @@ function entscheidenKachel(statistik, hervorgehoben) {
   return `
     <a class="modus-kachel${hervorgehoben ? " hervorgehoben" : ""}" href="entscheiden.html">
       <div class="modus-kopf">
-        <span class="modus-name">Entscheiden</span>
+        <span class="modus-name">${symbol('entscheiden')}Entscheiden</span>
         ${Number(serie) > 0
           ? `<span class="modus-pille serie">${serie} in Serie</span>`
           : '<span class="modus-pille neu">Neu</span>'}
       </div>
       <p class="modus-text">
-        Eine Szene, zwei Entscheidungen: Wie geht es weiter, und gibt es eine Karte?
+        Spielfortsetzung und persönliche Strafe.
       </p>
       <span class="modus-fuss">
         ${gesamt > 0
@@ -159,25 +161,22 @@ function duellKachel() {
   return `
     <a class="modus-kachel" href="duell.html">
       <div class="modus-kopf">
-        <span class="modus-name">Quiz-Duell</span>
+        <span class="modus-name">${symbol('duell')}Quiz-Duell</span>
         <span class="modus-pille neu">Neu</span>
       </div>
-      <p class="modus-text">Fünf frühere Wochenfragen. Eröffne eine Runde und lade jemanden per Link ein – oder tritt einer Einladung bei.</p>
-      <span class="modus-fuss">Asynchron · ohne Einfluss aufs Scoreboard</span>
+      <p class="modus-text">Fünf Fragen. Einladen oder mitspielen.</p>
     </a>`;
 }
 
 function uebenKachel(freigeschaltet) {
   return freigeschaltet
     ? `<a class="modus-kachel" href="quiz.html#ueben">
-        <div class="modus-kopf"><span class="modus-name">Üben</span><span class="modus-pille erledigt">Frei</span></div>
-        <p class="modus-text">Alte Wochenfragen wiederholen – ohne Einfluss auf das Scoreboard.</p>
-        <span class="modus-fuss">Deine Wochenrunde ist abgeschlossen</span>
+        <div class="modus-kopf"><span class="modus-name">${symbol('ueben')}Üben</span><span class="modus-pille erledigt">Frei</span></div>
+        <p class="modus-text">Frühere Fragen wiederholen.</p>
       </a>`
     : `<a class="modus-kachel gesperrt" href="quiz.html">
-        <div class="modus-kopf"><span class="modus-name">Üben</span><span class="modus-pille">Noch gesperrt</span></div>
-        <p class="modus-text">Schließe zuerst die Fragen dieser Woche ab. Danach wird der Übungsmodus freigeschaltet.</p>
-        <span class="modus-fuss">Zur offenen Wochenrunde</span>
+        <div class="modus-kopf"><span class="modus-name">${symbol('ueben')}Üben</span><span class="modus-pille">Noch gesperrt</span></div>
+        <p class="modus-text">Zuerst die Wochenfragen abschließen.</p>
       </a>`;
 }
 
@@ -213,22 +212,22 @@ function zeichne({ woche, statistik, angemeldet }) {
     : [gastKachel(), duellKachel()];
 
   bereich.innerHTML = `
-    <h1 class="seiten-titel">Was willst du machen?</h1>
+    <h1 class="seiten-titel">Dein Quiz</h1>
     <p class="seiten-unter">
       ${angemeldet
-        ? `Hallo ${sicher(person()?.name || "")} – such dir aus, womit du anfängst.`
+        ? ""
         : "Wähle das Gastquiz oder tritt mit einem Code einem Duell bei. Deine persönlichen Wochenfragen bleiben geschützt."}
     </p>
     <div class="modus-liste">${kacheln.join("")}</div>
     <p class="modus-nachsatz">
-      Eine Idee für den nächsten Schiri-Treff, eine fertige Quizfrage oder
-      eine Rückmeldung? Das gehört gesammelt zu
-      <a href="melden.html">Ideen &amp; Feedback</a>.
+      <a href="melden.html">Ideen &amp; Feedback</a>
     </p>`;
 
 }
 
+let ladeStand = 0;
 async function starte() {
+  const generation = ++ladeStand;
   const ich = person();
   if (!ich) {
     zeichne({ woche: null, statistik: null, angemeldet: false });
@@ -243,6 +242,7 @@ async function starte() {
     zaehleWoche(ich).catch(() => ({ unbekannt: true, offen: 0, gesamt: 0 })),
     zugriff.statistik(ich).catch(() => null),
   ]);
+  if (generation !== ladeStand || person()?.id !== ich.id) return;
   zeichne({ woche, statistik, angemeldet: true });
 }
 

@@ -129,7 +129,7 @@ export function baueWegweiser(seite, dokument = globalThis.document) {
   const pfad = pfadZu(seite);
   // Auf Ebene eins waere der Pfad neben dem bereits beschrifteten
   // Zurueck-Knopf nur eine Wiederholung. Tiefe Unterseiten behalten ihn.
-  if (pfad.length > 2 && dokument.body?.dataset?.wegweiser !== "kompakt") {
+  if (pfad.length > 2 && dokument.body?.dataset?.wegweiser === "ausfuehrlich") {
     const liste = dokument.createElement("ol");
     liste.className = "wegweiser-pfad";
     pfad.forEach((schritt, i) => {

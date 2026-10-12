@@ -74,6 +74,9 @@ async function protokollLink(req, res) {
     return res.status(403).json({ fehler: "Kein Zugriff auf dieses Protokoll." });
   }
   if (!eintrag?.pfad) return res.status(404).json({ fehler: "Noch kein PDF-Protokoll freigegeben." });
+  // Die Listenmarkierung braucht keinen signierten Link und keinen Storage-Zugriff.
+  // Dieselbe PIN-/Vereins-/Freigabeprüfung wie beim Öffnen bleibt davor bestehen.
+  if (req.body.nurStatus === true) return res.status(200).json({ vorhanden: true });
   try {
     const vorschau = await pdfSignieren(eintrag.pfad);
     const download = new URL(vorschau);

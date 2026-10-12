@@ -34,8 +34,8 @@
 /* Die hervorgehobene Kachel ist die einzige dunkle Flaeche der Seite.
    Genau eine - zwei Hervorhebungen sind keine. */
 .modus-kachel.hervorgehoben {
-  background: linear-gradient(135deg, var(--marke) 0%, var(--marke-dunkel) 100%);
-  border-color: var(--marke-dunkel);
+  background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 100%);
+  border-color: #1d4ed8;
   color: #fff;
 }
 
@@ -80,10 +80,16 @@
 }
 
 .modus-name {
+  display:flex;
+  align-items:center;
+  gap:10px;
   font-family: var(--font-titel);
   font-size: 1.15rem;
   font-weight: 700;
 }
+.modus-symbol { width:26px; height:26px; flex:none; }
+.modus-kopf { flex-wrap:wrap; }
+.modus-kachel .modus-fuss { font-size:.875rem; }
 
 .modus-pille {
   flex: none;

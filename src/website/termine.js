@@ -319,7 +319,7 @@ export function terminKarte(termin, { alsLink = true } = {}) {
     ${stand ? `<span class="tk-stand">${stand}</span>` : ""}`;
 
   if (!alsLink) return `<div class="terminkarte${streifen}${vergangen}">${innen}</div>`;
-  return `<a class="terminkarte${streifen}${vergangen}" href="termine.html?termin=${encodeURIComponent(termin.id)}">${innen}</a>`;
+  return `<a class="terminkarte${streifen}${vergangen}" data-termin-id="${sicher(termin.id)}" href="termine.html?termin=${encodeURIComponent(termin.id)}">${innen}</a>`;
 }
 
 export const STIMMEN = [
