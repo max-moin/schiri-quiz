@@ -1,5 +1,6 @@
 const FESTE_BETREFFE = Object.freeze({
   "quiz.abgeschlossen": "— SR-OBMANN · QUIZ — Quiz abgeschlossen",
+  "geburtstag.heute": "— SR-OBMANN · GEBURTSTAG — Heute Geburtstag",
   "frage_feedback.neu": "— SR-OBMANN · FEEDBACK — Neue Rückmeldung",
   "meldung.regelfall": "— SR-OBMANN · MELDUNG — Neuer Regelfall",
   "meldung.vorfall": "— SR-OBMANN · MELDUNG — Neuer Vorfall",

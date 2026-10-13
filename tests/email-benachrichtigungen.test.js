@@ -69,6 +69,12 @@ test("Betreff ist auffaellig, kurz und ohne unkontrollierte Zeilenumbrueche", ()
   assert.ok(betreffFuer("ausruestung.eingereicht", { anzeigename: "Luca N." }).length < 100);
 });
 
+test("Geburtstagsmail zeigt nur den vorbereiteten Anzeigenamen, keine privaten Zusatzdaten", () => {
+  assert.equal(betreffFuer("geburtstag.heute", {anzeigename:" Test\nT. ",geburtsdatum:"2000-10-15",wird_jahre:26}),
+    "— SR-OBMANN · GEBURTSTAG — Heute Geburtstag: Test T.");
+  assert.equal(betreffFuer("geburtstag.heute"),"— SR-OBMANN · GEBURTSTAG — Heute Geburtstag");
+});
+
 test("E-Mail hat keinen fachlichen Body und keine Zugangsdaten im Repository", () => {
   assert.match(funktion, /text: ""/);
   assert.match(funktion, /<p>&nbsp;<\/p>/);

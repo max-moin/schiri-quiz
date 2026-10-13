@@ -9,6 +9,9 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ fehler: "Nur POST erlaubt" });
   }
+  if (req.body?.aktion === 'obmann_geraete' || req.body?.aktion === 'obmann_test') {
+    return obmannAktion(req, res);
+  }
   const config = vapidKonfiguration();
   if ((process.env.PUSH_TEST_AKTIV !== "true" && process.env.PUSH_DISPATCH_AKTIV !== "true"
       && process.env.PUSH_ANMELDUNG_AKTIV !== "true") || !config
@@ -49,5 +52,41 @@ export default async function handler(req, res) {
   } catch (fehler) {
     console.error("[API] Push-Test fehlgeschlagen", fehler);
     return res.status(503).json({ fehler: "Der Test ist momentan nicht möglich." });
+  }
+}
+
+async function obmannAktion(req,res) {
+  const { passwort, aktion, aboId } = req.body;
+  if (typeof passwort !== 'string' || !passwort || passwort.length>256
+      || (aktion==='obmann_test' && !ID.test(aboId || ''))) {
+    return res.status(400).json({fehler:'Obmann-Anmeldung oder Geräteauswahl ungültig.'});
+  }
+  if (!istSupabaseServerSchluesselKonfiguriert()) return res.status(503).json({fehler:'Verwaltung ist nicht eingerichtet.'});
+  const config = vapidKonfiguration();
+  const bereit = Boolean(config && (process.env.PUSH_TEST_AKTIV==='true'
+    || process.env.PUSH_DISPATCH_AKTIV==='true' || process.env.PUSH_ANMELDUNG_AKTIV==='true'));
+  try {
+    if (aktion==='obmann_geraete') {
+      const geraete = await supabaseRpc('obmann_push_geraete',{p_passwort:passwort});
+      const felder=['schiedsrichter_id','name','abo_id','geraet','gueltig_bis','zuletzt_bestaetigt','letzter_test_am',
+        'empfang_aktiv','quiz_neu','quiz_erinnerung','termine','feedback_antwort'];
+      const sichtbar=Array.isArray(geraete) ? geraete.map(g=>Object.fromEntries(felder.map(f=>[f,g[f]]))) : [];
+      return res.status(200).json({bereit,geraete:sichtbar});
+    }
+    if (!bereit) return res.status(503).json({fehler:'Testversand ist noch nicht eingerichtet.'});
+    const liste = await supabaseRpc('obmann_push_test_abo',{p_passwort:passwort,p_abo_id:aboId});
+    const abo = Array.isArray(liste) ? liste[0] : null;
+    if (!abo || !istPushDienst(abo.endpunkt)) return res.status(404).json({fehler:'Gerät ist nicht verfügbar.'});
+    const result = await schickePush(abo, JSON.stringify({titel:'Kickers · Obmann-Gerätetest',
+      text:'Diese Testmitteilung wurde gezielt an dieses Gerät geschickt.',ziel:'/mitteilungen.html',gruppe:'obmann_geraetetest'}),config);
+    if (result.tot && result.status>0) {
+      await supabaseRpc('push_abo_entfernen',{p_id:abo.id});
+      return res.status(409).json({fehler:'Geräteabo abgelaufen. Der Schiri muss es erneut aktivieren.'});
+    }
+    if (!result.ok) return res.status(503).json({fehler:'Der Push-Dienst hat die Testmitteilung nicht angenommen.'});
+    return res.status(200).json({ok:true});
+  } catch (e) {
+    if (String(e?.message).includes('Bitte warte eine Minute')) return res.status(429).json({fehler:'Bitte eine Minute vor dem nächsten Gerätetest warten.'});
+    return res.status(403).json({fehler:'Kein Zugriff oder Gerät derzeit nicht verfügbar.'});
   }
 }

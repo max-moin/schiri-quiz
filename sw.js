@@ -35,7 +35,7 @@ const STANDARD = {
 };
 
 function sicheresZiel(wert) {
-  if (wert === "/mitteilungen.html") return wert;
+  if (["/mitteilungen.html", "/modus.html", "/termine.html"].includes(wert)) return wert;
   if (typeof wert === "string" && /^\/meine-anliegen\.html#feedback=[0-9a-f-]{36}$/i.test(wert)) return wert;
   return STANDARD.ziel;
 }

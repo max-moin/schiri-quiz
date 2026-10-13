@@ -89,7 +89,14 @@ test("Service Worker oeffnet nur erlaubte Ziele, nie fremde Urspruenge", async (
   const ereignis = (ziel) => ({ data: { json: () => ({ ziel }) }, waitUntil: (p) => p });
   await push(ereignis("//evil.test/"));
   await push(ereignis(`/meine-anliegen.html#feedback=${id}`));
-  assert.deepEqual(angezeigt, ["/", `/meine-anliegen.html#feedback=${id}`]);
+  await push(ereignis('/modus.html'));
+  await push(ereignis('/termine.html'));
+  await push(ereignis('/modus.html?ziel=https://evil.test/'));
+  assert.deepEqual(angezeigt, ["/", `/meine-anliegen.html#feedback=${id}`, '/modus.html', '/termine.html', '/']);
+  let geschlossen=false,wartet;
+  handler.get('notificationclick')({notification:{data:{ziel:'/termine.html'},close(){geschlossen=true}},waitUntil:p=>{wartet=p}});
+  await wartet;
+  assert.equal(geschlossen,true);assert.equal(angezeigt.at(-1),'/termine.html');
 });
 
 test("Abmelden entkoppelt Push vor dem Loeschen der PIN", async () => {

@@ -3389,3 +3389,6 @@ div.pflicht-fehler:not(.zahl-eingabe-zeile) { outline: 2px solid var(--red); out
   box-shadow: none;
 }
 
+/* Kurzer, aufrufbarer Hinweis statt still fehlendem Vorlesen. */
+.vorlesen-button svg { display:block; width:20px; height:20px; }
+.vorlesen-hinweis { font-size:.875rem; line-height:1.5; color:var(--muted); flex-basis:100%; }
