@@ -29,6 +29,31 @@
     return null;
   }
 
+  // Nur offizielle HTTPS-Playeradressen, niemals eingefügtes HTML ausführen.
+  function extrahiereStaigeVideo(eingabe) {
+    try {
+      const url = new URL(eingabe);
+      if (url.protocol !== "https:" || !["staige.tv", "www.staige.tv"].includes(url.hostname)
+          || url.username || url.password || url.port) return null;
+      const treffer = url.pathname.match(/^\/(?:embed\/)?(video|clip)\/([0-9]{1,18})(?:\/(highlight|[0-9]+))?\/?$/);
+      if (!treffer) return null;
+      const highlight = treffer[3] === "highlight";
+      const start = treffer[3] && !highlight ? Number(treffer[3]) : null;
+      if (start !== null && (!Number.isSafeInteger(start) || start > 2147483647)) return null;
+      const pfad = `${treffer[1]}/${treffer[2]}${highlight ? "/highlight" : ""}`;
+      return { id: treffer[2], highlight, start, embedUrl: `https://staige.tv/embed/${pfad}` };
+    } catch { return null; }
+  }
+
+  function staigeEmbedUrl(quelle, startSekunden) {
+    const start = startSekunden === null || startSekunden === undefined || startSekunden === ""
+      ? quelle.start : Number(startSekunden);
+    // Die aktuelle Highlight-Route hat keinen zusätzlichen Zeitparameter.
+    // Eine dort nicht steuerbare Zeit darf nicht still ignoriert werden.
+    if (quelle.highlight) return quelle.embedUrl;
+    return `${quelle.embedUrl}${Number.isSafeInteger(start) && start >= 0 && start <= 2147483647 ? `/${start}` : ""}`;
+  }
+
   function schwierigkeitSterne(schwierigkeit) {
     if (!schwierigkeit) return null;
     return "★".repeat(schwierigkeit) + "☆".repeat(5 - schwierigkeit);
@@ -48,6 +73,8 @@
 
   global.SchiriQuizUtils = Object.freeze({
     extrahiereYoutubeId,
+    extrahiereStaigeVideo,
+    staigeEmbedUrl,
     formatiereAnfrageDatum,
     freitextStatus,
     schwierigkeitSterne,

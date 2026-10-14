@@ -1,7 +1,7 @@
 (function stelleVideoPlayerBereit(global) {
   "use strict";
 
-  const { extrahiereYoutubeId } = global.SchiriQuizUtils;
+  const { extrahiereYoutubeId, extrahiereStaigeVideo, staigeEmbedUrl } = global.SchiriQuizUtils;
 
   let youtubeApiPromise = null;
   function ladeYoutubeApi() {
@@ -152,12 +152,118 @@
 
   let videoInfoZaehler = 0;
 
+  function baueStaigeEinbettungModal(quelle, startSekunden, endSekunden, beschreibung) {
+    const zeit = (wert) => {
+      if (wert === null || wert === undefined || wert === "") return null;
+      const n = Number(wert);
+      return Number.isSafeInteger(n) && n >= 0 && n <= 2147483647 ? n : null;
+    };
+    const start = zeit(startSekunden) ?? quelle.start ?? 0;
+    const ende = zeit(endSekunden);
+    const zeittext = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+    const endhinweis = ende !== null && ende > start
+      ? `Bitte bei ${zeittext(ende)} selbst pausieren; Staige stoppt dort nicht automatisch.`
+      : "Bitte im Staige-Player selbst pausieren; es gibt keinen automatischen Endstopp.";
+    const starthinweis = quelle.highlight && start > 0
+      ? `Gewünschter Start ${zeittext(start)}: in der Highlight-Zusammenfassung bitte selbst ansteuern.`
+      : `Videozeit ab ${zeittext(start)}${quelle.highlight ? " · Highlight-Zusammenfassung" : ""}.`;
+    const wrap = document.createElement("div");
+    wrap.className = "video-einbettung video-einbettung-modal video-staige";
+    const knopf = document.createElement("button");
+    knopf.type = "button";
+    knopf.className = "video-platzhalter";
+    const symbol = document.createElement("span");
+    symbol.className = "video-platzhalter-icon";
+    symbol.textContent = "▶";
+    symbol.setAttribute("aria-hidden", "true");
+    const titel = document.createElement("span");
+    titel.className = "video-platzhalter-text";
+    titel.textContent = "Staige-Video ansehen";
+    const datenschutz = document.createElement("span");
+    datenschutz.className = "video-platzhalter-hinweis";
+    datenschutz.textContent = "Mit dem Klick lädst du den offiziellen Staige-Player. Dabei werden Daten wie deine IP-Adresse an Staige übertragen.";
+    knopf.append(symbol, titel, datenschutz);
+    wrap.appendChild(knopf);
+    const hinweis = document.createElement("p");
+    hinweis.className = "video-staige-hinweis";
+    hinweis.textContent = `${starthinweis} ${endhinweis} Ton im Player bedienen.`;
+    wrap.appendChild(hinweis);
+    if (String(beschreibung || "").trim()) {
+      const details = document.createElement("details");
+      details.className = "video-info-panel";
+      const summary = document.createElement("summary");
+      summary.textContent = "Hilfe zum Video";
+      const p = document.createElement("p");
+      p.textContent = String(beschreibung).trim();
+      details.append(summary, p);
+      wrap.appendChild(details);
+    }
+    knopf.addEventListener("click", () => {
+      let aktiv = true;
+      let ladeTimer;
+      const sitzung = document.createElement("div");
+      sitzung.className = "video-dialog-sitzung video-staige-sitzung";
+      const buehne = document.createElement("div");
+      buehne.className = "video-spieler-buehne";
+      const halter = document.createElement("div");
+      halter.className = "video-spieler-halter";
+      const iframe = document.createElement("iframe");
+      iframe.title = "Staige-Video zur Regelfrage";
+      iframe.allow = "autoplay; encrypted-media";
+      iframe.referrerPolicy = "strict-origin-when-cross-origin";
+      const status = document.createElement("p");
+      status.className = "video-staige-status";
+      status.setAttribute("role", "status");
+      status.textContent = "Staige-Player lädt …";
+      const info = document.createElement("p");
+      info.className = "video-staige-hinweis";
+      info.textContent = `${starthinweis} ${endhinweis} Ton im Staige-Player bedienen.`;
+      const erneut = document.createElement("button");
+      erneut.type = "button";
+      erneut.className = "video-reset-button";
+      erneut.textContent = "↻ Video neu laden";
+      erneut.setAttribute("aria-label", "Staige-Video erneut am vorgesehenen Start laden");
+      function laden() {
+        window.clearTimeout(ladeTimer);
+        status.textContent = "Staige-Player lädt …";
+        iframe.src = staigeEmbedUrl(quelle, start);
+        ladeTimer = window.setTimeout(() => {
+          if (aktiv) status.textContent = "Falls Staige nicht lädt: Video neu laden oder die Großansicht mit X schließen.";
+        }, 15000);
+      }
+      iframe.addEventListener("load", () => {
+        if (!aktiv) return;
+        window.clearTimeout(ladeTimer);
+        status.textContent = "Wiedergabe und Pause im Staige-Player bedienen.";
+      });
+      iframe.addEventListener("error", () => {
+        if (aktiv) status.textContent = "Staige konnte nicht geladen werden. Bitte erneut versuchen.";
+      });
+      erneut.addEventListener("click", laden);
+      halter.appendChild(iframe);
+      buehne.append(halter, erneut, info, status);
+      sitzung.appendChild(buehne);
+      oeffneVideoGrossansicht(sitzung, knopf, {
+        beimSchliessen() {
+          aktiv = false;
+          window.clearTimeout(ladeTimer);
+          iframe.removeAttribute("src");
+          iframe.remove();
+        },
+      });
+      laden();
+    });
+    return wrap;
+  }
+
   // Modal-first-Player (24.08.2026): Der eigentliche YouTube-Player entsteht
   // erst nach dem Klick und direkt in der Großansicht. Die Fragenkarte bleibt
   // eine einfache, robuste Startkarte. Ein optionaler Info-Bereich hält
   // Zeitfenster und Situationsbeschreibung als Fallback bereit, falls die
   // Wiedergabe auf einem Gerät nicht zuverlässig funktioniert.
   function baueVideoEinbettungModal(videoUrl, startSekunden, endSekunden, stumm, fallbackBeschreibung = "") {
+    const staige = typeof extrahiereStaigeVideo === "function" ? extrahiereStaigeVideo(videoUrl) : null;
+    if (staige) return baueStaigeEinbettungModal(staige, startSekunden, endSekunden, fallbackBeschreibung);
     const videoId = extrahiereYoutubeId(videoUrl);
     if (!videoId) return null;
 
