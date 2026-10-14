@@ -13,7 +13,7 @@ let abo = null;
 let ladeNummer = 0;
 let gespeichert = null;
 let speichert = false;
-const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung", "mitteilungen-termine"];
+const auswahlIds = ["mitteilungen-feedback", "mitteilungen-quiz-neu", "mitteilungen-quiz-erinnerung", "mitteilungen-termine", "mitteilungen-ausruestung"];
 
 function hatAuswahl() {
   return auswahlIds.some((id) => $(id).checked);
@@ -21,7 +21,7 @@ function hatAuswahl() {
 
 function leseAuswahl() {
   return { feedback_antwort: $(auswahlIds[0]).checked, quiz_neu: $(auswahlIds[1]).checked,
-    quiz_erinnerung: $(auswahlIds[2]).checked, termine: $(auswahlIds[3]).checked };
+    quiz_erinnerung: $(auswahlIds[2]).checked, termine: $(auswahlIds[3]).checked, ausruestung_status: $(auswahlIds[4]).checked };
 }
 
 function hatAenderungen() {
@@ -194,6 +194,7 @@ async function lade(person) {
     $("mitteilungen-quiz-neu").checked = einstellungen?.quiz_neu === true;
     $("mitteilungen-quiz-erinnerung").checked = einstellungen?.quiz_erinnerung === true;
     $("mitteilungen-termine").checked = einstellungen?.termine === true;
+    $("mitteilungen-ausruestung").checked = einstellungen?.ausruestung_status === true;
     gespeichert = leseAuswahl();
     for (const id of auswahlIds) $(id).disabled = false;
     speicherstand("Deine Auswahl ist gespeichert.");
@@ -225,7 +226,7 @@ async function lade(person) {
   }
 }
 
-// Keine RPC und kein Neuladen beim Anklicken. Die vier Werte werden
+// Keine RPC und kein Neuladen beim Anklicken. Die fünf Werte werden
 // zusammen in EINER Datenbanktransaktion gespeichert.
 for (const id of auswahlIds) $(id)?.addEventListener("change", () => {
   if (!aktuell || !gespeichert) return;
@@ -242,9 +243,9 @@ $("mitteilungen-auswahl-speichern")?.addEventListener("click", async () => {
   zeichneAuswahlBedienung();
   speicherstand("Wird gespeichert …");
   try {
-    await rpc("schiri_push_auswahl_setzen", { ...parameter(person),
+    await rpc("schiri_push_auswahl_v2_setzen", { ...parameter(person),
       p_feedback_antwort: wahl.feedback_antwort, p_quiz_neu: wahl.quiz_neu,
-      p_quiz_erinnerung: wahl.quiz_erinnerung, p_termine: wahl.termine });
+      p_quiz_erinnerung: wahl.quiz_erinnerung, p_termine: wahl.termine, p_ausruestung_status: wahl.ausruestung_status });
     if (nummer !== ladeNummer || anmeldung.lesen()?.id !== person.id) return;
     gespeichert = wahl;
     speicherstand("Deine Auswahl ist gespeichert.", "erfolg");

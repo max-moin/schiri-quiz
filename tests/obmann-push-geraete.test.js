@@ -6,7 +6,7 @@ test('Obmann-Geräteliste schützt Anmeldung und gibt keine Endpunkte/Schlüssel
   const key=process.env.SUPABASE_SECRET_KEY,alt=globalThis.fetch;process.env.SUPABASE_SECRET_KEY='sb_secret_synthetisch';
   try{
     globalThis.fetch=async(url,options)=>{
-      assert.match(url,/rpc\/obmann_push_geraete$/);assert.equal(JSON.parse(options.body).p_passwort,'synthetisch');
+      assert.match(url,/rpc\/obmann_push_geraete_v2$/);assert.equal(JSON.parse(options.body).p_passwort,'synthetisch');
       return new Response(JSON.stringify([{name:'Test',abo_id:'test',endpunkt:'privat',auth:'privat',p256dh:'privat'}]));
     };
     const r=res();await handler({method:'POST',body:{aktion:'obmann_geraete',passwort:'synthetisch'}},r);

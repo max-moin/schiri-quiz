@@ -67,9 +67,9 @@ async function obmannAktion(req,res) {
     || process.env.PUSH_DISPATCH_AKTIV==='true' || process.env.PUSH_ANMELDUNG_AKTIV==='true'));
   try {
     if (aktion==='obmann_geraete') {
-      const geraete = await supabaseRpc('obmann_push_geraete',{p_passwort:passwort});
+      const geraete = await supabaseRpc('obmann_push_geraete_v2',{p_passwort:passwort});
       const felder=['schiedsrichter_id','name','abo_id','geraet','gueltig_bis','zuletzt_bestaetigt','letzter_test_am',
-        'empfang_aktiv','quiz_neu','quiz_erinnerung','termine','feedback_antwort'];
+        'empfang_aktiv','quiz_neu','quiz_erinnerung','termine','feedback_antwort','ausruestung_status'];
       const sichtbar=Array.isArray(geraete) ? geraete.map(g=>Object.fromEntries(felder.map(f=>[f,g[f]]))) : [];
       return res.status(200).json({bereit,geraete:sichtbar});
     }

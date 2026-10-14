@@ -52,6 +52,10 @@ export function nachrichtFuer(typ, meldungId, gruppe) {
       gruppe: String(gruppe || `termin_${meldungId}`).slice(0, 100),
     });
   }
+  if (typ === "ausruestung.status") {
+    return JSON.stringify({titel:"Kickers · Ausrüstungsstatus",text:"Dein Ausrüstungsvorgang hat einen neuen Stand. Die Details findest du unter Meine Anliegen.",
+      ziel:"/meine-anliegen.html",gruppe:String(gruppe || `ausruestung_${meldungId}`).slice(0,100)});
+  }
   if (typ !== "frage_feedback.antwort") return null;
   // Kein Name, Fragentext oder Antwortinhalt auf fremden Sperrbildschirmen.
   return JSON.stringify({

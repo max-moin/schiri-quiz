@@ -44,7 +44,7 @@ export function montierePushSchalter(halter, anmeldung, loginDialog) {
   halter.hidden = false;
   halter.innerHTML = `
     <h2>Benachrichtigungen</h2>
-    <p class="push-erklaerung">Ein kurzer Hinweis, wenn die Fragen der Woche da sind, ein Termin ansteht oder der Obmann auf dein Anliegen geantwortet hat. Mehr nicht – und du kannst es jederzeit wieder abschalten.</p>
+    <p class="push-erklaerung">Freiwillige Hinweise zu Quiz, Terminen, Antworten und deinem Ausrüstungsstatus. Deine Themen wählst du in den Mitteilungseinstellungen; dort kannst du sie jederzeit wieder abschalten.</p>
     <p class="push-stand" data-stand role="status"></p>
     <div class="push-aktion" data-aktion></div>`;
 

@@ -40,7 +40,7 @@ test("Umplanung, Widerruf und geänderte Zusage werden vor Zustellung neu geprü
 
 test("Website, App, Cron und Dispatcher verwenden denselben Schritt", () => {
   assert.match(lies("mitteilungen.html"), /id="mitteilungen-termine"/);
-  assert.match(lies("src/website/mitteilungen-steuerung.js"), /schiri_push_auswahl_setzen/);
+  assert.match(lies("src/website/mitteilungen-steuerung.js"), /schiri_push_auswahl_v2_setzen/);
   assert.match(lies("supabase/functions/obmann-benachrichtigungen/index.ts"), /schiri_push_termine_einreihen/);
   assert.match(lies("api/push-auftraege.js"), /schiri_push_termin_zustellliste/);
   const nachricht = JSON.parse(nachrichtFuer("termin.erinnerung", id, `termin_${id}`));
