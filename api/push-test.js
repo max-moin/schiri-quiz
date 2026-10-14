@@ -1,5 +1,6 @@
 import { istSupabaseServerSchluesselKonfiguriert, sichereApiAntwort, supabaseRpc } from "../server/api-helpers.js";
 import { istPushDienst, schickePush, vapidKonfiguration } from "../server/schiri-push.js";
+import { pruefeGeraetename } from "../src/features/geraetename.js";
 
 const ID = /^[0-9a-f-]{36}$/i;
 
@@ -9,7 +10,7 @@ export default async function handler(req, res) {
     res.setHeader("Allow", "POST");
     return res.status(405).json({ fehler: "Nur POST erlaubt" });
   }
-  if (req.body?.aktion === 'obmann_geraete' || req.body?.aktion === 'obmann_test') {
+  if (['obmann_geraete','obmann_test','obmann_umbenennen'].includes(req.body?.aktion)) {
     return obmannAktion(req, res);
   }
   const config = vapidKonfiguration();
@@ -57,8 +58,10 @@ export default async function handler(req, res) {
 
 async function obmannAktion(req,res) {
   const { passwort, aktion, aboId } = req.body;
+  const name = pruefeGeraetename(req.body?.name);
   if (typeof passwort !== 'string' || !passwort || passwort.length>256
-      || (aktion==='obmann_test' && !ID.test(aboId || ''))) {
+      || (aktion!=='obmann_geraete' && !ID.test(aboId || ''))
+      || (aktion==='obmann_umbenennen' && !name)) {
     return res.status(400).json({fehler:'Obmann-Anmeldung oder Geräteauswahl ungültig.'});
   }
   if (!istSupabaseServerSchluesselKonfiguriert()) return res.status(503).json({fehler:'Verwaltung ist nicht eingerichtet.'});
@@ -66,6 +69,13 @@ async function obmannAktion(req,res) {
   const bereit = Boolean(config && (process.env.PUSH_TEST_AKTIV==='true'
     || process.env.PUSH_DISPATCH_AKTIV==='true' || process.env.PUSH_ANMELDUNG_AKTIV==='true'));
   try {
+    if (aktion==='obmann_umbenennen') {
+      const daten=await supabaseRpc('obmann_push_geraet_umbenennen',{
+        p_passwort:passwort,p_abo_id:aboId,p_name:name,
+      });
+      // Ausschließlich Anzeigename/ID, niemals Endpunkt oder Push-Schlüssel.
+      return res.status(200).json({id:daten.id,geraet:daten.geraet});
+    }
     if (aktion==='obmann_geraete') {
       const geraete = await supabaseRpc('obmann_push_geraete_v2',{p_passwort:passwort});
       const felder=['schiedsrichter_id','name','abo_id','geraet','gueltig_bis','zuletzt_bestaetigt','letzter_test_am',

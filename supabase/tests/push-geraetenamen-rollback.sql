@@ -1,0 +1,60 @@
+begin;
+do $test$
+declare v uuid; f uuid; s uuid; s2 uuid; sf uuid; a uuid; a2 uuid; af uuid;
+  pass text := 'rollback-name-'||gen_random_uuid(); r jsonb; vorher jsonb; nachher jsonb;
+  endpoint text := 'https://web.push.apple.com/rollback-name-'||gen_random_uuid();
+begin
+  insert into public.vereine(name) values('Rollback-Gerätenamen-'||gen_random_uuid()) returning id into v;
+  insert into public.vereine(name) values('Rollback-Gerätenamen-Fremd-'||gen_random_uuid()) returning id into f;
+  insert into public.obmann_zugang(id,passwort,verein_id) select coalesce(max(id),0)+1,pass,v from public.obmann_zugang;
+  insert into public.schiedsrichter(name,pin,verein_id) values('Rollback-Name','synthetisch',v) returning id into s;
+  insert into public.schiedsrichter(name,pin,verein_id) values('Rollback-Name-Zwei','synthetisch',v) returning id into s2;
+  insert into public.schiedsrichter(name,pin,verein_id) values('Rollback-Name-Fremd','synthetisch',f) returning id into sf;
+  insert into public.schiri_push_praeferenzen(schiedsrichter_id,quiz_neu,ausruestung_status) values(s,true,false);
+  perform public.push_abo_speichern(s,'synthetisch',endpoint,repeat('a',30),repeat('b',20),'Mac (App)');
+  select id,to_jsonb(b) into a,vorher from public.push_abos b where b.endpunkt=endpoint;
+  perform public.push_abo_speichern(s2,'synthetisch',endpoint||'-2',repeat('a',30),repeat('b',20),'Anderes Gerät');
+  select id into a2 from public.push_abos where endpunkt=endpoint||'-2';
+  perform public.push_abo_speichern(sf,'synthetisch',endpoint||'-f',repeat('a',30),repeat('b',20),'Fremdes Gerät');
+  select id into af from public.push_abos where endpunkt=endpoint||'-f';
+  r := public.schiri_push_geraet_umbenennen(s,'synthetisch',a,'  Mein iPad  ');
+  if r<>jsonb_build_object('id',a,'geraet','Mein iPad') then raise exception 'Eigene Umbenennung falsch'; end if;
+  select to_jsonb(b) into nachher from public.push_abos b where b.id=a;
+  if vorher-'geraet' <> nachher-'geraet' then raise exception 'Umbenennen änderte Push-Vertrag'; end if;
+  if (public.schiri_push_einstellungen(s,'synthetisch')->'geraete'->0->>'geraet')<>'Mein iPad' then raise exception 'Web-Liste nicht aktualisiert'; end if;
+  if (select geraet from public.obmann_push_geraete_v2(pass) where abo_id=a)<>'Mein iPad' then raise exception 'App-Liste nicht aktualisiert'; end if;
+  begin perform public.schiri_push_geraet_umbenennen(s,'falsch',a,'HACK'); raise exception 'Falsche PIN erlaubt';
+    exception when others then if sqlerrm='Falsche PIN erlaubt' then raise; end if; end;
+  begin perform public.schiri_push_geraet_umbenennen(s,'synthetisch',a2,'HACK'); raise exception 'Andere Person erlaubt';
+    exception when others then if sqlerrm='Andere Person erlaubt' then raise; end if; end;
+  begin perform public.schiri_push_geraet_umbenennen(s,'synthetisch',af,'HACK'); raise exception 'Fremdverein erlaubt';
+    exception when others then if sqlerrm='Fremdverein erlaubt' then raise; end if; end;
+  begin perform public.obmann_push_geraet_umbenennen('falsch',a,'HACK'); raise exception 'Falsches Passwort erlaubt';
+    exception when others then if sqlerrm='Falsches Passwort erlaubt' then raise; end if; end;
+  begin perform public.obmann_push_geraet_umbenennen(pass,af,'HACK'); raise exception 'Obmann Fremdverein erlaubt';
+    exception when others then if sqlerrm='Obmann Fremdverein erlaubt' then raise; end if; end;
+  begin perform public.schiri_push_geraet_umbenennen(s,'synthetisch',a,'   '); raise exception 'Leer erlaubt';
+    exception when others then if sqlerrm='Leer erlaubt' then raise; end if; end;
+  begin perform public.obmann_push_geraet_umbenennen(pass,a,repeat('a',61)); raise exception 'Zu lang erlaubt';
+    exception when others then if sqlerrm='Zu lang erlaubt' then raise; end if; end;
+  begin perform public.schiri_push_geraet_umbenennen(s,'synthetisch',a,E'Mein\nGerät'); raise exception 'Steuerzeichen erlaubt';
+    exception when others then if sqlerrm='Steuerzeichen erlaubt' then raise; end if; end;
+  r := public.obmann_push_geraet_umbenennen(pass,a,'Max iPad');
+  if r->>'geraet'<>'Max iPad' then raise exception 'Obmann Umbenennen falsch'; end if;
+  perform public.push_abo_speichern(s,'synthetisch',endpoint,repeat('c',30),repeat('d',20),'Mac (App)');
+  if (select geraet from public.push_abos where id=a)<>'Max iPad' then raise exception 'Name bei Bestätigung verloren'; end if;
+  perform public.push_abo_speichern(s2,'synthetisch',endpoint,repeat('a',30),repeat('b',20),'Neues Konto');
+  if (select geraet from public.push_abos where id=a)<>'Neues Konto' then raise exception 'Name von anderem Konto übernommen'; end if;
+  perform public.obmann_push_geraet_umbenennen(pass,a,repeat('📱',60));
+  update public.schiedsrichter set aktiv=false where id=s2;
+  begin perform public.obmann_push_geraet_umbenennen(pass,a,'HACK'); raise exception 'Inaktive Person erlaubt';
+    exception when others then if sqlerrm='Inaktive Person erlaubt' then raise; end if; end;
+  if has_function_privilege('anon','public.obmann_push_geraet_umbenennen(text,uuid,text)','execute')
+    or has_function_privilege('authenticated','public.obmann_push_geraet_umbenennen(text,uuid,text)','execute')
+    or has_function_privilege('anon','public.push_geraetename_pruefen(text)','execute') then raise exception 'Private RPC öffentlich'; end if;
+  if not has_function_privilege('service_role','public.obmann_push_geraet_umbenennen(text,uuid,text)','execute')
+    or not has_function_privilege('anon','public.schiri_push_geraet_umbenennen(uuid,text,uuid,text)','execute') then raise exception 'Erforderliches RPC-Recht fehlt'; end if;
+  if not exists(select 1 from public.schiri_push_praeferenzen where schiedsrichter_id=s and quiz_neu and not ausruestung_status) then raise exception 'Opt-in verändert'; end if;
+end $test$;
+select 'Gerätenamen: Besitz/Verein/PIN/Obmann, Validierung, Antwort ohne Schlüssel, unverändertes Abo/Opt-in, Bestätigung/Kontowechsel und Rollen geprüft' as ergebnis;
+rollback;

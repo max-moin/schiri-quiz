@@ -32,6 +32,8 @@
 //  bekommt keinen Service Worker und keine Erlaubnisabfrage.
 // ============================================================
 
+import { pushGeraetebeschreibung } from './geraetename.js';
+
 const SW_PFAD = "/sw.js";
 
 // Base64url aus dem VAPID-Schluessel in das Byte-Feld, das
@@ -56,12 +58,7 @@ function bytesAlsBase64url(puffer) {
 // 200 Zeichen langen Adresse). Bewusst grob: es wird nichts ausgelesen,
 // was ueber die Plattform hinausgeht.
 function geraetebeschreibung() {
-  const ua = navigator.userAgent || "";
-  const art = /iPhone|iPad|iPod/.test(ua) ? "iPhone/iPad"
-    : /Android/.test(ua) ? "Android"
-    : /Macintosh/.test(ua) ? "Mac"
-    : /Windows/.test(ua) ? "Windows" : "Gerät";
-  return `${art}${imAppModus() ? " (App)" : ""}`;
+  return pushGeraetebeschreibung(navigator, imAppModus());
 }
 
 export function imAppModus() {
@@ -70,7 +67,8 @@ export function imAppModus() {
 }
 
 function istApfelGeraet() {
-  return /iPhone|iPad|iPod/.test(navigator.userAgent || "");
+  return /iPhone|iPad|iPod/.test(navigator.userAgent || "")
+    || (/Macintosh/.test(navigator.userAgent || "") && navigator.maxTouchPoints > 1);
 }
 
 // Die eine Funktion, die der Oberflaeche sagt, was ueberhaupt geht -

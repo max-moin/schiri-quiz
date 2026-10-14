@@ -2,6 +2,7 @@ import { DATENBANK } from "../../verein.config.js";
 import { aktuellesAbo, ausschalten, einschalten, lagebericht } from "../features/push-anmeldung.js";
 import { erklaereMitteilungsstatus } from "../features/mitteilungen-status.js";
 import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
+import { baueGeraetenameBearbeitung } from "./geraetename-bearbeitung.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung;
 const $ = (id) => document.getElementById(id);
@@ -103,6 +104,9 @@ function zeichneGeraete() {
     return;
   }
   for (const g of geraete) {
+    const person = aktuell;
+    const nummer = ladeNummer;
+    const istAktuell = () => nummer === ladeNummer && aktuell?.id === person.id && anmeldung.lesen()?.id === person.id;
     const li = document.createElement("li");
     const beschreibung = document.createElement("span");
     const name = document.createElement("strong");
@@ -141,7 +145,21 @@ function zeichneGeraete() {
         entfernen.disabled = false;
       }
     });
-    li.append(beschreibung, entfernen);
+    const umbenennen = baueGeraetenameBearbeitung({
+      geraet: g, istAktuell,
+      speichern: (neuerName) => rpc("schiri_push_geraet_umbenennen", {
+        ...parameter(person), p_abo_id: g.id, p_name: neuerName,
+      }),
+      umbenannt: (neuerName) => {
+        name.textContent = neuerName;
+        entfernen.setAttribute("aria-label", `${neuerName} entfernen`);
+        $("mitteilungen-abo-stand").textContent = "Gerätename gespeichert.";
+      },
+    });
+    const aktionen = document.createElement("div");
+    aktionen.className = "mitteilungen-geraete-aktionen";
+    aktionen.append(umbenennen.knopf, entfernen);
+    li.append(beschreibung, aktionen, umbenennen.formular);
     liste.append(li);
   }
 }

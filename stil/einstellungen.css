@@ -52,11 +52,18 @@
 .mitteilungen-aktionen button:disabled,.mitteilungen-geraete button:disabled { opacity: .6; cursor: wait; }
 .mitteilungen-kleindruck { color: var(--muted); font-size: .83rem; }
 .mitteilungen-geraete { list-style: none; margin: 12px 0 0; padding: 0; }
-.mitteilungen-geraete li { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 60px; padding: 10px 0; border-top: 1px solid var(--border); }
+.mitteilungen-geraete li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; min-height: 60px; padding: 10px 0; border-top: 1px solid var(--border); }
 .mitteilungen-geraete li > span { min-width: 0; overflow-wrap: anywhere; }
 .mitteilungen-geraete li > button { flex: none; }
 .mitteilungen-geraete small { display: block; margin-top: 3px; color: var(--muted); }
 .mitteilungen-geraete .ist-aktuell { color: var(--marke); font-weight: 700; }
+.mitteilungen-geraete-aktionen { display: flex; flex-wrap: wrap; gap: 8px; }
+.mitteilungen-geraetename { flex: 0 0 100%; min-width: 0; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+.mitteilungen-geraetename label { display: block; margin-bottom: 8px; font-weight: 700; }
+.mitteilungen-geraetename input { box-sizing: border-box; width: 100%; min-height: 44px; border: 1px solid var(--muted); border-radius: 8px; padding: 10px; background: var(--card); color: var(--text); font: inherit; }
+.mitteilungen-geraetename p { margin: 10px 0 0; color: var(--text); line-height: 1.5; }
+.mitteilungen-geraete :is(button,input):focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.mitteilungen-geraetename input[aria-invalid="true"] { border: 2px solid #b91c1c; }
 .mitteilungen-hinweis[data-zustand="fehler"],#mitteilungen-terminstand[data-zustand="fehler"] { color: var(--danger, #b91c1c); }
 .mitteilungen-hinweis[data-zustand="erfolg"] { color: var(--marke); }
 .mitteilungen-terminliste li { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
