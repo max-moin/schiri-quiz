@@ -109,28 +109,50 @@ async function zeigePdfProtokoll(terminId, ich) {
 // Eine Terminantwort veraendert den verbindlichen Stand. Vor dem Senden
 // steht deshalb noch einmal klar da, was gespeichert wird. Das Dialog-
 // Element bleibt auf der aktuellen Seite und ist auch per Escape schliessbar.
-function bestaetigeTerminantwort({ titel, text, bestaetigen }) {
+function bestaetigeTerminantwort({ titel, text, bestaetigen, begruendung = false, vorbelegung = "" }) {
+  if (document.querySelector('.termin-bestaetigung[open]')) return Promise.resolve(false);
   return new Promise((resolve) => {
+    const vorher = document.activeElement;
     const dialog = document.createElement("dialog");
     dialog.className = "termin-dialog termin-bestaetigung";
-    dialog.innerHTML = `<div class="dialog-kopf"><h2>${sicher(titel)}</h2><button type="button" class="dialog-schliessen" aria-label="Schließen">×</button></div>
+    dialog.setAttribute('aria-labelledby', 'termin-antwort-titel');
+    dialog.innerHTML = `<form class="termin-vorschlag-form"><div class="dialog-kopf"><h2 id="termin-antwort-titel">${sicher(titel)}</h2><button type="button" class="dialog-schliessen" aria-label="Schließen">×</button></div>
       <p>${sicher(text)}</p>
+      ${begruendung ? `<label>Warum bist du noch unsicher?<textarea data-unsicher-grund rows="3" maxlength="300" required aria-describedby="termin-antwort-fehler">${sicher(vorbelegung)}</textarea></label>
+        <p id="termin-antwort-fehler" class="td-meldung" data-art="fehler" role="alert" hidden></p>` : ''}
       <div class="td-knopfpaar">
         <button type="button" class="td-knopf" data-nein>Zurück</button>
         <button type="button" class="td-senden" data-ja>${sicher(bestaetigen)}</button>
-      </div>`;
+      </div></form>`;
     document.body.append(dialog);
     const fertig = (wert) => {
       if (dialog.open) dialog.close();
       dialog.remove();
+      vorher?.focus?.({ preventScroll: true });
       resolve(wert);
     };
     dialog.querySelector(".dialog-schliessen").addEventListener("click", () => fertig(false));
     dialog.querySelector("[data-nein]").addEventListener("click", () => fertig(false));
-    dialog.querySelector("[data-ja]").addEventListener("click", () => fertig(true));
+    const bestaetige = () => {
+      if (!begruendung) { fertig(true); return; }
+      const feld = dialog.querySelector('[data-unsicher-grund]');
+      const grund = feld.value.trim();
+      if (!grund || grund.length > 300) {
+        const fehler = dialog.querySelector('#termin-antwort-fehler');
+        fehler.hidden = false; fehler.textContent = 'Bitte begründe kurz, warum du noch unsicher bist (maximal 300 Zeichen).';
+        feld.setAttribute('aria-invalid', 'true'); feld.focus(); return;
+      }
+      fertig(grund);
+    };
+    dialog.querySelector("[data-ja]").addEventListener("click", bestaetige);
+    dialog.querySelector('form').addEventListener('submit', e => { e.preventDefault(); bestaetige(); });
     dialog.addEventListener("cancel", (event) => { event.preventDefault(); fertig(false); });
-    dialog.addEventListener("click", (event) => { if (event.target === dialog) fertig(false); });
+    dialog.addEventListener("click", event => {
+      const r = dialog.getBoundingClientRect();
+      if (event.target === dialog && (event.clientX < r.left || event.clientX > r.right || event.clientY < r.top || event.clientY > r.bottom)) fertig(false);
+    });
     dialog.showModal();
+    dialog.querySelector('.dialog-schliessen').focus();
   });
 }
 
@@ -373,6 +395,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
   } else {
     const jaAn = termin.mein_status === "zu" ? " an" : "";
     const neinAn = termin.mein_status === "ab" ? " an" : "";
+    const unsicherAn = termin.mein_status === "unsicher" ? " an" : "";
     // Nach der Rueckmeldefrist nimmt der Server keine neue Zusage mehr an;
     // absagen geht bis zum Beginn. Der Knopf verschwindet nicht
     // kommentarlos, sondern bleibt mit Begruendung sichtbar.
@@ -380,10 +403,12 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
     antwort = `
       <p class="td-frage">Bist du dabei?</p>
       <p class="td-frist-hinweis" data-frist-hinweis ${zusageZu ? "" : "hidden"}>Die Rückmeldefrist ist abgelaufen. Absagen geht weiterhin; für eine Zusage sprich bitte direkt den Obmann an.</p>
-      <div class="td-knopfpaar">
-        <button type="button" class="td-knopf ja${jaAn}" data-status="zu"${zusageZu ? " disabled" : ""}>Ja, ich komme</button>
-        <button type="button" class="td-knopf nein${neinAn}" data-status="ab">Kann nicht</button>
+      <div class="td-antwortwahl" role="group" aria-label="Deine Teilnahme">
+        <button type="button" class="td-knopf ja${jaAn}" data-status="zu" aria-pressed="${termin.mein_status === 'zu'}"${zusageZu ? " disabled" : ""}><span aria-hidden="true" class="td-antworticon">${antwortIcon('zu')}</span><span>Ja, ich komme</span></button>
+        <button type="button" class="td-knopf unsicher${unsicherAn}" data-status="unsicher" aria-pressed="${termin.mein_status === 'unsicher'}"><span aria-hidden="true" class="td-antworticon">?</span><span>Unsicher</span></button>
+        <button type="button" class="td-knopf nein${neinAn}" data-status="ab" aria-pressed="${termin.mein_status === 'ab'}"><span aria-hidden="true" class="td-antworticon">${antwortIcon('ab')}</span><span>Kann nicht</span></button>
       </div>
+      <p class="td-eigene-begruendung" data-eigene-begruendung ${termin.mein_status === 'unsicher' ? '' : 'hidden'}>Deine Begründung: ${sicher(termin.mein_kommentar || '')}</p>
       <div class="td-grundbox" data-grundbox ${termin.mein_status === "ab" ? "" : "hidden"}>
         <p class="td-grundtitel">Warum nicht?</p>
         <div class="td-gruende">
@@ -485,8 +510,8 @@ function bindeAntwort(termin) {
       // Den lokalen Stand mitziehen, damit ein zweiter Klick nicht mit
       // veralteten Werten arbeitet.
       termin.mein_status = status;
-      termin.mein_grund = status === "ab" ? grund : null;
-      termin.mein_kommentar = status === "ab" ? kommentar : null;
+      termin.mein_grund = status !== "zu" ? grund : null;
+      termin.mein_kommentar = status !== "zu" ? kommentar : null;
       // Wer nach der Frist absagt, kann nicht mehr selbst zusagen - genau
       // wie der Server es sieht.
       if (termin.rueckmeldefrist_abgelaufen === true && status === "ab") termin.zusage_moeglich = false;
@@ -506,6 +531,19 @@ function bindeAntwort(termin) {
   bereich.querySelectorAll("[data-status]").forEach((knopf) => {
     knopf.addEventListener("click", async () => {
       const status = knopf.dataset.status;
+      if (status === 'unsicher') {
+        grundbox.hidden = true;
+        const grund = await bestaetigeTerminantwort({
+          titel: 'Noch unsicher?', text: `Du bist bei „${termin.titel}“ noch nicht sicher dabei. Das zählt nicht als Zusage.`,
+          bestaetigen: 'Unsicher speichern', begruendung: true,
+          vorbelegung: termin.mein_status === 'unsicher' ? termin.mein_kommentar || '' : '',
+        });
+        if (!grund) return;
+        if (await sende('unsicher', 'sonstiges', grund)) {
+          markiereKnoepfe('unsicher'); zeige('Unsicher mit Begründung gespeichert.', 'erfolg');
+        }
+        return;
+      }
       if (status === "ab") {
         // Erst den Grund fragen, dann senden. Eine Absage ohne Grund
         // wuerde die Datenbank ohnehin ablehnen (Regel aus v90) - besser,
@@ -555,9 +593,18 @@ function bindeAntwort(termin) {
   });
 
   function markiereKnoepfe(status) {
-    bereich.querySelectorAll("[data-status]").forEach((k) =>
-      k.classList.toggle("an", k.dataset.status === status));
+    bereich.querySelectorAll("[data-status]").forEach(k => {
+      k.classList.toggle('an', k.dataset.status === status);
+      k.setAttribute('aria-pressed', String(k.dataset.status === status));
+    });
+    const begruendung = bereich.querySelector('[data-eigene-begruendung]');
+    if (begruendung) { begruendung.hidden = status !== 'unsicher'; begruendung.textContent = `Deine Begründung: ${termin.mein_kommentar || ''}`; }
   }
+}
+
+function antwortIcon(status) {
+  const pfad = 'M7 10v11H3V10h4Zm0 0 4-8 2 1v6h6a2 2 0 0 1 2 2l-2 8a2 2 0 0 1-2 2H7';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" ${status === 'ab' ? 'style="transform:rotate(180deg)"' : ''}><path d="${pfad}"/></svg>`;
 }
 
 // ---------- Start ----------

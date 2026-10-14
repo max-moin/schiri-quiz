@@ -298,6 +298,7 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   if (termin.rueckmeldung_erforderlich === true) {
     if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
     else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
+    else if (termin.mein_status === "unsicher") stand = '<span class="wortmarke gelb">Noch unsicher</span>';
     // Seit 25.09.2026 liefert die personalisierte Sicht, ob eine Antwort
     // ueberhaupt noch geht. Nur dann ist "Noch keine Rückmeldung" eine
     // Aufforderung - sonst waere es ein Vorwurf ohne Handlungsmoeglichkeit.

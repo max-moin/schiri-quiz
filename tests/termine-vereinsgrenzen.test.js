@@ -51,6 +51,25 @@ test('anderer Verein sieht öffentliche Termine auch in der Liste', async () => 
   assert.match(html, /1 Termin wartet/); // nur eigener Termin, nicht der öffentliche
 });
 
+test('Unsicher ist ein eigener Antwortweg mit eigenem Auswahlzustand', async () => {
+  const { html } = await seite({ id: 'intern', eigene: [{ ...intern, mein_status: 'unsicher', mein_kommentar: 'Dienstplan offen' }] });
+  assert.match(html, /data-status="unsicher" aria-pressed="true"/);
+  assert.match(html, /Deine Begründung: Dienstplan offen/);
+  assert.match(html, /data-status="zu"/);
+  assert.match(html, /data-status="ab"/);
+});
+
+test('Terminliste zeigt Unsicher, aber niemals die private Begründung', () => {
+  const html = termine.terminKarte({ ...intern, mein_status: 'unsicher', mein_kommentar: 'Privater Testgrund' });
+  assert.match(html, /Noch unsicher/);
+  assert.doesNotMatch(html, /Privater Testgrund|Du bist dabei|>Abgesagt</);
+});
+
+test('Infotermine bieten auch den neuen Unsicher-Weg nicht an', async () => {
+  const { html } = await seite({ id: 'info', eigene: [information] });
+  assert.doesNotMatch(html, /data-status="unsicher"/);
+});
+
 test('fremder öffentlicher Detailtermin erlaubt die eigene Antwort, aber lädt keine Teilnehmernamen', async () => {
   const personalisiert = { ...oeffentlich, eigener_verein: false, mein_status: null };
   const { html, aufrufe } = await seite({ id: 'public', eigene: [intern, personalisiert] });
