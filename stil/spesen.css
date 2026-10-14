@@ -415,3 +415,6 @@
   }
   .q-eingabe.geaendert { background: transparent; }
 }
+.spesen-werkzeuge { display:flex; flex-wrap:wrap; gap:.75rem; margin:1.25rem 0; }
+.spesen-werkzeuge button { min-height:44px; cursor:pointer; }
+.spesen-werkzeuge button[aria-pressed="false"] { background:white; color:#1f2937; border:1px solid #64748b; }

@@ -77,9 +77,8 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
   let preise = [];
   let buendel = [];
   let buendelNachPosition = new Map();
-  // Der frisch erzeugte Token steht genau einmal zur Verfügung. Er wird
-  // deshalb hier gehalten, bis die Ansicht neu gebaut wird - danach ist
-  // er weg, auch für uns.
+  // Ein Token bleibt nur nach ausdrücklichem Erzeugen/Aufrufen im Speicher
+  // dieser Ansicht; kein LocalStorage und kein automatisches Entschlüsseln.
   let neuerLink = null;
 
   async function laden() {
@@ -160,7 +159,7 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
           </div>`}</td>
         <td>${l.widerrufen_am ? "widerrufen" : abgelaufen ? "abgelaufen"
           : dauerhaft ? "dauerhaft · bis zum Widerruf" : `gültig bis ${datum(l.gueltig_bis)}`}</td>
-        <td class="admin-tat">${tot ? "" : `<button type="button" class="knopf" data-link-widerrufen>Widerrufen</button>`}</td>
+        <td class="admin-tat">${tot ? "" : `<button type="button" class="knopf" data-link-aufrufen>Link erneut aufrufen</button><button type="button" class="knopf" data-link-widerrufen>Widerrufen</button>`}</td>
       </tr>`;
   }
 
@@ -210,8 +209,9 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
           <div class="admin-breit"><button type="button" class="knopf knopf-primaer" data-dauer-erstellen>
             Persönlichen Dauerzugang erzeugen</button></div>
           ${neuerLink ? `<div class="admin-breit admin-token">
-            <b>Diesen Link jetzt weitergeben – er wird nicht noch einmal angezeigt:</b>
+            <b>Nur an die verantwortliche Person weitergeben. Neue Links lassen sich später erneut aufrufen:</b>
             <code>${sicher(neuerLink)}</code>
+            <button type="button" class="knopf" data-link-kopieren>Link kopieren</button>
           </div>` : ""}
         </div>
         <details class="admin-aufklapper">
@@ -340,6 +340,16 @@ export function erstelleFreigabeEditor({ wurzel, client, verein }) {
       druckeListe(wurzel.querySelector("[data-druckblatt]"), anfragen, verein?.name || "");
     });
 
+    inhalt.querySelector('[data-link-kopieren]')?.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(neuerLink); setzeStatus(wurzel, 'Link kopiert.', 'erfolg'); }
+      catch { setzeStatus(wurzel, 'Bitte den angezeigten Link markieren und manuell kopieren.'); }
+    });
+    inhalt.querySelectorAll('[data-link-aufrufen]').forEach(knopf => {
+      knopf.addEventListener('click', () => mit('Link wird sicher abgerufen …', async () => {
+        const token = await rufe('obmann_freigabe_link_abrufen', { p_id: knopf.closest('tr').dataset.id });
+        neuerLink = `${location.origin}/freigabe.html?code=${encodeURIComponent(token)}`;
+      }));
+    });
     inhalt.querySelectorAll("[data-link-widerrufen]").forEach((knopf) => {
       knopf.addEventListener("click", () => {
         const zeile = knopf.closest("tr");

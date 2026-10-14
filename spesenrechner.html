@@ -63,6 +63,16 @@
   <main class="inhalt" id="inhalt" tabindex="-1" data-funktionsinhalt="spesen" hidden>
     <h1 class="seiten-titel" data-text="spesen.titel">Spesenrechner</h1>
     <p class="seiten-unter" data-text="spesen.unter">Oben in zwei Klicks, darunter ganz genau. Jeden Betrag in der Quittung kannst du von Hand überschreiben.</p>
+    <nav class="spesen-werkzeuge" aria-label="Spesenbereich">
+      <button class="knopf-haupt" type="button" id="spesenUebersichtKnopf" aria-pressed="true" aria-controls="spesenUebersicht">Übersicht</button>
+      <button class="knopf-haupt" type="button" id="spesenAbrechnungKnopf" aria-pressed="false" aria-controls="spesenWerkzeug">Abrechnung erstellen</button>
+    </nav>
+    <section id="spesenUebersicht" aria-labelledby="spesenUebersichtTitel">
+      <h2 id="spesenUebersichtTitel">Spesen auf einen Blick</h2>
+      <p>Hier kannst du die hinterlegten Sätze nachschlagen. Für eine konkrete Berechnung öffne „Abrechnung erstellen“. Maßgeblich bleiben die aktuellen Vorgaben des zuständigen Verbandes.</p>
+      <div class="satz-uebersicht" id="satzUebersicht"></div>
+    </section>
+    <div id="spesenWerkzeug" hidden>
 
     <!-- Schnellrechner (26.09.2026). Max: "dass man da einfach nur eine
          Uebersicht bekommt, also direkt den Rechner." Die meisten wollen
@@ -98,9 +108,8 @@
       <p class="schnell-annahme" id="schnellAnnahme"></p>
       <div class="schnell-links">
         <a class="schnell-link" href="#rechnerGenau">Pokal, Assistenten, Anreise oder Ausfall einstellen</a>
-        <button type="button" class="schnell-link" id="satzKnopf" aria-expanded="false" aria-controls="satzUebersicht">Alle Sätze auf einen Blick</button>
+        <button type="button" class="schnell-link" id="satzKnopf" aria-expanded="true" aria-controls="satzUebersicht" hidden>Alle Sätze auf einen Blick</button>
       </div>
-      <div class="satz-uebersicht" id="satzUebersicht" hidden></div>
     </section>
 
     <h2 class="genau-titel" id="rechnerGenau" tabindex="-1">Genau rechnen</h2>
@@ -349,6 +358,7 @@
            weil er "nur" gescrollt hat. Er sagt jetzt, was er tut; gedruckt
            wird mit dem Knopf unten in der Quittung. -->
       <a class="el-sprung" href="#quittung">Nach unten zur Quittung</a>
+    </div>
     </div>
   </main>
 
@@ -1202,6 +1212,16 @@
       ziel.appendChild(fuss);
     }
 
+    baueSatzUebersicht();
+    function zeigeSpesenWerkzeug(werkzeug) {
+      $("spesenWerkzeug").hidden = !werkzeug;
+      $("spesenUebersicht").hidden = werkzeug;
+      $("spesenUebersichtKnopf").setAttribute("aria-pressed", String(!werkzeug));
+      $("spesenAbrechnungKnopf").setAttribute("aria-pressed", String(werkzeug));
+    }
+    $("spesenUebersichtKnopf").addEventListener("click", () => zeigeSpesenWerkzeug(false));
+    $("spesenAbrechnungKnopf").addEventListener("click", () => zeigeSpesenWerkzeug(true));
+    if (["#abrechnung", "#rechnerGenau", "#quittung"].includes(location.hash)) zeigeSpesenWerkzeug(true);
     $("satzKnopf").addEventListener("click", () => {
       const ziel = $("satzUebersicht");
       if (ziel.hidden) baueSatzUebersicht();
