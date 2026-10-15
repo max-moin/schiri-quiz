@@ -112,6 +112,8 @@ body.video-dialog-offen { overflow: hidden; }
 .video-staige-sitzung .video-spieler-halter { min-height: 0; }
 .video-staige-sitzung .video-reset-button { align-self: flex-start; color: #fff; border-color: #cbd5e1; background: #1e293b; }
 .video-staige-sitzung .video-reset-button:focus-visible { outline: 3px solid #facc15; outline-offset: 3px; }
+.video-staige-direkt { display: inline-flex; align-items: center; align-self: flex-start; min-height: 44px; color: var(--blue, #1d4ed8); text-underline-offset: 3px; }
+.video-staige-sitzung .video-staige-direkt { color: #bfdbfe; }
 .video-staige .video-info-panel summary { min-height: 44px; display: flex; align-items: center; cursor: pointer; }
 @media (orientation: landscape) and (max-height: 560px) {
   .video-gross-spieler-halter:has(.video-staige-sitzung) { width: calc(100vw - 24px); margin: 56px 12px 12px; overflow-y: auto; max-height: calc(100dvh - 68px); }

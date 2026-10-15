@@ -73,6 +73,21 @@ test("Highlight-Startbeschränkung und manuelles Ende werden nicht versteckt", (
   assert.match(karte.children[1].textContent, /1:30.*selbst ansteuern/);
   assert.match(karte.children[1].textContent, /1:50.*selbst pausieren/);
 });
+test("tatsächlich gespeicherte Dobritz-Frage rendert Zeitfenster und direkten Staige-Zugang", () => {
+  const u = playerUmgebung();
+  const karte = u.bauen("https://staige.tv/embed/video/566569", 1941, 2061, false);
+  assert.match(karte.children[1].textContent, /32:21 bis 34:21/);
+  const link = finden(karte, "a");
+  assert.equal(link.href, "https://staige.tv/embed/video/566569/1941");
+  assert.equal(link.rel, "noopener noreferrer");
+  finden(karte, "button").click();
+  assert.equal(u.netz[0], "https://staige.tv/embed/video/566569/1941");
+});
+test("nicht erkannte Video-Adresse verschwindet nicht mehr lautlos", () => {
+  const u = playerUmgebung();
+  assert.match(u.bauen("https://example.invalid/123", 0, null, false).textContent, /Video konnte nicht erkannt/);
+  assert.equal(u.bauen(null, null, null, false), null);
+});
 test("Escape und Wechsel zu anderem Video beenden die alte Staige-Sitzung", () => {
   const u = playerUmgebung();
   const a = u.bauen("https://staige.tv/video/566569", 0, null, false);

@@ -733,8 +733,9 @@ button {
    app.js). */
 .vorlesen-button {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
   border: none;
   border-radius: 50%;
   background: var(--green-light);
@@ -3390,5 +3391,6 @@ div.pflicht-fehler:not(.zahl-eingabe-zeile) { outline: 2px solid var(--red); out
 }
 
 /* Kurzer, aufrufbarer Hinweis statt still fehlendem Vorlesen. */
-.vorlesen-button svg { display:block; width:20px; height:20px; }
+.vorlesen-button svg { display:block; width:26px; height:26px; flex:0 0 26px; }
+.vorlesen-button:focus-visible { outline:3px solid var(--green-dark); outline-offset:3px; }
 .vorlesen-hinweis { font-size:.875rem; line-height:1.5; color:var(--muted); flex-basis:100%; }

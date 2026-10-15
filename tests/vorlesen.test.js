@@ -17,6 +17,13 @@ test('Fehlende Browser-TTS lässt Lautsprecher und verständlichen Hinweis stehe
   const s=setup(false),b=s.api.baueVorlesenButton('Testfrage');
   assert.match(b.innerHTML,/<svg/);click(b);assert.match(b.hinweis.textContent,/unterstützt.*nicht/);
 });
+test('Vorlesesymbol hat eigene feste Größe und wird nicht vom Button-Padding zusammengedrückt',()=>{
+  const b=setup().api.baueVorlesenButton('Testfrage');
+  assert.match(b.innerHTML,/width="26" height="26"/);
+  const css=readFileSync(new URL('../style.css',import.meta.url),'utf8');
+  assert.match(css,/\.vorlesen-button\s*\{[^}]*padding:\s*0;/);
+  assert.match(css,/\.vorlesen-button svg\s*\{[^}]*flex:\s*0 0 26px/);
+});
 test('Vorlesen startet nur beim Tippen und wählt eine deutsche lokale Stimme',()=>{
   const s=setup(),b=s.api.baueVorlesenButton('Testfrage');assert.equal(s.ansagen.length,0);
   click(b);assert.equal(s.ansagen.length,1);assert.equal(s.ansagen[0].voice.name,'Test');
