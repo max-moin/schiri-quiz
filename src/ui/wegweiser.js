@@ -48,8 +48,8 @@ export const BAUM = Object.freeze({
 
   // Ebene 2: was unter einem Reiter haengt.
   "installieren.html": { titel: "App installieren", eltern: "hilfe.html" },
-  "rote-karte.html": { titel: "Rote Karte & Sonderbericht", eltern: "hilfe.html", zwischen: "DFBnet" },
-  "spielbericht.html": { titel: "Spielbericht Schritt für Schritt", eltern: "hilfe.html", zwischen: "DFBnet" },
+  "rote-karte.html": { titel: "Rote Karte & Sonderbericht", eltern: "dfbnet.html" },
+  "spielbericht.html": { titel: "Spielbericht Schritt für Schritt", eltern: "dfbnet.html" },
   "dfbnet.html": { titel: "DFBnet-Hilfe", eltern: "hilfe.html" },
   "sperrtermine.html": { titel: "Sperrtermine & Verfügbarkeit", eltern: "dfbnet.html" },
   "schiri-beobachtung.html": { titel: "Schiri-Beobachtung", eltern: "dfbnet.html" },

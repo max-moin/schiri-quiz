@@ -10,8 +10,8 @@ export function erkenneGeraet({ userAgent = '', maxTouchPoints = 0 } = {}) {
 export function installationsweg(system, browser) {
   if (system === 'ios') return { titel: 'iPhone oder iPad · Safari', schritte: [
     browser === 'safari' ? 'Öffne die Website in Safari.' : 'Öffne diese Website in Safari. Kopiere bei Bedarf die Adresse aus deinem jetzigen Browser.',
-    'Tippe auf Teilen: das Rechteck mit dem Pfeil nach oben.',
-    'Wähle „Zum Home-Bildschirm“. Fehlt der Eintrag, prüfe „Aktionen bearbeiten“.',
+    'Tippe auf Teilen. Je nach Safari-Ansicht findest du die Taste oben, unten oder im Seitenmenü.',
+    'Scrolle in der Liste nach unten zu „Zum Home-Bildschirm“ bzw. „Zu Home-Bildschirm hinzufügen“. Fehlt der Eintrag: ganz unten „Aktionen bearbeiten“ wählen und ihn ergänzen.',
     'Aktiviere „Als Web-App öffnen“, falls angeboten, und bestätige „Hinzufügen“.',
   ], hinweis: 'Für iPhone-Push öffnest du danach die installierte Website über das Kickers-Wappen.' };
   if (system === 'android') {

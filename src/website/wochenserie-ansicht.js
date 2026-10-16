@@ -8,7 +8,9 @@ export function zeichneWochenserie(ziel,basis) {
   const s=berechneWochenserie(basis), doc=ziel.ownerDocument;
   const kopf=element(doc,'div','serie-kopf');
   const titel=element(doc,'div','');
-  titel.append(element(doc,'h2','', 'Deine Wochenserie'),element(doc,'p','serie-privat','Nur für dich · keine Rangliste'));
+  const ueberschrift=element(doc,'h2','serie-ueberschrift');
+  const flamme=element(doc,'span',s.serie>0?'serie-flamme aktiv':'serie-flamme','🔥');flamme.setAttribute('aria-hidden','true');ueberschrift.append(flamme,element(doc,'span','','Deine Wochenserie'));
+  titel.append(ueberschrift,element(doc,'p','serie-privat','Nur für dich · keine Rangliste'));
   const neu=element(doc,'button','serie-neuladen','Aktualisieren'); neu.type='button'; neu.dataset.serieNeuladen='';
   kopf.append(titel,neu);
   const zahlen=element(doc,'div','serie-zahlen');
@@ -22,9 +24,9 @@ export function zeichneWochenserie(ziel,basis) {
   const teile=[kopf,zahlen,stand];
   const joker=Array.isArray(basis.joker)?basis.joker:[];
   const geschenk=element(doc,'div','serie-rettung');
-  geschenk.append(element(doc,'h3','','Dein Geburtstagsjoker'),element(doc,'p','',joker.length
-    ? `Du hast ${joker.length} Joker. Er rettet eine verpasste Quizwoche innerhalb der normalen siebentägigen Rettungsfrist – ohne Antworten oder Punkte zu verändern. Gültig bis ${new Intl.DateTimeFormat('de-DE').format(new Date(joker[0].gueltig_bis+'T12:00:00'))}.`
-    : 'Zum Geburtstag erhältst du einen privaten Serienjoker, sofern dein Geburtsdatum hinterlegt ist. Er gilt ein Jahr. Aktuell ist keiner verfügbar.'));
+  geschenk.append(element(doc,'h3','','Deine Joker'),element(doc,'p','',joker.length
+    ? `${joker.length} verfügbar · Rette eine verpasste Woche. Gültig bis ${new Intl.DateTimeFormat('de-DE').format(new Date(joker[0].gueltig_bis+'T12:00:00'))}.`
+    : 'Aktuell kein Joker verfügbar.'));
   teile.push(geschenk);
   for (const r of s.rettungen) {
     const k=element(doc,'div','serie-rettung');
@@ -33,7 +35,7 @@ export function zeichneWochenserie(ziel,basis) {
     if(r.serieDavor)k.append(element(doc,'p','',`Davor hattest du ${r.serieDavor} Wochen in Folge. Diese Lücke zählt erst nach erfolgreicher Rettung zur Serie.`));
     const link=element(doc,'a','serie-link','Zum Quiz und Üben'); link.href='quiz.html#ueben';k.append(link);
     if(joker.length){
-      const knopf=element(doc,'button','serie-neuladen','Geburtstagsjoker einsetzen');knopf.type='button';knopf.dataset.jokerRunde=r.runde_id;
+      const knopf=element(doc,'button','serie-neuladen','Joker einsetzen');knopf.type='button';knopf.dataset.jokerRunde=r.runde_id;
       knopf.dataset.jokerTitel=r.bezeichnung;k.append(knopf);
     }
     k.append(element(doc,'p','','Falls diese Woche noch Fragen offen sind, beantworte sie zuerst. Danach öffnet sich der Übungsmodus.'));

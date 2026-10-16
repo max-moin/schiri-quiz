@@ -6,7 +6,7 @@ const lies=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('Hilfe und DFBnet-Einstieg verknüpfen alle vereinbarten Themen',()=>{
  const h=lies('hilfe.html'),hub=lies('dfbnet.html');
  for(const p of ['spielbericht','rote-karte',...DFB_GUIDES]){assert.match(h,new RegExp(`href="${p}.html"`));assert.match(hub,new RegExp(`href="${p}.html`));}
- assert.match(h,/DFBnet & Spieltag/);assert.match(h,/Website & Verein/);
+ assert.match(h,/hilfe-dfbnet-einstieg/);assert.match(h,/bilder\/dfbnet-logo.png/);assert.match(h,/Website & Verein/);
  assert.match(hub,/spielbericht.html#wechsel/);assert.match(hub,/Sperrtermin/);assert.match(hub,/Spielersperre/);
  for(const p of ['dfbnet',...DFB_GUIDES]){
   const html=lies(`${p}.html`);for(const m of html.matchAll(/href="([a-zA-Z0-9_-]+\.html)(?:#[^"]*)?"/g))assert.ok(existsSync(new URL('../'+m[1],import.meta.url)),m[1]);

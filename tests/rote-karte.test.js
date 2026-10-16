@@ -35,7 +35,7 @@ test('Originalquellen und Einstiege bleiben erreichbar',()=>{
  for(const url of ['portal.dfbnet.org/de/service/handbuecher/spielbericht','svf-dresden.de/dokumente/sonderbericht/','svf-dresden.de/dokumente/dfbnet-anleitung-fuer-schiedsrichter/','svf-dresden.de/dokumente/handreichung-wiedereinwechslungen-im-spielbericht/','sfv-online.de/vereinsservice/downloads']) assert.ok(h.includes(url));
  for(const m of h.matchAll(/(?:href|src)="([^"#:]+\.(?:html|js|css|png))"/g)) assert.ok(existsSync(new URL('../'+m[1],import.meta.url)),m[1]);
  assert.match(lies('hilfe.html'),/href="rote-karte.html"/);
- assert.equal(BAUM['rote-karte.html'].eltern,'hilfe.html');
+ assert.equal(BAUM['rote-karte.html'].eltern,'dfbnet.html');
 });
 test('Ansichtswechsel ist lokal, öffnet nicht alle Details und springt nicht beim Scrollen',()=>{
  const mk=(dataset={})=>({dataset,events:{},hidden:false,attrs:{},setAttribute(k,v){this.attrs[k]=v;},addEventListener(t,fn){this.events[t]=fn;}});

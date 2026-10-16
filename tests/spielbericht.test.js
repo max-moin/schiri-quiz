@@ -29,7 +29,7 @@ test('Navigation, Quellen und Seitenhilfe führen in die echte neue Seite',()=>{
  assert.match(lies('src/website/hilfe-inhalte.js'),/'spielbericht.html'/);
  assert.match(html,/handreichung-wiedereinwechslungen-im-spielbericht/);
  assert.match(html,/rote-karte.html#nach-dem-spiel/);assert.match(html,/Schiedsrichterordnung.pdf/);
- assert.match(html,/aria-label="Textumfang"/);assert.match(html,/data-ansicht="kurz"/);
+ assert.doesNotMatch(html,/aria-label="Textumfang"|data-sb-phase=/);assert.match(html,/Dein Kurzüberblick/);
 });
 test('Feste Redaktion nutzt bestehende Rechte und getrennte Veröffentlichung',()=>{
  const js=lies('src/website/spielbericht-redaktion.js');

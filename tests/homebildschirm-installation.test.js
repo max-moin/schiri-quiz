@@ -59,7 +59,7 @@ test("jede HTML-Seite bindet Manifest und iPhone-Symbol ein", () => {
   }
 });
 
-test("das iPhone-Teilen-Symbol ist gezeichnet und steht neben dem Wort", () => {
+test("das originale iPhone-Teilen-Symbol steht neben dem Wort", () => {
   // Runde 3 des Usability-Tests, iPhone: "Die Anleitung ist gut, aber das
   // abgebildete Symbol ist nur ein Pfeil nach oben." Im Safari-Menue gibt
   // es keinen blossen Pfeil - der Teilen-Knopf ist ein oben offenes
@@ -69,11 +69,13 @@ test("das iPhone-Teilen-Symbol ist gezeichnet und steht neben dem Wort", () => {
   assert.ok(anfang > -1, "der Teilen-Schritt fehlt");
   const schritt = seite.slice(anfang, seite.indexOf("</li>", anfang));
 
-  assert.match(schritt, /<svg /, "das Teilen-Symbol ist nicht gezeichnet");
+  assert.match(schritt, /<img[^>]+src="bilder\/apple-teilen.png"/, "das originale Teilen-Symbol fehlt");
+  assert.ok(pngGroesse('bilder/apple-teilen.png').breite > 0);
   assert.doesNotMatch(schritt, /↑/, "der blosse Pfeil ist zurueck");
   // "Woerter statt blosser Icons": das Bild ist Beiwerk, das Wort traegt.
   assert.match(schritt, /<strong>Teilen<\/strong>/);
-  assert.match(schritt, /aria-hidden="true"/);
+  assert.match(schritt, /alt=""/);
+  assert.match(lies('src/website/installieren-seite.js'), /icon.src='bilder\/apple-teilen.png'/);
 });
 
 test("die Anleitung haengt nicht nur tief unter den Unterlagen", () => {

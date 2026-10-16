@@ -7,21 +7,20 @@ export const SEITENHILFE = Object.freeze({
     schritt('begriffe', '.dfbnet-gruppe-wissen', 'Zwei Arten von Sperren', 'Persönliche Sperrtermine steuern deine Verfügbarkeit als Schiedsrichter. Spielersperren betreffen sportrechtliche Einschränkungen einer Person. Die Hintergrundseite erklärt den Unterschied, ohne einen Einzelfall freizugeben.'),
   ] },
   'sperrtermine.html': { titel: 'Sperrtermine & Verfügbarkeit', schritte: [
-    schritt('abschnitt', '.rk-phasenwahl', 'Planen, eintragen, klären', 'Wähle den Arbeitsschritt. Die Nummern zeigen die Reihenfolge. Der Kurzüberblick nennt die Handlungen; mit Erklärungen liest du die Hintergründe.'),
+    schritt('abschnitt', '[data-sb-panel]', 'Planen, eintragen, klären', 'Alle Abschnitte sind sichtbar. Die Nummern zeigen die Reihenfolge. „Erklärung anzeigen“ öffnet die Hintergründe zum jeweiligen Schritt.'),
     schritt('grenze', '.dfbnet-hinweis', 'Keine automatische Änderung', 'Die Hilfe trägt nichts im DFBnet ein. Schon angesetzte Spiele brauchen den gesonderten Absageweg, nicht nur einen neuen Sperrtermin.'),
   ] },
   'schiri-beobachtung.html': { titel: 'Schiri-Beobachtung', schritte: [
-    schritt('abschnitt', '.rk-phasenwahl', 'Von der Beobachtung zum Lernziel', 'Vorbereitung, Bericht und Weiterentwicklung sind getrennte Abschnitte. Ein Bericht kann erst nach Prüfung und Freigabe verfügbar sein.'),
+    schritt('abschnitt', '[data-sb-panel]', 'Von der Beobachtung zum Lernziel', 'Vorbereitung, Bericht und Weiterentwicklung sind getrennte Abschnitte. Ein Bericht kann erst nach Prüfung und Freigabe verfügbar sein.'),
     schritt('feedback', '.rk-quellen', 'Eigene Rückmeldung geben', 'Der verlinkte SVFD-Feedbackbogen bewertet die Qualität von Beobachtung und Auswertung. Er ersetzt nicht den Leistungsbericht. Persönliche Angaben werden auf der offiziellen Seite eingegeben, nicht hier.'),
   ] },
   'spielersperren.html': { titel: 'Spielersperren verstehen', schritte: [
-    schritt('abschnitt', '.rk-phasenwahl', 'Begriffe und Systemlogik', 'Die Hilfe unterscheidet Geltung und Ableistung. Das ist Hintergrundwissen, kein Rechner für die Spielberechtigung einer Person.'),
+    schritt('abschnitt', '[data-sb-panel]', 'Begriffe und Systemlogik', 'Die Hilfe unterscheidet Geltung und Ableistung. Das ist Hintergrundwissen, kein Rechner für die Spielberechtigung einer Person.'),
     schritt('grenze', '.dfbnet-hinweis', 'Altes Handbuch, heutige Regeln', 'Das technische Handbuch ist von 2017. Für einen konkreten Fall gelten die aktuellen Ordnungen, Wettbewerbsbestimmungen und gegebenenfalls eine sportrechtliche Entscheidung.'),
   ] },
   'spielbericht.html': { titel: 'Spielbericht Schritt für Schritt', schritte: [
-    schritt('abschnitt', '.rk-phasenwahl', 'Dein nächster Arbeitsschritt', 'Vorbereiten, Eintragen und Abschließen gliedern den normalen Einzelspielbericht. Die Nummern geben die Reihenfolge vor. Diese Seite ändert nichts im DFBnet.'),
-    schritt('umfang', '.rk-ansicht', 'Merkpunkte oder Erklärung', 'Der Kurzüberblick zeigt die wichtigsten Handlungen. Mit Erklärungen ergänzt die Hintergründe; Wiedereinwechslungen sind als besonderer Wettbewerbsfall gekennzeichnet.'),
-    schritt('quellen', '.rk-quellen', 'Stand und Originale', 'Hier findest du die Originalunterlagen mit Alters- und Geltungshinweisen. Die alten Bildschirmbilder sind kein aktueller Klickplan. Bei Unsicherheit kannst du Max anrufen.'),
+    schritt('abschnitt', '#erfassen, .sb-detail-kopf', 'Eintrag auswählen', 'Im Überblick stehen die Eintragungen in der Reihenfolge des Spielberichts. Klicke auf den Namen eines Bereichs: Die eigene Detailseite erklärt die Felder und zeigt passende Originalbilder. „Alle Eintragungen“ führt zurück.'),
+    schritt('quellen', '.rk-quellen', 'Stand und Originale', 'Die Bildbeispiele stammen aus dem Sammelspielbericht-Handbuch von 2019. Sie sind als Beispiele gekennzeichnet. Fehlende heutige Masken werden nicht erfunden; aktuelle Wettbewerbsbestimmungen gehen vor.'),
   ] },
   'rote-karte.html': { titel: 'Rote Karte & Sonderbericht', schritte: [
     schritt('phasen', '.rk-phasenwahl', 'Deine Spielphase', 'Vor dem Spiel startet mit Schritt 0. Im Spiel stehen die Schritte 1 bis 4 im Mittelpunkt; danach folgen Spielbericht, Sonderbericht und Upload.'),

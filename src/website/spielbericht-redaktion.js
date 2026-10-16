@@ -7,7 +7,7 @@ import { montiereSpielbericht } from './spielbericht.js';
 // Stabile Inhalts-IDs: feste Fachseite, kein freier Phasen-/Modus-Baukasten.
 export function erstelleSpielberichtAdapter(wurzel, { kennung = 'spielbericht-v1' } = {}) {
   const vorlage=wurzel.cloneNode(true),d=wurzel.ownerDocument;
-  vorlage.querySelectorAll(':scope > .seiten-werkzeuge,:scope > .wegweiser').forEach(n=>n.remove());
+  vorlage.querySelectorAll(':scope > .seiten-werkzeuge,:scope > .wegweiser,[data-sb-ansichts-chrome],[data-dfb-chrome]').forEach(n=>n.remove());
   const klar=n=>(n?.textContent||'').trim();
   const knoten=[...vorlage.querySelectorAll('[data-sb-inhalt]')];
   const definitionen=knoten.map(n=>({id:n.dataset.sbInhalt,typ:n.matches('.rk-schritt')?'schritte':n.matches('a')?'link':n.matches('ul')?'liste':'absatz',titel:n.matches('.rk-schritt')?`Schritt ${n.dataset.sbInhalt.slice(8)}: ${klar(n.querySelector('h3'))}`:klar(n).slice(0,85)}));

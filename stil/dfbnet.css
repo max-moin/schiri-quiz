@@ -37,3 +37,9 @@
  .dfbnet-gruppe { padding:15px; }
  .dfbnet-abgrenzung,.dfbnet-guide .sb-ablaufschema { grid-template-columns:1fr; }
 }
+.dfb-themen-guide .rk-werkzeuge,.dfb-themen-guide .sb-weiter{display:none}
+.dfb-themen-guide .rk-lang{display:block!important}
+.dfb-themen-guide .rk-lang[hidden]{display:none!important}
+.dfb-themen-guide [data-sb-panel]{margin-top:30px}
+.dfb-erklaerung-knopf{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;margin-top:14px;border:1px solid #7d9588;border-radius:10px;background:#fff;color:#194832;font:inherit;font-size:.9rem;font-weight:650;cursor:pointer}
+.dfb-erklaerung-knopf:focus-visible{outline:3px solid #21593a;outline-offset:4px}

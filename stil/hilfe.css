@@ -43,3 +43,9 @@ main.inhalt { scroll-margin-top:80px; }
 @media(max-width:600px) { .hilfe-themenbereich { padding:15px; } }
 .hilfe-tour-start:focus-visible, .hilfe-anrufen:focus-visible, .hilfe-leitfaden summary:focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
 @media (max-width: 600px) { .hilfe-leitfaden { padding: 16px; } }
+.hilfe-dfbnet{border:1px solid #cbd9d1;border-radius:22px;background:linear-gradient(120deg,#e9f4ed,#f5f7fc);padding:24px}
+.hilfe-dfbnet-einstieg{display:flex;align-items:center;gap:24px;color:#172033;text-decoration:none;min-height:110px}
+.hilfe-dfbnet-einstieg img{width:65px;height:auto;flex:0 0 65px}.hilfe-dfbnet-einstieg h2{font-size:1.7rem;margin:0 0 8px}.hilfe-dfbnet-einstieg p{margin:0 0 12px;line-height:1.6}.hilfe-dfbnet-einstieg strong{color:#174d37}
+.hilfe-dfbnet-direkt{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}.hilfe-dfbnet-direkt a{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;background:#fff;border:1px solid #91aa9a;border-radius:12px;color:#174d37;font-weight:600;text-decoration:none}
+.hilfe-dfbnet a:focus-visible{outline:3px solid #21593a;outline-offset:5px}.hilfe-dfbnet-direkt a:hover{text-decoration:underline}
+@media(max-width:500px){.hilfe-dfbnet{padding:18px}.hilfe-dfbnet-einstieg{gap:16px;align-items:flex-start}.hilfe-dfbnet-einstieg img{width:47px;flex-basis:47px}.hilfe-dfbnet-direkt a{flex:1 1 auto;justify-content:center}}

@@ -221,7 +221,7 @@ function zeichne({ woche, statistik, angemeldet }) {
     <div class="modus-liste">${kacheln.join("")}</div>
     <p class="modus-nachsatz">
       <a href="melden.html">Ideen &amp; Feedback</a>
-      ${angemeldet ? ' · <a href="meine-statistik.html">Wochenserie, Abzeichen &amp; Geburtstagsjoker</a>' : ''}
+      ${angemeldet ? ' · <a href="meine-statistik.html">Wochenserie, Abzeichen &amp; Joker</a>' : ''}
     </p>`;
 
 }

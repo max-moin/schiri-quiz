@@ -1,3 +1,5 @@
+import { montiereSpielberichtUebersicht } from './spielbericht-uebersicht.js';
+import { montiereDfbnetNachschlagen } from './dfbnet-nachschlagen.js';
 // Nur Ansicht und Navigation; keine DFBnet-Aktion und kein lokaler Bearbeitungsstand.
 export const ABSCHNITTE = Object.freeze(['vorbereiten','erfassen','abschliessen']);
 const lebenszyklen = new WeakMap();
@@ -9,6 +11,8 @@ export function abschnittFuerAnker(wurzel, anker) {
 export function montiereSpielbericht(wurzel, ort=globalThis.location, verlauf=globalThis.history, fenster=globalThis.window) {
   if(!wurzel)return;
   lebenszyklen.get(wurzel)?.();
+  if(wurzel.matches?.('[data-spielbericht]'))return montiereSpielberichtUebersicht(wurzel,ort);
+  if(wurzel.matches?.('[data-dfbnet-guide]'))return montiereDfbnetNachschlagen(wurzel);
   const ab=[];
   const hoere=(el,typ,fn)=>{el.addEventListener(typ,fn);ab.push(()=>el.removeEventListener(typ,fn));};
   const panels=[...wurzel.querySelectorAll('[data-sb-panel]')], phasen=[...wurzel.querySelectorAll('[data-sb-phase]')], ansichten=[...wurzel.querySelectorAll('[data-sb-ansicht]')];

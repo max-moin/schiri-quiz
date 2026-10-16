@@ -19,9 +19,20 @@ async function richteAnleitungenEin() {
     const weg = installationsweg(system.value,browser.value);
     const titel = document.createElement('h3'); titel.textContent=weg.titel;
     const liste = document.createElement('ol'); liste.className='installieren-schritte';
-    for(const text of weg.schritte) { const zeile=document.createElement('li'); zeile.textContent=text; liste.append(zeile); }
+    for(const text of weg.schritte) {
+      const zeile=document.createElement('li');
+      if(system.value==='ios'&&text.includes('Teilen')){
+        const stelle=text.indexOf('Teilen'),icon=document.createElement('img');icon.src='bilder/apple-teilen.png';icon.alt='';icon.width=25;icon.height=30;icon.className='installieren-original-icon';
+        const wort=document.createElement('strong');wort.textContent='Teilen';
+        zeile.append(document.createTextNode(text.slice(0,stelle)),icon,wort,document.createTextNode(text.slice(stelle+6)));
+      }else zeile.textContent=text;
+      liste.append(zeile);
+    }
     const hinweis=document.createElement('p'); hinweis.className='installieren-hinweis';hinweis.textContent=weg.hinweis;
     ziel.replaceChildren(titel,liste,hinweis);
+    if(system.value==='ios'){
+      const quelle=document.createElement('a');quelle.href='https://support.apple.com/de-de/guide/iphone/iphea86e5236/ios';quelle.target='_blank';quelle.rel='noopener noreferrer';quelle.className='installieren-quellenlink';quelle.textContent='Originalanleitung von Apple ↗';ziel.append(quelle);
+    }
   }
   system.addEventListener('change',zeichne); browser.addEventListener('change',zeichne); zeichne();
 }
