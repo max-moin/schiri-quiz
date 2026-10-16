@@ -108,6 +108,9 @@
       dialog = document.createElement("dialog");
       dialog.className = "anmeldedialog";
       dialog.innerHTML = GERUEST;
+      const titel = dialog.querySelector('[data-titel]');
+      titel.id = 'schiri-anmelde-dialog-titel';
+      dialog.setAttribute('aria-labelledby', titel.id);
       document.body.appendChild(dialog);
 
       const hole = (auswahl) => dialog.querySelector(auswahl);

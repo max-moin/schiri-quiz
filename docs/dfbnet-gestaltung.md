@@ -4,7 +4,7 @@ Stand 16.10.2026. Umsetzung nach Max' Kombination aus Spieltag-Guide und Matchpl
 
 ## Entscheidungen
 
-- Eigenständige Detailseite `rote-karte.html`, aus Hilfe und DFBnet-Hilfe erreichbar. Bestehender `hilfe.html#sonderbericht` und sein visueller Blockeditor bleiben erhalten; keine gespeicherten Redaktionsinhalte überschreiben. Die neue interaktive Fachseite ist kein frei editierbarer neuer Blocktyp. Keine Migration, Veröffentlichung oder neue Datenquelle.
+- Eigenständige Detailseite `rote-karte.html`, aus Hilfe und DFBnet-Hilfe erreichbar. Bestehender `hilfe.html#sonderbericht` und sein visueller Blockeditor bleiben erhalten; keine gespeicherten Redaktionsinhalte überschreiben. Ergänzung: Die Fachseite kann nun über denselben Blockeditor inhaltlich bearbeitet werden. Feste Vorlage statt freiem Layout-Umbau: Phasen, Nummern, Icons und Sicherheitsposition bleiben erhalten. Texte, Fokuspunkte/Listen, Bild und Quellen sind editierbar. Entwurf, Vorschau, Veröffentlichung und Historie verwenden die bisherigen AAL2-/vereinsgeschützten RPCs, eigenen Seitenschlüssel `rote-karte`; keine automatische Inhaltsveröffentlichung.
 - Schrittfolge 0–7 in drei Phasen, „Im Spiel“ als Standard und mit breiterem Navigationsfeld. Nummern bleiben über Phasen hinweg gleich. Ohne JavaScript sind alle drei Phasen lesbar.
 - Kurze Handlungstitel und wenige Fokuspunkte. „Mit Erklärungen“ ergänzt Fließtext innerhalb der aktuellen Phase statt alle Details global zu öffnen. Details haben ausdrücklich beschriftete Schaltflächen mit Pluszeichen. Sicherheitsinformation bleibt im Spiel direkt sichtbar.
 - Normale Seitenfarben, kein dunkler Hero. Rote Karten-Grafik mit Neigung/Schatten bleibt. Aussagekräftige Icons, Spielfeldskizze beim Vorbereitungsschritt. Kein Fake-Screenshot.
@@ -23,3 +23,11 @@ Die Gestaltung nutzt Signalisierung (wenige hervorgehobene Schlüsselwörter/Num
 - [Frontiers-Originalstudie2013](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2013.00450/full) untersucht Einschätzungen von Erwachsenen zu Grundschulbüchern, nicht den Lernerfolg von Kindern. Deshalb nicht als Kinder-Wirksamkeitsbeleg verwenden. Ihr Theorieabschnitt unterscheidet erklärende und nur dekorative Bilder.
 
 Fachquellen sind auf der Seite selbst beschriftet. Die wissenschaftlichen Gestaltungsquellen stehen nur hier, nicht als zusätzlicher Textblock in der jungen Zielgruppe.
+
+## Redaktion: Bedienweg und Grenzen
+
+Im Obmann-Zugang mit zweitem Faktor anmelden, anschließend den Guide erneut öffnen. „Seite bearbeiten“ blendet Bearbeiten-Schaltflächen direkt bei den Inhalten ein. Für Schritte lassen sich Titel, kurze Fokuspunkte und der Erklärungstext gemeinsam ändern; Listenpunkte hinzufügen/entfernen. Die Textansichten/Phasen funktionieren auch in der Vorschau weiter. Erst „Entwurf speichern“, dann prüfen und ausdrücklich „Veröffentlichen“. „Bearbeiten beenden“ zeigt wieder die veröffentlichte Fassung. Quellenlinks und Bildbeschreibungen bleiben Pflicht, Screenshots vor Upload anonymisieren.
+
+Die Vorlage hat58 Inhaltsblöcke und passt in das vorhandene60-Block-Format. Keine neuen beliebig verschachtelten Komponenten, keine frei veränderbare Schritt-Reihenfolge/Phasenstruktur; so bleibt das von Max freigegebene Design erhalten. Feste Sicherheitsüberschriften und Phasenbeschriftungen sind Teil des Gerüsts. Allgemeine Hilfeseiten behalten ihren bisherigen freien Blockeditor. Bei einem späteren grundlegenden Vorlagenwechsel Inhaltsschlüssel explizit migrieren, nicht indexbasiert fremde Texte zuordnen. PostgreSQL-JSONB-Schlüsselreihenfolge darf keine Text-/Markupänderung auslösen.
+
+Offene Fachpunkte bleiben Empfängerauswahl und örtliche Aufsicht Minderjähriger. Weitere DFBnet-Pakete: normaler Spielbericht Schritt für Schritt einschließlich Wiedereinwechslungen; persönliche Sperrtermine/Verfügbarkeit; Schiri-Beobachtung; Hintergrundwissen zu Spielersperren. Alte Handbücher sind keine aktuelle Sperrdauertabelle. Diese Seiten sind hiermit noch nicht gebaut.

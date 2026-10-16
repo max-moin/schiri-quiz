@@ -50,3 +50,14 @@ test('Ansichtswechsel ist lokal, öffnet nicht alle Details und springt nicht be
  assert.equal(win.events.scroll,undefined);
  assert.doesNotMatch(lies('src/website/rote-karte.js'),/fetch\(|localStorage|scrollIntoView|\.open\s*=/);
 });
+test('Nach Editor-Neuzeichnen wird jede Phase nur einmal bedient',()=>{
+ const mk=dataset=>{const e=new EventTarget();e.dataset=dataset||{};e.hidden=false;e.setAttribute=()=>{};return e;};
+ const panels=PHASEN.map(id=>Object.assign(mk(),{id})),buttons=PHASEN.map(id=>mk({rkPhase:id})),views=['kurz','erklaert'].map(v=>mk({rkAnsicht:v})),tools=mk(),root=mk({ansicht:'kurz'}),win=mk();
+ root.querySelectorAll=s=>s==='[data-rk-panel]'?panels:s==='[data-rk-phase]'?buttons:views;root.querySelector=()=>tools;
+ const calls=[],history={replaceState(...a){calls.push(a);}};
+ montiereRoteKarte(root,{hash:''},history,win);
+ const stop=montiereRoteKarte(root,{hash:''},history,win);
+ buttons[2].dispatchEvent(new Event('click'));
+ assert.equal(calls.length,1);assert.deepEqual(panels.map(p=>p.hidden),[true,true,false]);
+ stop();buttons[0].dispatchEvent(new Event('click'));assert.equal(calls.length,1);
+});

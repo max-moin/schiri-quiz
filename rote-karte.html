@@ -19,6 +19,7 @@
   <link rel="stylesheet" href="stil/anmeldung.css">
   <link rel="stylesheet" href="stil/profil.css">
   <link rel="stylesheet" href="stil/rote-karte.css">
+  <link rel="stylesheet" href="stil/blockeditor.css">
 </head>
 <body>
   <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
@@ -50,7 +51,7 @@
         <button type="button" data-rk-phase="im-spiel" aria-pressed="true" aria-controls="im-spiel"><svg aria-hidden="true"><use href="#rk-flag"/></svg><span>Im Spiel<small>Schritte 1–4</small></span></button>
         <button type="button" data-rk-phase="nach-dem-spiel" aria-pressed="false" aria-controls="nach-dem-spiel"><svg aria-hidden="true"><use href="#rk-notiz"/></svg><span>Nach dem Spiel<small>Schritte 5–7</small></span></button>
       </nav>
-      <div class="rk-ansicht" aria-label="Textumfang"><button type="button" data-rk-ansicht="kurz" aria-pressed="true">Kurzüberblick</button><button type="button" data-rk-ansicht="erklaert" aria-pressed="false">Mit Erklärungen</button></div>
+      <div class="rk-ansicht" role="group" aria-label="Textumfang"><button type="button" data-rk-ansicht="kurz" aria-pressed="true">Kurzüberblick</button><button type="button" data-rk-ansicht="erklaert" aria-pressed="false">Mit Erklärungen</button></div>
     </div>
     <section class="rk-phase" id="vor-dem-spiel" aria-labelledby="rk-vor-titel" data-rk-panel>
       <h2 id="rk-vor-titel">Vor dem Spiel</h2>
@@ -96,5 +97,7 @@
   </main>
   <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html" class="fuss-obmann">Obmann-Zugang</a><div class="fuss-zeile"><span data-verein="name">FV Löbtauer Kickers</span> · <span data-verein="abteilung">Schiedsrichter-Abteilung</span></div></div></footer>
   <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/rote-karte.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js"></script>
+  <script type="module" src="src/website/rote-karte-redaktion.js"></script>
 </body>
 </html>

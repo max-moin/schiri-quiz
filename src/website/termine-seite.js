@@ -264,10 +264,12 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
 
 function bindeVorschlag() {
   bereich.querySelector("[data-vorschlag-oeffnen]")?.addEventListener("click", () => {
+    const fokusZurueck = document.activeElement;
     const dialog = document.createElement("dialog");
     dialog.className = "termin-dialog";
+    dialog.setAttribute('aria-labelledby', 'termin-vorschlag-titel');
     dialog.innerHTML = `<form method="dialog" class="termin-vorschlag-form">
-      <div class="dialog-kopf"><div><span class="wortmarke blau">Vorschlag</span><h2>Termin vorschlagen</h2></div><button type="button" class="dialog-schliessen" aria-label="Schließen">×</button></div>
+      <div class="dialog-kopf"><div><span class="wortmarke blau">Vorschlag</span><h2 id="termin-vorschlag-titel">Termin vorschlagen</h2></div><button type="button" class="dialog-schliessen" aria-label="Schließen">×</button></div>
       <p class="dialog-hilfe">Der Vorschlag wird nicht sofort veröffentlicht. Der Obmann prüft ihn zuerst.</p>
       <label><span>Titel</span><input name="titel" required minlength="3" maxlength="120" autocomplete="off"></label>
       <div class="formular-reihe"><label><span>Datum</span><input name="datum" type="date" required></label><label><span>Beginn (optional)</span><input name="zeit" type="time"></label></div>
@@ -280,7 +282,7 @@ function bindeVorschlag() {
     dialog.addEventListener("click", (event) => {
       if (event.target === dialog) dialog.close("abbrechen");
     });
-    dialog.addEventListener("close", () => dialog.remove());
+    dialog.addEventListener("close", () => { dialog.remove(); if (fokusZurueck?.isConnected) fokusZurueck.focus(); });
     let sendet = false;
     dialog.querySelector("form").addEventListener("submit", async (event) => {
       if (event.submitter?.value !== "senden") return;

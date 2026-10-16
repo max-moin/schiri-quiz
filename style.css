@@ -33,7 +33,7 @@
   --bg-end: #eef0f4;
   --card-bg: #ffffff;
   --text: #111827;
-  --muted: #6b7280;
+  --muted: #5b6371;
   --border: #e5e7eb;
   --radius: 18px;
   --radius-sm: 12px;
@@ -1016,11 +1016,11 @@ button {
   box-shadow: none;
 }
 .frage-karte.beantwortet .frage-text {
-  color: #6b7280;
+  color: #5b6371;
 }
 .frage-karte.beantwortet .option {
   opacity: 1;
-  color: #6b7280;
+  color: #5b6371;
   background: #f7f8fa;
   border-color: #c8ced7;
 }

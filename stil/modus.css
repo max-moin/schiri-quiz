@@ -154,7 +154,7 @@
   color: var(--muted);
 }
 
-.hervorgehoben .modus-fuss { color: rgba(255, 255, 255, .75); }
+.hervorgehoben .modus-fuss { color: rgba(255, 255, 255, .9); }
 
 /* Die Handlungszeile am Fuss einer Start-Kachel (Usability-Test Runde 3).
    Sie ist kein eigener Knopf, sondern die sichtbare Zusage der Kachel: ein

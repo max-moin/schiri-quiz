@@ -2,9 +2,12 @@ import { BLOCKTYPEN, neuerBlock, pruefeBlockseite, zeichneBloecke, ausVorhandene
 import { erstelleBlockseitenSpeicher } from './blockseiten-store.js';
 import { pruefeBilddatei, BILD_ABLAGE, BILD_TYPEN } from './bilder-editor.js';
 
-export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
+export async function montiereBlockeditor({ client, verein, wurzel, seite, adapter = null }) {
   const d = wurzel.ownerDocument;
   const fallback = wurzel.cloneNode(true);
+  const extrahiere = adapter?.extrahiere || ausVorhandenerSeite;
+  const rendern = adapter?.zeichne || zeichneBloecke;
+  const pruefen = adapter?.pruefe || pruefeBlockseite;
   const titelId = fallback.getAttribute('aria-labelledby');
   let publiziert = null, zustand = null, entwurf = null, aktiv = false, vorschau = false, schmutzig = false, laeuft = false, redakteur = false;
   const speicher = erstelleBlockseitenSpeicher(client, verein.seitenschluessel, seite);
@@ -14,6 +17,15 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
   const sichtbarkeit = () => { leiste.hidden = !redakteur || wurzel.hidden; };
   new MutationObserver(sichtbarkeit).observe(wurzel, { attributes: true, attributeFilter: ['hidden'] });
   const modal = d.createElement('dialog'); modal.className = 'red-dialog'; d.body.append(modal);
+  const dialogTitel = `red-dialog-${crypto.randomUUID()}`;
+  let fokusRueckkehr = null;
+  modal.addEventListener('close', () => {
+    (fokusRueckkehr?.isConnected ? fokusRueckkehr : leiste.querySelector('button'))?.focus();
+  });
+  function zeigeDialog(h) {
+    h.id = dialogTitel; modal.setAttribute('aria-labelledby', dialogTitel);
+    if (!modal.open) { fokusRueckkehr = d.activeElement; modal.showModal(); }
+  }
   const meldung = text => { status.textContent = text; };
   const knopf = (text, tun, ziel = leiste) => {
     const b = d.createElement('button'); b.type = 'button'; b.textContent = text;
@@ -23,13 +35,16 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
   function schliesseAbschnitt(id) {
     modal.close(); zeichne();
     const button = id ? wurzel.querySelector(`[data-block-id="${CSS.escape(id)}"] button`) : null;
-    (button || leiste.querySelector('button'))?.focus();
+    fokusRueckkehr = button || leiste.querySelector('button');
+    fokusRueckkehr?.focus();
   }
   function zeichne() {
     wurzel.classList.toggle('red-vorschau', aktiv && vorschau);
-    if (aktiv) zeichneBloecke(wurzel, entwurf, { bearbeiten: vorschau ? undefined : bearbeite });
-    else if (publiziert) zeichneBloecke(wurzel, publiziert);
+    if (aktiv) rendern(wurzel, entwurf, { bearbeiten: vorschau ? undefined : bearbeite });
+    else if (publiziert) rendern(wurzel, publiziert);
+    else if (adapter) rendern(wurzel, extrahiere(fallback));
     else wurzel.replaceChildren(...[...fallback.childNodes].map(n => n.cloneNode(true)));
+    if (adapter) return;
     // Der ursprüngliche Anker und sein zugänglicher Titel bleiben erhalten.
     const h = wurzel.querySelector('h2');
     if (h && titelId) {
@@ -49,15 +64,16 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
     leiste.replaceChildren();
     if (!aktiv) knopf('Seite bearbeiten', () => mitArbeit(async () => {
       zustand = await speicher.laden();
-      entwurf = kopie(zustand.entwurf || zustand.veroeffentlicht || ausVorhandenerSeite(fallback));
+      entwurf = kopie(zustand.entwurf || zustand.veroeffentlicht || extrahiere(fallback));
       aktiv = true; schmutzig = false; vorschau = false; toolbar(); zeichne();
       meldung('Entwurf: Änderungen sind noch nicht öffentlich. Abschnitt anklicken oder Block hinzufügen.');
     }));
     else {
-      knopf('Block hinzufügen', () => {
+      if (!adapter?.festeStruktur) knopf('Block hinzufügen', () => {
         const b = neuerBlock(); entwurf.bloecke.push(b); schmutzig = true; bearbeite(b.id);
       });
       knopf('Entwurf speichern', () => mitArbeit(async () => {
+        if (pruefen(entwurf).length) throw new Error(pruefen(entwurf).slice(0, 4).join(' '));
         zustand = await speicher.speichern(entwurf, zustand.revision);
         schmutzig = false; meldung('Entwurf gespeichert. Die öffentliche Seite ist unverändert.');
       }));
@@ -66,7 +82,7 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       });
       knopf('Handy / Desktop', () => { wurzel.toggleAttribute('data-mobil'); });
       knopf('Veröffentlichen', () => {
-        if (pruefeBlockseite(entwurf).length) { meldung(pruefeBlockseite(entwurf).slice(0, 4).join(' ')); return; }
+        if (pruefen(entwurf).length) { meldung(pruefen(entwurf).slice(0, 4).join(' ')); return; }
         if (!window.confirm('Diesen Entwurf jetzt für alle auf der Vereinsseite veröffentlichen? Quellen und personenbezogene Daten bitte vorher prüfen.')) return;
         mitArbeit(async () => {
           zustand = await speicher.speichern(entwurf, zustand.revision, true);
@@ -78,7 +94,7 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       knopf('Neu laden', () => {
         if (schmutzig && !window.confirm('Lokale, ungespeicherte Änderungen verwerfen und den aktuellen Serverstand laden?')) return;
         mitArbeit(async () => {
-          zustand = await speicher.laden(); entwurf = kopie(zustand.entwurf || zustand.veroeffentlicht || ausVorhandenerSeite(fallback));
+          zustand = await speicher.laden(); entwurf = kopie(zustand.entwurf || zustand.veroeffentlicht || extrahiere(fallback));
           schmutzig = false; zeichne(); meldung('Aktueller Entwurf geladen.');
         });
       });
@@ -97,13 +113,13 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       entwurf = kopie(v.inhalt); schmutzig = true; modal.close(); zeichne(); meldung('Frühere Version als lokalen Entwurf übernommen.');
     }, modal);
     if (!zustand.versionen?.length) p.textContent = 'Noch keine frühere Veröffentlichung vorhanden.';
-    knopf('Schließen', () => modal.close(), modal); modal.showModal();
+    knopf('Schließen', () => modal.close(), modal); zeigeDialog(h);
   }
   function bearbeite(id) {
     const original = entwurf.bloecke.find(b => b.id === id); if (!original) return;
     let b = kopie(original);
     modal.replaceChildren(); const form = d.createElement('form'); modal.append(form);
-    const h = d.createElement('h2'); h.textContent = 'Abschnitt bearbeiten'; form.append(h);
+    const h = d.createElement('h2'); h.textContent = adapter?.titel?.(b) || 'Abschnitt bearbeiten'; form.append(h);
     const fields = new Map();
     function feld(titel, wert, typ = 'input', ziel = form) {
       const l = d.createElement('label'); l.textContent = titel; const f = d.createElement(typ);
@@ -117,6 +133,7 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       const o = d.createElement('option'); o.value = wert; o.textContent = text; layout.append(o);
     }
     layout.value = b.layout;
+    art.parentElement.hidden = layout.parentElement.hidden = !!adapter?.festeStruktur;
     for (const [key, label, typ] of [['titel', 'Titel / Linktext'], ['text', 'Text', 'textarea'], ['url', 'Bild- oder Linkadresse (https://)'],
       ['alt', 'Bildbeschreibung (Pflicht bei Bildern)'], ['beschriftung', 'Bildunterschrift'], ['stand', 'Quellenstand (JJJJ-MM-TT)']]) {
       fields.set(key, feld(label, b[key], typ));
@@ -149,7 +166,9 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       const fs = d.createElement('fieldset'); const l = d.createElement('legend'); l.textContent = `Schritt / Listenpunkt ${index + 1}`; fs.append(l); form.append(fs);
       const row = Object.fromEntries([['titel', 'Titel'], ['text', 'Text'], ['url', 'Screenshot-URL (optional)'], ['alt', 'Bildbeschreibung']].map(([k, t]) => [k, feld(t, e[k], k === 'text' ? 'textarea' : 'input', fs)]));
       eintraege.push(row);
-      knopf('Screenshot für diesen Schritt hochladen', () => { uploadZiel = row.url; datei.value = ''; datei.click(); }, fs);
+      if (adapter?.textlisten) for (const k of ['titel','url','alt']) row[k].parentElement.hidden = true;
+      const screenshot = knopf('Screenshot für diesen Schritt hochladen', () => { uploadZiel = row.url; datei.value = ''; datei.click(); }, fs);
+      screenshot.hidden = !!adapter?.textlisten;
       knopf('Diesen Listenpunkt entfernen', () => { row.entfernt = true; fs.hidden = true; }, fs);
     }
     function lesen() {
@@ -161,7 +180,7 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
     const actions = d.createElement('div'); actions.className = 'red-aktionen'; form.append(actions);
     const hinzufuegen = knopf('Listenpunkt / Schritt hinzufügen', () => { lesen(); b.eintraege.push({ titel: '', text: '' }); Object.assign(original, b); schmutzig = true; bearbeite(id); }, actions);
     knopf('Übernehmen', () => { Object.assign(original, lesen()); schmutzig = true; schliesseAbschnitt(id); }, actions);
-    for (const [text, delta] of [['Nach oben', -1], ['Nach unten', 1]]) knopf(text, () => {
+    if (!adapter?.festeStruktur) for (const [text, delta] of [['Nach oben', -1], ['Nach unten', 1]]) knopf(text, () => {
       Object.assign(original, lesen()); const index = entwurf.bloecke.indexOf(original); const neu = index + delta;
       if (neu >= 0 && neu < entwurf.bloecke.length) { entwurf.bloecke.splice(index, 1); entwurf.bloecke.splice(neu, 0, original); schmutzig = true; }
       schliesseAbschnitt(id);
@@ -170,12 +189,13 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
       if (!window.confirm('Diesen Block aus dem Entwurf entfernen?')) return;
       entwurf.bloecke = entwurf.bloecke.filter(e => e.id !== id); schmutzig = true; schliesseAbschnitt();
     }, actions); loeschen.dataset.gefahr = '';
+    loeschen.hidden = !!adapter?.festeStruktur;
     knopf('Abbrechen', () => modal.close(), actions);
     function typFelder() {
       const sichtbar = {
         absatz: ['text'], ueberschrift: ['text'], hinweis: ['titel', 'text'],
         bild: ['url', 'alt', 'beschriftung', 'text'], quelle: ['titel', 'url', 'stand', 'text'],
-        link: ['titel', 'url', 'text'], liste: ['titel'], schritte: ['titel'],
+        link: ['titel', 'url', 'text'], liste: ['titel'], schritte: adapter?.festeStruktur ? ['titel', 'text'] : ['titel'],
       }[art.value];
       for (const [key, input] of fields) input.parentElement.hidden = !sichtbar.includes(key);
       datei.parentElement.hidden = art.value !== 'bild';
@@ -188,13 +208,13 @@ export async function montiereBlockeditor({ client, verein, wurzel, seite }) {
     }
     art.addEventListener('change', typFelder); typFelder();
     form.addEventListener('submit', e => e.preventDefault());
-    if (!modal.open) modal.showModal();
-    art.focus();
+    zeigeDialog(h);
+    (adapter?.festeStruktur ? [...fields.values()].find(f => !f.parentElement.hidden) : art)?.focus();
   }
   // Nur veröffentlichte Spalten sind öffentlich lesbar; kein Entwurf im Browser eines Schiris.
   const publicResult = await client.from('website_blockseiten').select('veroeffentlicht')
     .eq('seitenschluessel', verein.seitenschluessel).eq('seite', seite).maybeSingle();
-  if (!publicResult.error && publicResult.data?.veroeffentlicht && !pruefeBlockseite(publicResult.data.veroeffentlicht).length) {
+  if (!publicResult.error && publicResult.data?.veroeffentlicht && !pruefen(publicResult.data.veroeffentlicht).length) {
     publiziert = publicResult.data.veroeffentlicht; zeichne();
   }
   const { data } = await client.auth.getSession();
