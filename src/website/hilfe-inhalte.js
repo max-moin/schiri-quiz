@@ -2,6 +2,11 @@
 // Keine Beispieldaten, keine automatisch ausgefuehrten Fachaktionen.
 const schritt = (id, ziel, titel, text) => Object.freeze({ id, ziel, titel, text });
 export const SEITENHILFE = Object.freeze({
+  'spielbericht.html': { titel: 'Spielbericht Schritt für Schritt', schritte: [
+    schritt('abschnitt', '.rk-phasenwahl', 'Dein nächster Arbeitsschritt', 'Vorbereiten, Eintragen und Abschließen gliedern den normalen Einzelspielbericht. Die Nummern geben die Reihenfolge vor. Diese Seite ändert nichts im DFBnet.'),
+    schritt('umfang', '.rk-ansicht', 'Merkpunkte oder Erklärung', 'Der Kurzüberblick zeigt die wichtigsten Handlungen. Mit Erklärungen ergänzt die Hintergründe; Wiedereinwechslungen sind als besonderer Wettbewerbsfall gekennzeichnet.'),
+    schritt('quellen', '.rk-quellen', 'Stand und Originale', 'Hier findest du die Originalunterlagen mit Alters- und Geltungshinweisen. Die alten Bildschirmbilder sind kein aktueller Klickplan. Bei Unsicherheit kannst du Max anrufen.'),
+  ] },
   'rote-karte.html': { titel: 'Rote Karte & Sonderbericht', schritte: [
     schritt('phasen', '.rk-phasenwahl', 'Deine Spielphase', 'Vor dem Spiel startet mit Schritt 0. Im Spiel stehen die Schritte 1 bis 4 im Mittelpunkt; danach folgen Spielbericht, Sonderbericht und Upload.'),
     schritt('umfang', '.rk-ansicht', 'Kurz oder mit Erklärungen', 'Der Kurzüberblick zeigt Fokuspunkte. Mit Erklärungen ergänzt die Hintergründe, ohne alle zusätzlichen Hinweisboxen zu öffnen.'),

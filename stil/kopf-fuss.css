@@ -296,7 +296,8 @@
 .fuss-innen { max-width: 1140px; margin: 0 auto; padding: 24px 20px; font-size: .78rem; line-height: 1.7; }
 .fuss-innen a {
   color: var(--marke-hell); text-decoration: none; margin-right: 16px; font-weight: 500;
-  display: inline-flex; align-items: center; min-height: 44px; white-space: nowrap;
+  display: inline-flex; align-items: center; min-height: 44px;
+  max-width: 100%; white-space: normal; overflow-wrap: anywhere;
 }
 .fuss-innen a:hover { text-decoration: underline; }
 /* opacity entfernt: mischte den Text auf 4,05:1 herunter und lag damit

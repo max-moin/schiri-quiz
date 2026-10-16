@@ -1,0 +1,39 @@
+/* Zweiter Fachguide: dieselben Bausteine, eigener ruhiger grüner Akzent. */
+.sb-guide { --rk-akzent:#216349; --rk-weich:#e6f3ed; overflow-wrap:anywhere; }
+.sb-guide .rk-phasenwahl button[aria-pressed=true],.sb-guide .rk-phasenwahl button[aria-pressed=true] small { color:#174d37; }
+.sb-kopfgrafik { width:112px; height:130px; position:relative; flex:none; display:grid; place-items:center; transform:rotate(7deg); border:2px solid #99b7a8; border-radius:16px; background:#e6f3ed; box-shadow:9px 9px 0 #1f293712; }
+.sb-kopfgrafik svg { width:66px; height:66px; color:#216349; }
+.sb-kopfgrafik span { position:absolute; right:-7px; bottom:8px; display:grid; place-items:center; width:39px; height:39px; border:2px solid #fff; border-radius:50%; background:#216349; color:white; font-weight:800; }
+.sb-einordnung { margin:0 0 22px; padding:15px 18px; border-left:4px solid #6e8b7f; background:#e9eef2; border-radius:0 12px 12px 0; color:#374151; font-size:.9rem; }
+.sb-phase-erfassen { background:#e8f1ec; border-color:#c2d8cd; }
+.sb-raster { grid-template-columns:repeat(2,minmax(0,1fr)); }
+.sb-breit { grid-column:1/-1; }
+.sb-guide .rk-schritt { scroll-margin-top:110px; min-width:0; }
+.sb-guide .rk-schrittkopf h3 { min-width:0; }
+.sb-guide .rk-nummer { width:34px; }
+.sb-sprungwahl { display:flex; flex-wrap:wrap; gap:8px; margin:0 0 18px; }
+.sb-sprungwahl a { display:inline-flex; align-items:center; min-height:44px; padding:9px 13px; border:1px solid #9bb7a8; border-radius:10px; background:#fff; color:#174d37; font-size:.85rem; font-weight:650; }
+.sb-weiter { margin-top:18px; }
+.sb-wechselhinweis { margin-top:18px; padding:18px; background:#edf7f2; color:#174832; border:1px solid #b5d5c4; border-radius:12px; }
+.sb-wechselhinweis h4 { margin:0 0 12px; font-size:1rem; }
+.sb-merkliste { padding-left:22px; margin:0 0 16px; line-height:1.65; }
+.sb-merkliste li + li { margin-top:7px; }
+.sb-wechselgrafik { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:18px 0 6px; }
+.sb-wechselgrafik span { padding:13px; background:white; border:1px solid #a8c6b8; border-radius:10px; font-size:.8rem; }
+.sb-wechselgrafik b { display:block; font-size:1.05rem; margin-bottom:4px; }
+.sb-guide .sb-bildhinweis { font-size:.75rem; color:#445c50; margin:8px 0 16px; }
+.sb-fristhinweis { background:#fff3d7; border:1px solid #dbb96f; border-radius:10px; color:#684300; padding:14px; font-size:.9rem; }
+@media(max-width:650px) {
+ .sb-kopfgrafik { width:60px; height:82px; border-radius:11px; box-shadow:5px 6px 0 #1f293712; }
+ .sb-kopfgrafik svg { width:40px; height:40px; }
+ .sb-kopfgrafik span { width:26px; height:26px; right:-4px; bottom:4px; font-size:.8rem; }
+ .sb-guide h1 { font-size:clamp(1.7rem,6.3vw,2.5rem); }
+ .sb-raster,.sb-wechselgrafik { grid-template-columns:1fr; }
+ .sb-einordnung { padding:13px; font-size:.85rem; }
+ .sb-guide .rk-schrittkopf { flex-wrap:nowrap; }
+ .sb-guide .rk-schrittkopf h3 { flex:1; }
+ .sb-wechselhinweis { padding:14px; }
+ .sb-guide .rk-phase { padding:12px; }
+ .sb-sprungwahl a { flex:1 1 100%; }
+}
+@media print { .sb-guide [data-sb-panel] { display:block!important; } .sb-guide .rk-lang { display:block!important; } .sb-guide .rk-werkzeuge,.sb-sprungwahl,.sb-weiter { display:none; } }

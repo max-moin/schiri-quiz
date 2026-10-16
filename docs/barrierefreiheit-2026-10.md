@@ -32,3 +32,11 @@ axe meldete auf einigen Verlaufshintergründen `color-contrast` als manuell zu p
 - Es wurden keine echten Termine, Quizantworten, Mails oder Push-Nachrichten verändert/ausgelöst. Browser-Daten waren künstlich. Datenbank-Schreibtests nur in Transaktion mit ROLLBACK; anschließend0Testzeilen bestätigt. RLS-/Spaltenrechte und AAL2/Vereinszuordnung bleiben erhalten.
 
 Referenz: [W3C – WCAG2.2 Quick Reference](https://www.w3.org/WAI/WCAG22/quickref/). Keine juristische Zertifizierung oder automatische Freigabe fremder Medien.
+
+## Ergänzung: Spielbericht-Guide (gleicher Tag)
+
+Ausgangsstand `759e512dd3f2ff9a3ffffd52a6ccd09e771c2d33`, Original zu Beginn sauber. Neue Fachseite mit realem Einstieg Hilfe → Spielbericht, drei Abschnitten und zwei Textumfängen bei320/390/768/1280px:24Ansichten ohne automatische A/AA-Verstöße oder Dokument-Überlauf. Direkte Wechsel-/Abschluss-Anker, Fokus am Anker, Seitenhilfe und Editor-Dialog zusätzlich geprüft. Die39 Inhaltsblöcke bestehen die vorhandene Inhaltsvalidierung; umsortierte JSONB-Objektschlüssel verändern das Ausgangsmarkup nicht. Fehlende Struktur und unsichere Links werden abgelehnt.
+
+Editorprüfung mit künstlichem In-Memory-Client: Titel/Fokusliste ändern, Fokus zurück, Sonderfallkasten erhalten, Vorschau, Entwurf speichern ohne öffentliche Änderung, gespeicherten Entwurf wieder öffnen und ausdrückliche Veröffentlichung simulieren. Kein echter Inhalt veröffentlicht. Datenbank-Rollbacktest mit tatsächlich extrahiertem Guide: Entwurf/Publikation getrennt, Revisionskonflikt, Historie, AAL1-/Fremdvereinszugriff verweigert; keine Testreste.
+
+Zusätzlich alle drei Abschnitte bei320px mit200%Grundschrift und vergrößerten Textabständen geprüft. Dabei echte Grenzfälle korrigiert: lange Fußlinks dürfen umbrechen; der mobile Seitenname nutzt die vorhandene kompakte Vorgabe „Spielbericht“, statt die gesamte Hero-Überschrift in die feste Kopfzeile zu übernehmen. Kein grundsätzlicher Navigationsumbau. Finale Browserrunde ohne JS-Laufzeitfehler. Echte Safari-/Assistenztechnik- und fachliche Abnahme bleiben erforderlich.
