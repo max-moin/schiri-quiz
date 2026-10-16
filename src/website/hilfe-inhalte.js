@@ -2,6 +2,11 @@
 // Keine Beispieldaten, keine automatisch ausgefuehrten Fachaktionen.
 const schritt = (id, ziel, titel, text) => Object.freeze({ id, ziel, titel, text });
 export const SEITENHILFE = Object.freeze({
+  'rote-karte.html': { titel: 'Rote Karte & Sonderbericht', schritte: [
+    schritt('phasen', '.rk-phasenwahl', 'Deine Spielphase', 'Vor dem Spiel startet mit Schritt 0. Im Spiel stehen die Schritte 1 bis 4 im Mittelpunkt; danach folgen Spielbericht, Sonderbericht und Upload.'),
+    schritt('umfang', '.rk-ansicht', 'Kurz oder mit Erklärungen', 'Der Kurzüberblick zeigt Fokuspunkte. Mit Erklärungen ergänzt die Hintergründe, ohne alle zusätzlichen Hinweisboxen zu öffnen.'),
+    schritt('quellen', '.rk-quellen', 'Originale und Unterstützung', 'Die Originalquellen sind mit ihrem Zweck verlinkt. Max erreichst du über den Anrufknopf. Diese Hilfe versendet keine Berichte und ändert nichts im DFBnet.'),
+  ] },
   'quiz.html': { titel: 'Fragen beantworten', schritte: [
     schritt('fortschritt', '#fortschritt-wrap, #kopf', 'Dein Wochenfortschritt', 'Hier siehst du, wie viele Fragen schon beantwortet sind. Gast- und Übungsmodus sind davon getrennt. Ein Wochenwechsel kann neue Fragen bringen.'),
     schritt('antworten', '#fragen-liste, #gast-frage-bereich, main', 'Antworten und begründen', 'Lies die Frage und wähle die verlangte Antwortform. Bei Mehrfachauswahl können mehrere Antworten nötig sein. Eine verlangte Begründung musst du vor dem Abschicken ergänzen.'),

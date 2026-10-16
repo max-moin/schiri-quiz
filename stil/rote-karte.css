@@ -1,0 +1,111 @@
+/* Fachlicher Guide, isoliert vom Quiz und vom bestehenden Blockeditor. */
+.rk-symbolbibliothek { position:absolute; width:0; height:0; overflow:hidden; }
+.rk-guide { --rk-akzent:#9f2437; --rk-weich:#fff0f1; }
+.rk-guide svg { width:24px; height:24px; flex:none; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.rk-guide [hidden] { display:none !important; }
+.rk-guide h1 { font:800 clamp(2rem,5vw,3.3rem)/1.15 var(--font-titel); letter-spacing:-.035em; margin:5px 0; }
+.rk-guide h2 { font:700 1.35rem/1.3 var(--font-titel); margin:0 0 18px; }
+.rk-guide h3 { font-size:1.05rem; line-height:1.35; margin:0; }
+.rk-guide p { line-height:1.6; }
+.rk-kopf { display:flex; align-items:center; justify-content:space-between; gap:18px; padding:18px 8px 24px; }
+.rk-oberzeile { margin:0; font-size:.8rem; font-weight:700; color:var(--muted); letter-spacing:.05em; text-transform:uppercase; }
+.rk-untertitel { margin:8px 0 0; color:var(--muted); }
+.rk-kartengrafik { width:108px; height:135px; display:grid; place-items:center; flex:none; }
+.rk-kartengrafik span { display:block; width:66px; height:96px; background:#dc2945; border:3px solid #f37c90; border-radius:8px; transform:rotate(13deg); box-shadow:10px 12px 0 #1f293719; }
+.rk-werkzeuge { margin:6px 0 22px; }
+.rk-phasenwahl { display:grid; grid-template-columns:1fr 1.45fr 1fr; gap:10px; }
+.rk-phasenwahl button { display:flex; align-items:center; justify-content:center; gap:12px; min-height:86px; padding:12px; border-radius:16px; border:1px solid #c5ccd6; background:var(--card); color:var(--text); font:inherit; font-weight:700; cursor:pointer; }
+.rk-phasenwahl small { display:block; font-size:.75rem; font-weight:500; margin-top:5px; color:var(--muted); }
+.rk-phasenwahl button[aria-pressed=true] { background:var(--rk-weich); border:2px solid var(--rk-akzent); color:#801b2b; }
+.rk-phasenwahl button[aria-pressed=true] small { color:#801b2b; }
+.rk-ansicht { display:flex; justify-content:flex-end; gap:6px; margin-top:14px; flex-wrap:wrap; }
+.rk-ansicht button { min-height:44px; padding:9px 14px; border-radius:10px; background:var(--card); color:var(--text); border:1px solid #c5ccd6; font:inherit; font-size:.875rem; cursor:pointer; }
+.rk-ansicht button[aria-pressed=true] { border-color:var(--marke); background:var(--marke); color:white; font-weight:700; }
+.rk-phase { padding:22px; background:#edf0f5; border-radius:20px; margin:18px 0; border:1px solid #d8dfe8; scroll-margin-top:110px; }
+.rk-phase-spiel { background:#f9eff0; border-color:#e7cfd3; }
+.rk-phase h2 span { font:500 .8rem var(--font-text); margin-left:12px; color:var(--muted); }
+.rk-ablauf { list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+.rk-schritt { background:var(--card); border:1px solid #d6dce5; border-radius:16px; padding:18px; }
+.rk-schrittkopf { display:flex; align-items:center; gap:12px; }
+.rk-schrittkopf > svg { color:var(--rk-akzent); }
+.rk-nummer { width:30px; height:30px; border-radius:9px; background:#eff2f6; color:var(--text); display:grid; place-items:center; flex:none; font-size:.85rem; font-weight:800; }
+.rk-fokus { list-style:none; display:flex; gap:8px 16px; flex-wrap:wrap; margin:13px 0 0; padding:0; font-size:.95rem; font-weight:650; }
+.rk-fokus li { display:flex; align-items:baseline; gap:7px; }
+.rk-fokus li::before { content:'•'; color:var(--rk-akzent); font-weight:800; }
+.rk-guide[data-ansicht=kurz] .rk-lang { display:none; }
+.rk-lang { margin:14px 0 0; color:#374151; }
+.rk-lang p { margin:10px 0 0; }
+.rk-sicherheit { display:flex; align-items:flex-start; gap:14px; border:1px solid #ddb2b9; background:#fff4f5; color:#681b29; border-radius:16px; padding:18px; margin-top:18px; }
+.rk-sicherheit h3 { color:#681b29; }
+.rk-sicherheit p { margin:8px 0; }
+.rk-guide a { text-underline-offset:3px; }
+.rk-sicherheit a { color:#681b29; font-size:.875rem; font-weight:600; }
+.rk-vor-raster { display:grid; grid-template-columns:1fr 1fr; gap:24px; align-items:center; }
+.rk-spielfeld { margin:16px 0 0; }
+.rk-platz { height:165px; position:relative; overflow:hidden; border-radius:12px; background:repeating-linear-gradient(90deg,#245e45 0%,#245e45 12.5%,#2e6b50 12.5%,#2e6b50 25%); }
+.rk-linie { position:absolute; inset:15px; border:2px solid #b5d8bd; }
+.rk-linie::after { content:''; position:absolute; height:100%; left:50%; border-left:2px solid #b5d8bd; }
+.rk-mitte { position:absolute; top:50%; left:50%; width:52px; height:52px; border:2px solid #b5d8bd; border-radius:50%; transform:translate(-50%,-50%); }
+.rk-platzlabel { position:absolute; left:24px; bottom:25px; padding:6px 10px; background:#173e2d; color:white; border-radius:7px; font-size:.75rem; font-weight:650; }
+.rk-spielfeld figcaption,.rk-muster figcaption { font-size:.8rem; line-height:1.5; color:#4b5563; margin-top:9px; }
+.rk-bericht-raster { display:grid; grid-template-columns:minmax(0,1fr) minmax(210px,330px); gap:24px; margin-top:16px; align-items:start; }
+.rk-muster { margin:0 auto; max-width:330px; width:100%; }
+.rk-muster img { display:block; width:100%; height:auto; border-radius:9px; border:1px solid #c5cfd2; }
+.rk-muster a { display:block; }
+.rk-muster figcaption a { margin-top:7px; }
+.rk-pfad { padding:12px; background:#edf7f2; border-radius:10px; color:#174832; }
+.rk-vorlagen { display:flex; gap:10px; flex-wrap:wrap; margin:16px 0; }
+.rk-knopf { display:inline-flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:11px 15px; border-radius:10px; border:1px solid #bdc7d2; background:var(--card); color:var(--text); font-weight:650; text-decoration:none; }
+.rk-knopf-haupt { background:var(--marke); color:white; border-color:var(--marke); flex-wrap:wrap; }
+.rk-knopf-haupt span { font-size:.8rem; font-weight:450; }
+.rk-kurzsatz { margin-bottom:0; }
+.rk-frist { background:#fff3d7; padding:13px; border-radius:10px; color:#684300; margin:16px 0 10px; }
+.rk-pruefpunkt { margin:10px 0 0; color:#4b5563; font-size:.85rem; }
+.rk-kontakt { background:#e6f1ec; border:1px solid #cbded5; border-radius:18px; display:flex; align-items:center; justify-content:space-between; gap:24px; margin:24px 0; padding:24px; }
+.rk-kontakt h2 { font-size:1.2rem; margin-bottom:7px; }
+.rk-kontakt p { font-size:.875rem; margin:0; }
+.rk-kontakt .rk-knopf { flex:none; }
+.rk-hinweise { margin:28px 0; }
+.rk-erklaerbox { margin:16px 0 0; border:1px solid #c4ced9; border-radius:12px; overflow:hidden; background:var(--card); }
+.rk-erklaerbox summary { display:flex; align-items:center; gap:10px; list-style:none; min-height:48px; padding:13px 16px; font-size:.95rem; font-weight:700; background:#f2f4f7; cursor:pointer; }
+.rk-erklaerbox summary::-webkit-details-marker { display:none; }
+.rk-erklaerbox summary svg { width:19px; height:19px; transition:transform .15s; }
+.rk-erklaerbox[open] summary svg { transform:rotate(45deg); }
+.rk-details-innen { padding:4px 18px 18px; }
+.rk-details-innen p { font-size:.95rem; }
+.rk-schreibfragen { display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; }
+.rk-schreibfragen p { margin:12px 0 2px; }
+.rk-quellen { border-top:1px solid #ccd4df; margin-top:32px; padding-top:24px; }
+.rk-quellen > p { color:var(--muted); font-size:.8rem; }
+.rk-quellen ul { list-style:none; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:18px 26px; }
+.rk-quellen a { color:#283e65; font-weight:650; }
+.rk-quellen span { display:block; color:#4b5563; font-size:.8rem; line-height:1.5; margin-top:5px; }
+.rk-guide button:focus-visible,.rk-guide a:focus-visible,.rk-guide summary:focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
+@media(max-width:650px) {
+ .rk-kopf { padding:8px 0 20px; gap:8px; }
+ .rk-kartengrafik { width:65px; height:100px; }
+ .rk-kartengrafik span { width:44px; height:67px; box-shadow:6px 8px 0 #1f293719; }
+ .rk-untertitel { font-size:.875rem; }
+ .rk-phasenwahl { grid-template-columns:1fr 1.25fr 1fr; gap:7px; }
+ .rk-phasenwahl button { padding:12px 5px; flex-direction:column; gap:6px; font-size:.76rem; }
+ .rk-phasenwahl small { font-size:.68rem; }
+ .rk-phasenwahl svg { width:21px; height:21px; }
+ .rk-ansicht { justify-content:stretch; }
+ .rk-ansicht button { flex:1; padding:9px 7px; font-size:.8rem; }
+ .rk-phase { padding:14px; }
+ .rk-phase h2 span { display:block; margin:5px 0 0; }
+ .rk-schritt { padding:15px; }
+ .rk-schrittkopf { gap:8px; flex-wrap:wrap; }
+ .rk-schrittkopf h3 { font-size:.95rem; flex:1; min-width:125px; }
+ .rk-schrittkopf > svg { width:21px; height:21px; }
+ .rk-fokus { font-size:.85rem; gap:7px 12px; }
+ .rk-vor-raster,.rk-bericht-raster { grid-template-columns:1fr; gap:16px; }
+ .rk-muster { max-width:290px; }
+ .rk-vorlagen .rk-knopf { flex:1; font-size:.85rem; }
+ .rk-sicherheit { padding:15px; gap:9px; }
+ .rk-sicherheit svg { width:22px; height:22px; }
+ .rk-sicherheit p { font-size:.9rem; }
+ .rk-kontakt { padding:20px; flex-direction:column; align-items:stretch; gap:16px; }
+ .rk-quellen ul,.rk-schreibfragen { grid-template-columns:1fr; }
+}
+@media(prefers-reduced-motion:reduce) { .rk-erklaerbox summary svg { transition:none; } }
