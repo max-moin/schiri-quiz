@@ -2,6 +2,22 @@
 // Keine Beispieldaten, keine automatisch ausgefuehrten Fachaktionen.
 const schritt = (id, ziel, titel, text) => Object.freeze({ id, ziel, titel, text });
 export const SEITENHILFE = Object.freeze({
+  'dfbnet.html': { titel: 'DFBnet-Hilfe', schritte: [
+    schritt('themen', '.dfbnet-gruppe', 'Dein Thema auswählen', 'Spielbericht und rote Karte gehören zum Dokumentieren. Sperrtermine und Beobachtung betreffen deine Einsätze. Alle Einträge führen in eigene Leitfäden.'),
+    schritt('begriffe', '.dfbnet-gruppe-wissen', 'Zwei Arten von Sperren', 'Persönliche Sperrtermine steuern deine Verfügbarkeit als Schiedsrichter. Spielersperren betreffen sportrechtliche Einschränkungen einer Person. Die Hintergrundseite erklärt den Unterschied, ohne einen Einzelfall freizugeben.'),
+  ] },
+  'sperrtermine.html': { titel: 'Sperrtermine & Verfügbarkeit', schritte: [
+    schritt('abschnitt', '.rk-phasenwahl', 'Planen, eintragen, klären', 'Wähle den Arbeitsschritt. Die Nummern zeigen die Reihenfolge. Der Kurzüberblick nennt die Handlungen; mit Erklärungen liest du die Hintergründe.'),
+    schritt('grenze', '.dfbnet-hinweis', 'Keine automatische Änderung', 'Die Hilfe trägt nichts im DFBnet ein. Schon angesetzte Spiele brauchen den gesonderten Absageweg, nicht nur einen neuen Sperrtermin.'),
+  ] },
+  'schiri-beobachtung.html': { titel: 'Schiri-Beobachtung', schritte: [
+    schritt('abschnitt', '.rk-phasenwahl', 'Von der Beobachtung zum Lernziel', 'Vorbereitung, Bericht und Weiterentwicklung sind getrennte Abschnitte. Ein Bericht kann erst nach Prüfung und Freigabe verfügbar sein.'),
+    schritt('feedback', '.rk-quellen', 'Eigene Rückmeldung geben', 'Der verlinkte SVFD-Feedbackbogen bewertet die Qualität von Beobachtung und Auswertung. Er ersetzt nicht den Leistungsbericht. Persönliche Angaben werden auf der offiziellen Seite eingegeben, nicht hier.'),
+  ] },
+  'spielersperren.html': { titel: 'Spielersperren verstehen', schritte: [
+    schritt('abschnitt', '.rk-phasenwahl', 'Begriffe und Systemlogik', 'Die Hilfe unterscheidet Geltung und Ableistung. Das ist Hintergrundwissen, kein Rechner für die Spielberechtigung einer Person.'),
+    schritt('grenze', '.dfbnet-hinweis', 'Altes Handbuch, heutige Regeln', 'Das technische Handbuch ist von 2017. Für einen konkreten Fall gelten die aktuellen Ordnungen, Wettbewerbsbestimmungen und gegebenenfalls eine sportrechtliche Entscheidung.'),
+  ] },
   'spielbericht.html': { titel: 'Spielbericht Schritt für Schritt', schritte: [
     schritt('abschnitt', '.rk-phasenwahl', 'Dein nächster Arbeitsschritt', 'Vorbereiten, Eintragen und Abschließen gliedern den normalen Einzelspielbericht. Die Nummern geben die Reihenfolge vor. Diese Seite ändert nichts im DFBnet.'),
     schritt('umfang', '.rk-ansicht', 'Merkpunkte oder Erklärung', 'Der Kurzüberblick zeigt die wichtigsten Handlungen. Mit Erklärungen ergänzt die Hintergründe; Wiedereinwechslungen sind als besonderer Wettbewerbsfall gekennzeichnet.'),
@@ -25,7 +41,7 @@ export const SEITENHILFE = Object.freeze({
     schritt('szenario', 'main', 'Entscheidung und Begründung', 'Bearbeite die angezeigte Situation und beachte die Aufgabenstellung. Dieser eigene Modus ersetzt keine offenen Wochenquizfragen.'),
   ] },
   'meine-statistik.html': { titel: 'Meine Quizstatistik', schritte: [
-    schritt('serie', '#meine-wochenserie, #meine-zugang', 'Deine private Wochenserie', 'Vollständig beantwortete Quizwochen zählen unabhängig von der Trefferquote. Deine Serie und Abzeichen sind nur für dich. Eine verpasste Woche lässt sich in den sieben Tagen danach durch fünf verschiedene richtig beantwortete Übungsfragen retten; die normalen Quizantworten werden dadurch nicht verändert.'),
+    schritt('serie', '#meine-wochenserie, #meine-zugang', 'Deine private Wochenserie', 'Vollständig beantwortete Quizwochen zählen unabhängig von der Trefferquote. Deine Serie und Abzeichen sind nur für dich. Eine verpasste Woche lässt sich in den sieben Tagen danach durch fünf verschiedene richtig beantwortete Übungsfragen retten; die normalen Quizantworten werden dadurch nicht verändert. Alternativ kannst du hier einen verfügbaren Geburtstagsjoker zur Serienrettung einsetzen. Er verändert keine Quizpunkte.'),
     schritt('statistik', '#statistik-kennzahlen, #meine-zugang', 'Deine eigene Entwicklung', 'Die Übersicht gehört nur zu deinem Konto. Sie zeigt deine Ergebnisse, nicht den Leistungsstand anderer Vereinsmitglieder.'),
     schritt('verlauf', '#statistik-verlauf, #meine-zugang', 'Über die Wochen', 'Im Verlauf siehst du auch Wochen ohne Teilnahme. Nutze ihn, um deinen eigenen Lernfortschritt einzuschätzen; eine leere Woche ist nicht dasselbe wie eine falsch beantwortete Frage.'),
   ] },
@@ -37,6 +53,7 @@ export const SEITENHILFE = Object.freeze({
   ] },
   'frage-vorschlagen.html': { titel: 'Eine Frage vorschlagen', schritte: [
     schritt('frage', 'main', 'Vorschlag statt Veröffentlichung', 'Gib Wortlaut, Antwort, Begründung und Quelle an. Ein Entwurf ist noch nicht eingereicht; ein eingereichter Vorschlag wird vor der Verwendung geprüft.'),
+    schritt('herkunft', '.herkunft-auswahl', 'Freiwillige Kennzeichnung', 'Du kannst die Frage als Beitrag aus unserer Schiri-Gruppe kennzeichnen lassen. Ein zweites Häkchen erlaubt zusätzlich deinen Namen im Wochenquiz des Vereins. Ohne Häkchen keine Kennzeichnung; der Obmann sieht den Einreicher für die Prüfung trotzdem.'),
   ] },
   'hilfe.html': { titel: 'Die passende Hilfe finden', schritte: [
     schritt('rundgang', '[data-einstieg-starten]', 'Geführter Einstieg', 'Der Rundgang zeigt die wichtigsten Seiten und ihre Funktionen. Mit den Pfeilen gehst du weiter oder zurück; mit dem X beendest du die Tour jederzeit.'),

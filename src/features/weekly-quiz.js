@@ -136,6 +136,19 @@
 
       const fragen = fragenErgebnis.data || [];
 
+      // Optionale Urheberschaft darf das fachliche Quiz bei Ladefehlern nie blockieren.
+      // Kein Name aus Formular/Browserdaten: ausschließlich freigegebene Serverausgabe.
+      if (fragen.length) {
+        try {
+          const { data } = await sb.rpc("schiri_fragen_herkunft", {
+            p_schiedsrichter_id: zugang.schiedsrichterId, p_pin: zugang.pin,
+            p_frage_ids: fragen.map(f => f.id),
+          });
+          const herkunft = new Map((Array.isArray(data) ? data : []).map(h => [h.frage_id,h.herkunft]));
+          for (const frage of fragen) frage.herkunft = herkunft.get(frage.id) || null;
+        } catch { /* Kennzeichnung ist optional. */ }
+      }
+
       // Falls das Nachladen der bisherigen Antworten fehlschlägt, zeigt die Seite
       // trotzdem alle Fragen ganz normal als offen an - kein Blocker fürs Mitmachen.
       const antwortenNachFrageId = new Map();

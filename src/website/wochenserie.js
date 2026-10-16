@@ -20,7 +20,7 @@ export function berechneWochenserie(basis) {
       w.status = 'abgeschlossen'; abgeschlossen++; serie++;
     } else if (jetzt < w.ende) {
       w.status = 'offen'; // Laufende Woche unterbricht noch nichts.
-    } else if (w.uebung_richtig >= 5) {
+    } else if (w.uebung_richtig >= 5 || w.joker_gerettet === true) {
       w.status = 'gerettet'; gerettet++; serie++;
     } else {
       w.status = jetzt < w.bis ? 'rettbar' : 'verpasst';
@@ -35,6 +35,6 @@ export function berechneWochenserie(basis) {
       { id:'erste-woche', titel:'Erste Woche', text:'Ein Wochenquiz vollständig beantwortet.', verdient:abgeschlossen>=1 },
       { id:'vier-wochen', titel:'Drangeblieben', text:'Vier Quizwochen in einer Serie.', verdient:beste>=4 },
       { id:'acht-wochen', titel:'Regelroutine', text:'Acht Quizwochen in einer Serie.', verdient:beste>=8 },
-      { id:'wieder-da', titel:'Wieder da', text:'Eine verpasste Woche durch Üben gerettet.', verdient:gerettet>=1 },
+      { id:'wieder-da', titel:'Wieder da', text:'Eine verpasste Woche gerettet.', verdient:gerettet>=1 },
     ] };
 }

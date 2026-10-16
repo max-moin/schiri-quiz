@@ -33,7 +33,7 @@ test('Navigation, Quellen und Seitenhilfe führen in die echte neue Seite',()=>{
 });
 test('Feste Redaktion nutzt bestehende Rechte und getrennte Veröffentlichung',()=>{
  const js=lies('src/website/spielbericht-redaktion.js');
- assert.match(js,/seite:'spielbericht'/);assert.match(js,/vorlage:'spielbericht-v1'/);
+ assert.match(js,/seite:'spielbericht'/);assert.match(js,/kennung = 'spielbericht-v1'/);
  assert.match(js,/festeStruktur:true/);assert.match(js,/pruefeBlockseite/);assert.match(js,/sichereBlockURL/);
  assert.doesNotMatch(js,/innerHTML\s*=|eval\(|service_role|signInWithPassword/);
  assert.match(js,/\.seiten-werkzeuge,\.wegweiser/);

@@ -57,6 +57,11 @@
           <h2>3. Begründung und Beleg</h2>
           <label>Warum ist diese Lösung richtig?<textarea id="begruendung" required minlength="40" rows="5" placeholder="Regelauslegung und Anwendung · mindestens 40 Zeichen"></textarea></label>
           <label>Beleg / Quelle<textarea id="beleg" required minlength="20" rows="3" placeholder="Regelheft, Ausgabe/Seite oder direkter Link · mindestens 20 Zeichen"></textarea></label>
+          <fieldset class="herkunft-auswahl"><legend>Deine Kennzeichnung im Wochenquiz · freiwillig</legend>
+            <label><input type="checkbox" id="herkunft-gruppe"> Die Frage als Beitrag aus unserer Schiri-Gruppe kennzeichnen</label>
+            <label><input type="checkbox" id="herkunft-name" disabled> Zusätzlich meinen Namen bei der Frage anzeigen</label>
+            <p id="herkunft-hinweis">Ohne Häkchen erscheint keine Kennzeichnung. Dein Obmann sieht für die Prüfung weiterhin, von wem der Vorschlag stammt. Die Freigabe gilt nur für das Quiz deines Vereins. Zum späteren Entfernen der Kennzeichnung kannst du deinen Obmann ansprechen.</p>
+          </fieldset>
           <h2>4. Regelnummer <span class="feld-marke">Optional</span></h2>
           <label>Regelnummer<small class="feld-hinweis">Du weißt die Nummer nicht? Dann lass das Feld leer – der Obmann ergänzt sie bei der Prüfung.</small><input id="regelnummer" inputmode="numeric" placeholder="z. B. 12" /></label>
           <p id="formular-meldung" class="vorschlag-meldung" aria-live="polite"></p>

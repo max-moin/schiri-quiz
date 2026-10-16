@@ -33,5 +33,13 @@ main.inhalt { scroll-margin-top:80px; }
 .hilfe-leitfaden summary::after { content:'+'; font-size:22px; flex:none; color:#1d4ed8; }
 .hilfe-leitfaden details[open] summary::after { content:'−'; }
 .hilfe-leitfaden[hidden], .hilfe-raster[hidden] { display:none; }
+.hilfe-kategorien[hidden] { display:none; }
+.hilfe-themenbereich { margin:28px 0; padding:22px; border:1px solid #cbd7e6; border-radius:20px; background:#edf2f8; overflow-wrap:anywhere; }
+.hilfe-themenbereich + .hilfe-themenbereich { background:#eaf2ee; border-color:#c6d9cf; }
+.hilfe-themenbereich h2 { margin:0 0 8px; font:700 1.3rem var(--font-titel); }
+.hilfe-themenbereich > p { color:#4b5563; margin:0; line-height:1.6; }
+.hilfe-themenbereich .hilfe-raster { margin-bottom:0; }
+.hilfe-themenbereich .funktions-kachel { border:1px solid #cbd5e1; }
+@media(max-width:600px) { .hilfe-themenbereich { padding:15px; } }
 .hilfe-tour-start:focus-visible, .hilfe-anrufen:focus-visible, .hilfe-leitfaden summary:focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
 @media (max-width: 600px) { .hilfe-leitfaden { padding: 16px; } }

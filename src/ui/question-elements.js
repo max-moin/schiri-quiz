@@ -82,6 +82,12 @@
         wrap.appendChild(regelBadge);
       }
 
+      if (typeof frage.herkunft === "string" && frage.herkunft) {
+        const beitrag = document.createElement("span");
+        beitrag.className = "badge regel";
+        beitrag.textContent = frage.herkunft;
+        wrap.appendChild(beitrag);
+      }
       const sterne = schwierigkeitSterne(frage.schwierigkeit);
       if (sterne) {
         const schwierigkeitBadge = document.createElement("span");

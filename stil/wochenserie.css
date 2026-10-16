@@ -8,3 +8,7 @@
 .serie-regeln{margin-top:1.2rem}.serie-regeln summary{cursor:pointer;min-height:44px;padding-block:.7rem;font-weight:600}.wochenserie [hidden]{display:none!important}
 @media(max-width:480px){.serie-zahlen{grid-template-columns:1fr}.serie-zahl{flex-direction:row;align-items:center;gap:1rem}.serie-zahl strong{min-width:2ch}}
 @media(prefers-reduced-motion:reduce){.wochenserie *{animation:none!important;transition:none!important}}
+.serie-joker-dialog{border:1px solid #cbd5e1;border-radius:20px;padding:24px;max-width:32rem;width:calc(100% - 32px);box-sizing:border-box;color:#172033;background:#fff;max-height:calc(100dvh - 32px);overflow:auto}
+.serie-joker-dialog::backdrop{background:rgb(15 23 42 / .6)}
+.serie-joker-dialog button{min-height:44px;margin:8px 8px 0 0}
+.serie-joker-dialog p{line-height:1.5}

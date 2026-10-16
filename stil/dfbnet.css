@@ -1,0 +1,39 @@
+.dfbnet-hub { overflow-wrap:anywhere; }
+.dfbnet-kopf { display:flex; align-items:center; justify-content:space-between; gap:22px; margin:12px 0 26px; }
+.dfbnet-kopf h1 { margin:4px 0 10px; font:800 clamp(2rem,5vw,3.2rem)/1.16 var(--font-titel); letter-spacing:-.03em; }
+.dfbnet-kopf p { color:var(--muted); line-height:1.6; }
+.dfbnet-logo { width:78px; height:100px; object-fit:contain; flex:none; background:white; padding:5px; border:1px solid var(--border); border-radius:12px; }
+.dfbnet-gruppe { padding:22px; background:#e9eff6; border:1px solid #ccd7e5; border-radius:20px; margin:22px 0; }
+.dfbnet-gruppe h2 { font:700 1.2rem var(--font-titel); margin:0 0 8px; }
+.dfbnet-gruppe > p { color:#4b5563; line-height:1.6; }
+.dfbnet-gruppe .hilfe-raster { margin:18px 0 0; }
+.dfbnet-gruppe .funktions-kachel { min-width:0; border:1px solid #c7d2df; }
+.dfbnet-gruppe-wissen { background:#f8f0df; border-color:#e0cda7; }
+.dfbnet-abgrenzung { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:18px 0; }
+.dfbnet-abgrenzung > div { padding:18px; background:white; border:1px solid #b9cbd8; border-radius:14px; }
+.dfbnet-abgrenzung h3 { margin:0 0 8px; font-size:1rem; }
+.dfbnet-abgrenzung p { margin:0; font-size:.9rem; line-height:1.6; color:#374151; }
+.dfbnet-hub a:focus-visible { outline:3px solid #1d4ed8; outline-offset:3px; }
+.dfbnet-guide { --rk-akzent:#255b86; --rk-weich:#e8f1f9; }
+.dfbnet-guide .rk-phasenwahl button[aria-pressed=true],.dfbnet-guide .rk-phasenwahl button[aria-pressed=true] small { color:#224b6b; }
+.dfbnet-guide .sb-phase-erfassen { background:#e9f0f8; border-color:#c8d8ea; }
+.dfbnet-guide .sb-kopfgrafik { background:#e8f1f9; border-color:#a4bbcf; }
+.dfbnet-guide .sb-kopfgrafik svg { color:#255b86; }
+.dfbnet-guide .sb-kopfgrafik span { background:#255b86; }
+.dfbnet-guide .sb-wechselhinweis { background:#eef5fb; color:#224b6b; border-color:#b9cedf; }
+.dfbnet-guide[data-dfbnet-guide=spielersperren] { --rk-akzent:#825416; --rk-weich:#faf0dd; }
+.dfbnet-guide[data-dfbnet-guide=spielersperren] .sb-phase-erfassen { background:#f8f0df; border-color:#e0cda7; }
+.dfbnet-guide[data-dfbnet-guide=spielersperren] .rk-phasenwahl button[aria-pressed=true],.dfbnet-guide[data-dfbnet-guide=spielersperren] .rk-phasenwahl button[aria-pressed=true] small { color:#6c4512; }
+.dfbnet-hinweis { margin:18px 0; padding:18px; border:1px solid #d3b478; background:#fff4db; border-radius:14px; color:#684300; line-height:1.6; }
+.dfbnet-hinweis h2,.dfbnet-hinweis h3 { color:#684300; margin-top:0; }
+.dfbnet-guide .sb-ablaufschema { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:18px 0; padding:0; list-style:none; }
+.sb-ablaufschema li { border:1px solid #b5c7da; background:#f4f8fc; border-radius:12px; padding:14px; font-size:.85rem; line-height:1.5; }
+.sb-ablaufschema strong { display:block; color:#224b6b; margin-bottom:5px; font-size:1rem; }
+.dfbnet-weitere { display:flex; flex-wrap:wrap; gap:10px; margin:22px 0; }
+@media(max-width:650px) {
+ .dfbnet-kopf { gap:12px; align-items:flex-start; }
+ .dfbnet-kopf h1 { font-size:1.9rem; }
+ .dfbnet-logo { width:54px; height:74px; }
+ .dfbnet-gruppe { padding:15px; }
+ .dfbnet-abgrenzung,.dfbnet-guide .sb-ablaufschema { grid-template-columns:1fr; }
+}

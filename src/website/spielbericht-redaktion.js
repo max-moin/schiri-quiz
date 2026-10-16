@@ -5,7 +5,7 @@ import { gleicherGuideBlock } from './guide-redaktion.js';
 import { montiereSpielbericht } from './spielbericht.js';
 
 // Stabile Inhalts-IDs: feste Fachseite, kein freier Phasen-/Modus-Baukasten.
-export function erstelleSpielberichtAdapter(wurzel) {
+export function erstelleSpielberichtAdapter(wurzel, { kennung = 'spielbericht-v1' } = {}) {
   const vorlage=wurzel.cloneNode(true),d=wurzel.ownerDocument;
   vorlage.querySelectorAll(':scope > .seiten-werkzeuge,:scope > .wegweiser').forEach(n=>n.remove());
   const klar=n=>(n?.textContent||'').trim();
@@ -23,10 +23,10 @@ export function erstelleSpielberichtAdapter(wurzel) {
     else b.text=klar(n);
     return b;
   };
-  const standard={version:1,vorlage:'spielbericht-v1',bloecke:definitionen.map((s,i)=>lies(knoten[i],s))};
+  const standard={version:1,vorlage:kennung,bloecke:definitionen.map((s,i)=>lies(knoten[i],s))};
   const pruefe=inhalt=>{
     const fehler=pruefeBlockseite(inhalt);if(fehler.length)return fehler;
-    if(inhalt.vorlage!==standard.vorlage||inhalt.bloecke.length!==definitionen.length||definitionen.some(s=>!inhalt.bloecke.some(b=>b.id===s.id&&b.typ===s.typ)))return ['Die feste Spielbericht-Struktur ist unvollständig. Bitte neu laden.'];
+    if(inhalt.vorlage!==standard.vorlage||inhalt.bloecke.length!==definitionen.length||definitionen.some(s=>!inhalt.bloecke.some(b=>b.id===s.id&&b.typ===s.typ)))return ['Die feste Guide-Struktur ist unvollständig. Bitte neu laden.'];
     if(inhalt.bloecke.some(b=>['schritte','link'].includes(b.typ)&&!String(b.titel||'').trim()))return ['Schritte und Links brauchen eine aussagekräftige Überschrift.'];
     return [];
   };
