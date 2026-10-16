@@ -1,4 +1,5 @@
 import { berechneWochenserie } from './wochenserie.js';
+import { zeichneAbzeichenSammlung } from './abzeichen-sammlung.js';
 
 const datum = t => new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(t));
 function element(doc,tag,klasse,text) {
@@ -41,13 +42,7 @@ export function zeichneWochenserie(ziel,basis) {
     k.append(element(doc,'p','','Falls diese Woche noch Fragen offen sind, beantworte sie zuerst. Danach öffnet sich der Übungsmodus.'));
     teile.push(k);
   }
-  const badges=element(doc,'div','serie-abzeichen');
-  for(const b of s.abzeichen) {
-    const k=element(doc,'div',`serie-abzeichen-karte${b.verdient?' verdient':''}`);
-    const symbol=element(doc,'span','serie-abzeichen-symbol',b.verdient?'✓':'◇');symbol.setAttribute('aria-hidden','true');
-    k.append(symbol,element(doc,'h3','',b.titel),element(doc,'p','',b.text),element(doc,'span','serie-abzeichen-status',b.verdient?'Erreicht':'Noch offen'));badges.append(k);
-  }
-  teile.push(element(doc,'h3','','Deine Abzeichen'),badges);
+  teile.push(zeichneAbzeichenSammlung(doc,s));
   const details=element(doc,'details','serie-regeln'); details.append(element(doc,'summary','','Wie zählt die Serie?'));
   details.append(element(doc,'p','','Alle Fragen einer Wochenrunde müssen abschließend beantwortet sein; die Trefferquote ist egal. Offene Nachfragen zählen noch nicht als fertig. Eine laufende Woche und Wochen ohne Quiz unterbrechen die Serie nicht.'));
   details.append(element(doc,'p','','Eine verpasste Woche kannst du in den sieben Tagen danach mit fünf verschiedenen, richtig beantworteten Übungsfragen retten. Wiederholungen derselben Frage zählen einmal. Die Rettung füllt keine Wochenantworten nach und verändert weder Quizquote noch Saisonpunkte. Abzeichen zeigen deinen eigenen Verlauf; es gibt keine Sounds oder Erfolgsanimationen.'));

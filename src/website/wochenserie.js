@@ -32,9 +32,13 @@ export function berechneWochenserie(basis) {
   const aktuell = wochen.filter(w => w.start <= jetzt && jetzt < w.ende).at(-1) || null;
   return { serie, beste, abgeschlossen, gerettet, aktuell, rettungen, wochen,
     abzeichen: [
-      { id:'erste-woche', titel:'Erste Woche', text:'Ein Wochenquiz vollständig beantwortet.', verdient:abgeschlossen>=1 },
-      { id:'vier-wochen', titel:'Drangeblieben', text:'Vier Quizwochen in einer Serie.', verdient:beste>=4 },
-      { id:'acht-wochen', titel:'Regelroutine', text:'Acht Quizwochen in einer Serie.', verdient:beste>=8 },
-      { id:'wieder-da', titel:'Wieder da', text:'Eine verpasste Woche gerettet.', verdient:gerettet>=1 },
-    ] };
+      { id:'erste-woche', titel:'Anpfiff', text:'Ein Wochenquiz vollständig beantwortet.', art:'teilnahme', ziel:1, stand:abgeschlossen },
+      { id:'fuenf-wochen', titel:'Stammgast', text:'Fünf Wochenquiz vollständig beantwortet.', art:'teilnahme', ziel:5, stand:abgeschlossen },
+      { id:'zehn-wochen', titel:'Zweistellig', text:'Zehn Wochenquiz vollständig beantwortet.', art:'teilnahme', ziel:10, stand:abgeschlossen },
+      { id:'25-wochen', titel:'Viertelhundert', text:'25 Wochenquiz vollständig beantwortet.', art:'teilnahme', ziel:25, stand:abgeschlossen },
+      { id:'vier-wochen', titel:'Drangeblieben', text:'Vier Quizwochen in einer Serie.', art:'serie', ziel:4, stand:beste },
+      { id:'acht-wochen', titel:'Regelroutine', text:'Acht Quizwochen in einer Serie.', art:'serie', ziel:8, stand:beste },
+      { id:'zwoelf-wochen', titel:'Dauerbrenner', text:'Zwölf Quizwochen in einer Serie.', art:'serie', ziel:12, stand:beste },
+      { id:'wieder-da', titel:'Wieder da', text:'Eine verpasste Woche gerettet.', art:'rettung', ziel:1, stand:gerettet },
+    ].map(b=>({...b,verdient:b.stand>=b.ziel})) };
 }
