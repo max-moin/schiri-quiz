@@ -77,3 +77,33 @@
 .sb-bildmarke{position:absolute;display:grid;place-items:center;width:28px;height:28px;border-radius:50%;background:#172033;color:#fff;border:2px solid white;box-shadow:0 2px 6px #0006;font-size:14px;font-weight:800;transform:translateY(-50%)}
 .sb-bildmarke::after{content:'';position:absolute;bottom:-6px;left:8px;border-left:4px solid transparent;border-right:4px solid transparent;border-top:6px solid #172033}
 .sb-bildlegende{display:flex;flex-wrap:wrap;gap:8px 30px;margin:14px 0 0;padding-left:24px;font-size:.9rem;line-height:1.6;color:#233b2d}
+
+/* Bild zuerst, passende nummerierte Hinweise daneben. Zusatzwissen auf Abruf. */
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-schritt{display:flex;flex-direction:column;gap:0}
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-schritt > .rk-schrittkopf,
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-schritt > .rk-fokus{display:none}
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-lang[hidden]{display:none!important}
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-schritt > .rk-lang{order:4;margin-top:16px}
+.sb-nachschlagen:not([data-sb-detail=""]) .rk-schritt > .rk-knopf{order:5}
+.sb-nachschlagen .sb-originalbilder,.sb-nachschlagen .sb-felder{order:2;margin:0}
+.sb-originalbilder > h2{font-size:1.1rem;margin:0 0 16px;color:#345b43}.sb-felder > h2{grid-column:1/-1;font-size:1.1rem;margin:0}
+.sb-mehr-hinweise{align-self:flex-start;order:3;margin:20px 0 0;padding:10px 15px;min-height:44px;border:1px solid #9ab7a6;border-radius:12px;background:#f2f7f4;color:#174832;font:650 .9rem var(--font-text);cursor:pointer}
+.sb-thema-link{display:inline-flex;align-items:center;min-height:44px}
+.sb-originalbild{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);align-items:center;gap:16px;max-width:none;margin:16px 0 28px}
+.sb-bildflaeche{margin:0}.sb-originalbild figcaption{grid-column:1/-1;font-size:.75rem;margin:0}
+.sb-bildmarke{width:30px;height:30px;transform:translate(-50%,-50%);font-size:15px;background:#21593a}
+.sb-bildmarke::after{border-top-color:#21593a;left:10px}
+.sb-bildlegende{display:grid;gap:10px;padding:0;margin:0;list-style:none;counter-reset:bildhinweis}
+.sb-bildkarte{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid #c7d9cd;border-radius:15px;background:#edf6ef;min-width:0}
+.sb-hinweisnummer{display:grid;place-items:center;flex:none;width:30px;height:30px;border-radius:50%;background:#21593a;color:#fff;font-size:1rem;font-weight:800}
+.sb-bildkarte h3{font-size:1rem;margin:2px 0 6px}.sb-bildkarte p{font-size:.9rem;line-height:1.6;margin:0}
+.sb-bildquelle{font-size:.75rem;margin:0}.sb-nachschlagen:not([data-sb-detail=""]){padding-bottom:8rem}
+.sb-hotbar{position:fixed;z-index:45;bottom:calc(14px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);width:min(31rem,calc(100% - 24px));display:grid;grid-template-columns:1fr 1.15fr 1fr;gap:6px;padding:7px;border:1px solid #b9cbbf;border-radius:22px;background:#f5faf6;box-shadow:0 8px 30px #163c2533}
+.sb-hotbar-knopf{display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;min-height:48px;border-radius:15px;padding:8px;color:#174832;text-decoration:none;font-size:.9rem;font-weight:700;overflow-wrap:anywhere}
+.sb-hotbar-knopf:nth-child(2){background:#21593a;color:#fff}.sb-hotbar-knopf svg{flex:none;width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}.sb-hotbar-knopf[aria-disabled=true]{color:#64756b}.sb-hotbar-knopf:hover{box-shadow:inset 0 0 0 1px #91b39d}.sb-hotbar-knopf:focus-visible,.sb-mehr-hinweise:focus-visible{outline:3px solid #c48a06;outline-offset:3px}
+@media(max-width:750px){.sb-originalbild{grid-template-columns:1fr}.sb-bildlegende{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr))}.sb-hotbar-knopf{flex-direction:column;gap:3px;font-size:.82rem}.sb-bildmarke{width:25px;height:25px;font-size:13px}.sb-bildmarke::after{left:7px}}
+@media print{.sb-hotbar,.sb-mehr-hinweise{display:none}.sb-nachschlagen:not([data-sb-detail=""]) .rk-lang[hidden]{display:block!important}}
+/* Max' Skizze: eine zusammenhängende Leiste, größere Listenmitte. */
+.sb-hotbar{width:min(22rem,calc(100% - 32px));grid-template-columns:1fr 1.65fr 1fr;gap:0;padding:0;border:2px solid #21593a;border-radius:18px;overflow:hidden;background:#f8fcf9}
+.sb-hotbar-knopf{border-radius:0;min-height:60px;padding:12px;color:#174832}.sb-hotbar-knopf+ .sb-hotbar-knopf{border-left:1px solid #8fb49c}.sb-hotbar-knopf:nth-child(2){background:#e5f0e9;color:#174832}.sb-hotbar-knopf svg{width:28px;height:28px;stroke-width:2.1}.sb-hotbar-knopf[aria-disabled=true]{background:#eef1ef;color:#7f8c84}.sb-hotbar-knopf:focus-visible{outline:3px solid #a36a00;outline-offset:-5px}.sb-hotbar-knopf:hover{background:#dbece1;box-shadow:none}
+html:has(.sb-hotbar){scroll-padding-block-end:110px}

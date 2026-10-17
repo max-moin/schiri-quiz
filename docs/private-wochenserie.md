@@ -32,12 +32,14 @@ Geburtstagsvergabe; das ist keine neue Mutation dieser Sammlungs-Erweiterung.
 ## Anzeige
 
 Aktuelle/längste Serie und regulär abgeschlossene Wochen. Seit17.10.2026 acht
-private Abzeichen mit eigenen skalierbaren Medaillenmotiven. Die bisherigen IDs
-bleiben stabil, „Erste Woche“ heißt jetzt „Anpfiff“. Native Details-Karten öffnen
-Ziel, tatsächlichen Fortschritt und (bei Teilnahme/Rettung) bis zu drei eigene
-Beispielwochen. Serienfortschritt verwendet die längste Serie, nicht die aktuelle.
-Status bleibt als Text erkennbar, nicht nur als Farbe. Keine Sounds oder
-Erfolgsanimationen; Reduced-Motion-Regel vorsorglich vorhanden.
+private Abzeichen mit eigenen Medaillenmotiven. Die bisherigen IDs bleiben stabil,
+„Erste Woche“ heißt jetzt „Anpfiff“. Nach Max' Designfeedback werden nun echte
+KI-generierte Rasterbilder in einer kompakten Sammlung verwendet, keine SVG-
+Stand-ins oder Disclosure-Pfeile. Bilder anklicken öffnet einen nativen Dialog mit
+Name, Textstatus, Ziel, tatsächlichem Fortschritt und (bei Teilnahme/Rettung) bis
+zu drei eigenen Beispielwochen. Offene Motive sind grau/gedimmt, der zugängliche
+Name enthält ihren Status. Serienfortschritt verwendet die längste Serie, nicht
+die aktuelle. Keine Sounds/Erfolgsanimationen. Siehe [Bildnachweis und Prompts](abzeichen-bilder.md).
 
 | Abzeichen | Bedingung | Stand |
 |---|---|---|

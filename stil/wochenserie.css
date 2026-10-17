@@ -16,16 +16,3 @@
 .serie-joker-dialog button{min-height:44px;margin:8px 8px 0 0}
 .serie-joker-dialog p{line-height:1.5}
 .serie-ueberschrift{display:flex;align-items:center;gap:.5rem}.serie-flamme{font-size:1.5em;filter:grayscale(1);opacity:.7}.serie-flamme.aktiv{filter:none;opacity:1}
-.abzeichen-sammlung{margin-top:1.5rem;overflow-wrap:anywhere}.abzeichen-sammlung h3{margin-bottom:.4rem}.abzeichen-einstieg{color:#526157;line-height:1.5;margin-top:0}
-.abzeichen-raster{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:1rem;align-items:start}
-.abzeichen-karte{min-width:0;border:1px solid #bdc9c0;border-radius:18px;background:#f4f6f5;overflow:clip}
-.abzeichen-karte.verdient{border-color:#658c73;background:linear-gradient(155deg,#f5fbf6,#e8f2eb)}
-.abzeichen-aufmacher{display:flex;flex-direction:column;align-items:center;gap:.5rem;padding:1rem;min-height:44px;cursor:pointer;list-style:none;text-align:center}
-.abzeichen-aufmacher::-webkit-details-marker{display:none}.abzeichen-aufmacher::marker{content:''}
-.abzeichen-aufmacher:focus-visible{outline:3px solid #21593a;outline-offset:-5px;border-radius:18px}
-.abzeichen-aufmacher img{width:144px;max-width:100%;height:auto;filter:grayscale(1);opacity:.65}
-.verdient .abzeichen-aufmacher img{filter:none;opacity:1}.abzeichen-name{font-size:1.05rem;font-weight:750;color:#1f2937}
-.abzeichen-status{font-size:.85rem;font-weight:650;color:#405348}.abzeichen-mehr{display:inline-flex;align-items:center;min-height:44px;font-size:.9rem;font-weight:650;color:#21593a;text-decoration:underline;text-underline-offset:3px}
-.abzeichen-karte[open] .abzeichen-mehr{font-size:0}.abzeichen-karte[open] .abzeichen-mehr::after{content:'Details schließen −';font-size:.9rem}
-.abzeichen-inhalt{border-top:1px solid #bdc9c0;padding:0 1rem 1rem}.abzeichen-inhalt p,.abzeichen-wochen{line-height:1.55;font-size:.92rem}.abzeichen-inhalt progress{width:100%;height:14px;accent-color:#21593a}.abzeichen-fortschritt{font-weight:650}.abzeichen-inhalt h4{font-size:.95rem;margin-bottom:.4rem}.abzeichen-wochen{padding-left:1.1rem;margin-top:.4rem}
-@media(max-width:480px){.abzeichen-raster{grid-template-columns:repeat(auto-fit,minmax(min(100%,8rem),1fr));gap:.7rem}.abzeichen-aufmacher{padding:.75rem .5rem}.abzeichen-aufmacher img{width:108px}.abzeichen-karte[open]{grid-column:1/-1}}

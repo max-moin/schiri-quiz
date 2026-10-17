@@ -43,3 +43,4 @@
 .dfb-themen-guide [data-sb-panel]{margin-top:30px}
 .dfb-erklaerung-knopf{display:inline-flex;align-items:center;min-height:44px;padding:10px 14px;margin-top:14px;border:1px solid #7d9588;border-radius:10px;background:#fff;color:#194832;font:inherit;font-size:.9rem;font-weight:650;cursor:pointer}
 .dfb-erklaerung-knopf:focus-visible{outline:3px solid #21593a;outline-offset:4px}
+.dfb-rote-karte{display:block;width:22px;height:32px;background:#c71f35;border:1px solid #9d1527;border-radius:4px;box-shadow:3px 3px 0 #8c142020;transform:rotate(-10deg)}

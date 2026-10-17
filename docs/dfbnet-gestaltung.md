@@ -70,3 +70,20 @@ Die obige Phasenbeschreibung ist der historische erste Bauzustand, nicht mehr di
 - Kleine Quiz-Nebenänderung: neutrale kurze Jokeranzeige und Flamme bei Wochenserie. Keine neue Joker-Vergabeart, kein20-Abzeichen-Sammelsystem und keine Änderung fachlicher Punkte in diesem Hilfepaket.
 
 Publikations-Prüfpunkt: Das Handbuch enthält einen ausdrücklichen Genehmigungsvorbehalt für Weitergabe/Veröffentlichung. Die gewünschte Einbindung einzelner, beschrifteter Screenshot-Ausschnitte ist technisch umgesetzt; eine Freigabe der Bildnutzung ist damit nicht nachgewiesen. Vor dem öffentlichen Push Bildrechte klären bzw. bis dahin nur auf das Originalhandbuch verlinken.
+
+## Designfeedback17.10.2026
+
+Spielbericht vereinfacht: im Überblick nur noch der Themenname als Detail-Einstieg,
+kein zweiter „Erklärung & Bilder“-Link. Detailseiten zeigen Bild und nummerierte
+Hinweisboxen statt wiederholter Fokusliste, Fließtext, Kacheln und Legende zugleich.
+Die längeren kanonischen Texte bleiben als „Weitere Hinweise“ verfügbar und im
+Editor erhalten. Bilder sind jetzt nicht mehr anklickbar, Quellenlinks schon.
+Ergebnis-/Spielzeitmarkierungen anhand der Originalausschnitte positioniert.
+
+Hotbar nach Max' Handskizze mit drei verbundenen abgerundeten Segmenten, größere
+Listenmitte, nur Symbole sichtbar. Vor/Übersicht/Weiter sind zugänglich benannt,
+erster/letzter Rand ohne Ziel deaktiviert. Keine neue Phasenlogik. Gefüllte rote
+Kartenform auf DFBnet-Übersicht. Kontrollfelder, Kosten, Zuschauerzahl und weitere
+fehlende aktuelle Bilder beim nächsten echten Spiel anonym nachreichen; nichts
+synthetisch als DFBnet-Screenshot ausgeben. Frühere Bildrechte-/Empfänger- und
+Minderjährigen-Prüfpunkte bleiben bestehen.

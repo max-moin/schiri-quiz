@@ -30,3 +30,8 @@ test('Serienjoker ist knapp benannt und Flamme ist nicht alleiniger Statusträge
  const js=lies('src/website/wochenserie-ansicht.js');assert.match(js,/'Deine Joker'/);assert.doesNotMatch(js,/'Dein Geburtstagsjoker'/);
  assert.match(js,/serie-flamme/);assert.match(js,/aria-hidden/);assert.match(js,/'Wochen in Folge'/);
 });
+test('Themen nutzen nur den Titel-Link, feste Hotbar und nicht anklickbare Bilder',()=>{
+ const js=lies('src/website/spielbericht-uebersicht.js');
+ assert.doesNotMatch(js,/sb-detail-link|Originalausschnitt in voller Größe/);assert.match(js,/sb-hotbar/);assert.match(js,/SPIELBERICHT_THEMEN\[index-1\]/);assert.match(js,/sb-hinweisnummer/);
+ assert.match(js,/el\(d,'div','sb-bildflaeche'\)/);assert.match(js,/Weitere Hinweise/);
+});
