@@ -40,9 +40,14 @@ export const SEITENHILFE = Object.freeze({
     schritt('szenario', 'main', 'Entscheidung und Begründung', 'Bearbeite die angezeigte Situation und beachte die Aufgabenstellung. Dieser eigene Modus ersetzt keine offenen Wochenquizfragen.'),
   ] },
   'meine-statistik.html': { titel: 'Meine Quizstatistik', schritte: [
-    schritt('serie', '#meine-wochenserie, #meine-zugang', 'Deine private Wochenserie', 'Vollständig beantwortete Quizwochen zählen unabhängig von der Trefferquote. Deine Serie und Abzeichen sind nur für dich. Eine verpasste Woche lässt sich in den sieben Tagen danach durch fünf verschiedene richtig beantwortete Übungsfragen retten; die normalen Quizantworten werden dadurch nicht verändert. Alternativ kannst du hier einen verfügbaren Geburtstagsjoker zur Serienrettung einsetzen. Er verändert keine Quizpunkte.'),
+    schritt('sammlung', '.quiz-untermenue, #meine-zugang', 'Statistik und Sammlung', 'Hier siehst du deinen Wochenverlauf. Abzeichen, Wochenserie und Joker findest du getrennt unter Quiz → Sammlung.'),
     schritt('statistik', '#statistik-kennzahlen, #meine-zugang', 'Deine eigene Entwicklung', 'Die Übersicht gehört nur zu deinem Konto. Sie zeigt deine Ergebnisse, nicht den Leistungsstand anderer Vereinsmitglieder.'),
     schritt('verlauf', '#statistik-verlauf, #meine-zugang', 'Über die Wochen', 'Im Verlauf siehst du auch Wochen ohne Teilnahme. Nutze ihn, um deinen eigenen Lernfortschritt einzuschätzen; eine leere Woche ist nicht dasselbe wie eine falsch beantwortete Frage.'),
+  ] },
+  'sammlung.html': { titel: 'Deine Sammlung', schritte: [
+    schritt('joker', '.joker-vorrat, #meine-zugang', 'Deine Joker', 'Graue Symbole heißen: kein Vorrat. Die Zahl unten rechts ist dein Bestand. Tippe auf ein Symbol für die Wirkung oder auf i für die Verdienstwege. Öffne verdiente Boxen für einen zufälligen Joker. 50/50 und zweiter Versuch helfen nur im Wochenquiz; richtig mit Joker zählt voll richtig.'),
+    schritt('abzeichen', '.abzeichen-sammlung, #meine-zugang', 'Dein Trophäenschrank', 'Abzeichen bleiben als Sammelziele sichtbar. Offene Motive sind grau. Tippe auf ein Bild, um Ziel und deinen tatsächlichen Fortschritt zu sehen.'),
+    schritt('serie', '.serie-zahlen, #meine-zugang', 'Deine Wochenserie', 'Alle Wochenfragen abschließend beantworten: Die Woche zählt. Ein Serienjoker rettet einmal eine verpasste Woche im Sieben-Tage-Fenster. Der Joker selbst verfällt nicht.'),
   ] },
   'regeluebersicht.html': { titel: 'Regelübersicht', schritte: [
     schritt('filter', '#ebeneFilter, main', 'Dein konkretes Spiel', 'Wenn die Übersicht freigeschaltet ist, grenze zuerst Ebene, Spielart und Mannschaft ein. Danach werden passende Informationen gezeigt. Maßgeblich bleiben die aktuellen offiziellen Verbandsunterlagen.'),

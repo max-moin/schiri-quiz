@@ -32,6 +32,8 @@ const fehlerHinweis = document.getElementById("fehler-hinweis");
 const zugang = { schiedsrichterId: null, pin: null };
 const getZugang = () => ({ ...zugang });
 const setZugang = (neu) => Object.assign(zugang, neu);
+const quizJoker = SchiriQuizJoker.erstelleQuizJoker({ sb, getZugang });
+const wochenRpc = quizJoker.wochenRpc;
 
 function zeigeFehler(text) {
   fehlerHinweis.textContent = text;
@@ -60,6 +62,7 @@ const baueWarumButton = (frageId, istHistorie) =>
   frageMeldung.baueLoesungsAktionen(erklaerungsDialog.baueWarumButton(frageId, istHistorie), frageId, istHistorie);
 
 const freitext = erstelleFreitextAntworten({
+  quizJoker,
   getZugang,
   zeigeFehler,
   versteckeFehler,
@@ -73,6 +76,7 @@ const freitext = erstelleFreitextAntworten({
 });
 
 const entscheidung = erstelleEntscheidungsAntworten({
+  quizJoker,
   getZugang,
   zeigeFehler,
   versteckeFehler,
@@ -85,7 +89,8 @@ const entscheidung = erstelleEntscheidungsAntworten({
 });
 
 const flexibel = erstelleFlexibleAntworten({
-  sb,
+  sb: wochenRpc,
+  quizJoker,
   getZugang,
   zeigeFehler,
   versteckeFehler,
@@ -110,7 +115,8 @@ historieController = erstelleHistorienModus({
 });
 
 wochenQuiz = erstelleWochenQuiz({
-  sb,
+  sb: wochenRpc,
+  quizJoker,
   getZugang,
   zeigeFehler,
   versteckeFehler,

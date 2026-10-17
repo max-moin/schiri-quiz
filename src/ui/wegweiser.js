@@ -64,7 +64,8 @@ export const BAUM = Object.freeze({
   "einstellungen.html": { titel: "Einstellungen", eltern: "index.html", zwischen: "Mein Konto" },
   "meine-daten.html": { titel: "Meine Daten", eltern: "einstellungen.html" },
   "mitteilungen.html": { titel: "Mitteilungen", eltern: "einstellungen.html" },
-  "meine-statistik.html": { titel: "Meine Statistik", eltern: "index.html", zwischen: "Mein Konto" },
+  "meine-statistik.html": { titel: "Meine Statistik", eltern: "modus.html" },
+  "sammlung.html": { titel: "Meine Sammlung", eltern: "modus.html" },
   "meine-anliegen.html": { titel: "Meine Anliegen", eltern: "index.html", zwischen: "Mein Konto" },
   "ausruestung.html": { titel: "Meine Ausrüstung", eltern: "index.html", zwischen: "Mein Konto" },
 

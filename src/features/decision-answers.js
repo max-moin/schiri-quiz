@@ -17,6 +17,7 @@
     vorWochenantwort = null,
     entscheidungSenden = null,
     nachEntscheidung = null,
+    quizJoker = null,
   }) {
     let optionen = null;
 
@@ -629,6 +630,7 @@
         } else {
           if (vorWochenantwort) await vorWochenantwort(frage.id);
           const zugang = getZugang();
+          const anfrage = async () => {
           const antwort = await fetch("/api/entscheidung-bewerten", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -637,16 +639,22 @@
               frageId: frage.id,
               pin: zugang.pin,
               antwort: gegebeneAntwort,
+              joker: Boolean(quizJoker),
             }),
           });
           daten = await antwort.json();
           if (!antwort.ok) throw new Error(daten.fehler || "Unbekannter Fehler");
+          return daten;
+          };
+          daten=quizJoker?await quizJoker.bewertet(frage.id,anfrage):await anfrage();
         }
+        if(quizJoker?.fortsetzen(container,daten)){button.disabled=false;button.textContent='Entscheidung abschicken';return;}
         const beantworteteKarte = baueBeantworteteFrageElement(frage, {
           korrekt: daten.korrekt,
           entscheidung: { antwort: daten.antwort, loesung: daten.loesung, ergebnis: daten.ergebnis },
         });
         container.replaceWith(beantworteteKarte);
+        quizJoker?.markiere(beantworteteKarte,daten);
         if (typeof nachEntscheidung === "function") {
           nachEntscheidung(frage, daten, beantworteteKarte);
         } else {

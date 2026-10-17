@@ -119,7 +119,11 @@ function setzeBilder(motive = {}) {
     if (wahl.alt) el.alt = wahl.alt;
     if (!wahl.quelle) return;
     const probe = new Image();
-    probe.onload = () => { if (runde === bilderRunde) el.src = wahl.quelle; };
+    probe.onload = () => { if (runde === bilderRunde) {
+      el.src = wahl.quelle;
+      const marke=el.parentElement.querySelector('.ki-bildmarke');
+      if(marke)marke.hidden=!String(wahl.quelle).includes('bilder/startfotos/');
+    } };
     probe.src = wahl.quelle;
   });
 }
@@ -413,6 +417,7 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
     profilAktionen: profilVerfuegbar ? [
       { text: "Einstellungen", tun: () => { window.location.href = "einstellungen.html"; } },
       { text: "Meine Quizstatistik", tun: () => { window.location.href = "meine-statistik.html"; } },
+      { text: "Meine Sammlung", tun: () => { window.location.href = "sammlung.html"; } },
       { text: "Mein Ausrüstungsbestand", tun: () => { window.location.href = "ausruestung.html"; } },
       { text: "Meine Anliegen", punkt: true, tun: () => { window.location.href = "meine-anliegen.html"; } },
     ] : [],

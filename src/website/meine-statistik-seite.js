@@ -1,5 +1,4 @@
 import { DATENBANK } from "../../verein.config.js";
-import { erstelleSerienSteuerung } from './wochenserie-ansicht.js';
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -12,7 +11,6 @@ const rpc = globalThis.SchiriRpc.erstelleRpc({
   oeffentlicherSchluessel: DATENBANK.oeffentlicherSchluessel,
 });
 const $ = (id) => document.getElementById(id);
-const serienSteuerung = erstelleSerienSteuerung({ ziel: $('meine-wochenserie'), rpc, anmeldung });
 let datenVersion = 0;
 
 function kennzahl(zahl, label, klasse = "") {
@@ -180,7 +178,6 @@ function starte() {
   $('statistik-deutung').replaceChildren();
   $('statistik-verlauf').replaceChildren();
   $('statistik-zeitraum').textContent = person ? 'Wird geladen …' : '';
-  void serienSteuerung.laden(person);
   if (person) void lade(person, version);
 }
 

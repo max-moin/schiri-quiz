@@ -12,6 +12,7 @@
     freitextStatus,
     beiWochenfrageBeantwortet,
     vorWochenantwort = null,
+    quizJoker = null,
   }) {
     // ============================================================
     // Freitext-Fragen mit KI-Auswertung (10.07.2026)
@@ -415,6 +416,7 @@
       let ergebnis;
       try {
         if (vorWochenantwort) await vorWochenantwort(frageId);
+        const anfrage = async () => {
         const antwort = await fetch("/api/freitext-bewerten", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -423,10 +425,14 @@
             frageId,
             pin: getZugang().pin,
             freitext,
+            joker: Boolean(quizJoker),
           }),
         });
         ergebnis = await antwort.json();
         if (!antwort.ok) throw new Error(ergebnis.fehler || "Unbekannter Fehler");
+        return ergebnis;
+        };
+        ergebnis=quizJoker?await quizJoker.bewertet(frageId,anfrage):await anfrage();
       } catch (e) {
         if (ladeHinweis) ladeHinweis.hidden = true;
         const feedback = container.querySelector(".feedback");
@@ -440,8 +446,11 @@
 
       if (ladeHinweis) ladeHinweis.hidden = true;
 
+      if(quizJoker?.fortsetzen(container,ergebnis))return;
+      quizJoker?.markiere(container,ergebnis);
       const status = freitextStatus(ergebnis);
       const wartetAufErgaenzung = status === "nachbessern";
+      if(!wartetAufErgaenzung)container.classList.add('beantwortet',status==='richtig'?'richtig-karte':'falsch-karte');
 
       const feedback = container.querySelector(".feedback");
       feedback.hidden = false;

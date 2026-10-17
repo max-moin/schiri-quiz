@@ -1,5 +1,6 @@
 import { berechneWochenserie } from './wochenserie.js';
 import { zeichneAbzeichenSammlung } from './abzeichen-sammlung.js';
+import { zeichneJokerVorrat } from './joker-vorrat.js';
 
 const datum = t => new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}).format(new Date(t));
 function element(doc,tag,klasse,text) {
@@ -24,12 +25,7 @@ export function zeichneWochenserie(ziel,basis) {
     : 'Gerade läuft kein Wochenquiz für deinen Verein. Deine bisherigen Erfolge bleiben sichtbar.');
   const teile=[kopf,zahlen,stand];
   const joker=Array.isArray(basis.joker)?basis.joker:[];
-  const geschenk=element(doc,'div','serie-rettung');
-  const jokerBild=doc.createElement('img');jokerBild.src='bilder/joker/serienjoker.webp';jokerBild.alt='';jokerBild.width=64;jokerBild.height=64;jokerBild.className='serie-joker-bild';geschenk.append(jokerBild);
-  geschenk.append(element(doc,'h3','','Deine Joker'),element(doc,'p','',joker.length
-    ? `${joker.length} verfügbar · Rette eine verpasste Woche. Gültig bis ${new Intl.DateTimeFormat('de-DE').format(new Date(joker[0].gueltig_bis+'T12:00:00'))}.`
-    : 'Aktuell kein Joker verfügbar.'));
-  teile.push(geschenk);
+  teile.push(zeichneJokerVorrat(doc,basis));
   for (const r of s.rettungen) {
     const k=element(doc,'div','serie-rettung');
     k.append(element(doc,'h3','', 'Eine Woche retten'),element(doc,'p','',`„${r.bezeichnung}“: ${Math.min(r.uebung_richtig,5)} von 5 verschiedenen Übungsfragen richtig. Noch ${r.fehlen} bis ${datum(r.retten_bis)}.`));
@@ -47,7 +43,7 @@ export function zeichneWochenserie(ziel,basis) {
   const details=element(doc,'details','serie-regeln'); details.append(element(doc,'summary','','Wie zählt die Serie?'));
   details.append(element(doc,'p','','Alle Fragen einer Wochenrunde müssen abschließend beantwortet sein; die Trefferquote ist egal. Offene Nachfragen zählen noch nicht als fertig. Eine laufende Woche und Wochen ohne Quiz unterbrechen die Serie nicht.'));
   details.append(element(doc,'p','','Eine verpasste Woche kannst du in den sieben Tagen danach mit fünf verschiedenen, richtig beantworteten Übungsfragen retten. Wiederholungen derselben Frage zählen einmal. Die Rettung füllt keine Wochenantworten nach und verändert weder Quizquote noch Saisonpunkte. Abzeichen zeigen deinen eigenen Verlauf; es gibt keine Sounds oder Erfolgsanimationen.'));
-  details.append(element(doc,'p','','Alternativ rettet ein Geburtstagsjoker genau eine verpasste Woche in derselben Frist. Ein Joker pro Geburtstag ab dem 16.10.2026, kein Nachtragen früherer Geburtstage. Am 29. Februar gibt es das Geschenk in Nicht-Schaltjahren am 28. Februar. Die Einlösung ist endgültig.'));
+  details.append(element(doc,'p','','Alternativ rettet ein Serienjoker genau eine verpasste Woche in derselben Frist. Neue Boxen erhältst du zum Geburtstag, nach bestätigten Tests/Lehrabenden und nach jeweils vier vollständigen Quizwochen ab Einführung am 18.10.2026. Das i bei den Jokern erklärt die Einzelheiten. Am 29. Februar gilt in Nicht-Schaltjahren der 28. Februar. Die Einlösung ist endgültig.'));
   if(s.gerettet)details.append(element(doc,'p','',`${s.gerettet} ${s.gerettet===1?'Woche wurde':'Wochen wurden'} gerettet.`));
   teile.push(details); ziel.replaceChildren(...teile);
   return s;
@@ -88,6 +84,22 @@ export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
     }
   }
   ziel.addEventListener('click',event=>{if(event.target.closest('[data-serie-neuladen]')&&!laedt)void laden();});
+  ziel.addEventListener('click',async event=>{
+    const knopf=event.target.closest('[data-joker-box]');if(!knopf||laedt)return;
+    const person=anmeldung.lesen();if(!person)return;
+    laedt=true;knopf.disabled=true;
+    try{
+      const {data,error}=await rpc.rpc('jokerbox_oeffnen',{p_schiedsrichter_id:person.id,p_pin:person.pin,p_box_id:knopf.dataset.jokerBox});
+      if(error)throw error;
+      const aktuell=anmeldung.lesen();if(aktuell?.id!==person.id||aktuell?.pin!==person.pin)return;
+      await laden(person);
+      const text={serienjoker:'Serienjoker',halbhalb:'50/50-Joker','zweiter-versuch':'Zweiter Versuch'}[data.typ];
+      const erfolg=element(doc,'p','joker-oeffnung',`Du hast einen Joker erhalten: ${text}.`);erfolg.setAttribute('role','status');
+      ziel.querySelector('.joker-vorrat')?.append(erfolg);ziel.querySelector('.joker-motiv')?.focus();
+    }catch{
+      if(anmeldung.lesen()?.id===person.id){knopf.disabled=false;const fehler=element(doc,'p','joker-oeffnung','Box konnte nicht geöffnet werden. Bitte aktualisieren und erneut versuchen; dieselbe Box wird nicht doppelt verbraucht.');fehler.setAttribute('role','status');knopf.parentElement?.append(fehler);}
+    }finally{laedt=false;}
+  });
   ziel.addEventListener('click',event=>{
     const knopf=event.target.closest('[data-joker-runde]');if(!knopf||laedt)return;
     const person=anmeldung.lesen();if(!person)return;

@@ -1,5 +1,7 @@
 # Ausbaupaket · 17.10.2026
 
+**Neuer Stand18.10.:** Boxen, beide Quizjoker, Vollwertung/Obmann-Auswertung und Startseiten-Fotostrecke sind inzwischen gebaut. Siehe [aktuelles Paket mit Verdienstregeln und Prüfnachweisen](boxen-startbilder-18-oktober.md). Die folgenden Joker-Vorbereitungsangaben dokumentieren den älteren Zwischenstand.
+
 ## Fertiger Umfang
 
 - Private Sammlung mit 20 Abzeichen: bisherige acht bleiben erhalten; zwölf neue für perfekte Wochen, Regelwissen, verschiedene Treffer, Dranbleiben trotz Fehlern und übernommenen Vorschlag. Helle Holzvitrine, drei Fächer, offene Bilder grau. Kein öffentlicher Trophäenvergleich.
@@ -10,7 +12,17 @@
 - App → Einstellungen → Fragen & Filter → Schreibhilfen: Fragenformulierungen für Bild/Video und Ausführungsorte hinzufügen, bearbeiten, entfernen und sortieren. Wie die bestehenden Darstellungsfilter auf diesem Gerät gespeichert; kein neuer Synchronisierungsdienst. Änderungen greifen erst beim Einsetzen, nicht rückwirkend in Fragen. Das Diktat „Fragenvorschläge“ ist hier als die Formulierungsauswahl im Editor interpretiert, nicht als frei veränderbare Prüfstatus von Einreichungen.
 - Quellenarten bleiben gemeinsame geräteübergreifende Metadaten. Sicheres Archivieren statt hartem Löschen: alte Zuordnungen/Filter bleiben lesbar, Wiedereinblenden möglich, Revisionsprüfung verhindert stilles Überschreiben eines neueren Stands.
 
-## Joker: beschlossen und noch zu entscheiden
+## Joker: Aktualisierung 17./18.10.2026
+
+Max hat die Wertung entschieden: Ein mit Joker richtig gelöster Versuch zählt **voll als richtig/grün**, auch für die Statistik. Die Obmann-Ansicht muss zusätzlich den Jokereinsatz auffällig sowie Erst- und Jokerantwort zeigen. Das ersetzt die frühere Empfehlung einer getrennten Vergleichswertung. Diese fachliche Quizwertung und Obmann-Erweiterung sind **noch nicht programmiert**.
+
+**Jetzt gebaut:** Eigene `sammlung.html` unter Quiz, getrennt von Quizstatistik, mit Wochenserie, Jokerbestand und Abzeichenvitrine. Drei anklickbare Jokerbilder: ohne Vorrat grau, vorhandene Serienjoker mit Zähler unten rechts. Erklärdialoge und i-Information mit klarer Trennung zwischen vorhandenem Geburtstagsgeschenk und geplantem Ausbau. 50/50 und zweiter Versuch ausdrücklich noch nicht einlösbar. Keine fingierten Bestände oder Boxzähler.
+
+**Gültigkeit umgesetzt:** Bestehende unbenutzte Serienjoker laufen nicht mehr ab; einmaliger Verbrauch und bisheriges Sieben-Tage-Rettungsfenster der verpassten Woche bleiben. Migration `20261017215550_joker_unbegrenzt` live, nur bestehende Funktionen angepasst. Das alte Feld `gueltig_bis` bleibt aus Kompatibilität erhalten, ist aber keine Einlösebedingung mehr. Keine Geschenke nachgetragen und keine verbrauchten Joker reaktiviert.
+
+**Nächster Ausbau, noch nicht gebaut:** Verdiente Boxen zählen, anklicken, serverseitig zufällig einen Joker erhalten; keine freie Typwahl, kein Kauf und keine zusätzliche Währung. Alle Joker dauerhaft gültig und einmal verwendbar. Zufallsgewichtung und Vergaberhythmus noch abstimmen. Geburtstag ist bisher ein direkter Serienjoker, noch keine Box. Bestätigte Hausregeltest-/Lehrabendteilnahme und ein möglicher Vier-Wochen-Bonus sind nur Vorschläge, keine laufenden Vergaben.
+
+## Fachliche Quizjoker: technische Umsetzung offen
 
 **Max' aktuelle Vorgabe ersetzt den älteren Üben-Vorschlag:** Fachliche Joker nur im regulären Wochenquiz, nicht im freiwilligen Üben. Kein Juwelenladen in diesem Paket. Abzeichen sind Sammelziele, Joker Verbrauchsgegenstände.
 
@@ -24,8 +36,8 @@ Weitere Typen, noch NICHT einlösbar:
 
 Vor Umsetzung entscheiden:
 
-- **Wertung:** empfohlene Trennung: Erstantwort bleibt für vergleichbare Trefferquote/Rangliste bestehen; der zweite Lernversuch wird zusätzlich als „mit Joker geschafft“ erfasst. Alternativ finalen Erfolg voll werten, dann aber offen als unterstützte Antwort kennzeichnen. 50/50 ebenfalls kennzeichnen; keine heimliche Verbesserung der bisherigen Statistiken. Max entscheidet.
-- **Verdienst:** Vorschlag ein frei wählbarer Joker für bestätigte Hausregeltest-/Regellehrabend-Teilnahme und nach vier vollständig abgeschlossenen Wochenquiz ab Einführung. Keine Belohnung nur für Zusage, kein Bestehen erforderlich, je Ereignis/Person maximal einmal. Noch kein freigegebener Rhythmus oder Vorrats-/Ablaufplan; daher keine Vergabe programmiert. Geburtstag bleibt unabhängig, kein stilles Verfallen am Vorratslimit.
+- **Wertung bestätigt:** finalen Jokererfolg voll werten, Joker und beide Antworten in der Obmann-Auswertung erkennbar machen. Serverseitige Bewertung, Statistikaggregate und Obmann-Ansicht müssen gemeinsam angepasst werden; kein bloßes grünes Frontend-Label.
+- **Verdienst offen:** bestätigte Hausregeltest-/Regellehrabend-Teilnahme und vier vollständig abgeschlossene Wochenquiz sind Vorschläge. Keine Belohnung nur für Zusage, keine Doppelvergaben. Zufallsjoker aus Box statt freier Wahl ist bestätigt, genauer Rhythmus noch nicht.
 
 Nicht in diesem Paket: Soccer-Golf-Ergebnistabelle am vorhandenen Termin (Bahnversuche, Summe, Rang/Top 3) als nächster separater Wunsch vorgemerkt. Ergebnisse und Freigabe der Namensanzeige fehlen. Keine automatische Erinnerung eingerichtet. Eigene KI-Stimme später; Anstupsen, Kommunikationstraining, Kalenderabo, Üben-Ausblenden und voller Webarbeitsplatz bleiben zurückgestellt. KI-Fragenbaukasten wieder als mögliche nächste Konzeptarbeit, nicht automatisch begonnen.
 
@@ -47,3 +59,9 @@ Auch die passwortgeprüfte Archivierungsfunktion wird von derselben generischen 
 - Migrationen live: `20261017212425_rollen_einwechselspieler_trainer_betreuer`, `20261017212442_sammlung_zwanzig_abzeichen`, `20261017213709_quellenarchiv`. Lokale Dateinamen an die tatsächlichen bestätigten Serverversionen angeglichen.
 
 Commit/Push und öffentliche Auslieferung übernimmt Max wie bisher.
+
+### Nachprüfung Sammlung/Joker am 17./18.10.
+
+830 Webtests bestanden. 54 lokale Browserzustände ohne automatische axe-A/AA-Funde, Seitenfehler oder horizontalen Überlauf; 320/390/844quer/768/1280px, Vorrat0/2, alle Joker-/Infodialoge, Escape/Fokus, getrennte Statistik und Quiznavigation,200%Schrift plus Textabstände. Der neue Navigationslink brauchte dafür einen flexiblen Umbruch. Nur künstliche RPC-Antworten,0Schreibaufrufe im Browser.
+
+SQL-Rollbacktest nach Live-Migration: synthetischer alter unbenutzter Joker trotz altem Ablaufdatum verfügbar/einlösbar, falsche PIN abgelehnt, kein Doppelverbrauch. Anschließend0Testpersonen/-vereine/-runden/-fragen. Advisor unverändert64/251/218/1 in den oben dokumentierten Kategorien. Keine vollständige WCAG-Zertifizierung und keine echte Endgeräteabnahme.

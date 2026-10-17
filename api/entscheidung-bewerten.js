@@ -354,14 +354,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const ergebnis = await supabaseRpc("entscheidung_antwort_speichern_v2", {
+    const parameter = {
       p_schiedsrichter_id: schiedsrichterId,
       p_frage_id: frageId,
       p_pin: pin,
       p_antwort: antwort,
       p_ort_richtig: ortPruefung.gleichwertig,
       p_ort_feedback: ortPruefung.feedback,
-    });
+    };
+    const ergebnis = req.body?.joker === true
+      ? await supabaseRpc('quiz_joker_bewertet',{
+        p_schiedsrichter_id:schiedsrichterId,p_frage_id:frageId,p_pin:pin,p_art:'entscheidung',
+        p_antwort:{antwort,ort_richtig:ortPruefung.gleichwertig,ort_feedback:ortPruefung.feedback},
+      })
+      : await supabaseRpc("entscheidung_antwort_speichern_v2",parameter);
     res.status(200).json(ergebnis);
   } catch (fehler) {
     if (antworteBeiInaktiverFrage(res, fehler)) return;

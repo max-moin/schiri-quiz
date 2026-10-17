@@ -64,3 +64,7 @@ Erziehungsberechtigten):
 
 Format: quer, mindestens 1600 px breit, JPEG. Vor dem Einbau auf etwa 200 KB
 verkleinern.
+
+## Aktualisierung18.10.2026
+
+Die vier Startkacheln verwenden jetzt lokal gespeicherte, KI-generierte Fotos unter `startfotos/`, gekennzeichnet als fiktive Symbolbilder. Geschenkbox unter `joker/box.webp`. PNG-Originale erhalten; vollständige Prompts und Generatorpfade in [Bild- und Jokerpaket18.10.](../docs/boxen-startbilder-18-oktober.md). Die frühere SVG-Liste oben bleibt als Herkunft bestehender anderer/veralteter Motive erhalten.

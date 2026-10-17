@@ -6,6 +6,7 @@
     baueVideoEinbettungModal, baueVorlesenButton, baueWarumButton,
     beiWochenfrageBeantwortet,
     vorWochenantwort = null,
+    quizJoker = null,
   }) {
     function kopf(frage, container) {
       const badges = frageAnsicht.baueBadges(frage);
@@ -135,10 +136,12 @@
             p_pin: zugang.pin,
           });
           if (error) throw error;
+          if(quizJoker?.fortsetzen(karte,data?.[0]))return;
           if (!data?.[0] || typeof data[0].korrekt !== "boolean") {
             throw new Error("Keine Bestätigung vom Server erhalten. Bitte versuche es erneut.");
           }
           loeseAuswahlAuf(liste, new Set(data[0].richtige_auswahl || []), new Set(auswahl));
+          quizJoker?.markiere(karte,data[0]);
           zeigeErgebnis(karte, frage.id, data[0].korrekt, data[0].bereits_beantwortet);
         } catch (fehler) {
           fehlerZuruecksetzen(karte, liste, button, fehler.message || "Die Verbindung ist unterbrochen. Bitte versuche es erneut.");
@@ -252,10 +255,12 @@
             p_pin: zugang.pin,
           });
           if (error) throw error;
+          if(quizJoker?.fortsetzen(karte,data?.[0]))return;
           if (!data?.[0] || typeof data[0].korrekt !== "boolean") {
             throw new Error("Keine Bestätigung vom Server erhalten. Bitte versuche es erneut.");
           }
           const korrekt = data[0].korrekt;
+          quizJoker?.markiere(karte,data[0]);
           const loesung = (data[0].richtige_antworten || [])
             .map((item) => `${formatZahl(item.wert)} ${item.einheit}`).join(" oder ");
           zeigeErgebnis(karte, frage.id, korrekt, data[0].bereits_beantwortet,

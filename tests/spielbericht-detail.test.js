@@ -27,7 +27,7 @@ test('Hauptanleitung bindet Original-Teilen-Symbol ein, nicht nur die Ersatzanle
  assert.match(lies('src/website/installationswege.js'),/Seitenmenü/);
 });
 test('Serienjoker ist knapp benannt und Flamme ist nicht alleiniger Statusträger',()=>{
- const js=lies('src/website/wochenserie-ansicht.js');assert.match(js,/'Deine Joker'/);assert.doesNotMatch(js,/'Dein Geburtstagsjoker'/);
+ const js=lies('src/website/wochenserie-ansicht.js');assert.match(lies('src/website/joker-vorrat.js'),/'Deine Joker'/);assert.doesNotMatch(js,/'Dein Geburtstagsjoker'/);
  assert.match(js,/serie-flamme/);assert.match(js,/aria-hidden/);assert.match(js,/'Wochen in Folge'/);
 });
 test('Themen nutzen nur den Titel-Link, feste Hotbar und nicht anklickbare Bilder',()=>{

@@ -354,9 +354,10 @@ export const BILDER = {
   schiriWerden: { foto: null, ersatz: "bilder/motiv-regeln.svg" },
   quiz:         { foto: null, ersatz: "bilder/motiv-quiz.svg" },
   spesen:       { foto: null, ersatz: "bilder/motiv-spesen.svg" },
-  vorlagen:     { foto: null, ersatz: "bilder/motiv-absage.svg" },
-  unterlagen:   { foto: null, ersatz: "bilder/motiv-dokumente.svg" },
-  melden:       { foto: null, ersatz: "bilder/motiv-ausruestung.svg" },
+  termine:      { foto: "bilder/startfotos/termine.webp", ersatz: "bilder/startfotos/termine.webp" },
+  vorlagen:     { foto: "bilder/startfotos/absagen.webp", ersatz: "bilder/startfotos/absagen.webp" },
+  unterlagen:   { foto: "bilder/startfotos/unterlagen.webp", ersatz: "bilder/startfotos/unterlagen.webp" },
+  melden:       { foto: "bilder/startfotos/feedback.webp", ersatz: "bilder/startfotos/feedback.webp" },
 };
 
 // ============================================================

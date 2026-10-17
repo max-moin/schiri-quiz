@@ -14,6 +14,7 @@
     baueVorlesenButton,
     baueWarumButton,
     beiQuizFertig,
+    quizJoker = null,
   }) {
     const fragenListe = document.getElementById("fragen-liste");
     const sammelAbsendenWrap = document.getElementById("sammel-absenden-wrap");
@@ -129,6 +130,9 @@
       ]);
       if (version !== ladeVersion || !gleicherZugang(zugang, getZugang())) return false;
 
+      await quizJoker?.laden();
+      if (version !== ladeVersion || !gleicherZugang(zugang, getZugang())) return false;
+
       if (fragenErgebnis.error) {
         zeigeFehler("Fragen konnten nicht geladen werden: " + fragenErgebnis.error.message);
         return false;
@@ -235,6 +239,11 @@
 
       aktualisiereFortschritt();
       aktualisiereSammelButtonSichtbarkeit();
+
+      for (const frage of fragen) {
+        const karte=Array.from(fragenListe.children).find(k=>k.dataset.frageId===frage.id);
+        if(karte)quizJoker?.schmuecken(karte,frage,antwortenNachFrageId.get(frage.id));
+      }
 
       if (gesamtFragenAnzahl > 0 && beantworteFragenAnzahl >= gesamtFragenAnzahl) {
         fertigHinweis.hidden = false;
@@ -454,6 +463,8 @@
       }
 
       const ergebnis = data[0];
+      if(quizJoker?.fortsetzen(container,ergebnis))return;
+      quizJoker?.markiere(container,ergebnis);
 
       // Farbige Auflösung direkt in den Antwortmöglichkeiten (07.08.2026).
       frageAnsicht.loeseOptionenAuf(container, ergebnis.richtige_option, gewaehlt.value);

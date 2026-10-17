@@ -612,6 +612,16 @@ export default async function handler(req, res) {
   // bei Historie-Fragen gibt es diesen Schutz bewusst nicht, da dieselbe
   // Frage dort mehrfach wiederholt werden soll, siehe Migration v41)
   try {
+    if (!istHistorie && req.body?.joker === true) {
+      const ergebnis=await supabaseRpc('quiz_joker_bewertet',{
+        p_schiedsrichter_id:schiedsrichterId,p_frage_id:frageId,p_pin:pin,p_art:'freitext',
+        p_antwort:{freitext:bereinigterFreitext,korrekt:istRichtig,feedback:kiErgebnis.feedback||'',status:kiErgebnis.status,nachfrage:kiErgebnis.nachfrage},
+      });
+      if(ergebnis.joker_offen){res.status(200).json(ergebnis);return;}
+      const status=ergebnis.bewertungsstatus;
+      res.status(200).json({...ergebnis,status,teilweise:status==='nachbessern',musterantwort:status==='nachbessern'?null:ergebnis.musterantwort});
+      return;
+    }
     const gespeichert = await supabaseRpc(
       istHistorie ? "historie_freitext_antwort_speichern" : "freitext_antwort_speichern",
       istHistorie

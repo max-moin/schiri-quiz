@@ -51,6 +51,10 @@ begin
  -- Gleiche Frage, anderer Verein: unabhängige manuelle Kennzeichnung, keine Übernahme des Namens.
  perform public.obmann_frage_redaktion_speichern(p||'-fremd',f2,b,i,false,'{}','', '{"gruppe_zeigen":true,"name_zeigen":false}');
  if public.obmann_frage_herkunft(p||'-fremd',f2)->>'freigegebener_name' is not null then raise exception 'TEST: Namensübernahme aus anderem Verein'; end if;
+ -- Legacy inventory regression: birthdays now create boxes, but an existing
+ -- series Joker must still be readable, unique and usable after the upgrade.
+ insert into public.geburtstagsjoker(schiedsrichter_id,jahr,erhalten_am,gueltig_bis)
+ values(s,extract(year from heute)::int,heute,(heute+interval '1 year')::date);
  j:=public.meine_wochenserie_mit_joker(s,'942781');
  if jsonb_array_length(j->'joker')<>1 then raise exception 'TEST: Geschenk fehlt'; end if;
  j:=public.meine_wochenserie_mit_joker(s,'942781');

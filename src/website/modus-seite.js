@@ -193,6 +193,11 @@ function gastKachel() {
     </a>`;
 }
 
+function persoenlicheKacheln(){return [
+  '<a class="modus-kachel" href="meine-statistik.html"><div class="modus-kopf"><span class="modus-name">Quizstatistik</span></div><p class="modus-text">Deine Antworten und dein Wochenverlauf.</p></a>',
+  '<a class="modus-kachel" href="sammlung.html"><div class="modus-kopf"><span class="modus-name">Deine Sammlung</span></div><p class="modus-text">Abzeichen, Wochenserie und Joker.</p></a>',
+];}
+
 // ---------- Seite ----------
 
 function zeichne({ woche, statistik, angemeldet }) {
@@ -210,6 +215,7 @@ function zeichne({ woche, statistik, angemeldet }) {
         ? [entscheidenKachel(statistik, true), wochenKachel(woche), uebenKachel(true), duellKachel()]
         : [wochenKachel(woche), uebenKachel(wochenfragenFertig), entscheidenKachel(statistik, false), duellKachel()])
     : [gastKachel(), duellKachel()];
+  if(angemeldet)kacheln.push(...persoenlicheKacheln());
 
   bereich.innerHTML = `
     <h1 class="seiten-titel">Dein Quiz</h1>
@@ -221,7 +227,6 @@ function zeichne({ woche, statistik, angemeldet }) {
     <div class="modus-liste">${kacheln.join("")}</div>
     <p class="modus-nachsatz">
       <a href="melden.html">Ideen &amp; Feedback</a>
-      ${angemeldet ? ' · <a href="meine-statistik.html">Wochenserie, Abzeichen &amp; Joker</a>' : ''}
     </p>`;
 
 }
