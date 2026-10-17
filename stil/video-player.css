@@ -141,3 +141,25 @@ body.video-dialog-offen { overflow: hidden; }
   .video-gross-spieler-halter .video-status { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   .video-gross-spieler-halter .video-dialog-karte { width: min(calc(100vw - 70px), calc((100dvh - 12px) * 16 / 9)); min-height: 0; max-height: calc(100dvh - 12px); margin-right: 58px; padding: 18px; }
 }
+
+/* Staige hat eigene Werkzeuge statt der schmalen YouTube-Symbolspalte.
+   Bewusst NACH dem gemeinsamen Querformat: auch auf kurzen iPhones. */
+.video-staige-zeitspanne { margin: .25rem 0; display: flex; flex-direction: column; gap: .15rem; color: #1e293b; }
+.video-staige-zeitspanne > span { font-size: .78rem; font-weight: 650; }
+.video-staige-zeitspanne > strong { font-size: clamp(1.35rem, 4vw, 1.8rem); font-variant-numeric: tabular-nums; line-height: 1.25; }
+.video-staige-werkzeuge { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .6rem 1rem; }
+.video-staige-meldungen { display: grid; gap: .3rem; }
+.video-staige-sitzung .video-staige-zeitspanne { color: #fff; }
+.video-gross-overlay:has(.video-staige-sitzung) { background: #0b1220; }
+.video-gross-spieler-halter:has(.video-staige-sitzung) { width: min(1100px, 94vw); max-height: calc(100dvh - 80px); overflow: auto; margin-top: 56px; height: auto; }
+.video-gross-spieler-halter .video-staige-sitzung { height: auto; }
+.video-gross-spieler-halter .video-staige-sitzung .video-spieler-buehne { display: flex; flex-direction: column; height: auto; align-items: stretch; }
+.video-gross-spieler-halter .video-staige-sitzung .video-spieler-halter { width: min(100%, calc((100dvh - 230px) * 16 / 9)); align-self: center; min-width: min(100%, 240px); min-height: 0; }
+.video-gross-spieler-halter .video-staige-sitzung .video-reset-button { width: auto; height: auto; min-height: 44px; padding: 8px 14px; border-radius: 999px; flex: 0 0 auto; white-space: normal; }
+.video-staige-sitzung .video-staige-direkt { align-self: center; }
+.video-staige-sitzung :is(a,button):focus-visible { outline: 3px solid #facc15; outline-offset: 3px; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .video-gross-spieler-halter:has(.video-staige-sitzung) { width: calc(100% - 24px); margin: 54px 12px 8px; max-height: calc(100dvh - 62px); padding: 0 max(0px, env(safe-area-inset-right)) max(4px, env(safe-area-inset-bottom)) max(0px, env(safe-area-inset-left)); }
+  .video-gross-spieler-halter .video-staige-sitzung .video-spieler-halter { width: min(100%, calc((100dvh - 155px) * 16 / 9)); }
+  .video-staige-sitzung .video-staige-meldungen { font-size: .8rem; }
+}

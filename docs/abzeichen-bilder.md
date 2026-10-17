@@ -1,5 +1,9 @@
 # Abzeichenbilder und Designrunde · 17.10.2026
 
+Nachtrag: Die erste Achterserie unten bleibt unverändert. Der spätere Ausbau
+auf20Motive plus drei schlichtere Joker-Icons ist mit allen neuen Speicherpfaden
+und Prompts in [Ausbau-Bildnachweis](abzeichen-ausbau-bilder.md) dokumentiert.
+
 ## Tatsächlich umgesetzt
 
 Acht neue Rastermotive, mit der eingebauten Bildgenerierung erzeugt (kein CLI/API-Fallback). Eine runde, vollständig geschlossene Medaillenform, Motiv bleibt innerhalb des Rahmens, keine kollidierenden Bänder/Polygone. Sichtbare Sammlung ausschließlich mit Bildknöpfen; Name und Zustand als zugänglicher Name, Fortschritt und Erklärung erst im nativen Dialog. Ausstehende Motive grau und gedimmt. Keine Änderung der Vergaberegeln, Punkte oder Datenbank.

@@ -1,7 +1,15 @@
 /* Eigene Bildsammlung: kein <summary>, kein Disclosure-Pfeil. */
+.serie-joker-bild{float:right;object-fit:contain;width:64px;height:64px;margin:0 0 .5rem .75rem}
 .abzeichen-sammlung{margin-top:1.7rem;padding:clamp(.8rem,3vw,1.4rem);border:1px solid #bdd0c4;border-radius:22px;background:linear-gradient(145deg,#e9f2ec,#f5f4ed);overflow-wrap:anywhere}
 .abzeichen-kopf{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}.abzeichen-kopf h3{margin:0;font-size:1.2rem}.abzeichen-zaehler{padding:.35rem .7rem;border:1px solid #b7c9be;border-radius:999px;background:#fff;color:#294c38;font-weight:750;white-space:nowrap}
 .abzeichen-raster{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(.5rem,2vw,1rem)}
+.abzeichen-schrank{display:grid;gap:1.6rem;padding:clamp(.5rem,2vw,1rem);border:1px solid #bca88d;border-radius:18px;background:repeating-linear-gradient(1deg,#b9956520 0 1px,transparent 1px 9px),linear-gradient(120deg,#f0dfc7,#e4c9a5 55%,#f2e0c9);box-shadow:inset 0 2px 12px #7554331a}
+.abzeichen-fachtitel{margin:0 0 .8rem;font-size:.85rem;letter-spacing:.03em;color:#523b23}
+.abzeichen-fach .abzeichen-raster{gap:.5rem .3rem}
+.abzeichen-fach .abzeichen-aufmacher{border:0;border-bottom:9px solid #b28759;border-radius:10px 10px 3px 3px;background:radial-gradient(ellipse at center,#fff9,#fff2);box-shadow:0 5px 5px -3px #5f3c2e66,inset 0 -2px 2px #6543231a}
+.abzeichen-fach .abzeichen-aufmacher.verdient{background:radial-gradient(ellipse,#fffbe9bb,#fff3);border-bottom-color:#b28759}
+.abzeichen-fach .abzeichen-aufmacher:hover{background:#fff9}
+.abzeichen-regeln{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.35rem;list-style:none;padding:0;font-size:.85rem}.abzeichen-regeln li{padding:.4rem;border:1px solid #b6c5bb;border-radius:8px}.abzeichen-regeln .regel-erreicht{background:#d9e9dd;color:#183d27;font-weight:700}
 .abzeichen-aufmacher{display:grid;place-items:center;min-width:44px;min-height:44px;aspect-ratio:1;padding:8%;border:1px solid #c3cfc6;border-radius:18px;background:radial-gradient(ellipse at 50% 60%,#fff,#e6ebe7);cursor:pointer;box-shadow:inset 0 2px 5px #1430220a}
 .abzeichen-aufmacher.verdient{border-color:#91b19d;background:radial-gradient(ellipse,#fffce9,#e3ece5)}
 .abzeichen-aufmacher img{display:block;width:100%;height:auto;max-width:170px;pointer-events:none;object-fit:contain}

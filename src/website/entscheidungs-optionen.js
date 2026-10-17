@@ -149,6 +149,10 @@ export const ROLLEN = {
   feldspieler: "Feldspieler",
   torwart: "Torwart",
   auswechselspieler: "Auswechselspieler",
+  einwechselspieler: "Einwechselspieler",
+  trainer_einzeln: "Trainer",
+  betreuer: "Betreuer",
+  // Alter Wert bleibt für gespeicherte Lösungen/Schnappschüsse lesbar.
   trainer: "Trainer oder Betreuer",
 };
 

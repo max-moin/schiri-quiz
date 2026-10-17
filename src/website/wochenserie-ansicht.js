@@ -25,6 +25,7 @@ export function zeichneWochenserie(ziel,basis) {
   const teile=[kopf,zahlen,stand];
   const joker=Array.isArray(basis.joker)?basis.joker:[];
   const geschenk=element(doc,'div','serie-rettung');
+  const jokerBild=doc.createElement('img');jokerBild.src='bilder/joker/serienjoker.webp';jokerBild.alt='';jokerBild.width=64;jokerBild.height=64;jokerBild.className='serie-joker-bild';geschenk.append(jokerBild);
   geschenk.append(element(doc,'h3','','Deine Joker'),element(doc,'p','',joker.length
     ? `${joker.length} verfügbar · Rette eine verpasste Woche. Gültig bis ${new Intl.DateTimeFormat('de-DE').format(new Date(joker[0].gueltig_bis+'T12:00:00'))}.`
     : 'Aktuell kein Joker verfügbar.'));
@@ -65,7 +66,15 @@ export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
     ziel.append(element(doc,'p','serie-stand','Deine Serie wird geladen …'));
     let data,error;
     // Enthält weiterhin die Daten von meine_wochenserie_basis, ergänzt um eigene Joker.
-    try { ({data,error}=await rpc.rpc('meine_wochenserie_mit_joker',{p_schiedsrichter_id:person.id,p_pin:person.pin})); }
+    try {
+      const parameter={p_schiedsrichter_id:person.id,p_pin:person.pin};
+      const [serie,sammlung]=await Promise.all([
+        rpc.rpc('meine_wochenserie_mit_joker',parameter),
+        Promise.resolve().then(()=>rpc.rpc('meine_sammelstatistik',parameter)).catch(()=>({error:true})),
+      ]);
+      data=serie.data;error=serie.error;
+      if(data && !sammlung.error) data={...data,sammlung:sammlung.data};
+    }
     catch { error={message:'Nicht verfügbar'}; }
     const aktuell=anmeldung.lesen();
     if(lauf!==version || aktuell?.id!==person.id || aktuell?.pin!==person.pin)return;

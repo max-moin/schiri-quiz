@@ -99,3 +99,15 @@ test("Escape und Wechsel zu anderem Video beenden die alte Staige-Sitzung", () =
   assert.equal(u.ids.get("video-gross-overlay").hidden, true);
   assert.equal(u.timers.size, 0);
 });
+test("Quiz lädt gemeinsame Playerstile; Staige hat eigene Zeit- und Werkzeugleiste", () => {
+  assert.match(quelle('quiz.html'),/href="stil\/video-player.css"/);
+  const css=quelle('stil/video-player.css');
+  assert.ok(css.lastIndexOf('.video-staige-sitzung .video-spieler-buehne')>css.indexOf('grid-template-columns: minmax(0,1fr) 52px'));
+  const u=playerUmgebung(),karte=u.bauen('https://staige.tv/video/566569',5160,5520,false);
+  const bereich=karte.children.find(x=>x.className==='video-staige-zeitspanne');
+  assert.equal(bereich.children[1].textContent,'86:00 – 92:00');
+  finden(karte,'button').click();
+  const buehne=u.ids.get('video-gross-spieler-halter').children[0].children[0];
+  assert.equal(buehne.children[1].className,'video-staige-werkzeuge');
+  assert.equal(buehne.children[2].className,'video-staige-meldungen');
+});

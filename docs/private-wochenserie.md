@@ -1,5 +1,20 @@
 # Private Wochenserie und Abzeichen
 
+## Aktueller Ausbau · 17.10.2026
+
+**20 Abzeichen sind jetzt gebaut**, einschließlich der zwölf unten historisch
+als Konzept beschriebenen Ergänzungen. Helle Holzvitrine und neue generierte
+Bildmotive, Fortschritt aus `meine_sammelstatistik` (eigene PIN, reine Aggregate).
+Keine neue Jokervergabe und keine Punkteänderung. Bei Ausfall der Zusatzstatistik
+bleiben die ursprünglichen acht sichtbar; die zwölf neuen zeigen „Statistik
+nicht verfügbar“ statt eines erfundenen Nullstands.
+
+Die älteren Joker-Vorschläge unten sind noch nicht umgesetzt und keine Freigabe:
+Max will zusätzliche fachliche Joker ausdrücklich **nur im regulären Quiz**, nicht
+im freiwilligen Üben. 50/50 und zweiter Versuch erhalten vorbereitete Icons;
+Wertung und Verdienstregeln vor Einbau entscheiden. Geburtstag bleibt unverändert.
+Aktueller Umfang, Regeln und offene Entscheidungen: [Ausbaupaket](ausbau-17-oktober.md).
+
 ## Zugang und Grenzen
 
 Kontomenü → Meine Quizstatistik. Nur die eigene ID plus passende aktive PIN
@@ -56,10 +71,10 @@ Gerettete Wochen zählen zur Serie, nicht zu „vollständig beantwortet“. Ein
 spätere Serienlücke löscht keine bereits erreichte längste Serie. Administrative
 Korrekturen können den zugrundeliegenden Stand dagegen weiterhin ändern.
 
-## Ausbaukonzept: insgesamt20Abzeichen (nicht vollständig implementiert)
+## Historisches Ausbaukonzept: insgesamt20Abzeichen (inzwischen gebaut, siehe oben)
 
-Die acht obigen Abzeichen sind nutzbar. Diese zwölf weiteren sind ein Vorschlag,
-keine freigeschalteten/angeblich schon verdienten Funktionen:
+Die acht obigen Abzeichen bleiben nutzbar. Die zwölf folgenden Ziele sind jetzt
+ebenfalls implementiert; verdient werden sie ausschließlich aus eigenen Daten:
 
 | Arbeitstitel | Vorgeschlagene Bedingung |
 |---|---|
@@ -86,12 +101,10 @@ Hattrick. Regelabzeichen zählen verschiedene Frage-IDs, keine Wiederholungsfarm
 Antworten nur bei eindeutiger Regeltag-Zuordnung; unbekannte Regel bleibt unbekannt.
 Bei mehreren Regel-Tags gilt zunächst nur die fachlich bestätigte Hauptregel.
 
-**Noch benötigte Daten:** Die aktuelle Serienbasis liefert weder Trefferzahlen je
-Woche noch Regelstatistiken oder angenommene Vorschläge. Dafür später minimale
-PIN-geprüfte eigene Aggregate ergänzen, keine Lösungen und keine fremden Antworten
-ausliefern. Detailansicht „Regelkompass“:17Regeln mit Zähler und Fortschritt, keine
-öffentliche Rangliste. Keine neuen personenbezogenen Rohdaten im Browser speichern.
-Noch keine neue API/Migration aus diesem Konzept erstellt oder live angewandt.
+**Daten inzwischen ergänzt:** `meine_sammelstatistik` liefert Trefferzahlen je
+Woche, Regelstatistiken und die Zahl übernommener eigener Vorschläge. Keine Lösungen
+und keine fremden Antworten. Der Regelkompass zeigt im Dialog die17Regeln mit
+Zähler; keine öffentliche Rangliste oder neuen Rohdaten im Browserspeicher.
 
 ## Joker-Verdienst: konkreter Vorschlag, noch nicht aktiviert
 

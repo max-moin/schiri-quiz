@@ -104,6 +104,7 @@
   // frühere fehleranfällige Verschiebe-Logik zwischen Karte und Dialog.
   let aktuellerVideoGrossController = null;
   let letzterVideoGrossTrigger = null;
+  let hintergrundElemente = [];
 
   function schliesseVideoGrossansicht() {
     const overlay = document.getElementById("video-gross-overlay");
@@ -117,6 +118,8 @@
     halter.replaceChildren();
     overlay.hidden = true;
     document.body.classList.remove("video-dialog-offen");
+    for (const [element, vorher] of hintergrundElemente) element.inert = vorher;
+    hintergrundElemente = [];
     if (letzterVideoGrossTrigger && document.contains(letzterVideoGrossTrigger)) {
       letzterVideoGrossTrigger.focus();
     }
@@ -133,6 +136,8 @@
     letzterVideoGrossTrigger = ausloeser || document.activeElement;
     overlay.hidden = false;
     document.body.classList.add("video-dialog-offen");
+    hintergrundElemente = Array.from(document.body.children).filter(e => e !== overlay && !e.contains(overlay)).map(e => [e, e.inert]);
+    for (const [element] of hintergrundElemente) element.inert = true;
     const schliessenButton = document.getElementById("video-gross-schliessen-button");
     if (schliessenButton) schliessenButton.focus();
   }
@@ -147,6 +152,12 @@
     });
     document.addEventListener("keydown", (ereignis) => {
       if (ereignis.key === "Escape" && !overlay.hidden) schliesseVideoGrossansicht();
+      if (ereignis.key === "Tab" && !overlay.hidden) {
+        const ziele = Array.from(overlay.querySelectorAll('button:not([disabled]),a[href],iframe,[tabindex="0"]')).filter(e => e.getClientRects().length);
+        const erstes = ziele[0], letztes = ziele.at(-1);
+        if (erstes && ereignis.shiftKey && (document.activeElement === erstes || !overlay.contains(document.activeElement))) { ereignis.preventDefault(); letztes.focus(); }
+        else if (erstes && !ereignis.shiftKey && document.activeElement === letztes) { ereignis.preventDefault(); erstes.focus(); }
+      }
     });
   })();
 
@@ -184,10 +195,21 @@
     datenschutz.textContent = "Mit dem Klick lädst du den offiziellen Staige-Player. Dabei werden Daten wie deine IP-Adresse an Staige übertragen.";
     knopf.append(symbol, titel, datenschutz);
     wrap.appendChild(knopf);
+    function zeitspanne() {
+      const box = document.createElement("p");
+      box.className = "video-staige-zeitspanne";
+      const label = document.createElement("span");
+      label.textContent = "Dein Ausschnitt · Videozeit";
+      const wert = document.createElement("strong");
+      wert.textContent = ende !== null && ende > start ? `${zeittext(start)} – ${zeittext(ende)}` : `ab ${zeittext(start)}`;
+      box.append(label, wert);
+      return box;
+    }
     const hinweis = document.createElement("p");
     hinweis.className = "video-staige-hinweis";
     hinweis.textContent = `${starthinweis} ${endhinweis} Ton im Player bedienen.`;
     wrap.appendChild(hinweis);
+    wrap.appendChild(zeitspanne());
     function direktLink() {
       const link = document.createElement("a");
       link.href = staigeEmbedUrl(quelle, start);
@@ -232,11 +254,17 @@
       status.textContent = "Staige-Player lädt … Vor dem Video kann Werbung erscheinen.";
       const info = document.createElement("p");
       info.className = "video-staige-hinweis";
-      info.textContent = `${starthinweis} ${endhinweis} Ton im Staige-Player bedienen.`;
+      info.textContent = `${quelle.highlight && start > 0 ? 'Start in der Highlight-Zusammenfassung selbst ansteuern. ' : ''}Bei der Endzeit selbst pausieren · Ton im Staige-Player bedienen.`;
       const erneut = document.createElement("button");
       erneut.type = "button";
       erneut.className = "video-reset-button";
-      erneut.textContent = "↻ Video neu laden";
+      const erneutSymbol = document.createElement("span");
+      erneutSymbol.className = "video-button-symbol";
+      erneutSymbol.textContent = "↻";
+      erneutSymbol.setAttribute("aria-hidden", "true");
+      const erneutText = document.createElement("span");
+      erneutText.textContent = "Video neu laden";
+      erneut.append(erneutSymbol, erneutText);
       erneut.setAttribute("aria-label", "Staige-Video erneut am vorgesehenen Start laden");
       function laden() {
         window.clearTimeout(ladeTimer);
@@ -249,14 +277,20 @@
       iframe.addEventListener("load", () => {
         if (!aktiv) return;
         window.clearTimeout(ladeTimer);
-        status.textContent = "Wiedergabe und Pause im Staige-Player bedienen.";
+        status.textContent = "Staige-Player geöffnet.";
       });
       iframe.addEventListener("error", () => {
         if (aktiv) status.textContent = "Staige konnte nicht geladen werden. Bitte erneut versuchen.";
       });
       erneut.addEventListener("click", laden);
       halter.appendChild(iframe);
-      buehne.append(halter, erneut, info, status, direktLink());
+      const werkzeuge = document.createElement("div");
+      werkzeuge.className = "video-staige-werkzeuge";
+      werkzeuge.append(zeitspanne(), erneut, direktLink());
+      const meldungen = document.createElement("div");
+      meldungen.className = "video-staige-meldungen";
+      meldungen.append(info, status);
+      buehne.append(halter, werkzeuge, meldungen);
       sitzung.appendChild(buehne);
       oeffneVideoGrossansicht(sitzung, knopf, {
         beimSchliessen() {

@@ -441,6 +441,7 @@
         rollenLabel.append("Rolle");
         const select = document.createElement("select");
         Object.entries(optionen.ROLLEN).forEach(([wert, text]) => {
+          if (wert === "trainer" && eintrag.strafe_fuer_rolle !== "trainer") return;
           const opt = document.createElement("option");
           opt.value = wert; opt.textContent = text; opt.selected = eintrag.strafe_fuer_rolle === wert;
           select.appendChild(opt);

@@ -5,9 +5,33 @@ import {berechneWochenserie} from '../src/website/wochenserie.js';
 const tag=86400000,start=Date.parse('2026-01-05T00:00:00Z');
 const w=(i,n=5,u=0,j=false)=>({runde_id:`r${i}`,bezeichnung:`Woche ${i}`,startet_am:new Date(start+i*7*tag).toISOString(),endet_am:new Date(start+(i+1)*7*tag).toISOString(),retten_bis:new Date(start+(i+2)*7*tag).toISOString(),fragen_gesamt:5,beantwortet:n,uebung_richtig:u,joker_gerettet:j});
 const s=a=>berechneWochenserie({jetzt:new Date(start+200*tag).toISOString(),wochen:a});
-test('Acht stabile private Abzeichen mit echten lokal gespeicherten Bildmotiven',()=>{
- const b=s([]).abzeichen;assert.equal(b.length,8);assert.equal(new Set(b.map(x=>x.id)).size,8);
+test('Zwanzig stabile private Abzeichen mit echten lokal gespeicherten Bildmotiven',()=>{
+ const b=s([]).abzeichen;assert.equal(b.length,20);assert.equal(new Set(b.map(x=>x.id)).size,20);
  for(const x of b){assert.equal(x.verdient,false);assert.equal(x.stand,0);const bild=readFileSync(new URL(`../bilder/abzeichen/${x.id}.webp`,import.meta.url));assert.equal(bild.subarray(8,12).toString(),'WEBP');const original=readFileSync(new URL(`../bilder/abzeichen/originale/${x.id}.png`,import.meta.url));assert.deepEqual([...original.subarray(0,8)],[137,80,78,71,13,10,26,10]);}
+});
+test('Zusätzliche Abzeichen ohne neue Statistik bleiben unbekannt, nicht angeblich unerreicht',()=>{
+ const b=s([]).abzeichen;assert.equal(b.filter(x=>x.datenFehlen).length,12);
+});
+test('Perfekte Wochen, Hattrick und freundliches Trostmotiv werden aus eigenen Abschlüssen berechnet',()=>{
+ const wochen=[w(0),w(1),w(2),w(3)];
+ const a=berechneWochenserie({jetzt:new Date(start+50*tag).toISOString(),wochen,sammlung:{version:1,wochen_richtig:{r0:5,r1:5,r2:5,r3:0},regeln:{},treffer:15,vorschlaege:0}});
+ const b=id=>a.abzeichen.find(x=>x.id===id);
+ assert.equal(b('weisse-weste').stand,3);assert.equal(b('hattrick').verdient,true);assert.equal(b('kopf-hoch').verdient,true);
+ assert.equal(b('praezision').verdient,false);
+});
+test('Rettung zählt nicht als perfekte Woche und unterbricht die perfekte Folge',()=>{
+ const a=berechneWochenserie({jetzt:new Date(start+50*tag).toISOString(),wochen:[w(0),w(1,0,0,true),w(2),w(3)],sammlung:{version:1,wochen_richtig:{r0:5,r1:0,r2:5,r3:5},regeln:{3:10,11:9,12:10,14:10},treffer:100,vorschlaege:1}});
+ const b=id=>a.abzeichen.find(x=>x.id===id);
+ assert.equal(b('hattrick').stand,2);assert.equal(b('hattrick').verdient,false);assert.equal(b('weisse-weste').stand,3);
+ assert.equal(b('wechselprofi').verdient,true);assert.equal(b('abseitsblick').verdient,false);assert.equal(b('hundert-treffer').verdient,true);assert.equal(b('regelarchiv').verdient,false);assert.equal(b('aus-unserer-mitte').verdient,true);
+});
+test('Regelkompass braucht alle 17 Regeln, unbekannte Regeln zählen nicht',()=>{
+ const regeln=Object.fromEntries(Array.from({length:17},(_,i)=>[i+1,1]));
+ const a=berechneWochenserie({jetzt:new Date(start+50*tag).toISOString(),wochen:[],sammlung:{version:1,wochen_richtig:{},regeln,treffer:17,vorschlaege:0}});
+ assert.equal(a.abzeichen.find(x=>x.id==='regelkompass').verdient,true);
+ delete regeln[7];regeln[18]=3;
+ const b=berechneWochenserie({jetzt:new Date(start+50*tag).toISOString(),wochen:[],sammlung:{version:1,wochen_richtig:{},regeln,treffer:17,vorschlaege:0}});
+ assert.equal(b.abzeichen.find(x=>x.id==='regelkompass').stand,16);
 });
 test('Teilnahmeziele sind exakt, nicht aus Trefferquoten erfunden',()=>{
  for(const n of [1,4,5,9,10,24,25]){
