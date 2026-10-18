@@ -51,11 +51,13 @@ function playerUmgebung() {
   return { bauen: ctx.SchiriQuizVideoPlayer.baueVideoEinbettungModal, ids, netz, timers, events };
 }
 const finden = (e, tag) => e.tag === tag ? e : e.children.map(c => finden(c, tag)).find(Boolean);
+const klasse = (e, name) => e.className === name ? e : e.children.map(c=>klasse(c,name)).find(Boolean);
+const texte = e => [e.textContent||'',...e.children.map(texte)].join(' ');
 test("kein Staige-Netzaufruf vor Klick; offizieller Player, Wiederholung und X räumen auf", () => {
   const u = playerUmgebung();
   const karte = u.bauen("https://staige.tv/video/566569", 725, 750, true, "Ein Foul");
   assert.equal(u.netz.length, 0);
-  assert.match(karte.children[1].textContent, /12:30.*nicht automatisch/);
+  assert.match(klasse(karte,'video-staige-hinweis').textContent, /12:30.*nicht automatisch/);
   const start = finden(karte, "button"); start.click();
   assert.equal(u.netz[0], "https://staige.tv/embed/video/566569/725");
   const halter = u.ids.get("video-gross-spieler-halter");
@@ -70,18 +72,27 @@ test("kein Staige-Netzaufruf vor Klick; offizieller Player, Wiederholung und X r
 test("Highlight-Startbeschränkung und manuelles Ende werden nicht versteckt", () => {
   const u = playerUmgebung();
   const karte = u.bauen("https://staige.tv/embed/video/566569/highlight", 90, 110, false);
-  assert.match(karte.children[1].textContent, /1:30.*selbst ansteuern/);
-  assert.match(karte.children[1].textContent, /1:50.*selbst pausieren/);
+  assert.match(texte(karte), /selbst ansteuern/);
+  assert.match(klasse(karte,'video-staige-hinweis').textContent, /1:50.*selbst pausieren/);
 });
 test("tatsächlich gespeicherte Dobritz-Frage rendert Zeitfenster und direkten Staige-Zugang", () => {
   const u = playerUmgebung();
   const karte = u.bauen("https://staige.tv/embed/video/566569", 1941, 2061, false);
-  assert.match(karte.children[1].textContent, /32:21 bis 34:21/);
+  assert.match(texte(klasse(karte,'video-staige-zeitspanne')), /32:21 – 34:21/);
   const link = finden(karte, "a");
   assert.equal(link.href, "https://staige.tv/embed/video/566569/1941");
   assert.equal(link.rel, "noopener noreferrer");
   finden(karte, "button").click();
   assert.equal(u.netz[0], "https://staige.tv/embed/video/566569/1941");
+});
+test('Staige bündelt Zusatzhilfe, erlaubt natives Vollbild und baut keinen unzuverlässigen Endtimer',()=>{
+ const u=playerUmgebung(),karte=u.bauen('https://staige.tv/video/566569',6411,6432,false);
+ const hilfe=finden(karte,'details');assert.ok(hilfe);assert.equal(finden(hilfe,'a').target,'_blank');
+ assert.equal(karte.children.some(c=>c.tag==='a'),false);
+ finden(karte,'button').click();const iframe=finden(u.ids.get('video-gross-spieler-halter'),'iframe');
+ assert.equal(iframe.allowFullscreen,true);iframe.listeners.load();
+ assert.equal(klasse(u.ids.get('video-gross-spieler-halter'),'video-staige-status').hidden,true);
+ assert.equal(u.timers.size,0);
 });
 test("nicht erkannte Video-Adresse verschwindet nicht mehr lautlos", () => {
   const u = playerUmgebung();

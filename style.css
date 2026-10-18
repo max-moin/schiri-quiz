@@ -1439,13 +1439,15 @@ button {
 }
 
 .fuss-inhalt a {
+  overflow-wrap: anywhere;
+  min-width: 0;
   color: var(--muted);
   text-decoration: none;
-  /* 25.09.2026: 44 px Tippflaeche statt 15 px Zeilenhoehe, kein Umbruch im Link. */
+  /* 44 px Tippfläche; lange Titel dürfen bei Textvergrößerung umbrechen. */
   display: inline-flex;
   align-items: center;
   min-height: 44px;
-  white-space: nowrap;
+  white-space: normal;
 }
 
 .fuss-inhalt a:hover {

@@ -192,24 +192,24 @@
     titel.textContent = "Staige-Video ansehen";
     const datenschutz = document.createElement("span");
     datenschutz.className = "video-platzhalter-hinweis";
-    datenschutz.textContent = "Mit dem Klick lädst du den offiziellen Staige-Player. Dabei werden Daten wie deine IP-Adresse an Staige übertragen.";
+    datenschutz.textContent = "Mit deinem Klick lädt Staige den Player und erhält Daten wie deine IP-Adresse.";
     knopf.append(symbol, titel, datenschutz);
     wrap.appendChild(knopf);
     function zeitspanne() {
       const box = document.createElement("p");
       box.className = "video-staige-zeitspanne";
       const label = document.createElement("span");
-      label.textContent = "Dein Ausschnitt · Videozeit";
+      label.textContent = quelle.highlight && start > 0 ? "Videozeit · Highlight-Start selbst ansteuern" : "Dein Ausschnitt · Videozeit";
       const wert = document.createElement("strong");
       wert.textContent = ende !== null && ende > start ? `${zeittext(start)} – ${zeittext(ende)}` : `ab ${zeittext(start)}`;
       box.append(label, wert);
       return box;
     }
+    wrap.appendChild(zeitspanne());
     const hinweis = document.createElement("p");
     hinweis.className = "video-staige-hinweis";
-    hinweis.textContent = `${starthinweis} ${endhinweis} Ton im Player bedienen.`;
+    hinweis.textContent = endhinweis;
     wrap.appendChild(hinweis);
-    wrap.appendChild(zeitspanne());
     function direktLink() {
       const link = document.createElement("a");
       link.href = staigeEmbedUrl(quelle, start);
@@ -220,21 +220,23 @@
       link.setAttribute("aria-label", "Video direkt auf Staige öffnen (neuer Tab)");
       return link;
     }
-    wrap.appendChild(direktLink());
     const werbung = document.createElement("p");
     werbung.className = "video-staige-hinweis";
     werbung.textContent = "Staige kann vor dem Video Werbung zeigen. Beim Neuladen kann diese erneut starten.";
     wrap.appendChild(werbung);
-    if (String(beschreibung || "").trim()) {
+    function hilfe(neuladen = null) {
       const details = document.createElement("details");
       details.className = "video-info-panel";
       const summary = document.createElement("summary");
       summary.textContent = "Hilfe zum Video";
       const p = document.createElement("p");
-      p.textContent = String(beschreibung).trim();
+      p.textContent = `${quelle.highlight && start > 0 ? starthinweis + ' ' : ''}Ton und Vollbild im Staige-Player bedienen. ${String(beschreibung || '').trim()}`;
       details.append(summary, p);
-      wrap.appendChild(details);
+      if (neuladen) details.appendChild(neuladen);
+      details.appendChild(direktLink());
+      return details;
     }
+    wrap.appendChild(hilfe());
     knopf.addEventListener("click", () => {
       let aktiv = true;
       let ladeTimer;
@@ -247,6 +249,7 @@
       const iframe = document.createElement("iframe");
       iframe.title = "Staige-Video zur Regelfrage";
       iframe.allow = "autoplay; encrypted-media";
+      iframe.allowFullscreen = true;
       iframe.referrerPolicy = "strict-origin-when-cross-origin";
       const status = document.createElement("p");
       status.className = "video-staige-status";
@@ -254,7 +257,7 @@
       status.textContent = "Staige-Player lädt … Vor dem Video kann Werbung erscheinen.";
       const info = document.createElement("p");
       info.className = "video-staige-hinweis";
-      info.textContent = `${quelle.highlight && start > 0 ? 'Start in der Highlight-Zusammenfassung selbst ansteuern. ' : ''}Bei der Endzeit selbst pausieren · Ton im Staige-Player bedienen.`;
+      info.textContent = `${ende !== null && ende > start ? 'Bei ' + zeittext(ende) : 'Am Ende'} selbst pausieren · Werbung möglich.`;
       const erneut = document.createElement("button");
       erneut.type = "button";
       erneut.className = "video-reset-button";
@@ -268,6 +271,7 @@
       erneut.setAttribute("aria-label", "Staige-Video erneut am vorgesehenen Start laden");
       function laden() {
         window.clearTimeout(ladeTimer);
+        status.hidden = false;
         status.textContent = "Staige-Player lädt … Vor dem Video kann Werbung erscheinen.";
         iframe.src = staigeEmbedUrl(quelle, start);
         ladeTimer = window.setTimeout(() => {
@@ -277,7 +281,8 @@
       iframe.addEventListener("load", () => {
         if (!aktiv) return;
         window.clearTimeout(ladeTimer);
-        status.textContent = "Staige-Player geöffnet.";
+        status.textContent = "";
+        status.hidden = true;
       });
       iframe.addEventListener("error", () => {
         if (aktiv) status.textContent = "Staige konnte nicht geladen werden. Bitte erneut versuchen.";
@@ -286,10 +291,10 @@
       halter.appendChild(iframe);
       const werkzeuge = document.createElement("div");
       werkzeuge.className = "video-staige-werkzeuge";
-      werkzeuge.append(zeitspanne(), erneut, direktLink());
+      werkzeuge.append(zeitspanne(), info, hilfe(erneut));
       const meldungen = document.createElement("div");
       meldungen.className = "video-staige-meldungen";
-      meldungen.append(info, status);
+      meldungen.append(status);
       buehne.append(halter, werkzeuge, meldungen);
       sitzung.appendChild(buehne);
       oeffneVideoGrossansicht(sitzung, knopf, {
