@@ -20,7 +20,7 @@
    ein Stueck ist, und schmuecken nichts.
    ============================================================ */
 
-.bestand-seite { max-width: 780px; }
+.bestand-seite { max-width: 780px; overflow-wrap: anywhere; }
 
 /* ---------- Kopf ---------- */
 
@@ -408,7 +408,7 @@
    gleich daneben. */
 
 .bestand-leer {
-  padding: 26px 20px;
+  padding: 26px 20px; min-width: 0; overflow-wrap: anywhere;
   text-align: center;
   background: var(--card);
   border: 1.5px dashed var(--border);
@@ -448,7 +448,7 @@
 }
 
 .bestand-abschnitt-kopf h2 {
-  margin: 0;
+  margin: 0; min-width: 0; overflow-wrap: anywhere;
   font-family: var(--font-titel);
   font-size: 1.15rem;
 }
@@ -488,8 +488,8 @@
 .bestand-anfrage-aktionen .bestand-knopf-sekundaer { min-height: 44px; }
 .bestand-plakette.status-offen { background: var(--marke-lighter); color: var(--marke); }
 .bestand-plakette.status-angenommen { background: var(--green-light); color: var(--green-dark); }
-.bestand-plakette.status-abgelehnt { background: var(--red-hell); color: var(--red); }
-.bestand-plakette.status-erledigt { background: var(--blau-hell); color: var(--blau); }
+.bestand-plakette.status-abgelehnt { background: var(--red-hell); color: var(--text); }
+.bestand-plakette.status-erledigt { background: var(--blau-hell); color: var(--text); }
 
 .bestand-leer-zeile { margin: 0; color: var(--muted); font-size: .88rem; line-height: 1.55; }
 

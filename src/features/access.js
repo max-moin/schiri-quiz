@@ -321,11 +321,16 @@
     // gibt danach keine zweite Anmeldemaske mehr, in die man fallen kann.
 
     async function behandleGastVerlassen() {
+      if (window.location.hash === "#gast") {
+        window.history.replaceState(null, "", window.location.pathname + window.location.search);
+      }
       const gemerkteKennung = kennungSession.lesen();
       if (gemerkteKennung) {
         await pruefeVereinskennung(gemerkteKennung, { ausSession: true });
+        (vereinZeigtNamensliste ? nameAuswahl : nameEingabe)?.focus();
       } else {
         zeigeKennungBereich();
+        kennungEingabe.focus();
       }
     }
 

@@ -2190,6 +2190,14 @@ body.verlassen-dialog-offen {
   margin-bottom: 4px;
 }
 
+.gast-modus-hinweis {
+  margin: 0 0 16px; padding: 16px 18px; border: 2px solid #b48116;
+  border-radius: 14px; background: #fff7df; color: #543800;
+  line-height: 1.5;
+}
+.gast-modus-hinweis strong { display: block; font-size: 1rem; }
+.gast-modus-hinweis p { margin: 6px 0 0; font-size: .88rem; color: inherit; }
+
 #gast-fortschritt-anzeige {
   font-weight: 700;
   color: var(--green-dark);

@@ -352,7 +352,7 @@ function ausAusruestung(zeilen, prozesse) {
       verlauf: schritte.length ? schritte : verlauf,
       hinweis: OHNE_ANTWORTTEXT,
       link: "ausruestung.html",
-      linkText: "Zu meinem Ausrüstungsbestand",
+      linkText: "Ausrüstungsanfrage verwalten",
     };
   });
 }

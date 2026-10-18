@@ -267,12 +267,20 @@
   .marken-block { flex: none; }
   .kopf-innen.hat-seiten-name {
     min-height: 84px;
-    padding-bottom: 24px;
+    padding-bottom: 8px;
+    flex-wrap: wrap;
+    row-gap: 2px;
     position: relative;
   }
+  .kopf-innen.hat-seiten-name .marken-block { display: contents; }
   .seiten-name {
     display: block;
-    position: absolute;
+    position: static;
+    order: 20;
+    flex: 0 0 100%;
+    min-width: 0;
+    white-space: normal;
+    overflow-wrap: anywhere;
     left: 16px;
     right: 16px;
     bottom: 8px;

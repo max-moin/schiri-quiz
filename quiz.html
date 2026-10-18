@@ -167,7 +167,7 @@
         </button>
         <p id="kennung-hinweis" class="hinweis" hidden></p>
         <button id="gast-wechsel-button" class="linktext-button" type="button">
-          Kennung nicht bekannt? Als Gast weiter
+          Nur ausprobieren? Zum Gästequiz
         </button>
       </div>
 
@@ -223,6 +223,10 @@
       </div>
 
       <div id="gast-bereich" hidden>
+        <div class="gast-modus-hinweis">
+          <strong>Gästequiz · nur zum Ausprobieren</strong>
+          <p>Das ist nicht dein Wochenquiz. Deine Antworten zählen hier nicht für deinen Verein, deine Statistik oder deine Serie.</p>
+        </div>
         <label for="gast-name-eingabe">Dein Wunsch-Username</label>
         <input
           id="gast-name-eingabe"
@@ -232,7 +236,7 @@
         />
         <p class="hinweis">Kein Passwort nötig – probier gleich ein paar Fragen aus.</p>
         <button id="gast-zurueck-button" class="linktext-button" type="button">
-          ← Zurück zur Vereinskennung
+          ← Für das Wochenquiz anmelden
         </button>
       </div>
 
@@ -303,13 +307,17 @@
          Persistenz - eine eigene, einfachere Render-Logik hält das Risiko
          für den bestehenden, gut getesteten Hauptablauf klein. -->
     <section id="gast-quiz-schritt" hidden>
+      <div class="gast-modus-hinweis">
+        <strong>Gästequiz · nicht dein Wochenquiz</strong>
+        <p>Nur zum Ausprobieren – ohne Vereinswertung, Statistik oder Wochenserie.</p>
+      </div>
       <div class="gast-kopfzeile">
         <span>Als Gast: <strong id="gast-name-anzeige"></strong></span>
         <span id="gast-fortschritt-anzeige">0 von 0 richtig</span>
       </div>
       <!-- Bewusster Ausstiegsweg (Max' Grundregel: nie ohne Weg zurück in
            einem Modus gefangen sein) - führt zurück zur Login-Karte. -->
-      <button id="gast-verlassen-button" class="sekundaer-button" type="button">← Gast-Modus verlassen</button>
+      <button id="gast-verlassen-button" class="sekundaer-button" type="button">← Für das Wochenquiz anmelden</button>
       <div id="gast-frage-bereich" class="fragen-liste"></div>
     </section>
 
@@ -494,7 +502,7 @@
   <script src="src/features/quiz-joker.js"></script>
   <script src="app.js"></script>
 
-  <!-- Links von der Vereinsstartseite mit #gast öffnen direkt den bereits
+  <!-- Bestehende geteilte Links mit #gast öffnen direkt den bereits
        vorhandenen Gastzugang, nachdem app.js seine Ereignisse gebunden hat. -->
   <script>
     if (window.location.hash === "#gast") {

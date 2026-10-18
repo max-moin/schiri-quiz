@@ -125,8 +125,8 @@ test("dauerhafte Anmeldung gibt es nur nach ausdrücklicher Gerätewahl", () => 
 });
 
 test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
-  // "quiz.html#gast" ist auf der Startseite die ausdrueckliche Einladung
-  // zum Ausprobieren. seite.js faengt deshalb nur Verweise ohne Anker ab.
+  // Geteilte "quiz.html#gast"-Links bleiben möglich, aber seit 18.10.
+  // nicht mehr als verwechselbarer Quiz-Einstieg auf der Startseite.
   //
   // Seit dem 29.08.2026 fuehrt "Zum Quiz" auf modus.html (die Auswahl
   // zwischen Wochenfragen und Entscheidungs-Modus); abgefangen wird
@@ -139,10 +139,10 @@ test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
     !seiteJs.includes('a[href^="quiz.html"]') && !seiteJs.includes('a[href^="modus.html"]'),
     "seite.js faengt auch quiz.html#gast ab - der Gastweg waere damit zu"
   );
-  assert.match(lies("index.html"), /href="quiz\.html#gast"/);
+  assert.doesNotMatch(lies("index.html"), /href="quiz\.html#gast"/);
   // Vom allgemeinen "Zum Quiz"-Weg bekommt ein Gast die Wahl zwischen
-  // Gastquiz und Duell. Der ausdrueckliche Gastknopf auf der Startseite
-  // bleibt trotzdem ein Direkteinstieg.
+  // Gastquiz und Duell. Der direkte Wochenquiz-Knopf auf der Startseite
+  // dagegen führt zur Anmeldung, nicht in dieses Schnupperangebot.
   assert.match(seiteJs, /=== "gast"\) location\.href = "modus\.html#ohne-anmeldung"/);
   const modus = lies("src/website/modus-seite.js");
   assert.match(modus, /function gastKachel\(\)[\s\S]*href="quiz\.html#gast"/);

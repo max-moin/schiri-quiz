@@ -7,10 +7,12 @@ const quiz = readFileSync(new URL("../quiz.html", import.meta.url), "utf8");
 
 test("die Vereinsstartseite bleibt vom Quiz-Einstieg getrennt", () => {
   // Seit dem 29.08.2026 zeigt der Hauptweg auf modus.html, die Auswahl
-  // zwischen Wochenfragen und Entscheidungs-Modus. Der Gastweg fuehrt
-  // weiterhin unmittelbar ins Quiz.
+  // zwischen Wochenfragen und Entscheidungs-Modus. Seit 18.10. wird
+  // auf der Startseite kein Gästequiz mehr als Wochenquiz missverstanden.
   assert.match(startseite, /href="modus\.html"/);
-  assert.match(startseite, /href="quiz\.html#gast"/);
+  assert.doesNotMatch(startseite, /href="quiz\.html#gast"/);
+  assert.match(startseite, /class="wochenquiz-einstieg"/);
+  assert.match(startseite, /href="quiz\.html">Zum Wochenquiz/);
   assert.match(startseite, /src="seite\.js"/);
   assert.doesNotMatch(startseite, /src="app\.js"/);
 });

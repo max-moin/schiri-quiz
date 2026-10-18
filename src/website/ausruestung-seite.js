@@ -29,8 +29,9 @@
 
 import { DATENBANK } from "../../verein.config.js";
 import {
-  prozessLinieHtml, schiriAktionen, belegAktion, naechsterSchrittText, nachId,
+  prozessLinieHtml, schiriAktionen, belegAktion, naechsterSchrittText, nachId, darfZurueckziehen,
 } from "./prozess-linie.js";
+import { bestaetigeRuecknahme } from "./anfrage-ruecknahme.js";
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -419,6 +420,7 @@ async function ladeAnfragen() {
       + prozessLinieHtml(vorgang, esc)
       + (stand ? `<p class="bestand-anfrage-stand">${esc(stand)}</p>` : "")
       + (knoepfe.length ? `<div class="bestand-anfrage-aktionen">${knoepfe.join("")}</div>` : "")
+      + (darfZurueckziehen(vorgang) ? `<div class="bestand-anfrage-nebenaktion"><button type="button" class="bestand-ruecknahme-knopf" data-ruecknahme="${esc(a.id)}" data-artikel="${esc(name)}">Anfrage zurückziehen</button></div>` : "")
       + "</article>";
   };
   $("bestand-anfragen").innerHTML = [...gruppen.values()].map(({ info, positionen }) => {
@@ -438,6 +440,32 @@ async function ladeAnfragen() {
   }).join("");
 
   const profil = globalThis.SchiriSeitenProfil?.holeProfil() || null;
+  $("bestand-anfragen").querySelectorAll("[data-ruecknahme]").forEach((knopf) => {
+    knopf.addEventListener("click", async () => {
+      knopf.disabled = true;
+      if (!(await bestaetigeRuecknahme({ artikel: knopf.dataset.artikel, ausloeser: knopf }))) return;
+      knopf.disabled = true;
+      try {
+        const person = ich();
+        if (!person?.id || !person.pin) throw new Error("Bitte melde dich erneut an.");
+        const { error } = await rpc.rpc("schiri_anfrage_schritt", {
+          p_schiedsrichter_id: person.id, p_pin: person.pin,
+          p_anfrage_id: knopf.dataset.ruecknahme, p_schritt: "zurueckgezogen",
+        });
+        if (error) throw new Error(error.message);
+        seitenmeldung("Anfrage zurückgezogen. Der Verlauf bleibt erhalten.");
+        await ladeAnfragen();
+        // Der Auslöser entfällt nach der Rücknahme; Fokus nicht verlieren.
+        const liste = $("bestand-anfragen");
+        liste.tabIndex = -1;
+        liste.focus();
+      } catch (error) {
+        seitenmeldung("Nicht zurückgezogen: " + error.message, true);
+      } finally {
+        if (knopf.isConnected) knopf.disabled = false;
+      }
+    });
+  });
   $("bestand-anfragen").querySelectorAll("[data-rechnung]").forEach((knopf) => {
     if (!profil?.oeffneRechnungUpload) {
       knopf.hidden = true;

@@ -19,12 +19,11 @@
 
 .aufmacher {
   position: relative;
-  /* Vorher feste 300px. Max, 21.08.2026: mit großen Bildern und großen
-     Überschriften arbeiten - dafür braucht der Aufmacher echte Höhe. */
-  height: clamp(380px, 56vh, 540px);
+  min-height: clamp(280px, 36vh, 370px);
+  display: flex;
   border-radius: var(--radius);
   overflow: hidden;
-  margin-bottom: 44px;
+  margin-bottom: 18px;
 }
 .aufmacher .bildflaeche { position: absolute; inset: 0; }
 /* Der Verlauf war vorher fast bis oben dunkel und drückte das Bild weg.
@@ -38,7 +37,7 @@
   background: linear-gradient(to top,
               rgba(9,13,22,.94) 0%, rgba(9,13,22,.80) 34%,
               rgba(9,13,22,.38) 66%, rgba(9,13,22,.05) 100%);
-  position: absolute; inset: 0; z-index: 3;
+  position: relative; z-index: 3; flex: 1; min-width: 0;
   display: flex; flex-direction: column; justify-content: flex-end;
   padding: clamp(28px, 4vw, 48px);
 }
@@ -56,7 +55,30 @@
 .aufmacher-knoepfe { display: flex; gap: 9px; flex-wrap: wrap; }
 
 @media (max-width: 560px) {
-  .aufmacher { height: clamp(340px, 62vh, 460px); }
+  .aufmacher { min-height: 270px; }
+}
+
+/* Ein eindeutiger Mitgliedereinstieg direkt unter der Schiri-Werbung. */
+.wochenquiz-einstieg {
+  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  padding: clamp(20px, 3vw, 30px); margin-bottom: 36px;
+  border: 2px solid #a9b7cb; border-radius: var(--radius);
+  background: linear-gradient(120deg, #eef3fb, #fff 80%);
+  box-shadow: var(--shadow);
+}
+.wochenquiz-icon { display: grid; place-items: center; width: 58px; height: 58px; flex: none; border-radius: 17px; background: #dbe7fa; color: #233f70; }
+.wochenquiz-icon svg { width: 32px; height: 32px; }
+.wochenquiz-text { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
+.wochenquiz-label { color: #334a6b; font-size: .78rem; font-weight: 700; }
+.wochenquiz-einstieg h2 { margin: 4px 0 6px; font-family: var(--font-titel); font-size: clamp(1.4rem, 3vw, 1.85rem); line-height: 1.2; }
+.wochenquiz-einstieg p { margin: 0; color: #465267; line-height: 1.5; font-size: .9rem; }
+.wochenquiz-einstieg .knopf-dunkel { gap: 12px; }
+.aufmacher ~ .abschnitt .abschnitt-kopf h2 { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 620px) {
+  .wochenquiz-einstieg { gap: 14px; }
+  .wochenquiz-icon { width: 46px; height: 46px; border-radius: 13px; }
+  .wochenquiz-text { flex-basis: calc(100% - 60px); }
+  .wochenquiz-einstieg .knopf-dunkel { width: 100%; }
 }
 
 .knopf-haupt, /* Der weisse Hauptknopf ist fuer den dunklen Aufmacher gebaut. Auf dem
@@ -112,7 +134,8 @@
    und object-fit:cover schneidet mittig zu. */
 .bildkachel .bildflaeche { height: auto; aspect-ratio: 16 / 11; }
 .ki-bildmarke{position:absolute;right:10px;bottom:10px;z-index:2;padding:5px 9px;border-radius:7px;background:#14251ded;color:#fff;font-size:11px;font-weight:650;line-height:1.3;letter-spacing:.025em;pointer-events:none}
-.bildkachel-text { padding: 18px 18px 20px; }
+.bildkachel-text { padding: 18px 18px 20px; display: grid; grid-template-columns: 38px minmax(0,1fr); gap: 0 10px; align-items: start; }
+.bildkachel-text h3, .bildkachel-text p { grid-column: 2; min-width: 0; overflow-wrap: anywhere; }
 .bildkachel h3 {
   margin: 0 0 6px;
   font-size: 1.12rem;
@@ -123,7 +146,12 @@
 .bildkachel p { margin: 0; font-size: .87rem; color: var(--muted); line-height: 1.55; }
 
 
-.schnellweg-icon { display: none; }
+.schnellweg-icon { grid-row: 1 / span 2; display: grid; place-items: center; width: 38px; height: 38px; border-radius: 11px; }
+.schnellweg-icon svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.schnellweg-icon.termine { color: #14532d; background: #dcfce7; }
+.schnellweg-icon.absage { color: #991b1b; background: #fee2e2; }
+.schnellweg-icon.melden { color: #9a3412; background: #ffedd5; }
+.schnellweg-icon.unterlagen { color: #1d4ed8; background: #dbeafe; }
 
 @media (max-width: 620px) {
   .kachelraster { grid-template-columns: 1fr; gap: 10px; }
@@ -146,9 +174,6 @@
     font-size: 1.35rem;
     font-weight: 800;
   }
-  .schnellweg-icon.absage { color: #991b1b; background: #fee2e2; }
-  .schnellweg-icon.melden { color: #9a3412; background: #ffedd5; }
-  .schnellweg-icon.unterlagen { color: #1d4ed8; background: #dbeafe; }
   .bildkachel h3 { grid-column: 2; margin: 0 0 2px; font-size: 1rem; }
   .bildkachel p { grid-column: 2; font-size: .82rem; line-height: 1.4; }
 }

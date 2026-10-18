@@ -126,6 +126,11 @@ export function schiriAktionen(vorgang) {
     .map((a) => ({ schritt: a.schritt, wort: SCHRITT_KNOPF[a.schritt] || a.titel }));
 }
 
+/** Nur eine ausdrücklich vom Server erlaubte Rücknahme anbieten. */
+export function darfZurueckziehen(vorgang) {
+  return alsListe(vorgang?.meine_aktionen).some((a) => a.schritt === "zurueckgezogen");
+}
+
 /** Ein noch ungeprüfter Beleg darf ersetzt werden, ohne den Prozess
  * künstlich auf „gekauft“ zurückzusetzen. Die Aktion wird serverseitig
  * durch schiri_anfrage_rechnung_hochladen geprüft. */
