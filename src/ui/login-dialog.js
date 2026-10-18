@@ -89,8 +89,8 @@
 
       <div class="anmelde-gast" data-gastbereich hidden>
         <p class="anmelde-trenner"><span>oder</span></p>
-        <button type="button" class="anmelde-gastknopf" data-gast>Ohne Anmeldung ansehen</button>
-        <p class="anmelde-gasthinweis">Gastquiz oder Duell &ndash; ohne PIN, ohne Konto.</p>
+        <button type="button" class="anmelde-gastknopf" data-gast>Keine Zugangsdaten? Gästequiz ausprobieren</button>
+        <p class="anmelde-gasthinweis">Nur zum Ausprobieren &ndash; nicht deine Wochenfragen.</p>
       </div>
 
       <p class="anmelde-hilfe">Deine PIN kennst nur du &ndash; frag beim Obmann nach, falls du sie noch nicht hast.</p>

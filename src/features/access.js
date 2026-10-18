@@ -42,6 +42,15 @@
     let aktuelleKennung = null;
     let vereinZeigtNamensliste = true;
 
+    function setzeGastKopf(gast) {
+      document.body?.classList?.toggle("quiz-gastmodus", gast);
+      const titel = document.getElementById("quiz-kopftitel");
+      if (titel) titel.textContent = gast ? "Gästequiz" : "Quiz";
+      const serie = document.getElementById("quiz-serienzaehler");
+      if (gast && serie) serie.hidden = true;
+      window.dispatchEvent(new Event("schiri:quiz-zugang"));
+    }
+
     initialisiereMaskierteFelder();
     verbindeSichtbarkeit(kennungEingabe, kennungAugeButton, {
       anzeigenText: "Vereinskennung anzeigen",
@@ -49,6 +58,7 @@
     });
 
     function zeigeAngemeldetenZustand(name) {
+      setzeGastKopf(false);
       nameSchritt.hidden = true;
       angemeldetName.textContent = name;
       angemeldetLeiste.hidden = false;
@@ -118,6 +128,7 @@
     // ============================================================
 
     function zeigeMitgliedBereich() {
+      setzeGastKopf(false);
       loginModus = "mitglied";
       kennungEingabe.disabled = true;
       kennungWeiterButton.hidden = true;
@@ -138,6 +149,7 @@
     }
 
     function zeigeGastBereich() {
+      setzeGastKopf(true);
       loginModus = "gast";
       kennungBereich.hidden = true;
       mitgliedBereich.hidden = true;
@@ -148,6 +160,7 @@
     }
 
     function zeigeKennungBereich() {
+      setzeGastKopf(false);
       loginModus = "kennung";
       kennungBereich.hidden = false;
       kennungEingabe.disabled = false;

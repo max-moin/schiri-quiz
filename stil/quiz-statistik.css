@@ -1,0 +1,24 @@
+.meine-seite { overflow-wrap: anywhere; }
+.statistik-verlauf { display: grid; grid-template-columns: minmax(0, 1fr); }
+.statistik-woche { min-width: 0; }
+.statistik-woche-kopf, .meine-vorgaenge-kopf { flex-wrap: wrap; }
+.statistik-woche-kopf > *, .meine-vorgaenge-kopf > * { min-width: 0; max-width: 100%; }
+.statistik-woche > summary { display: block; cursor: pointer; list-style: none; min-height: 44px; padding: 3px; }
+.statistik-woche > summary::-webkit-details-marker { display: none; }
+.statistik-woche > summary:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 4px; border-radius: 8px; }
+.statistik-woche .statistik-balken { display: flex; height: 12px; }
+.statistik-woche .statistik-balken span { border-radius: 0; flex: none; }
+.statistik-balken .richtig { background: #237542; }
+.statistik-balken .nachbessern { background: #bb6816; }
+.statistik-balken .falsch { background: #b33131; }
+.statistik-balken .offen { background: #a7adb6; }
+.statistik-woche-aktion { display: inline-flex; align-items: center; min-height: 36px; margin-top: 6px; font-size: .82rem; color: #1d4ed8; font-weight: 650; text-decoration: underline; text-underline-offset: 3px; }
+.statistik-fragen { margin: 10px 0 0; padding: 0; list-style-position: inside; border-top: 1px solid var(--border); }
+.statistik-fragen li { padding: 14px 0; line-height: 1.5; border-bottom: 1px solid var(--border); overflow-wrap: anywhere; }
+.statistik-frage-text { display: block; }
+.statistik-status { display: inline-block; font-size: .78rem; padding: 4px 8px; margin-top: 6px; border-radius: 7px; }
+.statistik-status.richtig { color: #185530; background: #e2f3e7; }
+.statistik-status.nachbessern { color: #723c08; background: #fff0d8; }
+.statistik-status.falsch { color: #8b2323; background: #fee7e7; }
+.statistik-status.offen { color: #424b58; background: #edf0f3; }
+.statistik-fragen-bereich button { min-height: 44px; padding: 8px 12px; font: inherit; }

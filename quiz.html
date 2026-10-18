@@ -26,7 +26,7 @@
       <div class="kopf-titelzeile">
         <span class="ball" aria-hidden="true">⚽</span>
         <div>
-          <h1>Quiz</h1>
+          <h1 id="quiz-kopftitel">Quiz</h1>
           <!-- Im Wochenquiz braucht der Kopf keinen Werbetext. Der leere,
                versteckte Platzhalter bleibt nur fuer die konkrete Einordnung
                im Ueben-Modus erhalten. -->
@@ -53,6 +53,7 @@
           <div id="fortschritt-fill" class="fortschritt-fill"></div>
         </div>
       </div>
+      <a class="quiz-serienzaehler" id="quiz-serienzaehler" href="meine-statistik.html#meine-wochenserie" hidden><span aria-hidden="true">🔥</span><span data-serienzahl></span></a>
     </div>
   </header>
 
@@ -501,6 +502,7 @@
   <script src="src/features/frage-melden.js"></script>
   <script src="src/features/quiz-joker.js"></script>
   <script src="app.js"></script>
+  <script type="module" src="src/website/quiz-serienzaehler.js"></script>
 
   <!-- Bestehende geteilte Links mit #gast öffnen direkt den bereits
        vorhandenen Gastzugang, nachdem app.js seine Ereignisse gebunden hat. -->

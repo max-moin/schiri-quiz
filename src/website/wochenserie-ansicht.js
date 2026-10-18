@@ -6,15 +6,18 @@ const datum = t => new Intl.DateTimeFormat('de-DE',{timeZone:'Europe/Berlin',day
 function element(doc,tag,klasse,text) {
   const e=doc.createElement(tag); e.className=klasse; if(text!==undefined)e.textContent=text; return e;
 }
-export function zeichneWochenserie(ziel,basis) {
+export function zeichneWochenserie(ziel,basis,{bereich='alles'}={}) {
   const s=berechneWochenserie(basis), doc=ziel.ownerDocument;
+  if(bereich==='sammlung'){
+    ziel.replaceChildren(zeichneJokerVorrat(doc,basis),zeichneAbzeichenSammlung(doc,s));
+    return s;
+  }
   const kopf=element(doc,'div','serie-kopf');
   const titel=element(doc,'div','');
   const ueberschrift=element(doc,'h2','serie-ueberschrift');
   const flamme=element(doc,'span',s.serie>0?'serie-flamme aktiv':'serie-flamme','🔥');flamme.setAttribute('aria-hidden','true');ueberschrift.append(flamme,element(doc,'span','','Deine Wochenserie'));
   titel.append(ueberschrift,element(doc,'p','serie-privat','Nur für dich · keine Rangliste'));
-  const neu=element(doc,'button','serie-neuladen','Aktualisieren'); neu.type='button'; neu.dataset.serieNeuladen='';
-  kopf.append(titel,neu);
+  kopf.append(titel);
   const zahlen=element(doc,'div','serie-zahlen');
   for (const [zahl,text] of [[s.serie,'Wochen in Folge'],[s.beste,'Deine längste Serie'],[s.abgeschlossen,'Wochen vollständig']]) {
     const k=element(doc,'div','serie-zahl'); k.append(element(doc,'strong','',String(zahl)),element(doc,'span','',text)); zahlen.append(k);
@@ -25,21 +28,21 @@ export function zeichneWochenserie(ziel,basis) {
     : 'Gerade läuft kein Wochenquiz für deinen Verein. Deine bisherigen Erfolge bleiben sichtbar.');
   const teile=[kopf,zahlen,stand];
   const joker=Array.isArray(basis.joker)?basis.joker:[];
-  teile.push(zeichneJokerVorrat(doc,basis));
+  if(bereich==='alles')teile.push(zeichneJokerVorrat(doc,basis));
   for (const r of s.rettungen) {
     const k=element(doc,'div','serie-rettung');
     k.append(element(doc,'h3','', 'Eine Woche retten'),element(doc,'p','',`„${r.bezeichnung}“: ${Math.min(r.uebung_richtig,5)} von 5 verschiedenen Übungsfragen richtig. Noch ${r.fehlen} bis ${datum(r.retten_bis)}.`));
     const fortschritt=doc.createElement('progress'); fortschritt.max=5;fortschritt.value=Math.min(r.uebung_richtig,5);fortschritt.setAttribute('aria-label','Richtige Übungsfragen für die Rettung'); k.append(fortschritt);
     if(r.serieDavor)k.append(element(doc,'p','',`Davor hattest du ${r.serieDavor} Wochen in Folge. Diese Lücke zählt erst nach erfolgreicher Rettung zur Serie.`));
     const link=element(doc,'a','serie-link','Zum Quiz und Üben'); link.href='quiz.html#ueben';k.append(link);
-    if(joker.length){
+    if(Number(basis?.belohnungen?.bestand?.serienjoker??joker.length)>0){
       const knopf=element(doc,'button','serie-neuladen','Joker einsetzen');knopf.type='button';knopf.dataset.jokerRunde=r.runde_id;
       knopf.dataset.jokerTitel=r.bezeichnung;k.append(knopf);
     }
     k.append(element(doc,'p','','Falls diese Woche noch Fragen offen sind, beantworte sie zuerst. Danach öffnet sich der Übungsmodus.'));
     teile.push(k);
   }
-  teile.push(zeichneAbzeichenSammlung(doc,s));
+  if(bereich==='alles')teile.push(zeichneAbzeichenSammlung(doc,s));
   const details=element(doc,'details','serie-regeln'); details.append(element(doc,'summary','','Wie zählt die Serie?'));
   details.append(element(doc,'p','','Alle Fragen einer Wochenrunde müssen abschließend beantwortet sein; die Trefferquote ist egal. Offene Nachfragen zählen noch nicht als fertig. Eine laufende Woche und Wochen ohne Quiz unterbrechen die Serie nicht.'));
   details.append(element(doc,'p','','Eine verpasste Woche kannst du in den sieben Tagen danach mit fünf verschiedenen, richtig beantworteten Übungsfragen retten. Wiederholungen derselben Frage zählen einmal. Die Rettung füllt keine Wochenantworten nach und verändert weder Quizquote noch Saisonpunkte. Abzeichen zeigen deinen eigenen Verlauf; es gibt keine Sounds oder Erfolgsanimationen.'));
@@ -49,7 +52,7 @@ export function zeichneWochenserie(ziel,basis) {
   return s;
 }
 
-export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
+export function erstelleSerienSteuerung({ziel,rpc,anmeldung,bereich='alles'}) {
   let version=0,laedt=false,jokerDialog=null;
   const doc=ziel.ownerDocument;
   async function laden(person=anmeldung.lesen()) {
@@ -77,7 +80,7 @@ export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
     laedt=false;ziel.removeAttribute('aria-busy');
     try {
       if(error)throw new Error('Nicht verfügbar');
-      zeichneWochenserie(ziel,data);
+      zeichneWochenserie(ziel,data,{bereich});
     } catch {
       ziel.replaceChildren(element(doc,'p','serie-stand','Deine Serie konnte gerade nicht geladen werden. Deine Antworten bleiben gespeichert.'));
       const neu=element(doc,'button','serie-neuladen','Erneut versuchen');neu.type='button';neu.dataset.serieNeuladen='';ziel.append(neu);
@@ -97,7 +100,7 @@ export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
       const erfolg=element(doc,'p','joker-oeffnung',`Du hast einen Joker erhalten: ${text}.`);erfolg.setAttribute('role','status');
       ziel.querySelector('.joker-vorrat')?.append(erfolg);ziel.querySelector('.joker-motiv')?.focus();
     }catch{
-      if(anmeldung.lesen()?.id===person.id){knopf.disabled=false;const fehler=element(doc,'p','joker-oeffnung','Box konnte nicht geöffnet werden. Bitte aktualisieren und erneut versuchen; dieselbe Box wird nicht doppelt verbraucht.');fehler.setAttribute('role','status');knopf.parentElement?.append(fehler);}
+      if(anmeldung.lesen()?.id===person.id){knopf.disabled=false;const fehler=element(doc,'p','joker-oeffnung','Box konnte nicht geöffnet werden. Bitte versuche es erneut; dieselbe Box wird nicht doppelt verbraucht.');fehler.setAttribute('role','status');knopf.parentElement?.append(fehler);}
     }finally{laedt=false;}
   });
   ziel.addEventListener('click',event=>{
@@ -118,7 +121,7 @@ export function erstelleSerienSteuerung({ziel,rpc,anmeldung}) {
       try{
         const {error}=await rpc.rpc('geburtstagsjoker_einloesen',{p_schiedsrichter_id:person.id,p_pin:person.pin,p_runde_id:knopf.dataset.jokerRunde});
         if(error)throw new Error(error.message);
-        dialog.close();await laden();ziel.querySelector('[data-serie-neuladen]')?.focus();
+        dialog.close();await laden();ziel.tabIndex=-1;ziel.focus();
       }catch{fehler.textContent='Einlösen nicht möglich. Bitte lade den Serienstand neu; möglicherweise ist die Frist abgelaufen oder der Joker bereits verbraucht.';}
       finally{laedt=false;bestaetigen.disabled=false;}
     };

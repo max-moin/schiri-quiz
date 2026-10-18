@@ -1,0 +1,4 @@
+.quiz-untermenue { display: flex; flex-wrap: wrap; gap: .5rem; margin: 1rem 0 1.5rem; }
+.quiz-untermenue a { box-sizing: border-box; min-width: 0; max-width: 100%; overflow-wrap: anywhere; display: inline-flex; align-items: center; justify-content: center; min-height: 44px; padding: .5rem 1rem; border: 1px solid #82988a; border-radius: 999px; color: #234c34; background: #fff; text-decoration: none; font-weight: 650; }
+.quiz-untermenue a[aria-current=page] { background: #234c34; color: #fff; }
+.quiz-untermenue a:focus-visible { outline: 3px solid #174d37; outline-offset: 3px; }

@@ -19,7 +19,7 @@ test('Nur tatsächlicher Bestand erhält eine Zahl, auch leere Quizjoker erklär
  alle(e,x=>x.title?.startsWith('50/50'))[0].events.click();assert.match(e.text,/Vor deiner ersten Antwort einsetzen/);assert.doesNotMatch(e.text,/Noch nicht einlösbar/);
 });
 test('Info erklärt drei echte Vergabewege, Zufallsbox und unbegrenzte Gültigkeit',()=>{
- const e=zeichneJokerVorrat(doc,{});alle(e,x=>x.className==='joker-info')[0].events.click();assert.match(e.text,/Geburtstag → 1 Box/);assert.match(e.text,/4 vollständige Quizwochen → 1 Box/);assert.match(e.text,/Alle drei Typen sind gleich wahrscheinlich/);assert.match(e.text,/verfallen nicht/);
+ const e=zeichneJokerVorrat(doc,{});alle(e,x=>x.className==='joker-info')[0].events.click();assert.match(e.text,/Geburtstag → 1 Box/);assert.match(e.text,/4 vollständige Quizwochen → 1 Box/);assert.match(e.text,/90 % Zweiter Versuch, 10 % Serien-Retter/);assert.match(e.text,/vorhandene bleiben nutzbar/);assert.match(e.text,/verfallen nicht/);
 });
 test('Boxen und alle drei Jokerbestände stammen ausschließlich aus Serverdaten',()=>{
  const e=zeichneJokerVorrat(doc,{belohnungen:{bestand:{serienjoker:0,halbhalb:3,'zweiter-versuch':1},boxen:[{id:'echte-box',quelle:'Geburtstag'}]}});
@@ -27,5 +27,5 @@ test('Boxen und alle drei Jokerbestände stammen ausschließlich aus Serverdaten
  assert.equal(alle(e,x=>x.className==='joker-box-knopf')[0].dataset.jokerBox,'echte-box');assert.match(e.text,/1 Box · Öffnen/);
 });
 test('Sammlung ist eigener Quizbereich statt Teil der Ergebnisstatistik',()=>{
- const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');assert.match(read('sammlung.html'),/src\/website\/sammlung-seite.js/);assert.match(read('sammlung.html'),/id="meine-wochenserie"/);assert.doesNotMatch(read('meine-statistik.html'),/id="meine-wochenserie"/);assert.match(read('src/website/modus-seite.js'),/href="sammlung.html"/);assert.doesNotMatch(read('src/website/meine-statistik-seite.js'),/erstelleSerienSteuerung/);
+ const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');assert.match(read('sammlung.html'),/src\/website\/sammlung-seite.js/);assert.match(read('sammlung.html'),/id="meine-wochenserie"/);assert.match(read('meine-statistik.html'),/id="meine-wochenserie"/);assert.match(read('src/website/modus-seite.js'),/href="sammlung.html"/);assert.match(read('src/website/meine-statistik-seite.js'),/bereich:'serie'/);assert.match(read('src/website/sammlung-seite.js'),/bereich:'sammlung'/);
 });

@@ -84,7 +84,7 @@ export const SEITENHILFE = Object.freeze({
     schritt('vorschlag', '.termin-aktionen, #terminBereich', 'Einen Termin vorschlagen', 'Du kannst einen Tag oder einen Treff vorschlagen und bei einer veröffentlichten Terminfindung abstimmen. Ein Vorschlag wird zunächst geprüft, nicht sofort öffentlich eingetragen.'),
   ] },
   'modus.html': { titel: 'Dein Quiz', schritte: [
-    schritt('woche', 'a[href="quiz.html"], #modusBereich', 'Fragen dieser Woche', 'Öffne dein Wochenquiz. Die Übersicht zeigt deinen Fortschritt. Alle Wochenfragen gehören dazu; eine abgegebene Antwort wird gespeichert. Die Tour gibt selbst keine Antwort ab.'),
+    schritt('woche', 'a[href="quiz.html"], #modusBereich', 'Fragen dieser Woche', 'Die blaue Kachel öffnet dein Wochenquiz. Noch nicht angemeldet? Dann gib im Anmeldefenster deine Zugangsdaten ein. Das Gästequiz ist nur eine Alternative zum Ausprobieren ohne Wochenwertung. Die Tour gibt selbst keine Antwort ab.'),
     schritt('loesung', '#modusBereich', 'So beantwortest du Fragen', 'Je nach Frage wählst du eine oder mehrere Antworten, Entscheidungs-Icons oder schreibst einen eigenen Text. Achte auf die Aufgabenstellung und ergänze eine Begründung, wenn sie verlangt wird.'),
     schritt('ueben', '#modusBereich', 'Üben und Duell', 'Die weiteren Modi findest du auf dieser Übersicht, soweit sie verfügbar sind. Übungsfragen ersetzen keine offenen Wochenfragen. Ein Duell ist ein eigener Vergleich mit eingeladenen Personen.'),
   ] },

@@ -433,33 +433,9 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   });
 
 
-  // ---------- "Zum Quiz" prueft zuerst die Anmeldung ----------
-  //
-  // Seit dem 29.08.2026 fuehrt "Zum Quiz" auf modus.html, die Auswahl
-  // zwischen Wochenfragen und Entscheidungs-Modus. Der Weg davor bleibt
-  // derselbe: wer angemeldet ist, geht durch; wer nicht, bekommt das
-  // Anmeldefenster.
-  //
-  // Nur Links, die WIRKLICH in die Auswahl fuehren sollen -
-  // "quiz.html#gast" bleibt unangetastet. Diese Verweise sind auf der
-  // Startseite die ausdrueckliche Einladung zum Ausprobieren ohne
-  // Anmeldung; ein Anmeldefenster davor waere genau das Gegenteil davon.
-  //
-  // Ohne Anmeldung geht es zuerst in eine kleine, echte Auswahl:
-  // Gastquiz ausprobieren oder einem Duell per Code beitreten. Die
-  // persoenlichen Wochenfragen bleiben dort bewusst unsichtbar.
-  document.querySelectorAll('a[href="modus.html"]').forEach((link) => {
-    link.addEventListener("click", async (e) => {
-      if (anmeldung.istAngemeldet()) return; // direkt durch, wie versprochen
-      e.preventDefault();
-      const ergebnis = await loginDialog.oeffne({
-        grund: "Für dein persönliches Quiz brauchst du deine Anmeldung.",
-        gastErlaubt: true,
-      });
-      if (ergebnis.status === "angemeldet") location.href = "modus.html";
-      else if (ergebnis.status === "gast") location.href = "modus.html#ohne-anmeldung";
-    });
-  });
+  // "Zum Quiz" öffnet für alle dieselbe Auswahl. Erst der dortige
+  // Wochenquiz-Knopf fordert die Anmeldung an. Gast ist eine ausdrückliche
+  // Alternative, niemals die automatische Bedeutung von "nicht angemeldet".
 }
 
 // ---------- Name der aktuellen Seite ----------

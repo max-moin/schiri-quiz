@@ -26,7 +26,7 @@ export function zeichneJokerVorrat(doc,basis){
  }
  info.addEventListener('click',()=>{
   const aktuell=el(doc,'div','joker-verdienen');aktuell.append(el(doc,'p','joker-weg','Geburtstag → 1 Box'),el(doc,'p','joker-weg','Bestätigter Test / Lehrabend → 1 Box'),el(doc,'p','joker-weg','4 vollständige Quizwochen → 1 Box'),el(doc,'p','','Ab dem 18.10.2026. Teilnahme muss bestätigt sein; eine Zusage reicht nicht. Für Quizwochen zählt das vollständige Beantworten, nicht die Trefferquote. Die vier Wochen müssen nicht direkt aufeinanderfolgen. Keine Nachholung älterer Ereignisse.'));
-  const zufall=el(doc,'div','joker-verdienen');zufall.append(el(doc,'h3','','Öffnen & behalten'),el(doc,'p','joker-weg','Box öffnen → Zufallsjoker → einmal einsetzen'),el(doc,'p','','Alle drei Typen sind gleich wahrscheinlich (je 1/3). Kein Kauf, keine freie Auswahl. Boxen und Joker verfallen nicht. Alte Geburtstags-Serienjoker bleiben erhalten.'));
+  const zufall=el(doc,'div','joker-verdienen');zufall.append(el(doc,'h3','','Öffnen & behalten'),el(doc,'p','joker-weg','Box öffnen → Zufallsjoker → einmal einsetzen'),el(doc,'p','','Neue Ziehungen: 90 % Zweiter Versuch, 10 % Serien-Retter. Keine neuen 50/50-Joker; vorhandene bleiben nutzbar. Kein Kauf, keine freie Auswahl. Boxen und Joker verfallen nicht. Alte Geburtstags-Serienjoker bleiben erhalten.'));
   oeffnen(info,'Wie bekomme ich Joker?',[aktuell,zufall]);
  });
  bereich.append(kopf);

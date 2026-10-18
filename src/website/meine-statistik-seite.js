@@ -1,4 +1,6 @@
 import { DATENBANK } from "../../verein.config.js";
+import {erstelleSerienSteuerung} from './wochenserie-ansicht.js';
+import {wochenAnteile,zeichneFragenStatus} from './quiz-statistik-fragen.js';
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -12,6 +14,8 @@ const rpc = globalThis.SchiriRpc.erstelleRpc({
 });
 const $ = (id) => document.getElementById(id);
 let datenVersion = 0;
+const serienZiel=$('meine-wochenserie');
+const serienSteuerung=serienZiel?erstelleSerienSteuerung({ziel:serienZiel,rpc,anmeldung,bereich:'serie'}):null;
 
 function kennzahl(zahl, label, klasse = "") {
   const k = document.createElement("div");
@@ -69,7 +73,7 @@ function deutungsSaetze(wochen, summe) {
     saetze.push(`Dein größter Hebel ist aber nicht das Regelwissen, sondern das Mitmachen: ${summe.offen} Fragen hast du gar nicht erst beantwortet.`);
   }
   if (summe.nachbessern > 0) {
-    saetze.push(`Bei ${summe.nachbessern} Antworten hat erst die zweite Chance gereicht – das sind die Stellen, an denen es knapp war.`);
+    saetze.push(`Bei ${summe.nachbessern} Antworten ist noch eine Rückfrage offen.`);
   }
   saetze.push("Nach Themengebieten kann diese Übersicht nicht auswerten – sie kennt nur deine Wochen.");
   return saetze;
@@ -122,9 +126,10 @@ function zeichne(wochen) {
     const richtigWoche = Number(woche.richtig || 0);
     const nachbessern = Number(woche.nachbessern || 0);
     const falsch = Number(woche.falsch || 0);
-    const prozent = gesamt ? Math.min(100, Math.round(beantwortetWoche * 100 / gesamt)) : 0;
-    const artikel = document.createElement("article");
+    const anteile=wochenAnteile(woche);
+    const artikel = document.createElement("details");
     artikel.className = "statistik-woche" + (woche.ist_aktuelle_runde ? " aktuell" : "");
+    const zusammenfassung=document.createElement('summary');
     const kopf = document.createElement("div");
     kopf.className = "statistik-woche-kopf";
     const titel = document.createElement("strong");
@@ -134,20 +139,37 @@ function zeichne(wochen) {
     kopf.append(titel, stand);
     const balken = document.createElement("div");
     balken.className = "statistik-balken";
-    balken.setAttribute("role", "progressbar");
-    balken.setAttribute("aria-label", `${beantwortetWoche} von ${gesamt} Fragen beantwortet`);
-    balken.setAttribute("aria-valuenow", String(beantwortetWoche));
-    balken.setAttribute("aria-valuemin", "0");
-    balken.setAttribute("aria-valuemax", String(gesamt));
-    const fuellung = document.createElement("span");
-    fuellung.style.width = `${prozent}%`;
-    balken.appendChild(fuellung);
+    balken.setAttribute("role", "img");
+    balken.setAttribute("aria-label", `${anteile.richtig} richtig, ${anteile.nachbessern} mit offener Rückfrage, ${anteile.falsch} falsch, ${anteile.offen} nicht beantwortet`);
+    for(const status of ['richtig','nachbessern','falsch','offen']){
+      const teil=document.createElement('span');teil.className=status;teil.style.width=`${gesamt?anteile[status]*100/gesamt:0}%`;balken.append(teil);
+    }
     const details = document.createElement("p");
     details.className = "statistik-woche-details";
     details.textContent = beantwortetWoche
-      ? `${richtigWoche} richtig · ${nachbessern} zweite Chance · ${falsch} falsch`
+      ? `${richtigWoche} richtig · ${nachbessern} Rückfrage offen · ${falsch} falsch · ${anteile.offen} unbeantwortet`
       : "In dieser Woche nicht teilgenommen";
-    artikel.append(kopf, balken, details);
+    const aktion=document.createElement('span');aktion.className='statistik-woche-aktion';aktion.textContent='Fragen ansehen';
+    zusammenfassung.append(kopf,balken,details,aktion);
+    const fragen=document.createElement('div');fragen.className='statistik-fragen-bereich';
+    let geladen=false,laedt=false;
+    const person=anmeldung.lesen(),generation=datenVersion;
+    async function ladeFragen(){
+      if(laedt||geladen||!person)return;laedt=true;fragen.textContent='Fragen werden geladen …';
+      try{
+        const {data,error}=await rpc.rpc('meine_quizwochen_fragen',{p_schiedsrichter_id:person.id,p_pin:person.pin,p_runde_id:woche.runde_id});
+        const aktuell=anmeldung.lesen();
+        if(generation!==datenVersion||aktuell?.id!==person.id||aktuell?.pin!==person.pin)return;
+        if(error)throw error;
+        fragen.replaceChildren(zeichneFragenStatus(document,data));geladen=true;
+      }catch{
+        if(generation!==datenVersion)return;
+        fragen.textContent='Fragen konnten nicht geladen werden. ';
+        const retry=document.createElement('button');retry.type='button';retry.textContent='Erneut versuchen';retry.onclick=ladeFragen;fragen.append(retry);
+      }finally{laedt=false;}
+    }
+    artikel.addEventListener('toggle',()=>{aktion.textContent=artikel.open?'Fragen schließen':'Fragen ansehen';if(artikel.open)void ladeFragen();});
+    artikel.append(zusammenfassung,fragen);
     verlauf.appendChild(artikel);
   }
 }
@@ -178,6 +200,7 @@ function starte() {
   $('statistik-deutung').replaceChildren();
   $('statistik-verlauf').replaceChildren();
   $('statistik-zeitraum').textContent = person ? 'Wird geladen …' : '';
+  void serienSteuerung?.laden(person);
   if (person) void lade(person, version);
 }
 

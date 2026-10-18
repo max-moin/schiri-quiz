@@ -134,7 +134,7 @@ test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
   // das prueft dieser Test: er darf NICHT auf modus.html umgebogen
   // werden, sonst faellt der Gasteinstieg still weg.
   const seiteJs = lies("seite.js");
-  assert.match(seiteJs, /querySelectorAll\('a\[href="modus\.html"\]'\)/);
+  assert.doesNotMatch(ohneKommentare(seiteJs), /querySelectorAll\('a\[href="modus\.html"\]'\)/);
   assert.ok(
     !seiteJs.includes('a[href^="quiz.html"]') && !seiteJs.includes('a[href^="modus.html"]'),
     "seite.js faengt auch quiz.html#gast ab - der Gastweg waere damit zu"
@@ -143,11 +143,11 @@ test("der Gast-Direkteinstieg bleibt ohne Anmeldefenster erreichbar", () => {
   // Vom allgemeinen "Zum Quiz"-Weg bekommt ein Gast die Wahl zwischen
   // Gastquiz und Duell. Der direkte Wochenquiz-Knopf auf der Startseite
   // dagegen führt zur Anmeldung, nicht in dieses Schnupperangebot.
-  assert.match(seiteJs, /=== "gast"\) location\.href = "modus\.html#ohne-anmeldung"/);
+  assert.doesNotMatch(seiteJs, /location\.href = "modus\.html#ohne-anmeldung"/);
   const modus = lies("src/website/modus-seite.js");
-  assert.match(modus, /function gastKachel\(\)[\s\S]*href="quiz\.html#gast"/);
-  assert.match(modus, /: \[gastKachel\(\), duellKachel\(\)\]/);
-  assert.doesNotMatch(modus, /: \[wochenKachel\(\{ unbekannt: true/);
+  assert.match(modus, /Gästequiz ausprobieren/);
+  assert.match(modus, /wochenKachel\(woche,angemeldet\)/);
+  assert.match(modus, /dialog\.oeffne\([\s\S]*Wochenfragen/);
 });
 
 test("andere Bausteine koennen dasselbe Anmeldefenster benutzen", () => {

@@ -2195,6 +2195,12 @@ body.verlassen-dialog-offen {
   border-radius: 14px; background: #fff7df; color: #543800;
   line-height: 1.5;
 }
+
+.quiz-gastmodus .kopf { background: linear-gradient(125deg, #166534, #103b24); }
+.quiz-gastmodus .ball { display: none; }
+.quiz-serienzaehler { display: flex; align-items: center; justify-content: center; gap: 6px; width: fit-content; min-height: 44px; margin: 12px auto 0; padding: 6px 13px; border: 1px solid #9b8d75; border-radius: 999px; background: #fff8e8; color: #593c0c; text-decoration: none; font-weight: 750; font-size: .9rem; }
+.quiz-serienzaehler:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 3px; }
+.quiz-serienzaehler[hidden] { display: none !important; }
 .gast-modus-hinweis strong { display: block; font-size: 1rem; }
 .gast-modus-hinweis p { margin: 6px 0 0; font-size: .88rem; color: inherit; }
 

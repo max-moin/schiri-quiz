@@ -39,7 +39,11 @@ const alsListe = (wert) => (Array.isArray(wert) ? wert : []);
 export function naechsterSchrittText(vorgang) {
   if (!vorgang) return "";
   if (vorgang.prozess_status === "abgelehnt") return "Abgelehnt.";
-  if (vorgang.prozess_status === "zurueckgezogen") return "Zurückgezogen.";
+  if (vorgang.prozess_status === "zurueckgezogen") {
+    const rolle={schiri:'Vom Schiedsrichter',obmann:'Vom Obmann',vorstand:'Vom Vorstand'}[vorgang.ruecknahme?.rolle]||'Anfrage';
+    const vorher=vorgang.ruecknahme?.vorheriger_titel;
+    return `${rolle} zurückgezogen.${vorher?` Gestoppt nach: ${vorher}.`:''}`;
+  }
   if (vorgang.prozess_status === "abgeschlossen") return "Abgeschlossen.";
   const naechster = vorgang.naechster_schritt;
   if (!naechster) return "";

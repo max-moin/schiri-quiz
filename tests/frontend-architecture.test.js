@@ -88,7 +88,7 @@ const REIHENFOLGE = [
   // dieselben Bausteine und darf sie ueberschreiben, nicht umgekehrt.
   "basis", "kopf-fuss", "startseite", "termine", "aktuelles", "regeln",
   "bausteine", "hinweise", "vorlagen", "anmeldung", "profil", "einstellungen", "obmann", "spesen",
-  "modus", "entscheiden", "melden",
+  "modus", "quiz-bereiche", "entscheiden", "melden",
   // "druckblatt" steht ganz am Ende: es blendet im @media print alles
   // andere aus und muss deshalb nach allem stehen, was es ueberstimmt.
   "druckblatt",

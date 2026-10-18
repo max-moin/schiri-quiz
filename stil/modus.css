@@ -9,12 +9,15 @@
 
 .modus-liste {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 14px;
   margin: 22px 0 8px;
 }
 
 .modus-kachel {
   display: block;
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 18px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
@@ -229,7 +232,13 @@
 /* Ab Tablet nebeneinander. Auf dem Handy bleibt es eine Spalte - Max:
    "Das ist handy." */
 @media (min-width: 720px) {
-  .modus-liste { grid-template-columns: 1fr 1fr; }
+  .modus-liste { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   .modus-kachel { display: flex; flex-direction: column; }
   .modus-text { flex: 1; }
 }
+
+.modus-wochenquiz { grid-column: 1 / -1; }
+.modus-gastalternative { margin-top: 24px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; }
+.modus-gastalternative a { display: inline-block; padding-block: 10px; color: var(--marke); text-underline-offset: 3px; }
+.modus-kachel:focus-visible, .modus-gastalternative a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 4px; }
+@media (prefers-reduced-motion: reduce) { .modus-kachel, .modus-balken > span { transition: none; } }
