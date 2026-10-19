@@ -10,6 +10,7 @@
 import { DATENBANK, VEREIN } from "../../verein.config.js";
 import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
 import { markiereTerminPdfs } from "./termin-pdf-markierungen.js";
+import { zeichneSoccergolf } from "./soccergolf-ergebnisse.js";
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
   teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
@@ -342,7 +343,7 @@ function bindeStimmen() {
 
 // ---------- Einzelansicht ----------
 
-function zeichneDetail(termin, zusagen, protokoll = null) {
+function zeichneDetail(termin, zusagen, protokoll = null, golfergebnis = null) {
   const ich = person();
   // Nur ein ausdrueckliches `true` schaltet die Rueckmeldung frei. Damit
   // koennen ein fehlendes Feld, alte Datensaetze oder `null` niemals
@@ -463,6 +464,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
         </button>
       ${antwort}
       ${protokollHtml}
+      ${golfergebnis ? '<div data-soccergolf-ergebnis></div>' : ''}
       ${pdfHtml}
       ${ich && termin.mitgliedSicht && !termin.vergangen ? `<section id="termin-erinnerungen" class="termin-protokoll mitteilungen-arten">
         <h2>Deine Erinnerung</h2><ul class="mitteilungen-terminliste" data-termin-erinnerung-liste></ul>
@@ -475,6 +477,7 @@ function zeichneDetail(termin, zusagen, protokoll = null) {
 
   bereich.querySelector("[data-kalender]")?.addEventListener("click", () =>
     ladeTerminInKalender(termin, location.href));
+  if(golfergebnis){try{bereich.querySelector('[data-soccergolf-ergebnis]').append(zeichneSoccergolf(document,golfergebnis));}catch{bereich.querySelector('[data-soccergolf-ergebnis]').textContent='Die Ergebnisse konnten gerade nicht angezeigt werden.';}}
   if (pdfHtml) void zeigePdfProtokoll(termin.id, ich);
   const erinnerung = document.getElementById("termin-erinnerungen");
   if (ich && termin.mitgliedSicht && !termin.vergangen && erinnerung) void montiereTerminerinnerungen(erinnerung.querySelector("[data-termin-erinnerung-liste]"), ich, {
@@ -673,7 +676,13 @@ async function start() {
     if (ich && termin.mitgliedSicht && termin.eigenerVerein) {
       try { protokoll = (await zugriff.protokoll(ich, termin.id))[0] || null; } catch {}
     }
-    zeichneDetail(termin, zusagen, protokoll);
+    let golfergebnis=null;
+    if(ich && termin.mitgliedSicht && termin.eigenerVerein && termin.vergangen && termin.art==='event'){
+      try{golfergebnis=await zugriff.soccergolf(ich,termin.id);}catch{}
+    }
+    const jetzt=person();
+    if((ich?.id||null)!==(jetzt?.id||null)||(ich?.pin||null)!==(jetzt?.pin||null))return;
+    zeichneDetail(termin, zusagen, protokoll,golfergebnis);
     bindeAnmeldeKnoepfe();
     return;
   }

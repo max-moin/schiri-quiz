@@ -16,3 +16,6 @@
 .serie-joker-dialog button{min-height:44px;margin:8px 8px 0 0}
 .serie-joker-dialog p{line-height:1.5}
 .serie-ueberschrift{display:flex;align-items:center;gap:.5rem}.serie-flamme{font-size:1.5em;filter:grayscale(1);opacity:.7}.serie-flamme.aktiv{filter:none;opacity:1}
+.serie-rettung { border-color: #a95d13; border-left-width: 5px; background: #fff6e8; }
+.serie-rettung h3 { color: #7a3d09; }
+.serie-rettung progress { accent-color: #99500e; }

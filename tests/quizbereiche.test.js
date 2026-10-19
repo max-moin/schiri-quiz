@@ -1,12 +1,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {wochenAnteile,zeichneFragenStatus} from '../src/website/quiz-statistik-fragen.js';
+import {wochenAnteile,zeichneFragenStatus,zeichneStatusZaehler} from '../src/website/quiz-statistik-fragen.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('Wochenbalken bildet richtig, offene Rückfrage, falsch und unbeantwortet ab',()=>{
+ assert.deepEqual(wochenAnteile({fragen_gesamt:5,richtig:1,nachbessern:0,falsch:3}),{gesamt:5,richtig:1,nachbessern:0,falsch:3,offen:1});
  assert.deepEqual(wochenAnteile({fragen_gesamt:5,richtig:1,nachbessern:1,falsch:2}),{gesamt:5,richtig:1,nachbessern:1,falsch:2,offen:1});
  assert.deepEqual(wochenAnteile({fragen_gesamt:0,richtig:7,nachbessern:-3,falsch:NaN}),{gesamt:0,richtig:0,nachbessern:0,falsch:0,offen:0});
  assert.equal(Object.values(wochenAnteile({fragen_gesamt:5,richtig:8,nachbessern:3,falsch:2})).slice(1).reduce((a,b)=>a+b,0),5);
+});
+test('Wochenkarte ohne Öffnen-/Schließen-Texte, vier verständliche Zahlenkreise',()=>{
+ const doc={createElement(tag){return {tag,children:[],append(...k){this.children.push(...k);}};}};
+ const e=zeichneStatusZaehler(doc,wochenAnteile({fragen_gesamt:5,richtig:1,falsch:3}));
+ assert.deepEqual(e.children.map(g=>g.children[0].textContent),['1','0','3','1']);
+ assert.deepEqual(e.children.map(g=>g.children[1].textContent),['Richtig','Rückfrage offen','Falsch','Nicht beantwortet']);
+ assert.doesNotMatch(read('src/website/meine-statistik-seite.js'),/Fragen ansehen|Fragen schließen|statistik-woche-aktion/);
+ assert.match(read('stil/quiz-statistik.css'),/summary::marker/);
 });
 test('Fragenübersicht zeigt keine Antworten/Interna und behandelt Text als Text',()=>{
  const doc={createElement(tag){return {tag,children:[],textContent:'',append(...kids){this.children.push(...kids);}};}};

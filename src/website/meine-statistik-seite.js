@@ -1,6 +1,6 @@
 import { DATENBANK } from "../../verein.config.js";
 import {erstelleSerienSteuerung} from './wochenserie-ansicht.js';
-import {wochenAnteile,zeichneFragenStatus} from './quiz-statistik-fragen.js';
+import {wochenAnteile,zeichneFragenStatus,zeichneStatusZaehler} from './quiz-statistik-fragen.js';
 
 const anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung
   || globalThis.SchiriAnmeldung.erstelleAnmeldung({
@@ -123,9 +123,6 @@ function zeichne(wochen) {
   for (const woche of wochen) {
     const gesamt = Number(woche.fragen_gesamt || 0);
     const beantwortetWoche = Number(woche.beantwortet || 0);
-    const richtigWoche = Number(woche.richtig || 0);
-    const nachbessern = Number(woche.nachbessern || 0);
-    const falsch = Number(woche.falsch || 0);
     const anteile=wochenAnteile(woche);
     const artikel = document.createElement("details");
     artikel.className = "statistik-woche" + (woche.ist_aktuelle_runde ? " aktuell" : "");
@@ -144,13 +141,7 @@ function zeichne(wochen) {
     for(const status of ['richtig','nachbessern','falsch','offen']){
       const teil=document.createElement('span');teil.className=status;teil.style.width=`${gesamt?anteile[status]*100/gesamt:0}%`;balken.append(teil);
     }
-    const details = document.createElement("p");
-    details.className = "statistik-woche-details";
-    details.textContent = beantwortetWoche
-      ? `${richtigWoche} richtig · ${nachbessern} Rückfrage offen · ${falsch} falsch · ${anteile.offen} unbeantwortet`
-      : "In dieser Woche nicht teilgenommen";
-    const aktion=document.createElement('span');aktion.className='statistik-woche-aktion';aktion.textContent='Fragen ansehen';
-    zusammenfassung.append(kopf,balken,details,aktion);
+    zusammenfassung.append(kopf,balken,zeichneStatusZaehler(document,anteile));
     const fragen=document.createElement('div');fragen.className='statistik-fragen-bereich';
     let geladen=false,laedt=false;
     const person=anmeldung.lesen(),generation=datenVersion;
@@ -168,7 +159,7 @@ function zeichne(wochen) {
         const retry=document.createElement('button');retry.type='button';retry.textContent='Erneut versuchen';retry.onclick=ladeFragen;fragen.append(retry);
       }finally{laedt=false;}
     }
-    artikel.addEventListener('toggle',()=>{aktion.textContent=artikel.open?'Fragen schließen':'Fragen ansehen';if(artikel.open)void ladeFragen();});
+    artikel.addEventListener('toggle',()=>{if(artikel.open)void ladeFragen();});
     artikel.append(zusammenfassung,fragen);
     verlauf.appendChild(artikel);
   }

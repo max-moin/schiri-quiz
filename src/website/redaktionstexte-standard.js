@@ -11,7 +11,6 @@ export const TEXTE_STANDARD = Object.freeze({
   "start.titel": "Ohne uns geht<br />kein Spiel",
   "start.knopf-links": "Schiri werden",
   "start.quiz-titel": "Dein Wochenquiz",
-  "start.quiz-text": "Die Fragen dieser Woche – mit deinem Fortschritt, deiner Serie und deiner Sammlung.",
   "start.bereich-schiris": "Für unsere Schiedsrichter",
   "start.kachel-1-titel": "Absagen",
   "start.kachel-1-text": "Fertige E-Mail, alle Pflichtangaben drin.",
@@ -100,7 +99,6 @@ export const TEXT_SEITEN = Object.freeze([
         Object.freeze({ schluessel: "start.titel", beschriftung: "Große Überschrift" }),
         Object.freeze({ schluessel: "start.knopf-links", beschriftung: "Linker Knopf" }),
         Object.freeze({ schluessel: "start.quiz-titel", beschriftung: "quiz-titel" }),
-        Object.freeze({ schluessel: "start.quiz-text", beschriftung: "quiz-text" }),
         Object.freeze({ schluessel: "start.bereich-schiris", beschriftung: "Überschrift „Für unsere Schiedsrichter“" }),
       ]) }),
       Object.freeze({ titel: "Die drei Kacheln", felder: Object.freeze([

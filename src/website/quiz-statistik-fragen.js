@@ -6,10 +6,20 @@ export function wochenAnteile(woche){
  const falsch=Math.min(gesamt-richtig-nachbessern,zahl(woche.falsch));
  return {gesamt,richtig,nachbessern,falsch,offen:gesamt-richtig-nachbessern-falsch};
 }
+export function zeichneStatusZaehler(doc,anteile){
+ const zeile=doc.createElement('div');zeile.className='statistik-statuszaehler';
+ for(const [status,text] of Object.entries(STATUS_TEXTE)){
+  const gruppe=doc.createElement('span');gruppe.className='statistik-statusgruppe';
+  const zahl=doc.createElement('strong');zahl.className='statistik-statuskreis '+status;zahl.textContent=String(anteile[status]);
+  const label=doc.createElement('span');label.textContent=text;
+  gruppe.append(zahl,label);zeile.append(gruppe);
+ }
+ return zeile;
+}
 export function zeichneFragenStatus(doc,daten){
  const liste=doc.createElement('ol');liste.className='statistik-fragen';
  for(const f of Array.isArray(daten)?daten:[]){
-  const zeile=doc.createElement('li'),status=Object.hasOwn(STATUS_TEXTE,f.status)?f.status:'offen';
+  const zeile=doc.createElement('li'),status=Object.hasOwn(STATUS_TEXTE,f.status)?f.status:'offen';zeile.className='statistik-frage '+status;
   const titel=doc.createElement('span');titel.className='statistik-frage-text';
   // Keine internen Titel, Videoadressen, eigenen Antworten oder Lösungen.
   titel.textContent=f.medium==='video'?'Video-Frage':f.medium==='bild'?'Bild-Frage':String(f.frage_text||'Regelfrage');

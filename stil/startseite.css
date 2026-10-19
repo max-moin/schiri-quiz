@@ -19,7 +19,7 @@
 
 .aufmacher {
   position: relative;
-  min-height: clamp(280px, 36vh, 370px);
+  min-height: clamp(310px, 40vh, 410px);
   display: flex;
   border-radius: var(--radius);
   overflow: hidden;
@@ -61,17 +61,15 @@
 /* Ein eindeutiger Mitgliedereinstieg direkt unter der Schiri-Werbung. */
 .wochenquiz-einstieg {
   display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
-  padding: clamp(20px, 3vw, 30px); margin-bottom: 36px;
+  padding: clamp(16px, 2vw, 22px); margin-bottom: 36px;
   border: 2px solid #a9b7cb; border-radius: var(--radius);
   background: linear-gradient(120deg, #eef3fb, #fff 80%);
   box-shadow: var(--shadow);
 }
 .wochenquiz-icon { display: grid; place-items: center; width: 58px; height: 58px; flex: none; border-radius: 17px; background: #dbe7fa; color: #233f70; }
 .wochenquiz-icon svg { width: 32px; height: 32px; }
-.wochenquiz-text { flex: 1 1 260px; min-width: 0; overflow-wrap: anywhere; }
-.wochenquiz-label { color: #334a6b; font-size: .78rem; font-weight: 700; }
-.wochenquiz-einstieg h2 { margin: 4px 0 6px; font-family: var(--font-titel); font-size: clamp(1.4rem, 3vw, 1.85rem); line-height: 1.2; }
-.wochenquiz-einstieg p { margin: 0; color: #465267; line-height: 1.5; font-size: .9rem; }
+.wochenquiz-text { flex: 1 1 210px; min-width: 0; overflow-wrap: anywhere; }
+.wochenquiz-einstieg h2 { margin: 0; font-family: var(--font-titel); font-size: clamp(1.4rem, 3vw, 1.85rem); line-height: 1.2; }
 .wochenquiz-einstieg .knopf-dunkel { gap: 12px; }
 .aufmacher ~ .abschnitt .abschnitt-kopf h2 { min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 620px) {

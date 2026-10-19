@@ -15,6 +15,7 @@ import { erstelleBilderEditor } from "./bilder-editor.js";
 import { erstelleTexteEditor } from "./texte-editor.js";
 import { erstelleFreigabeEditor } from "./freigabe-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
+import { erstelleSoccergolfEditor } from "./soccergolf-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
 const client = window.supabase.createClient(
@@ -65,6 +66,7 @@ async function oeffneEditor() {
   zeige("editor");
   if (!editorenGestartet) {
     editorenGestartet = true;
+    erstelleSoccergolfEditor({wurzel:document.querySelector('[data-admin-bereich="soccergolf"]'),client});
     erstelleFreigabenEditor({
       wurzel: document.querySelector('[data-admin-bereich="sichtbarkeit"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,

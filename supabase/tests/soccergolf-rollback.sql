@@ -1,0 +1,34 @@
+begin;
+do $$
+declare c uuid:=gen_random_uuid(); f uuid:=gen_random_uuid(); s uuid:=gen_random_uuid(); sf uuid:=gen_random_uuid(); t uuid:=gen_random_uuid();
+ p text:='golf-rollback-'||gen_random_uuid()::text; n integer; r jsonb;
+ d jsonb:='{"bahnen":2,"text":"Isolierter Test","teilnehmer":[{"name":"Person A","schlaege":[2,null]}],"freigabe_geprueft":true}';
+begin
+ insert into public.vereine(id,name) values(c,'Soccer-Golf-Rollback'),(f,'Soccer-Golf-Rollback-Fremdverein');
+ select coalesce(min(id),0)-1 into n from public.obmann_zugang;
+ insert into public.obmann_zugang(id,passwort,verein_id) values(n,p,c);
+ insert into public.schiedsrichter(id,name,verein_id,pin,aktiv) values(s,'Golf Testperson',c,'739105',true),(sf,'Golf Fremdperson',f,'739105',true);
+ insert into public.termine(id,verein_id,titel,datum,art,sichtbarkeit) values(t,c,'Golf Rollback',current_date-1,'event','nur_verein');
+ r:=public.obmann_soccergolf_speichern(p,t,d,0,'entwurf');
+ if r->>'revision'<>'1' then raise exception 'Entwurf nicht gespeichert'; end if;
+ if public.soccergolf_fuer_schiri(s,'739105',t) is not null then raise exception 'Entwurf sichtbar'; end if;
+ begin perform public.obmann_soccergolf_speichern(p,t,d,0,'veroeffentlichen');raise exception 'FEHLER: Konflikt erlaubt';exception when raise_exception then if SQLERRM like 'FEHLER:%' then raise;end if;end;
+ begin perform public.obmann_soccergolf_speichern('falsch',t,d,1,'entwurf');raise exception 'FEHLER: Passwort umgangen';exception when raise_exception then if SQLERRM like 'FEHLER:%' then raise;end if;end;
+ begin perform public.obmann_soccergolf_speichern(p,t,jsonb_set(d,'{teilnehmer,0,schlaege,0}','0'),1,'entwurf');raise exception 'FEHLER: Null als Wert erlaubt';exception when raise_exception then if SQLERRM like 'FEHLER:%' then raise;end if;end;
+ begin perform public.obmann_soccergolf_speichern(p,t,jsonb_set(d,'{freigabe_geprueft}','false'),1,'veroeffentlichen');raise exception 'FEHLER: Freigabe umgangen';exception when raise_exception then if SQLERRM like 'FEHLER:%' then raise;end if;end;
+ r:=public.obmann_soccergolf_speichern(p,t,d,1,'veroeffentlichen');
+ if public.soccergolf_fuer_schiri(s,'739105',t) is distinct from d then raise exception 'Mitglied sieht Ergebnis nicht';end if;
+ if public.soccergolf_fuer_schiri(sf,'739105',t) is not null then raise exception 'Fremdverein sieht Ergebnis';end if;
+ begin perform public.soccergolf_fuer_schiri(s,'falsch',t);raise exception 'FEHLER: PIN umgangen';exception when raise_exception then if SQLERRM like 'FEHLER:%' then raise;end if;end;
+ r:=public.obmann_soccergolf_speichern(p,t,jsonb_set(d,'{text}','"Neuer Entwurf"'),2,'entwurf');
+ if public.soccergolf_fuer_schiri(s,'739105',t)->>'text'<>'Isolierter Test' then raise exception 'Entwurf überschreibt Veröffentlichung';end if;
+ update public.termine set sichtbarkeit='nur_app' where id=t;
+ if public.soccergolf_fuer_schiri(s,'739105',t) is not null then raise exception 'Appinterner Termin sichtbar';end if;
+ update public.termine set sichtbarkeit='nur_verein' where id=t;
+ r:=public.obmann_soccergolf_speichern(p,t,d,3,'zurueckziehen');
+ if public.soccergolf_fuer_schiri(s,'739105',t) is not null then raise exception 'Zurückziehen fehlgeschlagen';end if;
+ if has_table_privilege('anon','private.soccergolf_rueckblicke','SELECT') or has_table_privilege('authenticated','private.soccergolf_rueckblicke','UPDATE') then raise exception 'Direktrechte';end if;
+ if has_function_privilege('anon','private.soccergolf_pruefen(jsonb)','EXECUTE') then raise exception 'Private Funktion freigegeben';end if;
+end $$;
+rollback;
+select 'Soccer-Golf-Rollback: bestanden' as ergebnis;

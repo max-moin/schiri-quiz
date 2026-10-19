@@ -161,10 +161,11 @@ export function zeitspanne(termin) {
 // Speichern einen leeren Antwortkörper. Safari wirft beim direkten
 // `.json()` darauf einen Syntaxfehler ("The string did not match the
 // expected pattern"), obwohl die Rückmeldung bereits gespeichert wurde.
-export async function leseRpcAntwort(antwort) {
+export async function leseRpcAntwort(antwort, { objekt = false } = {}) {
   const roh = await antwort.text();
   if (!roh.trim()) return [];
   const daten = JSON.parse(roh);
+  if(objekt)return daten && typeof daten==='object' && !Array.isArray(daten) ? daten : null;
   return Array.isArray(daten) ? daten : [];
 }
 
@@ -203,7 +204,7 @@ export function verbindeTerminSichten(oeffentlich, eigene) {
 }
 
 export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
-  async function rufe(name, parameter) {
+  async function rufe(name, parameter, objekt = false) {
     const antwort = await fetch(`${adresse}/rest/v1/rpc/${name}`, {
       method: "POST",
       headers: {
@@ -214,7 +215,7 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
       body: JSON.stringify(parameter),
     });
     if (!antwort.ok) throw new Error(await serverMeldung(antwort));
-    return leseRpcAntwort(antwort);
+    return leseRpcAntwort(antwort,{objekt});
   }
 
   return Object.freeze({
@@ -269,6 +270,9 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
     protokoll: (person, terminId) => rufe("termin_protokoll_fuer_schiri", {
       p_schiedsrichter_id: person.id, p_pin: person.pin, p_termin_id: terminId,
     }),
+    soccergolf: (person, terminId) => rufe("soccergolf_fuer_schiri", {
+      p_schiedsrichter_id: person.id, p_pin: person.pin, p_termin_id: terminId,
+    },true),
   });
 }
 
