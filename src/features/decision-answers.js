@@ -73,6 +73,7 @@
         spielfortsetzung: null,
         fortsetzung_fuer: null,
         fortsetzung_ort: "",
+        begruendung: "",
         strafen: [],
         keine_strafe: false,
       };
@@ -338,6 +339,24 @@
       form.appendChild(strafe);
       }   // Ende: fordert_strafe
 
+      if (frage.fordert_begruendung === true) {
+        const block = feldset('Warum entscheidest du so?');
+        block.dataset.pflicht = 'begruendung';
+        const text = document.createElement('textarea');
+        text.className = 'entscheidung-begruendung';
+        text.setAttribute('aria-label', 'Begründung deiner Entscheidung');
+        text.maxLength = 600;
+        text.rows = 3;
+        text.value = wahl.begruendung || '';
+        text.required = true;
+        const zaehler = document.createElement('small');
+        zaehler.className = 'entscheidung-begruendung-zaehler';
+        const aktualisieren = () => { wahl.begruendung = text.value; zaehler.textContent = `${text.value.length} / 600`; aktualisiereSenden(form, wahl, frage); };
+        text.addEventListener('input', aktualisieren);
+        block.append(text, zaehler);
+        form.append(block);
+        aktualisieren();
+      }
       const senden = document.createElement("button");
       senden.type = "button";
       senden.className = "absenden-button entscheidung-absenden";
@@ -500,6 +519,9 @@
 
     function fehlendeAngaben(wahl, frage) {
       const fehlt = [];
+      if (frage.fordert_begruendung === true && !String(wahl.begruendung || '').trim()) {
+        fehlt.push(['begruendung', 'Bitte begründe deine Entscheidung.']);
+      }
       if (verlangt(frage, "fordert_fortsetzung") && !wahl.spielfortsetzung) {
         fehlt.push(["fortsetzung", "Bitte wähle, wie es weitergeht."]);
       }
@@ -587,6 +609,7 @@
       });
       const erste = strafen[0];
       return {
+        ...(frage.fordert_begruendung === true ? { begruendung: String(wahl.begruendung || '').trim() } : {}),
         spielfortsetzung: wahl.spielfortsetzung,
         fortsetzung_fuer: wahl.fortsetzung_fuer,
         fortsetzung_ort: optionen.brauchtOrt(wahl.spielfortsetzung) ? wahl.fortsetzung_ort : "",
@@ -803,6 +826,16 @@
       liste.appendChild(strafenZeile(
         teilnoteOk(e.strafe_richtig, e.strafziel_richtig, e.rolle_richtig, e.rueckennummer_richtig),
         strafenAusAntwort(gegeben), strafenAusAntwort(loesung)));
+      if (loesung.fordert_begruendung === true) {
+        liste.appendChild(ergebnisZeile('Begründung', e.begruendung_richtig === true,
+          gegeben.begruendung || 'Keine Begründung', loesung.begruendung_muster || ''));
+        if (e.begruendung_feedback) {
+          const feedback = document.createElement('p');
+          feedback.className = 'entscheidung-begruendung-feedback';
+          feedback.textContent = e.begruendung_feedback;
+          container.appendChild(feedback);
+        }
+      }
       container.appendChild(liste);
       if (e.ort_feedback) {
         const hinweis = document.createElement("p");

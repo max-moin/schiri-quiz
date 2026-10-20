@@ -50,7 +50,7 @@ function aufbau() {
       rpc(name, args) {
         const aufruf = { name, args, select: null };
         aufrufe.push(aufruf);
-        const resultat = name === "wochen_fragen_v2"
+        const resultat = name === "wochen_fragen_v3"
           ? { data: stand.fragen.map((q) => ({ ...q })), error: stand.fehler || null }
           : { data: name === "meine_antworten_v2" ? stand.antworten : [], error: null };
         const promise = stand.rpcOverride?.(name, args) || Promise.resolve(resultat);
@@ -91,7 +91,7 @@ test("eine alte MC-/Icon-Karte wird vor dem Absenden abgefangen und die aktuelle
     assert.deepEqual(f.ids(), ["neu"]);
     assert.match(f.meldungen.at(-1), /aktualisiert/);
     await f.quiz.pruefeFrageAktuell("neu");
-    assert.ok(f.aufrufe.some((a) => a.select === "id,typ,antworttyp"), "nur kleine Statusfelder nachladen");
+    assert.ok(f.aufrufe.some((a) => a.select === "id,typ,antworttyp,fordert_begruendung"), "nur kleine Statusfelder nachladen");
   }
 });
 
@@ -167,7 +167,7 @@ test("Netzfehler loeschen keine Eingaben und erlauben einen neuen Versuch", asyn
 test("spaet gelieferte Fragen eines vorherigen Kontos ersetzen nicht das neue Konto", async () => {
   const f = aufbau();
   let fertig;
-  f.stand.rpcOverride = (name) => name === "wochen_fragen_v2"
+  f.stand.rpcOverride = (name) => name === "wochen_fragen_v3"
     ? new Promise((resolve) => { fertig = resolve; }) : null;
   const altLaden = f.quiz.ladeFragenUndAntworten();
   f.stand.rpcOverride = null;

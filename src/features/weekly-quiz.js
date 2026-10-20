@@ -38,7 +38,7 @@
     let standPruefung = null;
 
     const gleicherZugang = (a, b) => a?.schiedsrichterId === b?.schiedsrichterId && a?.pin === b?.pin;
-    const frageSignatur = (frage) => `${frage.typ || ""}:${frage.antworttyp || ""}`;
+    const frageSignatur = (frage) => `${frage.typ || ""}:${frage.antworttyp || ""}:${frage.fordert_begruendung === true}`;
 
     // Safari kann eine Quizseite tagelang im Hintergrund oder im Back/Forward-
     // Cache behalten. Vor dem Absenden nur IDs/Antworttypen nachladen: keine
@@ -50,10 +50,10 @@
       if (standPruefung && gleicherZugang(standPruefung.zugang, zugang)) return standPruefung.promise;
       const pruefung = { zugang };
       pruefung.promise = (async () => {
-        const { data, error } = await sb.rpc("wochen_fragen_v2", {
+        const { data, error } = await sb.rpc("wochen_fragen_v3", {
           p_schiedsrichter_id: zugang.schiedsrichterId,
           p_pin: zugang.pin,
-        }).select("id,typ,antworttyp");
+        }).select("id,typ,antworttyp,fordert_begruendung");
         if (error || !Array.isArray(data)) {
           throw new Error("Die aktuelle Quizwoche konnte nicht geladen werden. Bitte prüfe deine Verbindung und versuche es erneut.");
         }
@@ -119,7 +119,7 @@
         // Wochenzuordnung für alle. Seit dem Mehr-Vereine-Umbau entscheidet der
         // Server anhand des angemeldeten Schiedsrichters, welche Woche gilt -
         // die Sortierung nach Fragennummer kommt gleich mit.
-        sb.rpc("wochen_fragen_v2", {
+        sb.rpc("wochen_fragen_v3", {
           p_schiedsrichter_id: zugang.schiedsrichterId,
           p_pin: zugang.pin,
         }),

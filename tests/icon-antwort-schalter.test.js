@@ -254,7 +254,7 @@ test("die Serverroute prueft Form und Vollstaendigkeit getrennt", () => {
   // indexOf haette sonst die Funktionsdefinition weiter oben getroffen
   // und den Test gruen gelassen, ohne etwas zu pruefen.
   assert.ok(js.indexOf("const fehlendes = pruefeVollstaendig(antwort, kontext);")
-            > js.indexOf("entscheidung_kontext_laden"),
+            > js.indexOf("entscheidung_kontext_v3"),
     "pruefeVollstaendig laeuft vor dem Laden des Kontexts");
 });
 

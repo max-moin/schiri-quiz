@@ -51,11 +51,23 @@
    const kandidaten=v?.kandidaten; if(kandidaten)anwenden(karte,kandidaten);
    if(v?.status==='angebot'||v?.status==='zweiter'){const p=el('p','quiz-joker-status',v.status==='angebot'?'Erstantwort gespeichert · Lösung noch verborgen. Beim Abschicken entscheidest du über deinen Joker.':'Zweiter Versuch offen · Dein Joker ist bereits eingesetzt.');p.setAttribute('role','status');karte.append(p);}
    const optionen=frage.antwortoptionen?.length||[frage.option_a,frage.option_b,frage.option_c].filter(Boolean).length;
-   if(frage.antworttyp!=='multiple_choice'||optionen<3||!stand?.bestand?.halbhalb||v?.status==='angebot'||v?.status==='zweiter'||kandidaten)return;
-   const b=el('button','quiz-joker-knopf','50/50-Joker einsetzen');b.type='button';
-   const info=el('p','quiz-joker-klein','Verbraucht einen Joker. Zwei Antwortmöglichkeiten bleiben übrig.');
-   b.onclick=async()=>{if(b.disabled)return;b.disabled=true;try{const x=await aktion(frage.id,'halbhalb');anwenden(karte,x.kandidaten);b.textContent='50/50 eingesetzt';await laden();}catch(e){b.disabled=false;info.textContent=e.message||'Joker konnte nicht eingesetzt werden.';}};
-   karte.append(b,info);
+   if(!stand)return;
+   const b=el('button','quiz-joker-menue');b.type='button';b.setAttribute('aria-haspopup','dialog');
+   const bestand=()=>Object.values(stand?.bestand||{}).reduce((a,n)=>a+(Number(n)||0),0);
+   const beschriften=()=>{b.replaceChildren(el('span','quiz-joker-symbol','✦'),el('span','quiz-joker-anzahl',String(bestand())));b.setAttribute('aria-label',`Deine Joker: ${bestand()} verfügbar. Auswahl öffnen`);};
+   beschriften();b.onclick=()=>{
+    const aktuell=vorgang(frage.id);
+    const vorher=document.activeElement,d=el('dialog','quiz-joker-dialog'),tid='quiz-joker-inventar-'+(++dialogNummer);d.setAttribute('aria-labelledby',tid);
+    const x=el('button','quiz-joker-x','×');x.type='button';x.autofocus=true;x.setAttribute('aria-label','Jokerauswahl schließen');x.onclick=()=>d.close();
+    const h=el('h2','','Deine Joker');h.id=tid;
+    const info=el('p','quiz-joker-klein','Öffnen kostet keinen Joker. Ein Einsatz ist einmalig.');info.setAttribute('role','status');d.append(x,h,info);
+    const zeile=(typ,titel,grund,aktionFn)=>{const a=el('button','quiz-joker-auswahl',`${titel} · ${Number(stand?.bestand?.[typ])||0}`);a.type='button';const hinweis=el('p','quiz-joker-klein',grund);hinweis.id=tid+'-'+typ;a.setAttribute('aria-describedby',hinweis.id);a.disabled=!aktionFn||!stand?.bestand?.[typ];if(aktionFn)a.onclick=async()=>{a.disabled=true;try{await aktionFn();await laden();beschriften();d.close();}catch(e){info.textContent=e.message||'Joker konnte nicht eingesetzt werden.';a.disabled=false;}};d.append(a,hinweis);};
+    const halbErlaubt=frage.antworttyp==='multiple_choice'&&optionen>=3&&!aktuell?.kandidaten&&!aktuell?.status&&!beantwortet?.beantwortet;
+    zeile('halbhalb','50/50',halbErlaubt?'Verbraucht einen Joker und lässt zwei Möglichkeiten übrig.':'Nur vor der Erstantwort bei einer Einfachauswahl mit mindestens drei Möglichkeiten.',halbErlaubt?async()=>{const r=await aktion(frage.id,'halbhalb');anwenden(karte,r.kandidaten);}:null);
+    zeile('zweiter-versuch','Zweiter Versuch',aktuell?.status==='angebot'?'Erstantwort verwerfen und einmal neu antworten.':'Wird nach einer falschen Erstantwort angeboten. Noch kein Verbrauch.',aktuell?.status==='angebot'?async()=>{const r=await aktion(frage.id,'joker');fortsetzen(karte,r);}:null);
+    zeile('serienjoker','Serienrettung','Rettet eine verpasste Woche in deiner Quiz-Statistik. Hier nicht einsetzbar.',null);
+    const link=el('a','quiz-joker-sammlung','Zur Sammlung und den Boxen');link.href='sammlung.html';d.append(link);document.body.append(d);d.addEventListener('close',()=>{d.remove();if(vorher?.isConnected)vorher.focus();},{once:true});d.showModal();
+   };karte.append(b);
   }
   function anwenden(karte,kandidaten){karte.querySelectorAll('.option input').forEach(input=>{const weg=!kandidaten.includes(input.value);input.closest('.option').hidden=weg;if(weg){input.checked=false;input.disabled=true;}});}
   const wochenRpc={rpc:(name,parameter)=>name.startsWith('antwort_')?senden(name,parameter):sb.rpc(name,parameter)};

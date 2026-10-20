@@ -39,7 +39,7 @@ function mockRpc(t, antworten) {
 }
 
 test("inaktive Icon-Frage wird nicht mehr pauschal als falsche PIN ausgegeben", async (t) => {
-  const aufrufe = mockRpc(t, { entscheidung_kontext_laden: {
+  const aufrufe = mockRpc(t, { entscheidung_kontext_v3: {
     status: 400, body: { code: "P0001", message: "Frage nicht gefunden oder aktuell nicht aktiv" },
   } });
   const response = res();
@@ -48,11 +48,11 @@ test("inaktive Icon-Frage wird nicht mehr pauschal als falsche PIN ausgegeben", 
   assert.equal(response.body.code, "QUIZ_QUESTION_INACTIVE");
   assert.match(response.body.fehler, /Quiz neu/);
   assert.doesNotMatch(response.body.fehler, /PIN/);
-  assert.deepEqual(aufrufe, ["entscheidung_kontext_laden"]);
+  assert.deepEqual(aufrufe, ["entscheidung_kontext_v3"]);
 });
 
 test("echte falsche PIN fordert Neuanmeldung statt Frageaktivierung", async (t) => {
-  mockRpc(t, { entscheidung_kontext_laden: { status: 400, body: { message: "PIN falsch" } } });
+  mockRpc(t, { entscheidung_kontext_v3: { status: 400, body: { message: "PIN falsch" } } });
   const response = res();
   await handler({ method: "POST", body }, response);
   assert.equal(response.statusCode, 401);
@@ -60,18 +60,18 @@ test("echte falsche PIN fordert Neuanmeldung statt Frageaktivierung", async (t) 
 });
 
 test("technische Datenbankfehler behaupten keine falsche PIN und geben keine Interna aus", async (t) => {
-  mockRpc(t, { entscheidung_kontext_laden: {
-    status: 403, body: { message: "permission denied for function entscheidung_kontext_laden" },
+  mockRpc(t, { entscheidung_kontext_v3: {
+    status: 403, body: { message: "permission denied for function entscheidung_kontext_v3" },
   } });
   const response = res();
   await handler({ method: "POST", body }, response);
   assert.equal(response.statusCode, 503);
-  assert.doesNotMatch(response.body.fehler, /PIN|permission|entscheidung_kontext_laden/);
+  assert.doesNotMatch(response.body.fehler, /PIN|permission|entscheidung_kontext_v3/);
 });
 
 test("Wochenwechsel zwischen Kontext und Speichern bleibt ein klarer Aktualisierungsfehler", async (t) => {
   mockRpc(t, {
-    entscheidung_kontext_laden: { body: [kontext] },
+    entscheidung_kontext_v3: { body: [kontext] },
     entscheidung_antwort_speichern_v2: { status: 400, body: { message: "Frage nicht gefunden oder aktuell nicht aktiv" } },
   });
   const response = res();
@@ -82,12 +82,12 @@ test("Wochenwechsel zwischen Kontext und Speichern bleibt ein klarer Aktualisier
 
 test("aktive Icon-Antwort wird weiterhin bewertet und bestaetigt", async (t) => {
   const aufrufe = mockRpc(t, {
-    entscheidung_kontext_laden: { body: [kontext] },
+    entscheidung_kontext_v3: { body: [kontext] },
     entscheidung_antwort_speichern_v2: { body: { korrekt: true, bereits_beantwortet: false } },
   });
   const response = res();
   await handler({ method: "POST", body }, response);
   assert.equal(response.statusCode, 200);
   assert.equal(response.body.korrekt, true);
-  assert.deepEqual(aufrufe, ["entscheidung_kontext_laden", "entscheidung_antwort_speichern_v2"]);
+  assert.deepEqual(aufrufe, ["entscheidung_kontext_v3", "entscheidung_antwort_speichern_v2"]);
 });

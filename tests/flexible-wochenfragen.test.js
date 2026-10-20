@@ -32,7 +32,7 @@ test("Lösungstabellen sind mit RLS und ohne Tabellenrechte geschützt", () => {
 });
 
 test("das Wochenquiz lädt v2-Daten und delegiert flexible Antworten", () => {
-  assert.match(weekly, /rpc\("wochen_fragen_v2"/);
+  assert.match(weekly, /rpc\("wochen_fragen_v3"/);
   assert.match(weekly, /rpc\("meine_antworten_v2"/);
   assert.match(weekly, /flexibel\.baueFrageElement/);
   assert.match(weekly, /flexibel\.baueBeantworteteFrageElement/);

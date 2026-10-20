@@ -7,9 +7,9 @@ import freitext from '../api/freitext-bewerten.js';
 const read=p=>readFileSync(new URL('../'+p,import.meta.url),'utf8');
 test('Joker-Gateway behält den PostgREST-Querybuilder für Lesefunktionen',async()=>{
  const context={};vm.runInNewContext(read('src/features/quiz-joker.js'),context);
- const calls=[],query={select:()=>query};const sb={rpc:(name,p)=>{calls.push({name,p});return name==='wochen_fragen_v2'?query:Promise.resolve({data:{korrekt:true},error:null});}};
+ const calls=[],query={select:()=>query};const sb={rpc:(name,p)=>{calls.push({name,p});return name==='wochen_fragen_v3'?query:Promise.resolve({data:{korrekt:true},error:null});}};
  const j=context.SchiriQuizJoker.erstelleQuizJoker({sb,getZugang:()=>({schiedsrichterId:'eigen',pin:'pin'})});
- assert.equal(j.wochenRpc.rpc('wochen_fragen_v2',{}).select('id'),query);
+ assert.equal(j.wochenRpc.rpc('wochen_fragen_v3',{}).select('id'),query);
  const result=await j.wochenRpc.rpc('antwort_auswahl_abgeben',{p_frage_id:'f',p_auswahl:['a']});
  assert.equal(result.data[0].korrekt,true);assert.equal(calls.at(-1).name,'quiz_joker_antwort');assert.equal(calls.at(-1).p.p_art,'auswahl');
 });
@@ -18,7 +18,7 @@ const response=()=>({setHeader(){},status(n){this.statusCode=n;return this;},jso
 test('Icon-API gibt beim Jokerangebot weder Lösung noch Teilbewertung zurück',async t=>{
  mock(t);let saved;
  t.mock.method(globalThis,'fetch',async(url,opts)=>{
-  if(String(url).includes('entscheidung_kontext_laden'))return new Response(JSON.stringify([{frage_text:'Test',fordert_fortsetzung:true,fordert_fortsetzung_fuer:false,fordert_fortsetzung_ort:false,fordert_strafe:false}]));
+  if(String(url).includes('entscheidung_kontext_v3'))return new Response(JSON.stringify([{frage_text:'Test',fordert_fortsetzung:true,fordert_fortsetzung_fuer:false,fordert_fortsetzung_ort:false,fordert_strafe:false}]));
   assert.match(String(url),/quiz_joker_bewertet$/);saved=JSON.parse(opts.body);return new Response('{"joker_offen":true}');
  });
  const res=response();await entscheidung({method:'POST',body:{schiedsrichterId:'dc94fef4-a0a9-44dd-b7f1-bfe8e6a30b51',frageId:'3863476e-e0ba-4ae4-b664-1e238086c287',pin:'pin',joker:true,antwort:{spielfortsetzung:'weiterspielen',strafen:[],persoenliche_strafe:'keine'}}},res);

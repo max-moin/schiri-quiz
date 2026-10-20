@@ -176,9 +176,10 @@
         Für drei Funktionen wird eine künstliche Intelligenz (Google Gemini, betrieben von
         Google) eingesetzt: erstens zur automatischen Bewertung von Freitext-Antworten,
         zweitens für die freiwillige "Warum?"-Erklärfunktion, drittens - nur bei Fragen mit
-        Symbol-Antwort - zur Prüfung einer frei geschriebenen Ortsangabe, und dort auch nur
-        dann, wenn der Server sie nicht schon durch einen festen Textvergleich ohne KI
-        einordnen kann. In beiden Fällen werden die
+        Symbol-Antwort - zur Prüfung einer frei geschriebenen Ortsangabe sowie einer ausdrücklich
+        verlangten Begründung. Die Ortsangabe wird nur dann an die KI übergeben,
+        wenn der Server sie nicht schon durch einen festen Textvergleich ohne KI
+        einordnen kann. Für diese Funktionen werden die
         Frage, die (Muster-)Antwort und deine eigene Antwort an Google übermittelt, um eine
         Bewertung bzw. Erklärung zu erzeugen. Ist eine Freitext-Antwort im Kern richtig, aber
         unvollständig, formuliert die KI zusätzlich die Rückfrage, mit der du zur Ergänzung
@@ -193,7 +194,10 @@
       <p>
         Übermittelt wird jeweils nur der fachliche Zusammenhang: der Fragetext, die
         hinterlegte Musterantwort mit den Bewertungshinweisen und dein Antworttext (bei der
-        Ortsprüfung der Fragetext, der hinterlegte Ort und deine Ortsangabe). Nicht
+        Ortsprüfung der Fragetext, der hinterlegte Ort und deine Ortsangabe; bei einer
+        verlangten Begründung zusätzlich deren Muster, Bewertungsnähe und dein Begründungstext).
+        Feste Symbolentscheidungen werden ohne KI verglichen. Steht dadurch bereits fest,
+        dass die Antwort falsch ist, wird keine zusätzliche KI-Begründungsprüfung ausgelöst. Nicht
         übermittelt werden dein Name, deine PIN und deine Kennnummer - der Aufruf enthält
         keine Angabe darüber, von wem die Antwort stammt. Genutzt wird die
         Programmierschnittstelle von Google mit einem fest eingestellten Modell
