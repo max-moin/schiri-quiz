@@ -32,12 +32,13 @@ export function vorstandMail(meta = {}) {
 }
 
 export function vorstandZahlungMail(meta = {}) {
+  const anObmann = meta.empfaenger_rolle === "obmann";
   const person = sauber(meta.person, 80) || "ein Schiedsrichter";
   const gegenstand = [meta.bezeichnung, meta.farbe,
     meta.groesse && `Größe ${meta.groesse}`]
     .map((wert) => sauber(wert, 80)).filter(Boolean).join(" · ");
   const zeilen = [
-    `Für ${person} wurde die Zahlung beauftragt.`,
+    anObmann ? `Vereinsbestellung für ${person}: Erstattung an den Obmann beauftragt.` : `Für ${person} wurde die Zahlung beauftragt.`,
     `Gegenstand: ${gegenstand || "Ausrüstung"}`,
     `Freigegebener Betrag: ${euro(meta.betrag_cent)}`,
   ];
@@ -47,7 +48,7 @@ export function vorstandZahlungMail(meta = {}) {
   zeilen.push("",
     "Bitte öffne deinen gespeicherten persönlichen Freigabe-Link.",
     "Bestätige dort erst nach der tatsächlichen Überweisung die Zahlung.",
-    "Danach bestätigt der Schiedsrichter den Geldeingang.",
+    anObmann ? "Bitte an den Obmann erstatten. Er bestätigt anschließend seinen Geldeingang; der Schiedsrichter ist bereits fertig." : "Danach bestätigt der Schiedsrichter den Geldeingang.",
     "Diese Mail enthält bewusst keinen Zugangscode.");
   return {
     betreff: `[SR-ZAHLUNG] ${person}: ${euro(meta.betrag_cent)} beauftragt`,

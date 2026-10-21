@@ -39,17 +39,20 @@ test('Hin- und Rückweg separat, shortest statt fastest, kein Schlüssel im Erge
  const calls=[];t.mock.method(globalThis,'fetch',async(url,o)=>{calls.push([url,o]);return Response.json({features:[{properties:{summary:{distance:calls.length===1?12000:14000}},geometry:{coordinates:[[13.7,51],[13.8,51.1]]}}]});});
  const r=await berechneRoute([13.7,51],[13.8,51.1],'secret-test');assert.equal(r.kilometer,26);assert.equal(calls.length,2);
  const a=JSON.parse(calls[0][1].body),b=JSON.parse(calls[1][1].body);assert.equal(a.preference,'shortest');assert.deepEqual(a.coordinates,[...b.coordinates].reverse());assert.doesNotMatch(JSON.stringify(r),/secret-test/);
+ assert.equal(String(calls[0][0]),'https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson');
+ assert.equal(r.quelle,'© openrouteservice by HeiGIT | Data from OpenStreetMap');assert.equal(r.lizenz,'CC-BY-SA 4.0');
 });
 test('Geocoder verwendet feste Provideradresse und bereinigt Treffer',async t=>{
- t.mock.method(globalThis,'fetch',async(url,o)=>{assert.equal(url.hostname,'api.openrouteservice.org');assert.equal(url.searchParams.get('text'),'Testweg 1 Dresden');assert.equal(o.redirect,'error');return Response.json({features:[{properties:{label:'Testweg'},geometry:{coordinates:[13.7,51]}},{geometry:{coordinates:[200,200]}}]});});
+ t.mock.method(globalThis,'fetch',async(url,o)=>{assert.equal(url.hostname,'api.heigit.org');assert.equal(url.pathname,'/pelias/v1/search');assert.equal(url.searchParams.get('text'),'Testweg 1 Dresden');assert.equal(o.redirect,'error');return Response.json({features:[{properties:{label:'Testweg'},geometry:{coordinates:[13.7,51]}},{geometry:{coordinates:[200,200]}}]});});
  assert.equal((await sucheOrte('Testweg 1 Dresden','test')).length,1);
 });
 const res=()=>({setHeader(){},status(n){this.statusCode=n;return this;},json(b){this.body=b;return this;}});
-const body={schiedsrichterId:'dc94fef4-a0a9-44dd-b7f1-bfe8e6a30b51',pin:'test',einverstanden:true,aktion:'route',start:[13.7,51],ziel:[13.8,51.1]};
+const body={schiedsrichterId:'dc94fef4-a0a9-44dd-b7f1-bfe8e6a30b51',pin:'test',einverstanden:true,nurOeffentlicheOrte:true,aktion:'route',start:[13.7,51],ziel:[13.8,51.1]};
 function env(t){for(const k of ['ORS_API_KEY','SUPABASE_SECRET_KEY']){const v=process.env[k];process.env[k]='secret-test';t.after(()=>v===undefined?delete process.env[k]:process.env[k]=v);}}
 test('Ohne Schlüssel nur manueller Fallback, keine Provideranfrage',async t=>{env(t);delete process.env.ORS_API_KEY;t.mock.method(globalThis,'fetch',()=>{throw Error('nicht erlaubt');});const r=res();await handler({method:'POST',body},r);assert.equal(r.statusCode,503);assert.equal(r.body.code,'ROUTING_NOT_CONFIGURED');});
 test('Ohne aktive Zustimmung oder mit ungültiger Eingabe kein Quota-/Provideraufruf',async t=>{env(t);t.mock.method(globalThis,'fetch',()=>{throw Error('nicht erlaubt');});for(const b of [{...body,einverstanden:false},{...body,start:'https://evil.test'}]){const r=res();await handler({method:'POST',body:b},r);assert.equal(r.statusCode,400);}});
 test('Kontingent vor Provider reservieren; Limit stoppt Route',async t=>{env(t);let n=0;t.mock.method(globalThis,'fetch',async(url,o)=>{n++;assert.match(String(url),/spesen_routing_erlauben$/);assert.equal(JSON.parse(o.body).p_einheiten,2);return Response.json(false);});const r=res();await handler({method:'POST',body},r);assert.equal(n,1);assert.equal(r.statusCode,429);});
+test('Öffentlicher Test muss bestätigt sein; fehlende Bestätigung verursacht keine Abfrage',async t=>{env(t);t.mock.method(globalThis,'fetch',()=>{throw Error('nicht erlaubt');});const r=res();await handler({method:'POST',body:{...body,nurOeffentlicheOrte:false}},r);assert.equal(r.statusCode,400);assert.equal(r.body.code,'ROUTING_PUBLIC_TEST_ONLY');});
 test('Jokerknopf zählt ausschließlich anwendbare Typen',()=>{
  const sandbox={};vm.runInNewContext(readFileSync(new URL('../src/features/quiz-joker.js',import.meta.url),'utf8'),sandbox);
  const n=sandbox.SchiriQuizJoker.geeigneterVorrat;

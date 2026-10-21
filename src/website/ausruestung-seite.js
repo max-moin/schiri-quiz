@@ -412,7 +412,7 @@ async function ladeAnfragen() {
     return '<article class="bestand-anfrage">'
       + '<div class="bestand-anfrage-kopf">'
       + `<span class="bestand-anfrage-titel">${esc(name)}</span>`
-      + plakette(vorgang?.prozess_titel || STATUS_WORT[a.status] || a.status, "status-" + a.status)
+      + plakette(vorgang?.schiri_abgeschlossen ? "Erhalten · abgeschlossen" : (vorgang?.prozess_titel || STATUS_WORT[a.status] || a.status), "status-" + (vorgang?.schiri_abgeschlossen ? "erledigt" : a.status))
       + `<span class="bestand-anfrage-datum">${esc(datum(a.erstellt_am))}</span>`
       + "</div>"
       + (merkmale.length ? `<div class="bestand-plaketten">${merkmale.join("")}</div>` : "")
@@ -505,7 +505,7 @@ async function ladeAnfragen() {
         seitenmeldung("Das hat nicht geklappt: " + error.message, true);
         return;
       }
-      seitenmeldung(knopf.dataset.schritt === "geld_erhalten"
+      seitenmeldung(["geld_erhalten", "uebergeben"].includes(knopf.dataset.schritt)
         ? "Danke - damit ist der Vorgang für dich erledigt."
         : "Eingetragen. Den Beleg kannst du hier hochladen.");
       await ladeAnfragen();

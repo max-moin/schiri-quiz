@@ -3,12 +3,14 @@ import {sucheOrte,berechneRoute,koordinaten} from './spesen-routing.js';
 const UUID=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 export default async function handler(req,res){
  sichereApiAntwort(res);
- if(req.method==='GET')return res.status(200).json({eingerichtet:Boolean(process.env.ORS_API_KEY)});
+ if(req.method==='GET')return res.status(200).json({eingerichtet:Boolean(process.env.ORS_API_KEY),modus:'oeffentliche-orte-test'});
  if(req.method!=='POST')return res.status(405).json({fehler:'Nur POST erlaubt.'});
  const b=req.body||{},key=process.env.ORS_API_KEY;
  if(!key)return res.status(503).json({code:'ROUTING_NOT_CONFIGURED',fehler:'Die Kartenberechnung ist noch nicht eingerichtet. Kilometer kannst du von Hand eintragen.'});
  if(!UUID.test(String(b.schiedsrichterId||''))||typeof b.pin!=='string'||b.pin.length>32)return res.status(400).json({fehler:'Bitte zuerst anmelden.'});
  if(b.einverstanden!==true)return res.status(400).json({fehler:'Bitte bestätige die Übermittlung der Orte an openrouteservice.'});
+ // Declaration of the test scope, NOT an automatic personal-data detector.
+ if(b.nurOeffentlicheOrte!==true)return res.status(400).json({code:'ROUTING_PUBLIC_TEST_ONLY',fehler:'Diese Routenhilfe ist vorerst nur für Tests mit öffentlichen Orten freigegeben. Keine Wohnadressen oder privaten Startpunkte übermitteln.'});
  // Validate before quota reservation. Never accept provider URLs from the client.
  try{if(b.aktion==='route'){koordinaten(b.start);koordinaten(b.ziel);}else if(b.aktion==='suche'){if(typeof b.text!=='string'||b.text.trim().length<4||b.text.length>180)throw new Error();}else throw new Error();}
  catch{return res.status(400).json({fehler:'Bitte gültige Orte im europäischen Reisegebiet eingeben.'});}

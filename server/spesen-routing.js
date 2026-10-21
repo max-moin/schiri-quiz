@@ -12,7 +12,7 @@ async function provider(url,options={}){
 }
 export async function sucheOrte(text,key){
  if(typeof text!=='string'||text.trim().length<4||text.length>180)throw new Error('EINGABE');
- const url=new URL('https://api.openrouteservice.org/geocode/search');
+ const url=new URL('https://api.heigit.org/pelias/v1/search');
  url.searchParams.set('text',text.trim());url.searchParams.set('size','5');url.searchParams.set('boundary.country','DE');
  const data=await provider(url,{headers:{Authorization:key}});
  return (data.features||[]).slice(0,5).flatMap(f=>{try{return [{label:String(f.properties?.label||'Ort').slice(0,240),koordinaten:koordinaten(f.geometry?.coordinates)}];}catch{return [];}});
@@ -21,7 +21,7 @@ export async function berechneRoute(start,ziel,key){
  koordinaten(start);koordinaten(ziel);
  // Separate one-way requests: a reversed route need not have equal distance.
  const fahre=async(von,nach)=>{
-  const data=await provider('https://api.openrouteservice.org/v2/directions/driving-car/geojson',{
+  const data=await provider('https://api.heigit.org/openrouteservice/v2/directions/driving-car/geojson',{
    method:'POST',headers:{Authorization:key,'Content-Type':'application/json'},
    body:JSON.stringify({coordinates:[von,nach],preference:'shortest',instructions:false,units:'m'}),
   });
@@ -30,5 +30,5 @@ export async function berechneRoute(start,ziel,key){
   return {meter,linie:linie.map(koordinaten)};
  };
  const hin=await fahre(start,ziel),zurueck=await fahre(ziel,start);
- return {hin,zurueck,kilometer:(hin.meter+zurueck.meter)/1000,quelle:'openrouteservice · shortest · OpenStreetMap',berechnet_am:new Date().toISOString()};
+ return {hin,zurueck,kilometer:(hin.meter+zurueck.meter)/1000,quelle:'© openrouteservice by HeiGIT | Data from OpenStreetMap',lizenz:'CC-BY-SA 4.0',berechnet_am:new Date().toISOString()};
 }

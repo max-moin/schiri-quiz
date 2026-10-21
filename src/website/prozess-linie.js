@@ -26,6 +26,7 @@ export const WER_AUS_ROLLE = Object.freeze({
 export const SCHRITT_KNOPF = Object.freeze({
   gekauft: "Gekauft · Beleg folgt",
   geld_erhalten: "Das Geld ist angekommen",
+  uebergeben: "Ausrüstung erhalten · bestätigen",
   zurueckgezogen: "Anfrage zurückziehen",
 });
 
@@ -38,6 +39,7 @@ const alsListe = (wert) => (Array.isArray(wert) ? wert : []);
  */
 export function naechsterSchrittText(vorgang) {
   if (!vorgang) return "";
+  if (vorgang.schiri_abgeschlossen) return "Erhalt bestätigt · für dich abgeschlossen.";
   if (vorgang.prozess_status === "abgelehnt") return "Abgelehnt.";
   if (vorgang.prozess_status === "zurueckgezogen") {
     const rolle={schiri:'Vom Schiedsrichter',obmann:'Vom Obmann',vorstand:'Vom Vorstand'}[vorgang.ruecknahme?.rolle]||'Anfrage';
@@ -126,7 +128,7 @@ function kurzesDatum(wert) {
  */
 export function schiriAktionen(vorgang) {
   return alsListe(vorgang && vorgang.meine_aktionen)
-    .filter((a) => a.schritt === "gekauft" || a.schritt === "geld_erhalten")
+    .filter((a) => ["gekauft", "geld_erhalten", "uebergeben"].includes(a.schritt))
     .map((a) => ({ schritt: a.schritt, wort: SCHRITT_KNOPF[a.schritt] || a.titel }));
 }
 

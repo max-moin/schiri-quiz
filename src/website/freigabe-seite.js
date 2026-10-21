@@ -296,7 +296,9 @@ function zahlungsKarte(zeile) {
         </div>
         <div class="fg-preis"><b>${euro(zeile.preis_cent) || "kein Betrag"}</b></div>
       </div>
-      <p class="fg-kontext">Der Beleg wurde geprüft und die Zahlung beauftragt.
+      <p class="fg-kontext">${zeile.empfaenger_rolle === "obmann"
+        ? "Vereinsbestellung: Der Schiedsrichter hat den Erhalt bestätigt. Die Erstattung geht an den Obmann, nicht an den Schiedsrichter."
+        : "Der Beleg wurde geprüft und die Zahlung beauftragt."}
         Bitte bestätige erst nach der tatsächlichen Überweisung.</p>
       ${zeile.hinweis ? `<p class="fg-kontext"><b>Hinweis von Max:</b> ${sicher(zeile.hinweis)}</p>` : ""}
       <div class="fg-knoepfe">

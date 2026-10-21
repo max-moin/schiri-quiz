@@ -14,12 +14,12 @@ function leaflet() {
 /** All coordinates, labels and geometry live only inside this open dialog. */
 export function oeffneRoutenhilfe({ ziel, uebernehmen, fetchImpl = fetch }) {
   const vorher = document.activeElement, d = el('dialog', '', 'spesen-route-dialog'), id = `route-${++nummer}`;
-  const h = el('h2', 'Kilometer berechnen'); h.id = id; d.setAttribute('aria-labelledby', id);
+  const h = el('h2', 'Routenhilfe · öffentlicher Test'); h.id = id; d.setAttribute('aria-labelledby', id);
   const x = knopf('Schließen', () => d.close()); x.className = 'spesen-route-schliessen';
-  const info = el('p', 'Nur für diese Berechnung: Startadresse oder Kartenpunkt werden nicht im Profil oder in der Datenbank gespeichert. Beim Schließen verwerfen wir sie.');
+  const info = el('p', 'Testbetrieb: nur öffentliche Orte wie Bahnhof und Sportplatz verwenden. Keine Wohnadresse oder privaten Kartenpunkte eingeben. Wohnort-Routing ist noch nicht freigegeben; dafür Kilometer bitte selbst eintragen.');
   const hinweis = el('p', 'Bei der Ortssuche und Routenberechnung erhält openrouteservice die eingegebenen Orte. Eine zusätzlich geladene OpenStreetMap-Karte erhält IP-Adresse und sichtbaren Kartenausschnitt. Keine automatische Standortabfrage.');
   const zustimmung = el('input'); zustimmung.type = 'checkbox';
-  const label = el('label', '', 'spesen-zustimmung'); label.append(zustimmung, ' Externe Orts-/Routenberechnung für diese Sitzung erlauben');
+  const label = el('label', '', 'spesen-zustimmung'); label.append(zustimmung, ' Ich verwende ausschließlich öffentliche Orte ohne Personenbezug und erlaube die externe Berechnung für diese Sitzung.');
   const status = el('p', '', 'spesen-route-status'); status.setAttribute('role', 'status');
   const felder = el('div', '', 'spesen-team-raster');
   let geschlossen = false, karte, L, linien, marker = [], version = 0, route = null;
@@ -45,13 +45,13 @@ export function oeffneRoutenhilfe({ ziel, uebernehmen, fetchImpl = fetch }) {
     const z = globalThis.SchiriSeitenAnmeldung?.anmeldung.lesen();
     if (!z?.id || !z.pin) throw new Error('Bitte zuerst oben über dein Konto anmelden. Manuelle Kilometer brauchen keine Anmeldung.');
     const r = await fetchImpl('/api/website-feedback?funktion=spesen-route', { method: 'POST', headers: { 'Content-Type': 'application/json' }, cache: 'no-store', signal: controller.signal,
-      body: JSON.stringify({ ...body, schiedsrichterId: z.id, pin: z.pin, einverstanden: true }) });
+      body: JSON.stringify({ ...body, schiedsrichterId: z.id, pin: z.pin, einverstanden: true, nurOeffentlicheOrte: true }) });
     const data = await r.json(); if (!r.ok) throw new Error(data.fehler || 'Routenhilfe nicht verfügbar.'); return data;
   }
-  for (const [art, titel] of [['start', 'Privater Startpunkt'], ['ziel', 'Spielstätte / Ziel']]) {
+  for (const [art, titel] of [['start', 'Öffentlicher Startpunkt'], ['ziel', 'Spielstätte / öffentliches Ziel']]) {
     const box = el('div'), l = el('label', titel), input = el('input'); input.type = 'text'; input.maxLength = 180;
     input.autocomplete = 'off'; input.id = `${id}-${art}`; l.htmlFor = input.id;
-    input.placeholder = 'Straße, Hausnummer und Ort'; input.value = art === 'ziel' ? ziel?.adresse || ziel?.name || '' : '';
+    input.placeholder = 'Zum Beispiel Bahnhof oder öffentliche Sportstätte'; input.value = art === 'ziel' ? ziel?.adresse || ziel?.name || '' : '';
     const gewaehlt = el('p', punkte[art] ? 'Hinterlegter Spielstättenpunkt gewählt' : 'Noch kein Punkt gewählt', 'spesen-route-auswahl');
     const liste = el('div', '', 'spesen-route-treffer');
     input.oninput = () => { punkte[art] = null; gewaehlt.textContent = 'Bitte neuen Treffer wählen'; liste.replaceChildren(); invalidieren(); zeichnen(); };
@@ -86,8 +86,12 @@ export function oeffneRoutenhilfe({ ziel, uebernehmen, fetchImpl = fetch }) {
       const data = await api({ aktion: 'route', start: punkte.start, ziel: punkte.ziel });
       if (geschlossen || lauf !== version || !zustimmung.checked) return;
       route = data; const t = el('p', `Hinweg ${(data.hin.meter/1000).toLocaleString('de-DE',{maximumFractionDigits:1})} km · Rückweg ${(data.zurueck.meter/1000).toLocaleString('de-DE',{maximumFractionDigits:1})} km · Gesamt ${data.kilometer.toLocaleString('de-DE',{maximumFractionDigits:1})} km`);
-      const q = el('p', 'openrouteservice / OpenStreetMap · kürzeste berechnete Autoroute. Tatsächliche Strecke, Befahrbarkeit und Abrechnungsregeln prüfen. Keine automatische Erstattung.');
-      ergebnis.replaceChildren(t, q, akzeptieren); ergebnis.hidden = false; status.textContent = 'Vorschlag berechnet. Bitte prüfen und bewusst übernehmen.';
+      const q = el('p', 'Kürzeste berechnete Autoroute. Tatsächliche Strecke, Befahrbarkeit und Abrechnungsregeln prüfen. Keine automatische Erstattung.');
+      const quelle = el('p', '© openrouteservice by HeiGIT | Data from '), osm = el('a', 'OpenStreetMap'), lizenz = el('a', 'CC-BY-SA 4.0');
+      osm.href = 'https://www.openstreetmap.org/copyright'; lizenz.href = 'https://creativecommons.org/licenses/by-sa/4.0/';
+      for (const a of [osm,lizenz]) { a.target = '_blank'; a.rel = 'noopener noreferrer'; }
+      quelle.append(osm, ' · ', lizenz);
+      ergebnis.replaceChildren(t, q, quelle, akzeptieren); ergebnis.hidden = false; status.textContent = 'Vorschlag berechnet. Bitte prüfen und bewusst übernehmen.';
       if (karte) { linien.clearLayers(); for (const teil of [data.hin, data.zurueck]) L.polyline(teil.linie.map(p => [p[1],p[0]]), { color: '#173f9e' }).addTo(linien); zeichnen(); }
     } catch (e) { if (!geschlossen) status.textContent = e.message; } finally { berechnen.disabled = false; }
   }

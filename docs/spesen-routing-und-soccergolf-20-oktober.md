@@ -1,5 +1,7 @@
 # Spesen, Joker-Einstieg und Soccer-Golf – 20.10.2026
 
+> Nachtrag 21.10.: Live meldet `eingerichtet:false`. Neu geprüfte Anbieterbedingungen untersagen die Übermittlung personenbezogener Daten; die Oberfläche ist deshalb vorerst nur ein ausdrücklich bestätigter Test mit öffentlichen Orten. Private Wohnortstarts sind **nicht freigegeben**, auch nicht pauschal als „namenlose Koordinaten“. API-Adressen auf `api.heigit.org` umgestellt. Der folgende Text beschreibt teilweise den früheren technischen Entwurf; maßgeblich ist jetzt `docs/routing-test-und-freitextjoker-21-oktober.md`.
+
 ## Gebaut
 
 - Spesenübersicht bleibt Haupteinstieg. Unter „Abrechnung erstellen“ steht jetzt ein Teamrechner: einmal Stadt/Land, Mannschaft/Altersklasse und Meisterschaftsklasse wählen; ein SR, bis zu zwei SRA hinzufügen. Sätze nach Funktion, Fahrtkosten je Person. Der alte Rechner ist in dieser Fassung nur noch verborgen als kompatibler Quellstand vorhanden.

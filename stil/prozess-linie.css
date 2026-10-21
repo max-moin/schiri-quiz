@@ -21,7 +21,8 @@
 
 .prozess-schritt {
   position: relative;
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: baseline;
   gap: 10px;
   padding: 0 0 12px 18px;
@@ -52,13 +53,20 @@
   background: var(--border);
 }
 
-.prozess-wort { color: var(--muted); }
+.prozess-wort { color: var(--muted); overflow-wrap: anywhere; }
 
 .prozess-zusatz {
   margin-left: auto;
   color: var(--muted);
   font-size: .78rem;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+
+@media (max-width: 600px) {
+  .prozess-schritt { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  .prozess-zusatz { margin-left: 0; text-align: left; }
 }
 
 .prozess-schritt[data-stand="erledigt"] .prozess-punkt { background: var(--green-dark); }

@@ -341,7 +341,7 @@ function ausAusruestung(zeilen, prozesse) {
       art: "ausruestung",
       artName: "Ausrüstungsanfrage",
       titel: wort + (merkmale ? " · " + merkmale : ""),
-      status: a.status,
+      status: vorgang?.schiri_abgeschlossen ? "erledigt" : a.status,
       zeit: a.erstellt_am,
       fall: [
         ["Angefragt", wort],
