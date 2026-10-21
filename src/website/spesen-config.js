@@ -47,6 +47,18 @@ function normalisiereVereine(rohListe, fallback) {
       name: String(verein.name ?? "").trim(),
       ort: String(verein.ort ?? "").trim(),
       lage: LAGEN.has(verein.lage) ? verein.lage : "frag",
+      ...(Array.isArray(verein.spielstaetten) ? { spielstaetten: verein.spielstaetten.slice(0, 30)
+        .filter(s => s && typeof s === "object" && String(s.name || "").trim())
+        .map((s, i) => ({
+          id: String(s.id || `platz-${i + 1}`).slice(0, 80),
+          name: String(s.name).trim().slice(0, 120),
+          adresse: String(s.adresse || "").trim().slice(0, 240),
+          ...(Array.isArray(s.koordinaten) && s.koordinaten.length === 2
+            && s.koordinaten.every(n => typeof n === "number" && Number.isFinite(n))
+            && s.koordinaten[0] >= -12 && s.koordinaten[0] <= 35
+            && s.koordinaten[1] >= 34 && s.koordinaten[1] <= 72
+            ? { koordinaten: [...s.koordinaten] } : {}),
+        })) } : {}),
     }))
     .filter((verein) => verein.name);
   return sauber.length ? sauber : kopie(fallback);

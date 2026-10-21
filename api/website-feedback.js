@@ -1,7 +1,10 @@
 import { sichereApiAntwort, supabaseRpc } from '../server/api-helpers.js';
 import { gastFeedbackEingabe, gastLimitSchluessel } from '../server/website-feedback.js';
+import spesenRouting from '../server/spesen-route-handler.js';
 
 export default async function handler(req, res) {
+  const funktion = req.query?.funktion ?? new URL(req.url || '/', 'https://lokal.invalid').searchParams.get('funktion');
+  if (funktion === 'spesen-route') return spesenRouting(req, res);
   sichereApiAntwort(res);
   if (req.method !== 'POST') { res.setHeader('Allow','POST'); return res.status(405).json({fehler:'Bitte das Formular verwenden.'}); }
   if (!String(req.headers['content-type'] || '').startsWith('application/json')) {

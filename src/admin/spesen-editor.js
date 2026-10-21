@@ -1,6 +1,7 @@
 import {
   normalisiereSpesenKonfiguration,
 } from "../website/spesen-config.js";
+import { baueSpielstaettenEditor } from './spesen-spielstaetten.js';
 
 const kopie = (wert) => JSON.parse(JSON.stringify(wert));
 const geld = (wert) => Number(wert).toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -24,6 +25,7 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
   let zustand = kopie(fallback);
   const status = wurzel.querySelector('[data-bereich-status="spesen"]');
   const ligenWurzel = wurzel.querySelector("[data-ligen]");
+  let spielstaettenEditor;
 
   const melde = (text, art = "info") => {
     status.textContent = text;
@@ -146,6 +148,8 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
     }
     bindeGrundwerte();
     rendereLigen();
+    spielstaettenEditor?.remove();
+    spielstaettenEditor = baueSpielstaettenEditor(wurzel, zustand.vereine);
   }
 
   wurzel.querySelector("[data-liga-form]").addEventListener("submit", (event) => {
@@ -195,6 +199,8 @@ export function erstelleSpesenEditor({ wurzel, client, verein, fallback, benutze
         });
       if (ergebnis.error) throw ergebnis.error;
       zustand = sicher;
+      spielstaettenEditor?.remove();
+      spielstaettenEditor = baueSpielstaettenEditor(wurzel, zustand.vereine);
       melde("Veröffentlicht. Der öffentliche Rechner lädt die neuen Werte beim nächsten Aufruf.", "erfolg");
     } catch (fehler) {
       melde(`Speichern fehlgeschlagen: ${fehler.message}`, "fehler");

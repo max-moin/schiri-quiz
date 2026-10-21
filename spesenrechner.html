@@ -34,6 +34,7 @@
   <link rel="stylesheet" href="stil/anmeldung.css" />
   <link rel="stylesheet" href="stil/profil.css" />
   <link rel="stylesheet" href="stil/spesen.css" />
+  <link rel="stylesheet" href="stil/spesen-team.css" />
 </head>
 <body>
 
@@ -407,6 +408,7 @@
       ladeSpesenKonfiguration,
       standardSpesenKonfiguration,
     } from "./src/website/spesen-config.js";
+    import { baueTeamRechner } from "./src/website/spesen-team.js";
     /* Der Grobfilter fuer die Altersklassen-Liste liegt in einer eigenen
        Datei: Er ist reine Namenslogik und laesst sich nur dort einzeln
        pruefen - tests/spesen-klassenfilter.test.js. */
@@ -1242,6 +1244,7 @@
     baueSchnellKlassen();
     baueLigen();
     schnellAbgleich();
+    baueTeamRechner({ wurzel: $("spesenWerkzeug"), konfiguration: geladen.konfiguration });
   </script>
 </body>
 </html>

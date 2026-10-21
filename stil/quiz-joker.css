@@ -7,3 +7,4 @@
 .quiz-joker-menue{position:relative;display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px;margin-top:12px;border:2px solid #45674f;border-radius:50%;background:#e9f1e5;color:#234c34;cursor:pointer}
 .quiz-joker-symbol{font-size:30px;line-height:1}.quiz-joker-anzahl{position:absolute;right:-5px;bottom:-5px;min-width:23px;min-height:23px;display:grid;place-items:center;border:2px solid white;border-radius:50%;background:#234c34;color:white;font-size:13px;font-weight:750}
 .quiz-joker-menue:focus-visible{outline:3px solid #174d37;outline-offset:4px}.quiz-joker-dialog .quiz-joker-auswahl{display:block;width:100%;text-align:left;font-weight:700;background:#fff;color:#234c34}.quiz-joker-dialog .quiz-joker-auswahl:disabled{background:#e5e9e3;color:#465348;border-color:#89958c;cursor:not-allowed}.quiz-joker-sammlung{display:inline-block;padding:12px 0;color:#234c34;font-weight:700}
+.quiz-joker-menue[hidden]{display:none!important}

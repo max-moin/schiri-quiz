@@ -1,0 +1,22 @@
+.spesen-team{--team-blau:#173f9e;display:grid;gap:1.25rem;max-width:64rem;margin:auto;color:#182131}
+.spesen-team h2,.spesen-team h3{margin:0 0 .5rem}.spesen-team p{margin:.25rem 0;line-height:1.55}
+.spesen-team-kopf{background:#eaf0ff;border-radius:1.25rem;padding:1.5rem;border-left:5px solid var(--team-blau)}
+.spesen-team-hinweis{background:#fff7df;border:1px solid #b58a27;padding:1rem;border-radius:.9rem}
+.spesen-team-raster{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,15rem),1fr));gap:1rem;align-items:end}
+.spesen-team label,.spesen-route-dialog label{display:grid;gap:.45rem;font-weight:600}
+.spesen-team input,.spesen-team select,.spesen-route-dialog input,.spesen-route-dialog select{box-sizing:border-box;width:100%;min-height:48px;border:1px solid #768398;border-radius:.65rem;padding:.7rem;background:#fff;color:#182131;font:inherit;font-size:max(1rem,16px)}
+.spesen-team button,.spesen-route-dialog button{min-height:48px;border:1px solid #768398;border-radius:.7rem;padding:.7rem 1rem;background:#fff;color:#182131;font:inherit;font-weight:600;cursor:pointer;white-space:normal}
+.spesen-team button:disabled{opacity:.65;cursor:default}.spesen-team :focus-visible,.spesen-route-dialog :focus-visible{outline:3px solid #173f9e;outline-offset:3px}
+.spesen-team-personen{display:grid;gap:1rem}.spesen-team-person{background:#f5f7fb;border:1px solid #bec9da;border-radius:1rem;padding:1.25rem}
+.spesen-team-pauschale{font-weight:700;color:#173f9e;margin-bottom:1rem!important}.spesen-team-person>button{margin-top:.8rem}
+.spesen-team-summe{border:2px solid #173f9e;border-radius:1rem;padding:1.25rem;background:#fff}.spesen-team-zeile{display:grid;gap:.35rem;padding:.75rem 0;border-bottom:1px solid #d5dce7}
+.spesen-team-gesamt{font-size:1.3rem;font-weight:800;margin-top:1rem!important}.spesen-team-klein,.spesen-team small{font-size:.9rem;color:#46536a;line-height:1.5}.spesen-team-klein a{margin-right:1rem}
+.spesen-route-dialog{box-sizing:border-box;width:min(60rem,calc(100% - 1.5rem));max-height:calc(100dvh - 2rem);overflow:auto;border:0;border-radius:1.2rem;padding:1.5rem;color:#182131;background:white}
+.spesen-route-dialog::backdrop{background:#111827b3}.spesen-route-dialog h2{margin:0 0 1rem}.spesen-route-dialog>p{line-height:1.5;max-width:75ch}
+.spesen-route-dialog .spesen-zustimmung{display:flex;align-items:flex-start;background:#eaf0ff;padding:1rem;border-radius:.8rem;margin:1rem 0}.spesen-zustimmung input{width:24px;min-width:24px;min-height:24px;margin:.1rem .5rem 0 0}
+.spesen-route-schliessen{float:right;margin-left:.5rem}.spesen-route-dialog .spesen-team-raster{clear:both;margin:1rem 0;align-items:start}.spesen-route-dialog .spesen-team-raster>div{display:grid;gap:.6rem}
+.spesen-route-dialog>button,.spesen-route-dialog>select{margin:.4rem .3rem .4rem 0}.spesen-route-treffer{display:grid;gap:.4rem}.spesen-route-auswahl{font-size:.9rem;color:#46536a}
+.spesen-routenkarte{height:340px;max-height:55dvh;border-radius:.8rem;border:1px solid #768398;margin:1rem 0}.spesen-route-status{font-weight:600}.spesen-route-ergebnis{padding:1rem;background:#eaf0ff;border-radius:.8rem}
+#spesenWerkzeug>[hidden]{display:none!important}
+@media(max-width:480px){.spesen-route-dialog{padding:1rem}.spesen-team-kopf,.spesen-team-person,.spesen-team-summe{padding:1rem}}
+@media print{body *{visibility:hidden} .spesen-team-summe,.spesen-team-summe *{visibility:visible}.spesen-team-summe{position:absolute;top:0;left:0;width:95%;border:0}.spesen-route-dialog{display:none!important}}

@@ -1,7 +1,7 @@
 const typen = [
   {id:'serienjoker',titel:'Serienjoker',text:'Rettet eine verpasste Quizwoche für deine Wochenserie. Du setzt ihn bei einer rettbaren Woche ein. Einmal verwendbar, ohne Ablaufdatum. Das Sieben-Tage-Fenster der verpassten Woche bleibt bestehen.',fertig:true},
   {id:'halbhalb',titel:'50/50-Joker',text:'Bei einer Einfachauswahl mit mindestens drei Optionen bleiben zwei Antwortmöglichkeiten übrig, eine davon richtig. Vor deiner ersten Antwort einsetzen. Nur im Wochenquiz, nicht im Üben. Einmal verwendbar, ohne Ablaufdatum.',fertig:true},
-  {id:'zweiter-versuch',titel:'Zweiter Versuch',text:'Nach einer falschen Erstantwort noch einmal antworten, bevor du die Lösung siehst. Gelingt es, zählt die Antwort voll als richtig. Der Obmann sieht Jokereinsatz, Erst- und Zweitantwort. Nicht mit der kostenlosen KI-Ergänzung kombinierbar und nicht nach bereits angezeigter Lösung. Nur Wochenquiz. Einmal verwendbar, ohne Ablaufdatum.',fertig:true},
+  {id:'zweiter-versuch',titel:'Zweiter Versuch',text:'Nach einer falschen Erstantwort noch einmal antworten, bevor du die Lösung siehst. Gelingt es, zählt die Antwort voll als richtig. Der Obmann sieht Jokereinsatz, Erst- und Zweitantwort. Nicht mit der regulären KI-Rückfrage kombinierbar und nicht nach bereits angezeigter Lösung. Nur Wochenquiz. Einmal verwendbar, ohne Ablaufdatum.',fertig:true},
 ];
 const el=(d,tag,klasse,text)=>{const e=d.createElement(tag);e.className=klasse;if(text!==undefined)e.textContent=text;return e;};
 

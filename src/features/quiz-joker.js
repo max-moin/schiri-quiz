@@ -2,10 +2,11 @@
  'use strict';
  function erstelleQuizJoker({sb,getZugang}){
   let stand=null,version=0,dialogNummer=0;
+  const menues=new Map();
   const el=(tag,klasse,text)=>{const e=document.createElement(tag);e.className=klasse;if(text!==undefined)e.textContent=text;return e;};
   const zugang=()=>{const z=getZugang();return {p_schiedsrichter_id:z.schiedsrichterId,p_pin:z.pin};};
   const vorgang=id=>stand?.vorgaenge?.find(v=>v.frage_id===id);
-  async function laden(){const n=++version,z=zugang();stand=null;try{const {data,error}=await sb.rpc('mein_jokerbestand',z);if(n===version&&z.p_schiedsrichter_id===getZugang().schiedsrichterId&&z.p_pin===getZugang().pin&&!error)stand=data;}catch{/* Der optionale Bestand blockiert das Quiz nicht. */}}
+  async function laden(){const n=++version,z=zugang();stand=null;try{const {data,error}=await sb.rpc('mein_jokerbestand',z);if(n===version&&z.p_schiedsrichter_id===getZugang().schiedsrichterId&&z.p_pin===getZugang().pin&&!error)stand=data;}catch{/* Der optionale Bestand blockiert das Quiz nicht. */}for(const [b,update] of menues){if(b.isConnected)update();else menues.delete(b);}}
   async function aktion(id,art,antwort={},typ=null){const {data,error}=await sb.rpc('quiz_joker_antwort',{...zugang(),p_frage_id:id,p_aktion:art,p_art:typ,p_antwort:antwort});if(error)throw error;return data;}
   function auswahlDialog(){return new Promise(resolve=>{
    const vorher=document.activeElement,d=el('dialog','quiz-joker-dialog'),titelId='quiz-joker-titel-'+(++dialogNummer);d.setAttribute('aria-labelledby',titelId);
@@ -53,16 +54,18 @@
    const optionen=frage.antwortoptionen?.length||[frage.option_a,frage.option_b,frage.option_c].filter(Boolean).length;
    if(!stand)return;
    const b=el('button','quiz-joker-menue');b.type='button';b.setAttribute('aria-haspopup','dialog');
-   const bestand=()=>Object.values(stand?.bestand||{}).reduce((a,n)=>a+(Number(n)||0),0);
-   const beschriften=()=>{b.replaceChildren(el('span','quiz-joker-symbol','✦'),el('span','quiz-joker-anzahl',String(bestand())));b.setAttribute('aria-label',`Deine Joker: ${bestand()} verfügbar. Auswahl öffnen`);};
+   const bestand=()=>geeigneterVorrat(frage,stand,beantwortet);
+   const beschriften=()=>{const n=bestand();b.hidden=n===0||!getZugang().schiedsrichterId||!getZugang().pin;b.disabled=b.hidden;b.replaceChildren(el('span','quiz-joker-symbol','✦'),el('span','quiz-joker-anzahl',String(n)));b.setAttribute('aria-label',`Deine Joker: ${n} für diese Frage verfügbar. Auswahl öffnen`);};
+   menues.set(b,beschriften);
    beschriften();b.onclick=()=>{
+    beschriften();if(b.hidden)return;
     const aktuell=vorgang(frage.id);
     const vorher=document.activeElement,d=el('dialog','quiz-joker-dialog'),tid='quiz-joker-inventar-'+(++dialogNummer);d.setAttribute('aria-labelledby',tid);
     const x=el('button','quiz-joker-x','×');x.type='button';x.autofocus=true;x.setAttribute('aria-label','Jokerauswahl schließen');x.onclick=()=>d.close();
     const h=el('h2','','Deine Joker');h.id=tid;
     const info=el('p','quiz-joker-klein','Öffnen kostet keinen Joker. Ein Einsatz ist einmalig.');info.setAttribute('role','status');d.append(x,h,info);
     const zeile=(typ,titel,grund,aktionFn)=>{const a=el('button','quiz-joker-auswahl',`${titel} · ${Number(stand?.bestand?.[typ])||0}`);a.type='button';const hinweis=el('p','quiz-joker-klein',grund);hinweis.id=tid+'-'+typ;a.setAttribute('aria-describedby',hinweis.id);a.disabled=!aktionFn||!stand?.bestand?.[typ];if(aktionFn)a.onclick=async()=>{a.disabled=true;try{await aktionFn();await laden();beschriften();d.close();}catch(e){info.textContent=e.message||'Joker konnte nicht eingesetzt werden.';a.disabled=false;}};d.append(a,hinweis);};
-    const halbErlaubt=frage.antworttyp==='multiple_choice'&&optionen>=3&&!aktuell?.kandidaten&&!aktuell?.status&&!beantwortet?.beantwortet;
+    const halbErlaubt=antworttyp(frage)==='multiple_choice'&&optionen>=3&&!aktuell?.kandidaten&&!aktuell?.status&&!beantwortet?.beantwortet;
     zeile('halbhalb','50/50',halbErlaubt?'Verbraucht einen Joker und lässt zwei Möglichkeiten übrig.':'Nur vor der Erstantwort bei einer Einfachauswahl mit mindestens drei Möglichkeiten.',halbErlaubt?async()=>{const r=await aktion(frage.id,'halbhalb');anwenden(karte,r.kandidaten);}:null);
     zeile('zweiter-versuch','Zweiter Versuch',aktuell?.status==='angebot'?'Erstantwort verwerfen und einmal neu antworten.':'Wird nach einer falschen Erstantwort angeboten. Noch kein Verbrauch.',aktuell?.status==='angebot'?async()=>{const r=await aktion(frage.id,'joker');fortsetzen(karte,r);}:null);
     zeile('serienjoker','Serienrettung','Rettet eine verpasste Woche in deiner Quiz-Statistik. Hier nicht einsetzbar.',null);
@@ -73,5 +76,18 @@
   const wochenRpc={rpc:(name,parameter)=>name.startsWith('antwort_')?senden(name,parameter):sb.rpc(name,parameter)};
   return Object.freeze({laden,senden,bewertet,fortsetzen,markiere,schmuecken,wochenRpc});
  }
- global.SchiriQuizJoker=Object.freeze({erstelleQuizJoker});
+ function geeigneterVorrat(frage,stand,beantwortet){
+  if(!stand||beantwortet?.beantwortet||beantwortet?.nachbesserung_offen||beantwortet?.bewertungsstatus==='nachbessern')return 0;
+  const v=stand.vorgaenge?.find(x=>x.frage_id===frage.id);
+  if(v?.status==='zweiter'||v?.status==='fertig')return 0;
+  const n=k=>Math.max(0,Number(stand.bestand?.[k])||0);
+  const typ=antworttyp(frage);
+  if(!['multiple_choice','freitext','video_freitext','entscheidung','einfachauswahl','mehrfachauswahl','zahl'].includes(typ))return 0;
+  let zahl=n('zweiter-versuch');
+  const optionen=frage.antwortoptionen?.length||[frage.option_a,frage.option_b,frage.option_c].filter(Boolean).length;
+  if(typ==='multiple_choice'&&optionen>=3&&!v?.kandidaten&&!v?.status)zahl+=n('halbhalb');
+  return zahl;
+ }
+ function antworttyp(frage){return frage.antworttyp||frage.video_antworttyp||(frage.typ==='video'?'video_freitext':'multiple_choice');}
+ global.SchiriQuizJoker=Object.freeze({erstelleQuizJoker,geeigneterVorrat});
 })(globalThis);
