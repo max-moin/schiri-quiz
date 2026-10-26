@@ -128,8 +128,8 @@ test("nur Seiten mit Motiven fragen den veroeffentlichten Bilderstand ab", () =>
 
 test("der Obmann-Bereich bietet Bilder als eigenen Reiter an", () => {
   const html = readFileSync(new URL("../obmann.html", import.meta.url), "utf8");
-  assert.match(html, /data-bereich-knopf="bilder"/);
-  assert.match(html, /data-admin-bereich="bilder"/);
+  assert.match(html, /data-bereich-knopf="website"/);
+  assert.match(html, /data-admin-unterbereich="bilder"/);
   const page = readFileSync(new URL("../src/admin/obmann-page.js", import.meta.url), "utf8");
   assert.match(page, /erstelleBilderEditor/);
   // Gestaltung gehoert in stil/obmann.css, nicht in style.css.

@@ -16,6 +16,7 @@ import { erstelleTexteEditor } from "./texte-editor.js";
 import { erstelleFreigabeEditor } from "./freigabe-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
 import { erstelleSoccergolfEditor } from "./soccergolf-editor.js";
+import { erstelleHausregeltestEditor } from "./hausregeltest-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
 
 const client = window.supabase.createClient(
@@ -66,7 +67,8 @@ async function oeffneEditor() {
   zeige("editor");
   if (!editorenGestartet) {
     editorenGestartet = true;
-    erstelleSoccergolfEditor({wurzel:document.querySelector('[data-admin-bereich="soccergolf"]'),client});
+    erstelleHausregeltestEditor({wurzel:document.querySelector('[data-admin-bereich="hausregeltest"]'),client});
+    erstelleSoccergolfEditor({wurzel:document.querySelector('[data-admin-unterbereich="soccergolf"]'),client});
     erstelleFreigabenEditor({
       wurzel: document.querySelector('[data-admin-bereich="sichtbarkeit"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
@@ -91,14 +93,14 @@ async function oeffneEditor() {
     // Datei geht in den Bucket, nur die fertige Adresse wandert spaeter
     // ueber dieselbe Veroeffentlichung wie die anderen Bereiche.
     erstelleBilderEditor({
-      wurzel: document.querySelector('[data-admin-bereich="bilder"]'),
+      wurzel: document.querySelector('[data-admin-unterbereich="bilder"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
     });
     // Die Texte der oeffentlichen Seiten. Ohne Veroeffentlichung
     // bleibt stehen, was im HTML steht - der Editor zeigt diesen
     // Ausgangsstand neben jedem Feld an.
     erstelleTexteEditor({
-      wurzel: document.querySelector('[data-admin-bereich="texte"]'),
+      wurzel: document.querySelector('[data-admin-unterbereich="texte"]'),
       client, verein: VEREIN, benutzer: aktuellerBenutzer,
     });
     // Freigabe laeuft - wie die Terminsuche - ueber das gemeinsame
@@ -112,12 +114,19 @@ async function oeffneEditor() {
     // nicht auf den website_-Tabellen mit RLS-Policies, sondern auf den
     // gemeinsamen Vereinstabellen hinter den geprueften Obmann-Funktionen.
     erstelleTerminfindungEditor({
-      wurzel: document.querySelector('[data-admin-bereich="terminsuche"]'),
+      wurzel: document.querySelector('[data-admin-unterbereich="terminsuche"]'),
       client,
     });
   }
 }
 
+document.querySelectorAll('[data-unterbereich]').forEach(knopf => {
+  knopf.addEventListener('click',()=>{
+    const gruppe=knopf.closest('[data-admin-bereich]');
+    gruppe.querySelectorAll('[data-admin-unterbereich]').forEach(el=>{el.hidden=el.dataset.adminUnterbereich!==knopf.dataset.unterbereich;});
+    gruppe.querySelectorAll('[data-unterbereich]').forEach(el=>el.setAttribute('aria-pressed',String(el===knopf)));
+  });
+});
 document.querySelectorAll("[data-bereich-knopf]").forEach((knopf) => {
   knopf.addEventListener("click", () => {
     const bereich = knopf.dataset.bereichKnopf;

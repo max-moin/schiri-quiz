@@ -18,6 +18,9 @@ export function pruefeSoccergolf(d){
  return fehler;
 }
 export function sichererLink(wert){try{const u=new URL(wert);return u.protocol==='https:'&&!u.username&&!u.password;}catch{return false;}}
+export function externesPlanbild(wert){
+ try {const u=new URL(wert);return u.protocol==='https:'&&u.hostname==='www.soccergolf-sachsen.de'&&!u.username&&!u.password&&!u.port&&!u.search&&!u.hash&&/^\/assets\/images\/[a-zA-Z0-9/_-]+\.(png|jpe?g|webp)$/i.test(u.pathname);}catch{return false;}
+}
 export function sicheresPlanbild(wert){
  const s=String(wert||'');
  if(/^bilder\/[a-zA-Z0-9_./-]+\.(png|jpe?g|webp)$/i.test(s)&&!s.includes('..'))return true;
@@ -44,11 +47,18 @@ export function zeichneSoccergolf(doc,d){
  const scroll=el(doc,'div','golf-tabelle-halter');scroll.tabIndex=0;scroll.setAttribute('role','region');scroll.setAttribute('aria-label','Ergebnisse je Bahn, horizontal scrollbar');
  const t=el(doc,'table','golf-tabelle');t.append(el(doc,'caption','','Ergebnisse je Bahn'));
  const head=el(doc,'thead',''),hr=el(doc,'tr','');
- for(const label of ['Platz','Name',...Array.from({length:d.bahnen},(_,i)=>'Bahn '+(i+1)),'Gesamt']){const th=el(doc,'th','',label);th.scope='col';hr.append(th);}head.append(hr);t.append(head);
+ for(const label of ['Platz','Name','Gesamt',...Array.from({length:d.bahnen},(_,i)=>'Bahn '+(i+1))]){const th=el(doc,'th',label==='Gesamt'?'golf-summe':'',label);th.scope='col';hr.append(th);}head.append(hr);t.append(head);
  const body=el(doc,'tbody','');
- for(const p of rangliste){const tr=el(doc,'tr','');tr.append(el(doc,'td','',p.platz??'–'));const name=el(doc,'th','',p.name);name.scope='row';tr.append(name);for(const n of p.schlaege)tr.append(el(doc,'td','',n??'–'));tr.append(el(doc,'td','golf-summe',p.platz===null?`${p.summe} · ${p.gespielt}/${d.bahnen} Bahnen`:String(p.summe)));body.append(tr);}t.append(body);scroll.append(t);bereich.append(scroll);
+ for(const p of rangliste){const tr=el(doc,'tr','');tr.append(el(doc,'td','',p.platz??'–'));const name=el(doc,'th','',p.name);name.scope='row';tr.append(name);tr.append(el(doc,'td','golf-summe',p.platz===null?`${p.summe} · ${p.gespielt}/${d.bahnen} Bahnen`:String(p.summe)));for(const n of p.schlaege)tr.append(el(doc,'td','',n??'–'));body.append(tr);}t.append(body);scroll.append(t);bereich.append(scroll);
  bereich.append(el(doc,'p','golf-tabellenhinweis','Alle Bahnen: seitlich scrollen. Gleiche Summe = gleicher Platz. Unvollständige Runden ohne Rang.'));
  if(d.plan_bild&&sicheresPlanbild(d.plan_bild)){const fig=el(doc,'figure','golf-plan'),img=el(doc,'img','');img.src=d.plan_bild;img.alt='Anlagenplan der Soccer-Golf-Anlage mit den Spielbahnen';img.loading='lazy';fig.append(img,el(doc,'figcaption','',d.plan_quelle||'Anlagenplan'));bereich.append(fig);}
+ else if(externesPlanbild(d.plan_link)){
+  const fig=el(doc,'figure','golf-plan');
+  const b=el(doc,'button','golf-plan-laden','Anlagenplan hier anzeigen');b.type='button';
+  const info=el(doc,'p','golf-tabellenhinweis','Lädt das Bild von SoccerGolf Sachsen. Dabei wird deine IP-Adresse an den Betreiber übertragen.');
+  b.addEventListener('click',()=>{b.disabled=true;const img=el(doc,'img','');img.alt='Anlagenplan von SoccerGolf Sachsen mit den Spielbahnen';img.referrerPolicy='no-referrer';img.src=d.plan_link;img.addEventListener('load',()=>{b.remove();info.textContent=d.plan_quelle||'Quelle: SoccerGolf Sachsen · Anlagenplan';});img.addEventListener('error',()=>{img.remove();b.disabled=false;info.textContent='Bild konnte nicht geladen werden. Nutze den Betreiberlink darunter.';});fig.prepend(img);});
+  fig.append(b,info);bereich.append(fig);
+ }
  if(d.plan_link&&sichererLink(d.plan_link)){const a=el(doc,'a','golf-plan-link','Anlagenplan / Betreiber öffnen');a.href=d.plan_link;a.target='_blank';a.rel='noopener noreferrer';bereich.append(a);}
  return bereich;
 }

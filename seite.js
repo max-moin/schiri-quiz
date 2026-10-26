@@ -433,9 +433,21 @@ if (kopfInnen && globalThis.SchiriAnmeldung && globalThis.SchiriLoginDialog) {
   });
 
 
-  // "Zum Quiz" öffnet für alle dieselbe Auswahl. Erst der dortige
-  // Wochenquiz-Knopf fordert die Anmeldung an. Gast ist eine ausdrückliche
-  // Alternative, niemals die automatische Bedeutung von "nicht angemeldet".
+  // Erst auf der aktuellen Seite anmelden, dann ins Quiz wechseln.
+  // Bewusste Gastlinks und Übungs-/Duelllinks bleiben davon unberührt.
+  document.addEventListener("click", async (event) => {
+    const link = event.target.closest?.('a.nav-anmelden, .wochenquiz-einstieg a[href="quiz.html"]');
+    if (!link || event.defaultPrevented || event.button !== 0
+        || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey || anmeldung.lesen()) return;
+    event.preventDefault();
+    const ziel = link.classList.contains('nav-anmelden') ? 'modus.html' : 'quiz.html';
+    const ergebnis = await loginDialog.oeffne({
+      grund: "Melde dich für dein Wochenquiz mit Vereinskennung und persönlicher PIN an.",
+      gastErlaubt: true,
+    });
+    if (ergebnis.status === 'angemeldet') location.assign(ziel);
+    else if (ergebnis.status === 'gast') location.assign('quiz.html#gast');
+  });
 }
 
 // ---------- Name der aktuellen Seite ----------

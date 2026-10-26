@@ -10,12 +10,12 @@ class E{
 }
 const doc={createElement:tag=>new E(tag)};
 const alle=(e,filter)=>[...(filter(e)?[e]:[]),...e.children.flatMap(c=>alle(c,filter))];
-test('Leerer Vorrat: drei graue anklickbare Typen und keine Besitz-Zahl',()=>{
- const e=zeichneJokerVorrat(doc,{joker:[]});assert.equal(alle(e,x=>x.className?.includes('joker-leer')).length,3);assert.equal(alle(e,x=>x.className==='joker-anzahl').length,0);assert.match(e.text,/Noch kein Joker/);
+test('Leerer Vorrat: sieben graue anklickbare Typen und keine Besitz-Zahl',()=>{
+ const e=zeichneJokerVorrat(doc,{joker:[]});assert.equal(alle(e,x=>x.className?.includes('joker-leer')).length,7);assert.equal(alle(e,x=>x.className==='joker-anzahl').length,0);assert.match(e.text,/Noch kein Joker/);
  alle(e,x=>x.title?.startsWith('Serienjoker'))[0].events.click();assert.match(e.text,/Einmal verwendbar, ohne Ablaufdatum/);
 });
 test('Nur tatsächlicher Bestand erhält eine Zahl, auch leere Quizjoker erklären ihre Wirkung',()=>{
- const e=zeichneJokerVorrat(doc,{joker:[{jahr:2025},{jahr:2026}]});const badges=alle(e,x=>x.className==='joker-anzahl');assert.equal(badges.length,1);assert.equal(badges[0].textContent,'2');assert.equal(alle(e,x=>x.className?.includes('joker-leer')).length,2);
+ const e=zeichneJokerVorrat(doc,{joker:[{jahr:2025},{jahr:2026}]});const badges=alle(e,x=>x.className==='joker-anzahl');assert.equal(badges.length,1);assert.equal(badges[0].textContent,'2');assert.equal(alle(e,x=>x.className?.includes('joker-leer')).length,6);
  alle(e,x=>x.title?.startsWith('50/50'))[0].events.click();assert.match(e.text,/Vor deiner ersten Antwort einsetzen/);assert.doesNotMatch(e.text,/Noch nicht einlösbar/);
 });
 test('Info erklärt drei echte Vergabewege, Zufallsbox und unbegrenzte Gültigkeit',()=>{

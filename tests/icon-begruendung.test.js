@@ -1,12 +1,37 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import handler,{bereinigeEntscheidung,pruefeForm,pruefeVollstaendig,pruefeFreieEntscheidung} from '../api/entscheidung-bewerten.js';
+import handler,{bewerteEntscheidung,bereinigeEntscheidung,pruefeForm,pruefeVollstaendig,pruefeFreieEntscheidung} from '../api/entscheidung-bewerten.js';
 const kontext={frage_text:'Foul außerhalb des Strafraums.',fordert_fortsetzung:true,fordert_fortsetzung_fuer:false,fordert_fortsetzung_ort:false,fordert_strafe:false,fordert_begruendung:true,begruendung_muster:'Verhindert einen aussichtsreichen Angriff.',begruendung_gewicht:3,kern_richtig:true};
 const antwort=()=>({spielfortsetzung:'direkter_freistoss',strafen:[],begruendung:'Stoppt einen aussichtsreichen Angriff.'});
 const res=()=>({setHeader(){},status(n){this.statusCode=n;return this;},json(x){this.body=x;return this;}});
 function env(t){for(const k of ['SUPABASE_SECRET_KEY','GEMINI_API_KEY']){const alt=process.env[k];process.env[k]='synthetic-test';t.after(()=>{if(alt===undefined)delete process.env[k];else process.env[k]=alt;});}t.mock.method(console,'error',()=>{});}
 const ki=(daten)=>new Response(JSON.stringify({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(daten)}]}}]}));
+const reqBody=a=>({schiedsrichterId:'dc94fef4-a0a9-44dd-b7f1-bfe8e6a30b51',frageId:'3863476e-e0ba-4ae4-b664-1e238086c287',pin:'test',antwort:a});
+test('Vorbereitete Orange-API speichert Nachfrage ohne Lösung und ohne Jokerverbrauch',async t=>{
+ env(t);let gespeichert;
+ t.mock.method(globalThis,'fetch',async(url,o)=>{
+  if(String(url).endsWith('/entscheidung_nachfrage_kontext'))return new Response(JSON.stringify(kontext));
+  if(String(url).includes('generativelanguage'))return ki({begruendung_richtig:false,begruendung_status:'nachbessern',nachfrage:'Was ist am Angriff hier entscheidend?',begruendung_feedback:''});
+  assert.match(String(url),/entscheidung_mit_nachfrage_speichern$/);gespeichert=JSON.parse(o.body);
+  return new Response(JSON.stringify({nachbesserung_offen:true,ki_nachfrage:'Was ist am Angriff hier entscheidend?',antwort:antwort()}));
+ });
+ const r=res();await bewerteEntscheidung({method:'POST',body:reqBody(antwort())},r,{nachfrageFreigegeben:true});
+ assert.equal(r.statusCode,200);assert.equal(r.body.nachbesserung_offen,true);
+ assert.equal(gespeichert.p_antwort._begruendung.status,'nachbessern');assert.doesNotMatch(JSON.stringify(r.body),/loesung|begruendung_muster|_begruendung/);
+});
+test('Ergänzungs-API hält feste Erstantwort und prüft beide Begründungsteile',async t=>{
+ env(t);let gespeichert,prompt;
+ const c={...kontext,nachfrage_offen:true,erste_antwort:antwort(),nachfrage:'Was ist am Angriff entscheidend?'};
+ t.mock.method(globalThis,'fetch',async(url,o)=>{
+  if(String(url).endsWith('/entscheidung_nachfrage_kontext'))return new Response(JSON.stringify(c));
+  if(String(url).includes('generativelanguage')){prompt=JSON.parse(o.body).contents[0].parts[0].text;return ki({begruendung_richtig:true,begruendung_feedback:'Passend.'});}
+  gespeichert=JSON.parse(o.body);return new Response('{"korrekt":true}');
+ });
+ const r=res();await bewerteEntscheidung({method:'POST',body:{...reqBody({...antwort(),spielfortsetzung:'strafstoss',begruendung:'Ergänzter passender Grund.'}),nachfrageBeantworten:true}},r,{nachfrageFreigegeben:true});
+ assert.equal(r.statusCode,200);assert.equal(gespeichert.p_antwort.spielfortsetzung,'direkter_freistoss');
+ assert.match(prompt,/Ergänzter passender Grund/);assert.ok(prompt.includes(antwort().begruendung));
+});
 test('Begründung ist strikt opt-in und auf 600 Zeichen begrenzt',()=>{
  assert.equal(pruefeVollstaendig(antwort(),kontext),null);
  assert.match(pruefeVollstaendig({...antwort(),begruendung:''},kontext),/Begründung fehlt/);

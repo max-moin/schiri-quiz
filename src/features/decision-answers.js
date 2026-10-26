@@ -162,6 +162,7 @@
     }
 
     function zeichneForm(frage, container, wahl) {
+      container.schiriAntwortLesen = () => baueAntwort(frage, wahl);
       const alt = container.querySelector(".entscheidung-form");
       const form = document.createElement("div");
       form.className = "entscheidung-form";
@@ -663,6 +664,7 @@
               pin: zugang.pin,
               antwort: gegebeneAntwort,
               joker: Boolean(quizJoker),
+              nachfrageBeantworten: wahl.nachfrage === true,
             }),
           });
           daten = await antwort.json();
@@ -670,6 +672,10 @@
           return daten;
           };
           daten=quizJoker?await quizJoker.bewertet(frage.id,anfrage):await anfrage();
+        }
+        if(daten.nachbesserung_offen){
+          container.replaceWith(baueNachfrageElement(frage,daten));
+          beiWochenfrageBeantwortet(frage.id); return;
         }
         if(quizJoker?.fortsetzen(container,daten)){button.disabled=false;button.textContent='Entscheidung abschicken';return;}
         const beantworteteKarte = baueBeantworteteFrageElement(frage, {
@@ -700,6 +706,24 @@
       kopf(frage, container);
       zeichneForm(frage, container, neueWahl());
       return container;
+    }
+
+    function baueNachfrageElement(frage, daten) {
+      const container=document.createElement('div'); container.className='frage-karte frage-karte-entscheidung nachfrage-karte';container.dataset.frageId=frage.id;
+      kopf(frage,container);
+      const h=document.createElement('h3');h.textContent='Deine Begründung ergänzen';
+      const text=document.createElement('p');text.textContent=daten.ki_nachfrage || 'Was ist der entscheidende Grund für deine Entscheidung?';text.className='entscheidung-nachfrage-text';
+      const hinweis=document.createElement('p');hinweis.textContent='Die Auflösung bleibt bis zu deiner Ergänzung verborgen.';hinweis.className='entscheidung-nachfrage-kurz';
+      const a=daten.antwort || {}, wahl={...neueWahl(),...a,keine_strafe:!a.strafen?.length,nachfrage:true};
+      const ursprung=document.createElement('details'),summary=document.createElement('summary'),original=document.createElement('p');summary.textContent='Deine erste Begründung';original.textContent=a.begruendung || '';ursprung.append(summary,original);
+      const label=document.createElement('label');label.textContent='Deine Ergänzung';
+      const eingabe=document.createElement('textarea');eingabe.className='entscheidung-begruendung';eingabe.maxLength=600;eingabe.rows=3;eingabe.required=true;eingabe.setAttribute('aria-label','Deine Ergänzung zur Begründung');
+      eingabe.addEventListener('input',()=>{wahl.begruendung=eingabe.value;});
+      label.append(eingabe);
+      const button=document.createElement('button');button.type='button';button.className='absenden-button entscheidung-absenden';button.textContent='Ergänzung abschicken';
+      const feedback=document.createElement('p');feedback.className='entscheidung-feedback';feedback.setAttribute('role','status');feedback.hidden=true;
+      button.addEventListener('click',()=>{if(!eingabe.value.trim()){eingabe.reportValidity();return;}void abschicken(frage,container,wahl,button);});
+      container.append(h,text,hinweis,ursprung,label,button,feedback);return container;
     }
 
     function ergebnisZeile(label, richtig, deins, korrekt) {
@@ -808,6 +832,7 @@
 
     function baueBeantworteteFrageElement(frage, antwort) {
       const details = antwort.entscheidung || {};
+      if(details.nachbesserung_offen || antwort.nachbesserung_offen) return baueNachfrageElement(frage,{...details,ki_nachfrage:details.ki_nachfrage || antwort.ki_nachfrage});
       const gegeben = details.antwort || {};
       const loesung = details.loesung || {};
       const e = details.ergebnis || {};

@@ -1,0 +1,30 @@
+.hrt { max-width: 900px; }
+.hrt-kopf { background: linear-gradient(115deg,#e8f0ff,#e8f6f0); border-radius: 22px; padding: clamp(18px,4vw,32px); margin-block: 20px; }
+.hrt-kopf h1 { margin: 0 0 12px; font-size: clamp(1.5rem,4vw,2.3rem); }
+.hrt-phasen { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; list-style: none; }
+.hrt-phasen li { background:#fff; color:#334155; padding:8px 12px; border-radius:20px; }
+.hrt-phasen [aria-current] { background:#153d82; color:#fff; }
+.hrt-panel { border:1px solid #cbd5e1; background:#fff; border-radius:18px; padding:clamp(16px,3vw,28px); margin-block:18px; }
+.hrt-meta { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
+.hrt label { display:block; font-weight:600; }
+.hrt input,.hrt textarea { display:block; box-sizing:border-box; width:100%; max-width:100%; font:inherit; padding:12px; border:1px solid #64748b; border-radius:10px; background:#fff; color:#172033; margin-top:6px; }
+.hrt input:disabled,.hrt textarea:disabled { opacity:1; background:#f1f5f9; color:#334155; }
+.hrt textarea { min-height:170px; resize:vertical; }
+.hrt-fragen { display:flex; flex-wrap:wrap; gap:8px; margin-block:16px; }
+.hrt button,.hrt .knopf { min-height:44px; min-width:44px; white-space:normal; }
+.hrt .knopf { border:1px solid #64748b; border-radius:12px; padding:11px 17px; background:#fff; color:#172033; font:inherit; font-weight:600; cursor:pointer; }
+.hrt .knopf-primaer { background:#153d82; color:#fff; border-color:#153d82; }
+.hrt .knopf:disabled { color:#64748b; background:#eef2f6; border-color:#cbd5e1; cursor:default; }
+.hrt-fragen button { background:#fff; border:1px solid #94a3b8; border-radius:12px; font:inherit; }
+.hrt-fragen .beantwortet { border:2px solid #315e9c; background:#e8f0ff; }
+.hrt-fragen [aria-current] { outline:3px solid #153d82; outline-offset:2px; }
+.hrt button:focus-visible,.hrt a:focus-visible { outline:3px solid #153d82; outline-offset:3px; }
+.hrt-aktionen { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+.hrt-status { min-height:1.5em; color:#334155; overflow-wrap:anywhere; }
+.hrt-status.fehler { color:#9f1d1d; font-weight:600; }
+.hrt-frage { line-height:1.65; }
+.hrt-ursprung { white-space:pre-wrap; overflow-wrap:anywhere; color:#334155; }
+.hrt summary { cursor:pointer; min-height:44px; padding-block:10px; }
+.hrt-erfolg { border:2px solid #237250; background:#edf8f2; }
+.hrt [hidden] { display:none !important; }
+@media(max-width:600px) { .hrt-meta{grid-template-columns:1fr;} .hrt-aktionen>*{flex:1 1 160px;} }

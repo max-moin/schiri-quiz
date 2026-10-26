@@ -212,7 +212,7 @@
         const istFreitext = frage.typ === "freitext" || frage.typ === "video_freitext";
         const istEntscheidung = frage.antworttyp === "entscheidung" || frage.typ === "szenario";
         const istFlexibel = ["multiple_choice", "mehrfachauswahl", "zahl"].includes(frage.antworttyp);
-        if (bisherigeAntwort && bisherigeAntwort.beantwortet) {
+        if (bisherigeAntwort && (bisherigeAntwort.beantwortet || bisherigeAntwort.entscheidung?.nachbesserung_offen)) {
           beantworteteIds.add(frage.id);
           beantworteFragenAnzahl += 1;
           fragenListe.appendChild(

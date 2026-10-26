@@ -422,4 +422,15 @@ export function teileVergangenheitAb(termine) {
   return { kuenftig, vergangen };
 }
 
+// Die jüngsten n vergangenen Termine, aber in derselben aufsteigenden
+// Leserichtung wie die Zukunft. Beim Nachladen erscheinen ältere oben.
+export function aeltereTermine(termine, anzahl = 0) {
+  if (!Number.isFinite(anzahl) || anzahl < 1) return [];
+  return termine.filter(t => t.vergangen)
+    .sort((a,b) => a.datum.localeCompare(b.datum)
+      || String(a.beginn_zeit || '').localeCompare(String(b.beginn_zeit || ''))
+      || String(a.id).localeCompare(String(b.id)))
+    .slice(-Math.trunc(anzahl));
+}
+
 export { sicher, GRUND_TEXT, ARTEN };

@@ -114,15 +114,24 @@
         <button type="button" data-bereich-knopf="regeln" aria-pressed="false"><span>§</span>Regeln</button>
         <button type="button" data-bereich-knopf="vorlagen" aria-pressed="false"><span>✉</span>Absagen</button>
         <button type="button" data-bereich-knopf="unterlagen" aria-pressed="false"><span>↗</span>Unterlagen</button>
-        <button type="button" data-bereich-knopf="bilder" aria-pressed="false"><span>▣</span>Bilder</button>
-        <button type="button" data-bereich-knopf="texte" aria-pressed="false"><span>¶</span>Texte</button>
+        <button type="button" data-bereich-knopf="website" aria-pressed="false"><span>▣</span>Website</button>
         <button type="button" data-bereich-knopf="freigabe" aria-pressed="false"><span>✓</span>Freigabe</button>
-        <button type="button" data-bereich-knopf="terminsuche" aria-pressed="false"><span>◷</span>Terminsuche</button>
-        <button type="button" data-bereich-knopf="soccergolf" aria-pressed="false"><span aria-hidden="true">⚽</span>Soccer-Golf</button>
+        <button type="button" data-bereich-knopf="termine" aria-pressed="false"><span>◷</span>Termine</button>
+        <button type="button" data-bereich-knopf="hausregeltest" aria-pressed="false"><span>▤</span>Hausregeltest</button>
       </nav>
 
       <div data-admin-bereich="sichtbarkeit"></div>
-      <div data-admin-bereich="soccergolf" hidden></div>
+      <section data-admin-bereich="hausregeltest" hidden></section>
+      <section data-admin-bereich="termine" hidden>
+        <h2>Termine & Rückblicke</h2>
+        <div class="admin-bereich-nav" aria-label="Terminwerkzeuge"><button type="button" data-unterbereich="terminsuche">Terminsuche</button><button type="button" data-unterbereich="soccergolf">Soccer-Golf-Rückblick</button></div>
+        <div data-admin-unterbereich="terminsuche"></div><div data-admin-unterbereich="soccergolf" hidden></div>
+      </section>
+      <section data-admin-bereich="website" hidden>
+        <h2>Website</h2><p>Inhalte direkt auf der gewünschten Seite bearbeiten. Hier bleiben zentrale Bildmotive und feste Kurztexte erreichbar.</p>
+        <div class="admin-bereich-nav" aria-label="Websitewerkzeuge"><button type="button" data-unterbereich="bilder">Bildmotive</button><button type="button" data-unterbereich="texte">Kurztexte</button></div>
+        <div data-admin-unterbereich="bilder"></div><div data-admin-unterbereich="texte" hidden></div>
+      </section>
 
       <div data-admin-bereich="spesen" hidden>
         <div class="admin-bereich-einstieg"><div><h2>Spesen</h2><p>Spielklassen, Entschädigungen und Fahrtkosten.</p></div><span class="admin-bereich-status">Öffentlich nach Bestätigung</span></div>
@@ -181,10 +190,7 @@
       <div data-admin-bereich="regeln" hidden></div>
       <div data-admin-bereich="vorlagen" hidden></div>
       <div data-admin-bereich="unterlagen" hidden></div>
-      <div data-admin-bereich="bilder" hidden></div>
-      <div data-admin-bereich="texte" hidden></div>
       <div data-admin-bereich="freigabe" hidden></div>
-      <div data-admin-bereich="terminsuche" hidden></div>
     </section>
   </main>
 

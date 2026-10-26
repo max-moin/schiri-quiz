@@ -1,4 +1,4 @@
-import { SEITENHILFE, EINRICHTUNG, tourSchritte, leseTour, leseFortschritt, speichereFortschritt } from '../website/hilfe-inhalte.js';
+import { SEITENHILFE, EINRICHTUNG, tourSchritte, tourAdresse, leseTour, leseFortschritt, speichereFortschritt } from '../website/hilfe-inhalte.js';
 import { tourRahmen } from './tour-position.js';
 
 export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldung?.anmeldung } = {}) {
@@ -60,7 +60,7 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
     }
     const aktionen = el('div'); aktionen.className = 'seitenhilfe-links';
     aktionen.append(button('Diese Seite zeigen', null, () => starten('seite')),
-      button('Ausführliche Einstiegstour', null, () => starten('einstieg')));
+      button('Einführungstour', null, () => starten('einstieg')));
     const link = el('a', 'Alle Hilfen'); link.href = 'hilfe.html'; aktionen.append(link);
     d.append(aktionen); d.showModal();
   }
@@ -81,16 +81,21 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
       if (tour.art === 'einstieg' && konto) {
         stand.tour = 'angesehen'; speichereFortschritt(local, konto, stand); zeichneListe();
       }
-      schliessen(); hilfeOeffnen();
-      dialog.querySelector('h2').textContent = 'Tour abgeschlossen';
+      schliessen();
+      const d = neuesDialog();
+      const h = el('h2', 'Tour abgeschlossen'); h.id = 'seitenhilfe-titel';
+      d.append(h,el('p','Die wichtigsten Wege kennst du jetzt. Das Fragezeichen erklärt dir bei Bedarf die jeweilige Seite.'),button('Fertig',null,schliessen));
+      d.showModal();
       return;
     }
     const s = schritte[index];
-    if (s.seite !== seite && geaendert && !globalThis.confirm('Für den nächsten Schritt wird die Seite gewechselt. Ungespeicherte Eingaben können verloren gehen. Trotzdem wechseln?')) return;
+    const adresse = tour.art === 'seite' ? seite + location.search : tourAdresse(s);
+    const woanders = adresse !== seite + location.search;
+    if (woanders && geaendert && !globalThis.confirm('Für den nächsten Schritt wird die Seite gewechselt. Ungespeicherte Eingaben können verloren gehen. Trotzdem wechseln?')) return;
     tour.index = index;
-    if (s.seite !== seite) {
+    if (woanders) {
       if (!speichernTour()) { globalThis.alert('Der Browser erlaubt keinen Sitzungsspeicher. Nutze stattdessen „Diese Seite zeigen“ in der Seitenhilfe.'); return; }
-      location.assign(s.seite); return;
+      location.assign(adresse); return;
     }
     zeigeSchritt();
   }
@@ -127,7 +132,7 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
   function aktualisieren() { cancelAnimationFrame(animation); animation = requestAnimationFrame(platzieren); }
   function zeigeSchritt() {
     const s = tourSchritte(tour.art, tour.seite)[tour.index];
-    if (s.seite !== seite) { wechseln(tour.index); return; }
+    if ((tour.art === 'seite' ? seite + location.search : tourAdresse(s)) !== seite + location.search) { wechseln(tour.index); return; }
     const d = neuesDialog('seitenhilfe-tour');
     const spot = el('div'); spot.className = 'seitenhilfe-spot'; spot.setAttribute('aria-hidden', 'true');
     const karte = el('div'); karte.className = 'seitenhilfe-karte';
@@ -163,30 +168,45 @@ export function montiereSeitenhilfe({ anmeldung = globalThis.SchiriSeitenAnmeldu
     const ausgelassen = EINRICHTUNG.filter(s => stand[s.id] === 'ausgelassen').length;
     const kopf = el('summary');
     kopf.append(el('strong', 'Dein Einstieg'));
-    const zaehler = el('span', `${fertig} / ${EINRICHTUNG.length}`); zaehler.className = 'einrichtung-zaehler';
+    const zaehler = el('span', `${fertig + ausgelassen} / ${EINRICHTUNG.length}`); zaehler.className = 'einrichtung-zaehler';
     zaehler.setAttribute('aria-label', `${fertig} von ${EINRICHTUNG.length} angesehen${ausgelassen ? `, ${ausgelassen} ausgelassen` : ''}`);
     kopf.append(zaehler); liste.append(kopf);
-    const info = el('p', 'Freiwillig · nur für dein Konto in diesem Browser.'); info.className = 'seitenhilfe-hinweis'; liste.append(info);
+    const offenZahl = EINRICHTUNG.length - fertig - ausgelassen;
+    const info = el('p', offenZahl ? `${offenZahl} offen · in deinem Tempo.` : 'Alles durchgesehen.'); info.className = 'seitenhilfe-hinweis'; liste.append(info);
+    const fortschritt = el('progress'); fortschritt.max = EINRICHTUNG.length; fortschritt.value = fertig + ausgelassen;
+    fortschritt.setAttribute('aria-label','Einrichtung: erledigt oder ausgelassen'); liste.append(fortschritt);
     const ul = el('ul'); ul.className = 'einrichtung-liste';
+    const erledigt = el('details'); erledigt.className = 'einrichtung-archiv';
+    erledigt.append(el('summary',`Abgeschlossen oder ausgelassen · ${fertig + ausgelassen}`));
+    const archiv = el('ul'); archiv.className = 'einrichtung-liste'; erledigt.append(archiv);
+    const icons = {tour:'compass',daten:'user',bestand:'shirt',quiz:'check',termine:'calendar',push:'bell'};
+    const pfade = {compass:'<circle cx="12" cy="12" r="9"/><path d="m16 8-3 5-5 3 3-5z"/>',user:'<circle cx="12" cy="8" r="4"/><path d="M4 22v-3a8 8 0 0 1 16 0v3"/>',shirt:'<path d="m8 3-6 4 3 5 3-2v11h8V10l3 2 3-5-6-4a4 4 0 0 1-8 0Z"/>',check:'<rect x="5" y="3" width="14" height="18" rx="2"/><path d="m8 12 3 3 5-6"/>',calendar:'<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 2v6m10-6v6M3 11h18"/>',bell:'<path d="M5 17h14l-2-3V9a5 5 0 0 0-10 0v5zm5 4h4"/>'};
     for (const s of EINRICHTUNG) {
       const li = el('li'); const status = stand[s.id];
       li.className = status === 'angesehen' ? 'einrichtung-erledigt' : status === 'ausgelassen' ? 'einrichtung-ausgelassen' : '';
-      li.append(el('strong', `${status === 'angesehen' ? '✓ ' : status === 'ausgelassen' ? '– ' : ''}${s.titel}`), el('p', s.text));
+      const inhalt = el('div'); inhalt.className = 'einrichtung-schritt';
+      const icon = el('span'); icon.className = 'einrichtung-icon'; icon.setAttribute('aria-hidden','true');
+      icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${pfade[icons[s.id]]}</svg>`;
+      const titel = el('strong', s.titel); inhalt.append(icon,titel);
+      if (status) inhalt.append(el('small',status==='angesehen'?'✓ Erledigt':'– Ausgelassen'));
+      li.append(inhalt);
       const aktionen = el('div'); aktionen.className = 'einrichtung-aktionen';
-      if (s.tour) aktionen.append(button('Tour starten', null, () => starten('einstieg')));
-      else { const a = el('a', 'Öffnen'); a.href = s.href; aktionen.append(a); }
-      for (const [wert, wort] of [['angesehen', 'Erledigt'], ['ausgelassen', 'Auslassen']]) {
+      if (!status && s.tour) aktionen.append(button('Tour starten', null, () => starten('einstieg')));
+      else if (!status) { const a = el('a', 'Öffnen'); a.href = s.href; aktionen.append(a); }
+      for (const [wert, wort] of status ? [[status,'Wieder öffnen']] : [['angesehen', '✓ Erledigt'], ['ausgelassen', 'Auslassen']]) {
         const b = button(wort, `${s.titel}: ${wort}`, () => {
           if (stand[s.id] === wert) delete stand[s.id]; else stand[s.id] = wert;
           const gespeichert = speichereFortschritt(local, konto, stand);
           zeichneListe(); notiz.textContent = gespeichert ? 'Einrichtungsstand gespeichert.' : 'Nur für diese Seite gemerkt; der Browser erlaubt keinen dauerhaften Speicher.';
-          liste.querySelector(`[data-schritt="${s.id}"][data-zustand="${wert}"]`)?.focus();
+          liste.querySelector('.einrichtung-liste button, .einrichtung-liste a, summary')?.focus({preventScroll:true});
         }); b.dataset.schritt = s.id; b.dataset.zustand = wert;
         b.setAttribute('aria-pressed', String(status === wert)); aktionen.append(b);
       }
-      li.append(aktionen); ul.append(li);
+      li.append(aktionen); (status ? archiv : ul).append(li);
     }
-    liste.append(ul, notiz);
+    liste.append(ul);
+    if (fertig + ausgelassen) liste.append(erledigt);
+    liste.append(notiz,el('p','Freiwillig · nur in diesem Browser gespeichert.'));
   }
   anmeldung?.abonniere?.(p => {
     const neueId = p?.id || null;

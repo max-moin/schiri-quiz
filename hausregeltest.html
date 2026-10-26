@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+ <title>Hausregeltest – Schiedsrichter</title><meta name="robots" content="noindex">
+ <link rel="manifest" href="app.webmanifest"><link rel="icon" href="bilder/logo.png">
+ <link rel="apple-touch-icon" href="bilder/apple-touch-icon.png">
+ <meta name="theme-color" content="#1f2937">
+ <link rel="stylesheet" href="stil/basis.css"><link rel="stylesheet" href="stil/kopf-fuss.css">
+ <link rel="stylesheet" href="stil/bausteine.css"><link rel="stylesheet" href="stil/hinweise.css">
+ <link rel="stylesheet" href="stil/anmeldung.css"><link rel="stylesheet" href="stil/profil.css">
+ <link rel="stylesheet" href="stil/quiz-bereiche.css"><link rel="stylesheet" href="stil/hausregeltest.css">
+</head>
+<body data-seitenname="Hausregeltest">
+ <a class="sprungmarke" href="#inhalt">Zum Inhalt springen</a>
+ <header class="seiten-kopf"><div class="kopf-innen">
+  <a class="marken-knopf" href="index.html" aria-label="Zur Startseite"><img class="wappen" src="bilder/logo.png" alt="" width="40" height="40"><span class="marken-titel" data-verein="name">FV Löbtauer Kickers</span></a>
+  <button class="nav-knopf" id="nav-knopf" type="button" aria-expanded="false" aria-controls="haupt-nav" aria-label="Menü öffnen">☰</button>
+  <nav class="haupt-nav" id="haupt-nav" aria-label="Hauptnavigation"><a href="termine.html">Termine</a><a href="hilfe.html">Hilfe</a><a href="modus.html" class="nav-anmelden">Zum Quiz</a></nav>
+ </div></header>
+ <main class="inhalt hrt" id="inhalt" tabindex="-1">
+  <nav class="quiz-untermenue" aria-label="Dein Quiz"><a href="modus.html">Quiz</a><a href="meine-statistik.html">Quiz-Statistik</a><a href="sammlung.html">Sammlung</a></nav>
+  <div id="hausregeltestBereich"><h1>Hausregeltest</h1><p role="status">Wird geladen …</p></div>
+  <noscript>Zum Bearbeiten ist JavaScript erforderlich.</noscript>
+ </main>
+ <footer class="seiten-fuss"><div class="fuss-innen"><a href="impressum.html">Impressum</a><a href="datenschutz.html">Datenschutz</a><a href="nutzungsbedingungen.html">Nutzungsbedingungen</a><a href="installieren.html">App installieren</a><a href="obmann.html">Obmann-Zugang</a></div></footer>
+ <script src="src/core/anmeldung.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script>
+ <script src="src/core/quiz-utils.js"></script><script src="src/core/rpc.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script>
+ <script type="module" src="seite.js"></script><script type="module" src="src/website/hausregeltest-seite.js"></script>
+</body>
+</html>

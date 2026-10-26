@@ -5,7 +5,10 @@ import { SEITENHILFE, EINRICHTUNG, tourSchritte, leseTour, leseFortschritt, spei
 const speicher = () => { const m = new Map(); return { getItem: k => m.get(k) || null, setItem: (k,v) => m.set(k,v) }; };
 test('Einstieg erklärt Funktionen ausführlich, in stabiler Reihenfolge', () => {
   const s = tourSchritte('einstieg', 'hilfe.html');
-  assert.equal(s.length, 18);
+  assert.equal(s.length, 23);
+  assert.equal(s.some(x=>x.id==='loesung'),false);
+  assert.equal(s.filter(x=>x.id.startsWith('weg-')).length,5);
+  assert.equal(s.filter(x=>x.termin).length,2);
   assert.equal(s[0].seite, 'index.html');
   assert.equal(s.at(-1).seite, 'einstellungen.html');
   assert.equal(new Set(s.map(x => `${x.seite}:${x.id}`)).size, s.length);
@@ -54,7 +57,7 @@ test('Tourzustand validiert Ziel, Zeitfenster und Schrittgrenzen', () => {
   const set = t => storage.setItem('schiriTour.v1', JSON.stringify(t));
   const ok = {art:'einstieg',seite:'hilfe.html',index:3,zeit:jetzt,konto:'a'};
   set(ok); assert.deepEqual(leseTour(storage,jetzt),ok);
-  for (const patch of [{art:'extern'},{seite:'https://evil.example'},{index:-1},{index:18},{index:1.5},{zeit:jetzt-1800001},{zeit:jetzt+1}]) {
+  for (const patch of [{art:'extern'},{seite:'https://evil.example'},{index:-1},{index:23},{index:1.5},{zeit:jetzt-1800001},{zeit:jetzt+1}]) {
     set({...ok,...patch}); assert.equal(leseTour(storage,jetzt),null);
   }
 });

@@ -78,7 +78,7 @@ export const SEITENHILFE = Object.freeze({
     schritt('konto', '[data-konto-knopf]', 'Dein persönlicher Bereich', 'Melde dich mit Vereinskennung und PIN an. Hinter deinem Namen findest du Einstellungen, Quizstatistik, Ausrüstung und deine Anliegen. „Dieses Gerät merken“ ist nur für dein eigenes Gerät gedacht.'),
   ] },
   'termine.html': { titel: 'Termine verstehen', schritte: [
-    schritt('termine', '#terminBereich', 'Termin auswählen', 'Die Liste zeigt kommende Termine; frühere Termine findest du unter „Vergangene Termine“. Öffne einen Termin, um Ort, Uhrzeit und Hinweise zu sehen. Vereinsinterne Termine erscheinen nur nach passender Anmeldung.'),
+    schritt('termine', '#terminBereich', 'Termin auswählen', 'Die Liste läuft von alt nach neu. „Ältere Termine laden“ ergänzt jeweils fünf frühere Termine oben. Öffne einen Termin für Ort, Uhrzeit und Hinweise. Vereinsinterne Termine siehst du nach der Anmeldung.'),
     schritt('antwort', '[data-status], .termindetail, #terminBereich', 'Zu- oder absagen', 'Wenn eine Rückmeldung verlangt wird, stehen im Termin die Antwortschaltflächen. Deine Antwort wird erst nach Bestätigung gespeichert. Bei reinen Informationsterminen gibt es bewusst keine Teilnahmeantwort.'),
     schritt('protokoll', '#termin-pdf, .termin-protokoll, #terminBereich', 'Kalender und Protokoll', 'Im Termin kannst du ihn in deinen Kalender übernehmen. Ein freigegebenes Protokoll deines Vereins kannst du dort lesen oder als PDF herunterladen. Nicht jeder Termin hat bereits ein Protokoll.'),
     schritt('vorschlag', '.termin-aktionen, #terminBereich', 'Einen Termin vorschlagen', 'Du kannst einen Tag oder einen Treff vorschlagen und bei einer veröffentlichten Terminfindung abstimmen. Ein Vorschlag wird zunächst geprüft, nicht sofort öffentlich eingetragen.'),
@@ -86,7 +86,7 @@ export const SEITENHILFE = Object.freeze({
   'modus.html': { titel: 'Dein Quiz', schritte: [
     schritt('woche', 'a[href="quiz.html"], #modusBereich', 'Fragen dieser Woche', 'Die blaue Kachel öffnet dein Wochenquiz. Noch nicht angemeldet? Dann gib im Anmeldefenster deine Zugangsdaten ein. Das Gästequiz ist nur eine Alternative zum Ausprobieren ohne Wochenwertung. Die Tour gibt selbst keine Antwort ab.'),
     schritt('loesung', '#modusBereich', 'So beantwortest du Fragen', 'Je nach Frage wählst du eine oder mehrere Antworten, Entscheidungs-Icons oder schreibst einen eigenen Text. Achte auf die Aufgabenstellung und ergänze eine Begründung, wenn sie verlangt wird.'),
-    schritt('ueben', '#modusBereich', 'Üben und Duell', 'Die weiteren Modi findest du auf dieser Übersicht, soweit sie verfügbar sind. Übungsfragen ersetzen keine offenen Wochenfragen. Ein Duell ist ein eigener Vergleich mit eingeladenen Personen.'),
+    schritt('ueben', '[data-tour-ueben-duell]', 'Üben und Duell', 'Die weiteren Modi findest du auf dieser Übersicht, soweit sie verfügbar sind. Übungsfragen ersetzen keine offenen Wochenfragen. Ein Duell ist ein eigener Vergleich mit eingeladenen Personen.'),
   ] },
   'ausruestung.html': { titel: 'Bestand und Anfragen', schritte: [
     schritt('bestand', '#bestand-liste, #bestand-zugang', 'Was du schon hast', 'Im Bestand stehen deine eigenen Trikots, Hosen, Stutzen, Schuhe und dein Equipment. Nach Anmeldung kannst du über Plus einen Eintrag anlegen und vorhandene Einträge bearbeiten.'),
@@ -118,9 +118,26 @@ export const SEITENHILFE = Object.freeze({
   ] },
 });
 export const EINSTIEG = Object.freeze(['index.html', 'termine.html', 'modus.html', 'ausruestung.html', 'meine-anliegen.html', 'einstellungen.html']);
+const WEGE = Object.freeze({
+  'termine.html': ['Termine öffnen', 'Öffne im Menü „Termine“. Auf dem Handy zuerst auf die drei Menüstriche tippen.', 'a[href="termine.html"], .nav-knopf'],
+  'modus.html': ['Zum Wochenquiz', 'Oben führt „Zum Quiz“ zur Quizübersicht. Wenn du noch nicht angemeldet bist, kommt zuerst das Anmeldefenster.', '.nav-anmelden'],
+  'ausruestung.html': ['Deine Ausrüstung finden', 'Tippe oben auf deinen Namen und dann auf „Mein Ausrüstungsbestand“.', '[data-konto-knopf]'],
+  'meine-anliegen.html': ['Antworten auf deine Anliegen', 'Öffne wieder deinen Namen und wähle „Meine Anliegen“. Hier bleiben deine eingereichten Vorschläge und Antworten erreichbar.', '[data-konto-knopf]'],
+  'einstellungen.html': ['Zu den Einstellungen', 'Öffne deinen Namen und wähle „Einstellungen“. Dort kannst du deine Einrichtung und Mitteilungen prüfen.', '[data-konto-knopf]'],
+});
+export const TOUR_TERMIN = '21cb07c5-f5ef-40c9-a21b-98fac6020b98'; // Tatsächlich vorhandener SR-Treff 10/26.
+export function tourAdresse(s) { return s.seite + (s.termin ? `?termin=${TOUR_TERMIN}` : ''); }
 export function tourSchritte(art, seite) {
-  return (art === 'einstieg' ? EINSTIEG : [seite]).flatMap(datei =>
-    (SEITENHILFE[datei]?.schritte || []).map(s => ({ ...s, seite: datei })));
+  if (art !== 'einstieg') return (SEITENHILFE[seite]?.schritte || []).map(s => ({...s,seite}));
+  return EINSTIEG.flatMap((datei,i) => {
+    const vorher = EINSTIEG[i-1], weg = WEGE[datei];
+    const schritte = SEITENHILFE[datei].schritte.filter(s => s.id !== 'loesung').map(s => ({...s,seite:datei,
+      ...(datei==='termine.html' && ['antwort','protokoll'].includes(s.id) ? {termin:true} : {})}));
+    if (datei === 'termine.html') {
+      schritte.splice(1,0,{id:'treff-oeffnen',seite:datei,ziel:'#terminBereich',titel:'Ein Beispiel öffnen',text:'Als Nächstes öffnet sich der echte SR-Treff 10/26. Er ist vorbei: Die Tour zeigt die Bedienung, gibt aber keine Teilnahmeantwort ab.'});
+    }
+    return [...(weg ? [{id:`weg-${datei}`,seite:vorher,ziel:weg[2],titel:weg[0],text:weg[1]}] : []),...schritte];
+  });
 }
 export const EINRICHTUNG = Object.freeze([
   { id: 'tour', titel: 'Website kennenlernen', text: 'Den geführten Einstieg ansehen.', href: 'hilfe.html', tour: true },

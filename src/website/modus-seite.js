@@ -56,10 +56,12 @@ function zeichne({woche, angemeldet}) {
     <nav class="quiz-untermenue" aria-label="Dein Quiz"><a href="modus.html" aria-current="page">Quiz</a><a href="meine-statistik.html">Quiz-Statistik</a><a href="sammlung.html">Sammlung</a></nav>
     <div class="modus-liste">
       ${wochenKachel(woche,angemeldet)}
-      ${uebenKachel(angemeldet && fertig)}
+      <a class="modus-kachel" href="hausregeltest.html"><div class="modus-kopf"><span class="modus-name">${symbol('woche')}Hausregeltest</span><span class="modus-pille">2026/27</span></div><p class="modus-text">Bis 8. November vorbereiten. Ab 9. November gemeinsam überarbeiten.</p></a>
+      <div class="modus-weitere" data-tour-ueben-duell>${uebenKachel(angemeldet && fertig)}
       <a class="modus-kachel" href="duell.html"><div class="modus-kopf"><span class="modus-name">${symbol('duell')}Quiz-Duell</span></div><p class="modus-text">Per Einladung gegeneinander spielen.</p></a>
+      </div>
     </div>
-    ${angemeldet ? '' : '<p class="modus-gastalternative">Keine Zugangsdaten? <a href="quiz.html#gast">Gästequiz ausprobieren</a> <span>– ohne Wochenwertung.</span></p>'}
+    ${angemeldet ? '' : '<aside class="modus-gastalternative"><strong>Gästequiz · nur zum Ausprobieren</strong><p>Du hast keine Vereinskennung? Hier spielst du ohne Wochenwertung.</p><a href="quiz.html#gast">Gästequiz ausprobieren</a></aside>'}
     <p class="modus-nachsatz"><a href="melden.html">Ideen &amp; Feedback</a></p>`;
 }
 

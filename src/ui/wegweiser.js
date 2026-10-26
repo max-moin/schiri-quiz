@@ -57,6 +57,7 @@ export const BAUM = Object.freeze({
   "frage-vorschlagen.html": { titel: "Frage vorschlagen", eltern: "melden.html" },
   "quiz.html": { titel: "Fragen dieser Woche", eltern: "modus.html" },
   "entscheiden.html": { titel: "Entscheiden", eltern: "modus.html" },
+  "hausregeltest.html": { titel: "Hausregeltest", eltern: "modus.html" },
   "duell.html": { titel: "Quiz-Duell", eltern: "modus.html" },
 
   // Kontomenue -> Einstellungen -> zwei Unterbereiche. Die anderen

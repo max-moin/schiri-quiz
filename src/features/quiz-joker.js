@@ -6,6 +6,8 @@
   const el=(tag,klasse,text)=>{const e=document.createElement(tag);e.className=klasse;if(text!==undefined)e.textContent=text;return e;};
   const zugang=()=>{const z=getZugang();return {p_schiedsrichter_id:z.schiedsrichterId,p_pin:z.pin};};
   const vorgang=id=>stand?.vorgaenge?.find(v=>v.frage_id===id);
+  const hinweise=id=>stand?.hinweise?.find(v=>v.frage_id===id);
+  function zeigeHinweis(karte,text){const p=el('p','quiz-joker-status',text);p.setAttribute('role','status');karte.append(p);}
   async function laden(){const n=++version,z=zugang();stand=null;try{const {data,error}=await sb.rpc('mein_jokerbestand',z);if(n===version&&z.p_schiedsrichter_id===getZugang().schiedsrichterId&&z.p_pin===getZugang().pin&&!error)stand=data;}catch{/* Der optionale Bestand blockiert das Quiz nicht. */}for(const [b,update] of menues){if(b.isConnected)update();else menues.delete(b);}}
   async function aktion(id,art,antwort={},typ=null){const {data,error}=await sb.rpc('quiz_joker_antwort',{...zugang(),p_frage_id:id,p_aktion:art,p_art:typ,p_antwort:antwort});if(error)throw error;return data;}
   function auswahlDialog(){return new Promise(resolve=>{
@@ -45,9 +47,10 @@
    info.textContent=result.joker_wiederholen?'Joker eingesetzt · Antworte jetzt noch einmal.':'Entscheidung offen · Beim Abschicken kannst du Joker oder Lösung wählen.';
    karte.querySelector('textarea,input,select')?.focus();return true;
   }
-  function markiere(karte,result){if(!result?.joker_eingesetzt)return;let m=karte.querySelector('.quiz-joker-marke');if(!m){m=el('p','quiz-joker-marke');karte.prepend(m);}m.textContent=result.korrekt?'✓ Mit Joker geschafft':'Joker eingesetzt';}
+  function markiere(karte,result){if(!result?.joker_eingesetzt&&!hinweise(karte.dataset.frageId)?.einsaetze?.length)return;let m=karte.querySelector('.quiz-joker-marke');if(!m){m=el('p','quiz-joker-marke');karte.prepend(m);}m.textContent=result.korrekt?'✓ Mit Joker geschafft':'Joker eingesetzt';}
   function schmuecken(karte,frage,beantwortet){
-   const v=vorgang(frage.id);if(v?.joker_eingesetzt)markiere(karte,{joker_eingesetzt:true,korrekt:beantwortet?.korrekt});
+   const v=vorgang(frage.id),h=hinweise(frage.id);if(v?.joker_eingesetzt||h?.einsaetze?.length)markiere(karte,{joker_eingesetzt:true,korrekt:beantwortet?.korrekt});
+   for(const e of h?.einsaetze||[])zeigeHinweis(karte,e.hinweis);
    if(beantwortet?.beantwortet)return;
    const kandidaten=v?.kandidaten; if(kandidaten)anwenden(karte,kandidaten);
    if(v?.status==='angebot'||v?.status==='zweiter'){const p=el('p','quiz-joker-status',v.status==='angebot'?'Erstantwort gespeichert · Lösung noch verborgen. Beim Abschicken entscheidest du über deinen Joker.':'Zweiter Versuch offen · Dein Joker ist bereits eingesetzt.');p.setAttribute('role','status');karte.append(p);}
@@ -68,6 +71,11 @@
     const halbErlaubt=antworttyp(frage)==='multiple_choice'&&optionen>=3&&!aktuell?.kandidaten&&!aktuell?.status&&!beantwortet?.beantwortet;
     zeile('halbhalb','50/50',halbErlaubt?'Verbraucht einen Joker und lässt zwei Möglichkeiten übrig.':'Nur vor der Erstantwort bei einer Einfachauswahl mit mindestens drei Möglichkeiten.',halbErlaubt?async()=>{const r=await aktion(frage.id,'halbhalb');anwenden(karte,r.kandidaten);}:null);
     zeile('zweiter-versuch','Zweiter Versuch',aktuell?.status==='angebot'?'Erstantwort verwerfen und einmal neu antworten.':'Wird nach einer falschen Erstantwort angeboten. Noch kein Verbrauch.',aktuell?.status==='angebot'?async()=>{const r=await aktion(frage.id,'joker');fortsetzen(karte,r);}:null);
+    for(const [typ,titel,grund] of [['denkanstoss','Denkanstoß','Zeigt den von Max hinterlegten Tipp.'],['fehlerlupe','Fehlerlupe','Lenkt deinen Blick auf einen Antwortbereich. Verrät keine Lösung und bestätigt keine Teilantwort.'],['zufallsbaustein','Zufallsbaustein','Deckt einen zufälligen geforderten Antwortteil auf.'],['schluesselbaustein','Schlüsselbaustein','Deckt gezielt einen noch fehlenden oder abweichenden Antwortteil auf.']]){
+     const bereit=(typ==='denkanstoss'?h?.denkanstoss:h?.icon)&&!h?.einsaetze?.some(e=>e.typ===typ)&&!aktuell?.status;
+     if(!stand?.bestand?.[typ]||!bereit)continue;
+     zeile(typ,titel,grund,async()=>{const {data,error}=await sb.rpc('quiz_hinweisjoker',{...zugang(),p_frage_id:frage.id,p_typ:typ,p_antwort:karte.schiriAntwortLesen?.()||{freitext:(karte.querySelector('textarea')?.value||'').slice(0,2000)}});if(error)throw error;zeigeHinweis(karte,data.hinweis);});
+    }
     zeile('serienjoker','Serienrettung','Rettet eine verpasste Woche in deiner Quiz-Statistik. Hier nicht einsetzbar.',null);
     const link=el('a','quiz-joker-sammlung','Zur Sammlung und den Boxen');link.href='sammlung.html';d.append(link);document.body.append(d);d.addEventListener('close',()=>{d.remove();if(vorher?.isConnected)vorher.focus();},{once:true});d.showModal();
    };karte.append(b);
@@ -86,6 +94,8 @@
   let zahl=n('zweiter-versuch');
   const optionen=frage.antwortoptionen?.length||[frage.option_a,frage.option_b,frage.option_c].filter(Boolean).length;
   if(typ==='multiple_choice'&&optionen>=3&&!v?.kandidaten&&!v?.status)zahl+=n('halbhalb');
+  const h=stand.hinweise?.find(x=>x.frage_id===frage.id),benutzt=t=>h?.einsaetze?.some(e=>e.typ===t);
+  if(!v?.status){if(h?.denkanstoss&&!benutzt('denkanstoss'))zahl+=n('denkanstoss');if(h?.icon)for(const t of ['fehlerlupe','zufallsbaustein','schluesselbaustein'])if(!benutzt(t))zahl+=n(t);}
   return zahl;
  }
  function antworttyp(frage){return frage.antworttyp||frage.video_antworttyp||(frage.typ==='video'?'video_freitext':'multiple_choice');}

@@ -105,3 +105,8 @@
 .entscheidung-begruendung-feedback{padding:10px 14px;border-left:4px solid #527360;background:#edf3ee;line-height:1.5}
 .entscheidung-ergebnis-zeile{overflow-wrap:anywhere}
 @media(prefers-reduced-motion:no-preference){.entscheidung-ergebnis-zeile{animation:entscheidung-erscheinen .22s ease-out both}.entscheidung-ergebnis-zeile:nth-child(2){animation-delay:.08s}.entscheidung-ergebnis-zeile:nth-child(3){animation-delay:.16s}.entscheidung-ergebnis-zeile:nth-child(4){animation-delay:.24s}@keyframes entscheidung-erscheinen{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}}
+/* Orange Zwischenstufe enthält bewusst keine Teilnoten/Lösung. */
+.nachfrage-karte{border:2px solid #b76712;background:#fff7e8}
+.entscheidung-nachfrage-text{font-weight:650;line-height:1.5;color:#713f12}
+.entscheidung-nachfrage-kurz{font-size:.85rem;color:#674d2c}
+.nachfrage-karte label{display:grid;gap:8px;margin:16px 0}

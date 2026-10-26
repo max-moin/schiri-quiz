@@ -240,5 +240,8 @@
 .modus-wochenquiz { grid-column: 1 / -1; }
 .modus-gastalternative { margin-top: 24px; color: var(--muted); line-height: 1.6; overflow-wrap: anywhere; }
 .modus-gastalternative a { display: inline-block; padding-block: 10px; color: var(--marke); text-underline-offset: 3px; }
+.modus-weitere{display:grid;gap:16px;grid-column:1 / -1;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr))}
+.modus-gastalternative{border-top:5px solid #23834b;border-radius:14px;background:#edf7ef;padding:16px 20px;color:#21432c}
+.modus-gastalternative p{margin:6px 0;font-size:.9rem}.modus-gastalternative a{color:#175c33;min-height:44px;box-sizing:border-box}
 .modus-kachel:focus-visible, .modus-gastalternative a:focus-visible { outline: 3px solid #1d4ed8; outline-offset: 4px; }
 @media (prefers-reduced-motion: reduce) { .modus-kachel, .modus-balken > span { transition: none; } }

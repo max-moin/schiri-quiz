@@ -305,8 +305,8 @@ test("das Obmann-Passwort verlässt den Arbeitsspeicher nicht", () => {
 
 test("der Obmann-Zugang hat einen fünften Bereich für die Terminsuche", () => {
   const html = lies("obmann.html");
-  assert.match(html, /data-bereich-knopf="terminsuche"/);
-  assert.match(html, /data-admin-bereich="terminsuche"/);
+  assert.match(html, /data-bereich-knopf="termine"/);
+  assert.match(html, /data-admin-unterbereich="terminsuche"/);
 
   const seite = lies("src/admin/obmann-page.js");
   assert.match(seite, /erstelleTerminfindungEditor/);

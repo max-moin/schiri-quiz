@@ -11,10 +11,11 @@ import { DATENBANK, VEREIN } from "../../verein.config.js";
 import { montiereTerminerinnerungen } from "./termin-erinnerungen.js";
 import { markiereTerminPdfs } from "./termin-pdf-markierungen.js";
 import { zeichneSoccergolf } from "./soccergolf-ergebnisse.js";
+import { leseTour, TOUR_TERMIN } from './hilfe-inhalte.js';
 import {
   erstelleTerminZugriff, terminKarte, findungKarte, nachMonatenGruppiert,
   teileVergangenheitAb, datumLang, datumKurz, zeitspanne, sicher, GRUENDE, ARTEN, verbindeTerminSichten,
-  ladeTerminInKalender,
+  ladeTerminInKalender, aeltereTermine,
 } from "./termine.js";
 
 const bereich = document.getElementById("terminBereich");
@@ -24,6 +25,7 @@ const zugriff = erstelleTerminZugriff({
 });
 
 const gewaehlteId = new URLSearchParams(location.search).get("termin");
+let anzahlVergangene = 0;
 
 // In der Einzelansicht ist die naechste Ebene nicht die Startseite,
 // sondern die Terminliste. Dadurch braucht es keinen zweiten Textlink
@@ -222,15 +224,17 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
       ${gruppe.termine.map((t) => terminKarte(t)).join("")}
     </section>`).join("");
 
+  const sichtbareVergangene = aeltereTermine(vergangen, anzahlVergangene);
   const vergangenHtml = vergangen.length ? `
-    <details class="termin-vergangen">
-      <summary>Vergangene Termine zeigen (${vergangen.length})</summary>
-      ${nachMonatenGruppiert(vergangen).map((gruppe) => `
+    <div class="termin-vergangen">
+      ${sichtbareVergangene.length < vergangen.length ? '<button type="button" class="td-knopf" data-aeltere-laden>Ältere Termine laden</button>' : '<p class="td-neben">Alle früheren Termine geladen.</p>'}
+      <p class="sr-only" role="status">${sichtbareVergangene.length} frühere Termine angezeigt.</p>
+      ${nachMonatenGruppiert(sichtbareVergangene).map((gruppe) => `
         <section class="terminmonat">
           <h2 class="terminmonat-titel">${sicher(gruppe.titel)}</h2>
           ${gruppe.termine.map((t) => terminKarte(t)).join("")}
         </section>`).join("")}
-    </details>` : "";
+    </div>` : "";
 
   // Terminsuchen stehen UEBER den Terminen: dort ist noch etwas zu
   // entscheiden, bei den Terminen nur noch zur Kenntnis zu nehmen.
@@ -257,6 +261,18 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
     ${findungHtml}
     ${kuenftig.length ? kuenftigHtml : '<p class="keine">Zurzeit steht kein Termin an.</p>'}
     ${vorschlagHtml}`;
+
+  bereich.querySelector('[data-aeltere-laden]')?.addEventListener('click', () => {
+    const anker = [...bereich.querySelectorAll('[data-termin-id]')].find(e => e.getBoundingClientRect().bottom > 0);
+    const id = anker?.dataset.terminId;
+    const oben = anker?.getBoundingClientRect().top;
+    anzahlVergangene += 5;
+    zeichneListe(termine, findungen, vorschlaege);
+    const wieder = [...bereich.querySelectorAll('[data-termin-id]')].find(e => e.dataset.terminId === id);
+    if (wieder && Number.isFinite(oben)) window.scrollBy(0, wieder.getBoundingClientRect().top - oben);
+    const fokus = bereich.querySelector('[data-aeltere-laden]') || wieder;
+    fokus?.focus({preventScroll:true});
+  });
 
   if (offeneFindungen.length) bindeStimmen();
   if (ich) bindeVorschlag();
@@ -380,6 +396,11 @@ function zeichneDetail(termin, zusagen, protokoll = null, golfergebnis = null) {
     antwort = '<p class="td-abgelaufen">Dieser Termin dient nur zur Information. Eine Zu- oder Absage ist nicht erforderlich.</p>';
   } else if (termin.vergangen) {
     antwort = '<p class="td-abgelaufen">Dieser Termin ist vorbei.</p>';
+    let tour;
+    try { tour = leseTour(sessionStorage); } catch { /* Ohne Speicher keine Tour. */ }
+    if (tour?.art === 'einstieg' && termin.id === TOUR_TERMIN) {
+      antwort += '<section class="td-tour-beispiel"><p>Tour-Beispiel · So antwortest du vor einem Termin. Dieser Treff ist vorbei, hier wird nichts geändert.</p><div class="td-antwortwahl" role="group" aria-label="Teilnahme: nicht bedienbares Tour-Beispiel"><button type="button" class="td-knopf ja" disabled>✓ Ja, ich komme</button><button type="button" class="td-knopf unsicher" disabled>? Unsicher</button><button type="button" class="td-knopf nein" disabled>Kann nicht</button></div></section>';
+    }
   } else if (darfAntworten && termin.absage_moeglich === false) {
     antwort = '<p class="td-abgelaufen">Der Termin hat bereits begonnen. Eine Zu- oder Absage ist nicht mehr möglich.</p>';
   } else if (!ich) {
