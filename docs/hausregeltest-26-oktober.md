@@ -2,7 +2,9 @@
 
 ## Gebaut und bewusst getrennt
 
-Website → Quiz → Hausregeltest. Vereinskennung/Name/PIN wie bisher, kein Gastmodus.
+Website → Quiz → Hausregeltest. Eigener salbeigrüner Arbeitsraum mit X zurück zur
+Quizübersicht, ohne Vereins-Hauptnavigation und ohne Quiz/Statistik/Sammlung-Reiter.
+Vereinskennung/Name/PIN wie bisher, kein Gastmodus.
 Zehn Originalfragen aus Max' Aufgabenblatt, keine KI-Bewertung, Musterlösungen,
 Joker, Wochenpunkte, automatische Boxen oder Versand. Die Vorantworten sind im
 Website-Obmannbereich einsehbar; andere Schiris erhalten sie nicht.
@@ -10,8 +12,16 @@ Website-Obmannbereich einsehbar; andere Schiris erhalten sie nicht.
 - Vorantworten bis einschließlich **8. November 2026** beliebig ändern.
 - Ab **9. November 2026, 00:00 Europe/Berlin** eigene Vorantworten übernehmen
   und zur gemeinsamen Besprechung überarbeiten. Die Vorantworten bleiben erhalten.
-- Eigene Endfassung bewusst bestätigen. Name/Verein/Einstufung und zehn Antworten
-  sind erforderlich. Änderungen entwerten die alte Bestätigung; erneut bestätigen.
+- Name, Verein und Einstufung kommen serverseitig aus den Vereinsstammdaten.
+  Für Löbtauer Kickers steht im Dokument „FV Löbtauer Kickers“. Einstufung in der
+  App unter Verein → Name → Info pflegen; HRT-Personendetail verlinkt direkt dorthin.
+- Der Schiri kann einen vollen Namen nur für seinen eigenen TXT-Download ergänzen.
+  Kein RPC, Browser-Speicher, gespeicherter Antwortstand oder Versionsarchiv erhält
+  diesen Zusatznamen. Nach Neuladen neu eingeben. App-/Obmannexport benutzt den
+  hinterlegten Anzeigenamen, nicht einen nur im Browser ergänzten Namen.
+- Eigene Endfassung bewusst bestätigen. Vollständige Stammdaten und zehn Antworten
+  sind erforderlich; eine fehlende Einstufung verhindert nur die Bestätigung,
+  nicht das Vorbereiten. Antwortänderungen entwerten die alte Bestätigung.
 - Bestätigte Fassung als UTF-8-TXT mit CRLF herunterladen. Aufbau der gelieferten
   Vorlage, Punktefelder bleiben leer. Versionierte Dateinamen und private Historie.
 - Bearbeitung bis einschließlich **22. November 2026**. Danach nur lesen/exportieren.
@@ -75,10 +85,21 @@ Referenzen:
 
 ## Technische Abnahme
 
-906 Webtests bestanden. Echter Chrome-Renderer bei 320/390/1280 Pixeln mit echter
+911 Webtests (darunter elf HRT-Modultests) prüfen unter anderem die lokale Exportkopie,
+die RPC-Allowlist, den eigenen Arbeitsraum und fehlende native Aufklappdreiecke.
+Sieben native HRT-Tests und iOS-/macOS-Build grün. Echter Chrome-Renderer bei
+320/390/1280 Pixeln mit echter
 gemeinsamer Anmeldelogik und künstlichen RPC-Antworten: Autosave, Reload,
 Netzfehler→weitertippen→Fragenwechsel→Retry, Vorantwort→Endfassung, TXT-Download,
+Vollname nur in Download/Dateiname, weder in Requests noch in Browser-Speichern,
+Abmelden und erneutes Öffnen des gemeinsamen Login-Dialogs,
 Bestätigung nach Änderung wieder verborgen, keine JS-Fehler/Seitenüberbreite.
 SQL-Prüfung separat im tatsächlichen Backend in vollständig zurückgerollten
 Transaktionen; keine echten Teilnehmerantworten. Kein Ersatz für reale
 iPhone/Safari-/VoiceOver-Abnahme oder eine vollständige WCAG-Zertifizierung.
+
+Migration `20261026172320_hausregeltest_stammdaten_und_lokaler_exportname.sql` ist live: private
+Stammdatenfunktion, vorhandene drei RPCs mit unverändertem Zugang/Signaturen.
+Keine neue Tabelle, keine Änderung an Fragen/Antworten/Fristen. Kopffelder aus
+alten Clients werden nicht mehr gespeichert, sondern aus den Stammdaten gebildet.
+Bestehende bestätigte Fassungen bleiben unveränderte zeitliche Schnappschüsse.

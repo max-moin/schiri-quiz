@@ -33,6 +33,12 @@ export function dateiname(fassung) {
  const name=String(fassung?.kopf?.name||'Abgabe').normalize('NFKC').replace(/[^\p{L}\p{N}_-]+/gu,'_').slice(0,70);
  return `Hausregeltest_1_2026-27_${name}_v${Number(fassung.revision)||1}.txt`;
 }
+// Nur für den eigenen Download. Dieses Objekt wird nie an eine RPC übergeben.
+export function mitExportname(fassung,name='') {
+ const n=String(name).trim();
+ if(n.length>150 || /[\r\n\u0000-\u001f\u007f]/.test(n))throw new Error('Bitte deinen Namen einzeilig mit höchstens 150 Zeichen eintragen.');
+ return {...fassung,kopf:{...fassung?.kopf,...(n?{name:n}:{})}};
+}
 export function ladeTextdatei(fassung,doc=document) {
  const url=URL.createObjectURL(new Blob([textdatei(fassung)],{type:'text/plain;charset=utf-8'}));
  const a=doc.createElement('a');a.href=url;a.download=dateiname(fassung);doc.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);
@@ -43,7 +49,10 @@ export function erstelleHrtZugriff({adresse,oeffentlicherSchluessel}) {
   const d=await r.json();if(!r.ok)throw new Error(d.message||'Speichern nicht möglich. Bitte erneut versuchen.');return d;
  }
  const login=p=>({p_schiedsrichter_id:p.id,p_pin:p.pin});
- return {laden:p=>rpc('hausregeltest_laden',login(p)),speichern:(p,s)=>rpc('hausregeltest_speichern',{...login(p),...s})};
+ return {laden:p=>rpc('hausregeltest_laden',login(p)),speichern:(p,s)=>rpc('hausregeltest_speichern',{
+  ...login(p),p_test_id:s.p_test_id,p_phase:s.p_phase,p_revision:s.p_revision,
+  p_antworten:s.p_antworten,p_bestaetigen:s.p_bestaetigen===true,p_kopf:{},
+ })};
 }
 
 // Genau eine laufende Speicherung; Eingaben währenddessen werden danach gespeichert.

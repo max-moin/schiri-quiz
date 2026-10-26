@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {HAUSREGELTEST,auswerterAdresse,textdatei,dateiname,erstelleHrtSpeicher,erstelleHrtZugriff} from '../src/website/hausregeltest.js';
+import {HAUSREGELTEST,auswerterAdresse,textdatei,dateiname,mitExportname,erstelleHrtSpeicher,erstelleHrtZugriff} from '../src/website/hausregeltest.js';
 const muster={kopf:{name:'Max Müller',verein:'Löbtauer Kickers',einstufung:'Kreisliga'},antworten:Array.from({length:10},(_,i)=>`Antwort ${i+1}: ÄÖÜ\nEigene Begründung`),bestaetigt_am:'2026-11-09',revision:5};
 test('HRT hat exakt die zehn Originalfragen und getrennte Berliner Fristen',()=>{
  assert.equal(HAUSREGELTEST.fragen.length,10);
@@ -26,6 +26,33 @@ test('Entwürfe und unvollständige/mehrzeilige Kopfdaten sind kein finaler Expo
  assert.throws(()=>textdatei({...muster,antworten:['']}));
  assert.throws(()=>textdatei({...muster,kopf:{...muster.kopf,verein:''}}));
  assert.throws(()=>textdatei({...muster,kopf:{...muster.kopf,name:'X\nVerein: Y'}}));
+});
+test('Voller Exportname ergänzt nur eine lokale Kopie und lässt den bestätigten Stand unverändert',()=>{
+ const lokal=mitExportname(muster,'  Erika Vollständigername  ');
+ assert.equal(lokal.kopf.name,'Erika Vollständigername');assert.equal(muster.kopf.name,'Max Müller');
+ assert.match(textdatei(lokal),/^Name: Erika Vollständigername\r\n/);
+ assert.equal(mitExportname(muster,'').kopf.name,'Max Müller');
+ assert.throws(()=>mitExportname(muster,'X\nVerein: Manipuliert'));
+ assert.throws(()=>mitExportname(muster,'x'.repeat(151)));
+});
+test('RPC überträgt keinen ergänzten Namen und keine manipulierbaren Kopf-Felder',async()=>{
+ const alt=globalThis.fetch;let body;
+ try{
+  globalThis.fetch=async(url,req)=>{body=JSON.parse(req.body);return {ok:true,json:async()=>({revision:4})};};
+  const api=erstelleHrtZugriff({adresse:'https://example.test',oeffentlicherSchluessel:'public'});
+  await api.speichern({id:'person',pin:'1234'},{p_revision:3,p_phase:'vorbereitung',p_test_id:'test',p_antworten:['Antwort'],p_kopf:{name:'Privater Exportname',verein:'Gefälscht',einstufung:'Gefälscht'},exportName:'Privater Exportname'});
+  assert.deepEqual(body.p_kopf,{});assert.doesNotMatch(JSON.stringify(body),/Privater Exportname|Gefälscht|exportName/);
+  assert.deepEqual(body.p_antworten,['Antwort']);
+ }finally{globalThis.fetch=alt;}
+});
+test('HRT ist ein eigener Arbeitsbereich ohne Quiz-Reiter oder native Aufklappdreiecke',()=>{
+ const html=readFileSync(new URL('../hausregeltest.html',import.meta.url),'utf8');
+ const js=readFileSync(new URL('../src/website/hausregeltest-seite.js',import.meta.url),'utf8');
+ assert.doesNotMatch(html,/quiz-untermenue|src="seite.js"|haupt-nav/);
+ assert.match(html,/class="hrt-raum"/);assert.match(html,/href="modus.html"/);
+ assert.doesNotMatch(js,/<details|<summary|data-kopf=/);
+ assert.match(js,/<dl class="hrt-kuerzel"/);assert.match(js,/data-export-name/);
+ assert.match(js,/SchiriAnmeldung\?\.erstelleAnmeldung/);
 });
 test('Speicher serialisiert Eingaben und überholt nie die neuere Antwort',async()=>{
  let release;const calls=[],done=[];

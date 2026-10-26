@@ -149,7 +149,10 @@ test("auf JEDER Seite unterhalb der Wurzel gibt es wirklich einen Weg nach oben"
     const ueberModul = /<main class="inhalt/.test(html) && /src="seite\.js"/.test(html);
     const festImHtml = /class="wegweiser-zurueck"/.test(html);
     const hausknopf = /class="heim-knopf"/.test(html);
-    assert.ok(ueberModul || festImHtml || hausknopf,
+    // Eigenständiger HRT-Arbeitsraum: beschrifteter X-Link statt Vereinskopf.
+    const testAusgang = seite === 'hausregeltest.html'
+      && /<a class="hrt-schliessen" href="modus\.html" aria-label="Hausregeltest verlassen und zur Quizübersicht"/.test(html);
+    assert.ok(ueberModul || festImHtml || hausknopf || testAusgang,
       `${seite} hat keinen Weg nach oben - ohne Browserleiste eine Sackgasse`);
   }
 });

@@ -1,30 +1,68 @@
-.hrt { max-width: 900px; }
-.hrt-kopf { background: linear-gradient(115deg,#e8f0ff,#e8f6f0); border-radius: 22px; padding: clamp(18px,4vw,32px); margin-block: 20px; }
-.hrt-kopf h1 { margin: 0 0 12px; font-size: clamp(1.5rem,4vw,2.3rem); }
-.hrt-phasen { display: flex; flex-wrap: wrap; gap: 10px; padding: 0; list-style: none; }
-.hrt-phasen li { background:#fff; color:#334155; padding:8px 12px; border-radius:20px; }
-.hrt-phasen [aria-current] { background:#153d82; color:#fff; }
-.hrt-panel { border:1px solid #cbd5e1; background:#fff; border-radius:18px; padding:clamp(16px,3vw,28px); margin-block:18px; }
-.hrt-meta { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; }
-.hrt label { display:block; font-weight:600; }
-.hrt input,.hrt textarea { display:block; box-sizing:border-box; width:100%; max-width:100%; font:inherit; padding:12px; border:1px solid #64748b; border-radius:10px; background:#fff; color:#172033; margin-top:6px; }
-.hrt input:disabled,.hrt textarea:disabled { opacity:1; background:#f1f5f9; color:#334155; }
-.hrt textarea { min-height:170px; resize:vertical; }
-.hrt-fragen { display:flex; flex-wrap:wrap; gap:8px; margin-block:16px; }
+.hrt-raum { background:#edf5f2; background-image:radial-gradient(ellipse at 85% 5%,#d9eae2 0,transparent 45%); color:#172d2a; min-height:100vh; }
+.hrt-raumkopf { max-width:1120px; margin:auto; padding:18px clamp(16px,4vw,36px); display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.hrt-marke { display:flex; align-items:center; gap:12px; color:#173d36; text-decoration:none; font-weight:750; line-height:1.3; }
+.hrt-marke small { display:block; font-size:.76rem; font-weight:500; color:#48635c; }
+.hrt-markenzeichen { display:grid; place-items:center; width:48px; height:48px; border-radius:15px; background:#174f48; color:#fff; font-size:.85rem; letter-spacing:.03em; }
+.hrt-raumaktionen { display:flex; align-items:center; gap:8px; }
+.hrt-konto,.hrt-schliessen { min-height:44px; border:1px solid #6d8a7f; border-radius:50px; background:#fff; color:#173d36; font:inherit; cursor:pointer; text-decoration:none; }
+.hrt-konto { padding:8px 14px; font-size:.85rem; }
+.hrt-schliessen { display:grid; place-items:center; width:44px; font-size:1.8rem; line-height:1; }
+.hrt { max-width:920px; padding:0 clamp(16px,4vw,30px) 32px; margin:auto; }
+.hrt-kopf { background:#174f48; color:#fff; border-radius:24px; padding:clamp(20px,4vw,34px); margin-block:8px 20px; box-shadow:0 12px 30px #123e3010; }
+.hrt-kicker { display:block; color:#d5e8dc; font-size:.8rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:10px; }
+.hrt-kopf h1 { margin:0 0 16px; font-size:clamp(1.6rem,4vw,2.2rem); color:inherit; line-height:1.2; }
+.hrt-kopf p { max-width:65ch; line-height:1.6; margin:14px 0 0; }
+.hrt-phasen { display:flex; flex-wrap:wrap; gap:8px; margin:0; padding:0; list-style:none; }
+.hrt-phasen li { border:1px solid #84afa2; color:#e4f0eb; padding:8px 12px; border-radius:12px; font-size:.85rem; }
+.hrt-phasen [aria-current] { background:#e3f1bc; border-color:#e3f1bc; color:#173d36; font-weight:750; }
+.hrt-panel { border:1px solid #bdcfc7; background:#fffefa; border-radius:20px; padding:clamp(16px,3vw,26px); margin-block:18px; box-shadow:0 6px 18px #123e3005; }
+.hrt-meta { display:grid; grid-template-columns:1.3fr 1fr 1fr; gap:18px; }
+.hrt-meta strong { display:block; margin-top:5px; font-size:1rem; overflow-wrap:anywhere; }
+.hrt-feldname { color:#476059; font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; }
+.hrt small { display:block; color:#4b625b; font-size:.78rem; line-height:1.5; margin-top:6px; }
+.hrt label { display:block; font-weight:650; }
+.hrt-meta label { font-size:.82rem; margin-top:14px; }
+.hrt input,.hrt textarea { display:block; box-sizing:border-box; width:100%; max-width:100%; font:inherit; font-size:1rem; padding:13px; border:1px solid #6d8a7f; border-radius:12px; background:#fff; color:#172d2a; margin-top:7px; }
+.hrt input:disabled,.hrt textarea:disabled { opacity:1; background:#edf3ef; color:#3b554a; }
+.hrt textarea { min-height:190px; resize:vertical; line-height:1.6; }
+.hrt-fragen { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:8px; margin-block:14px 18px; }
 .hrt button,.hrt .knopf { min-height:44px; min-width:44px; white-space:normal; }
-.hrt .knopf { border:1px solid #64748b; border-radius:12px; padding:11px 17px; background:#fff; color:#172033; font:inherit; font-weight:600; cursor:pointer; }
-.hrt .knopf-primaer { background:#153d82; color:#fff; border-color:#153d82; }
-.hrt .knopf:disabled { color:#64748b; background:#eef2f6; border-color:#cbd5e1; cursor:default; }
-.hrt-fragen button { background:#fff; border:1px solid #94a3b8; border-radius:12px; font:inherit; }
-.hrt-fragen .beantwortet { border:2px solid #315e9c; background:#e8f0ff; }
-.hrt-fragen [aria-current] { outline:3px solid #153d82; outline-offset:2px; }
-.hrt button:focus-visible,.hrt a:focus-visible { outline:3px solid #153d82; outline-offset:3px; }
+.hrt .knopf { border:1px solid #6d8a7f; border-radius:12px; padding:11px 17px; background:#fff; color:#173d36; font:inherit; font-weight:650; cursor:pointer; }
+.hrt .knopf-primaer { background:#174f48; color:#fff; border-color:#174f48; }
+.hrt .knopf:disabled { color:#596b61; background:#e8eeea; border-color:#c1cec6; cursor:default; }
+.hrt-fragen button { padding:6px; background:#fffefa; color:#314d43; border:1px solid #6d8a7f; border-radius:12px; font:inherit; font-weight:650; }
+.hrt-fragen .beantwortet { border-color:#42765d; background:#dcecdf; }
+.hrt-fragen [aria-current] { outline:3px solid #174f48; outline-offset:2px; background:#174f48; color:#fff; }
+.hrt-raum :is(button,a,input,textarea):focus-visible { outline:3px solid #28654a; outline-offset:3px; }
+.hrt-kopf :focus-visible { outline-color:#e3f1bc; }
 .hrt-aktionen { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
-.hrt-status { min-height:1.5em; color:#334155; overflow-wrap:anywhere; }
-.hrt-status.fehler { color:#9f1d1d; font-weight:600; }
-.hrt-frage { line-height:1.65; }
-.hrt-ursprung { white-space:pre-wrap; overflow-wrap:anywhere; color:#334155; }
-.hrt summary { cursor:pointer; min-height:44px; padding-block:10px; }
-.hrt-erfolg { border:2px solid #237250; background:#edf8f2; }
-.hrt [hidden] { display:none !important; }
-@media(max-width:600px) { .hrt-meta{grid-template-columns:1fr;} .hrt-aktionen>*{flex:1 1 160px;} }
+.hrt-speicherleiste { display:flex; flex-wrap:wrap; gap:8px 16px; align-items:center; }
+.hrt-speicherleiste .hrt-aktionen { margin-left:auto; }
+.hrt-status { color:#37554a; overflow-wrap:anywhere; font-size:.85rem; margin:0; }
+.hrt-status.fehler { color:#9b2727; font-weight:650; }
+.hrt .hrt-neuladen { padding:6px 10px; font-size:.8rem; border-color:#6d8a7f; }
+.hrt-fortschritt { font-size:.85rem; font-weight:650; margin:18px 0 0; color:#37554a; }
+.hrt-fragekopf { display:flex; gap:10px; align-items:center; margin-bottom:16px; }
+.hrt-fragekopf h2 { margin:0; font-size:1rem; }
+.hrt-fragenummer { display:grid; place-items:center; width:38px; height:38px; background:#e3f1bc; color:#254936; border-radius:12px; font-weight:750; }
+.hrt-frage { line-height:1.7; font-size:1.05rem; margin:0 0 24px; }
+.hrt-fragekarte > .hrt-aktionen { margin-top:18px; justify-content:space-between; }
+.hrt-ursprung { white-space:pre-wrap; overflow-wrap:anywhere; color:#3a5548; padding:14px; background:#edf4ed; border-radius:12px; }
+.hrt .hrt-ursprung-knopf { padding:8px 12px; margin-top:16px; border-color:#6d8a7f; font-size:.85rem; }
+.hrt-hinweise { background:#e3ede5; }
+.hrt-hinweise h2 { font-size:1rem; margin:0 0 10px; }
+.hrt-hinweise > p { line-height:1.6; font-size:.9rem; margin:8px 0 16px; }
+.hrt-kuerzel { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0 0 16px; }
+.hrt-kuerzel div { padding:12px; background:#fffefa; border:1px solid #a8bdb0; border-radius:13px; }
+.hrt-kuerzel dt { color:#174f48; font-size:1.15rem; font-weight:800; }
+.hrt-kuerzel dd { margin:4px 0 0; font-size:.8rem; line-height:1.4; color:#3f574b; }
+.hrt a { color:#155747; text-underline-offset:3px; }
+.hrt-info { font-size:.8rem; line-height:1.6; color:#3f574b; }
+.hrt-erfolg { border:2px solid #417456; background:#e1f0d7; }
+.hrt-erfolg h2 { font-size:1.1rem; margin-top:0; }
+.hrt-abschluss { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:16px; }
+.hrt-fuss { display:flex; justify-content:center; flex-wrap:wrap; gap:12px 20px; padding:18px 20px max(24px,env(safe-area-inset-bottom)); font-size:.8rem; }
+.hrt-fuss a { color:#48635c; }
+.hrt-raum [hidden] { display:none !important; }
+@media(max-width:650px) { .hrt-meta{grid-template-columns:1fr 1fr;} .hrt-meta>div:first-child{grid-column:1/-1;} .hrt-fragen{grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;} .hrt-aktionen>*{flex:1 1 140px;} .hrt-kuerzel{grid-template-columns:repeat(2,minmax(0,1fr));} .hrt-speicherleiste .hrt-aktionen{margin-left:0;} }
+@media(max-width:380px) { .hrt-raumkopf{padding-inline:16px;}.hrt-marke{gap:8px;font-size:.9rem;}.hrt-markenzeichen{width:42px;height:42px;}.hrt-konto{padding-inline:9px;}.hrt-meta{grid-template-columns:1fr;}.hrt-meta>div:first-child{grid-column:auto;} }

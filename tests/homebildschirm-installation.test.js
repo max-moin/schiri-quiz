@@ -55,7 +55,8 @@ test("jede HTML-Seite bindet Manifest und iPhone-Symbol ein", () => {
     const inhalt = lies(seite);
     assert.match(inhalt, /<link rel="manifest" href="app\.webmanifest"\s*\/?>/, `${seite}: Manifest fehlt`);
     assert.match(inhalt, /<link rel="apple-touch-icon" href="bilder\/apple-touch-icon\.png"\s*\/?>/, `${seite}: iPhone-Symbol fehlt`);
-    assert.match(inhalt, /<meta name="theme-color" content="#1f2937"\s*\/?>/, `${seite}: Theme-Farbe fehlt`);
+    const theme = seite === 'hausregeltest.html' ? '#174f48' : '#1f2937';
+    assert.match(inhalt, new RegExp(`<meta name="theme-color" content="${theme}"\\s*\\/?>`), `${seite}: Theme-Farbe fehlt`);
   }
 });
 
