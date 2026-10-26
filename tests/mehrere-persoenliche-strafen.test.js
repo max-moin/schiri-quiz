@@ -333,6 +333,35 @@ test("Rolle, Mannschaft und Nummer gehen nur mit, wenn die Frage sie verlangt", 
 //  5. Die Aufloesung zeigt mehrere Strafen
 // ============================================================
 
+test("Heim/Gast kann entfallen, während die Rolle weiterhin Pflicht bleibt", async () => {
+  const modul = await baueModul();
+  const frage = { ...FRAGE, fordert_strafe_mannschaft: false, fordert_strafe_nummer: false };
+  const karte = modul.baueFrageElement(frage);
+  klickeWert(karte, "gelb");
+  assert.equal(knoepfe(karte).some(k => ["heim", "gast"].includes(k.dataset.wert)), false);
+  const rolle = alle(bloecke(karte)[0], "select")[0];
+  assert.ok(rolle, "die Rollenabfrage darf nicht mit Heim/Gast verschwinden");
+  rolle.value = "";
+  rolle.ausloesen("change");
+  assert.equal(gesperrt(senden(karte)), true, "die fehlende Rolle bleibt Pflicht");
+  rolle.value = "auswechselspieler";
+  rolle.ausloesen("change");
+  assert.equal(gesperrt(senden(karte)), false);
+  senden(karte).ausloesen("click");
+  await new Promise(weiter => setTimeout(weiter, 0));
+  assert.deepEqual(gesendet.koerper.antwort.strafen, [{ strafe: "gelb", strafe_fuer_rolle: "auswechselspieler" }]);
+  assert.equal(pruefeVollstaendig(gesendet.koerper.antwort, frage), null);
+});
+
+test("API verlangt Heim/Gast nur bei aktivierter Abfrage, Karte und Rolle bleiben unabhängig", () => {
+  const antwort = { strafen: [{ strafe: "gelb", strafe_fuer_rolle: "feldspieler" }] };
+  const frage = { ...FRAGE, fordert_strafe_mannschaft: false, fordert_strafe_nummer: false };
+  assert.equal(pruefeForm(antwort), null);
+  assert.equal(pruefeVollstaendig(antwort, frage), null);
+  assert.match(pruefeVollstaendig(antwort, { ...frage, fordert_strafe_mannschaft: true }), /Mannschaft/);
+  assert.match(pruefeVollstaendig({ strafen: [{ strafe: "gelb" }] }, frage), /Rolle/);
+});
+
 test("die Ergebnisanzeige listet jede Strafe einzeln auf", async () => {
   const modul = await baueModul();
   const element = modul.baueBeantworteteFrageElement(FRAGE, {
