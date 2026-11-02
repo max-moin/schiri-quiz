@@ -128,7 +128,8 @@ Das gilt auch für das "feedback": Bei "nachbessern" darf es den fehlenden Punkt
 // Die inhaltliche Arbeit macht die Rückfrage - und die kommt sehr wohl vom
 // Modell, denn nur es weiß, welcher Punkt im konkreten Fall fehlt.
 const NACHBESSERN_FEEDBACK = "Der Kern stimmt – ein Punkt fehlt noch.";
-const KOMPAKTE_REGELN = `Bewerte nur die aktiven Kriterien, nicht zusätzlich jedes Detail der Musterantwort. Synonyme, Umgangssprache und Tippfehler akzeptieren; fachlich gegenteilige Kernentscheidungen nicht. Orange nur bei mindestens einem erfüllten Kriterium und einer echten gezielt behebbaren Lücke; wenn alle Kriterien fehlen, falsch. Eine kurze konkrete Entscheidung kann schon der fachliche Kern sein. Bloßes Spielerbenennen oder „muss besser machen“ ist keiner. Harmloses Beiwerk neben einer gültigen fachlichen Aussage ignorieren. Bei Nachfragen weder richtige Lösung noch Kartenfarbe vorsagen.`;
+const ZUSATZPRUEFUNG = `Prüfe die GESAMTE Antwort auch auf zusätzliche fachlich falsche Aussagen: Eine richtige Aussage plus eine für diese Szene eindeutig falsche Regelbehauptung ist nicht vollständig richtig. Mit strukturierten Kriterien: Melde abgedeckte Fehler ausschließlich beim betroffenen Kriterium als widersprochen; deren Folgen bestimmt der Server. Setze fachlicher_widerspruch=true für zusätzliche klare relevante Falschbehauptungen, die KEIN Kriterium abdeckt. Ohne Kriterien gilt dies für jede klare relevante Falschbehauptung. Bloßes Fehlen, harmlose Nebensätze, Namen, Tippfehler oder Unsicherheit sind KEIN solcher Widerspruch. Bei zugleich richtiger und gegenteiliger Aussage zum selben Kriterium gilt widersprochen; nicht die richtige Hälfte herauspicken. Wiederholungen bringen keine zusätzlichen Punkte.`;
+const KOMPAKTE_REGELN = `Bewerte nur die aktiven Kriterien, nicht zusätzlich jedes Detail der Musterantwort. Synonyme, Umgangssprache und Tippfehler akzeptieren; fachlich gegenteilige Kernentscheidungen nicht. Orange nur bei mindestens einem erfüllten Kriterium und einer echten gezielt behebbaren Lücke; wenn alle Kriterien fehlen, falsch. Eine kurze konkrete Entscheidung kann schon der fachliche Kern sein. Bloßes Spielerbenennen oder „muss besser machen“ ist keiner. Harmloses Beiwerk neben einer gültigen fachlichen Aussage ignorieren. Bei Nachfragen weder richtige Lösung noch Kartenfarbe vorsagen. ${ZUSATZPRUEFUNG}`;
 
 // Neue Fragen speichern ihre Kriterien als abgegrenztes JSON im bestehenden
 // Hinweisfeld. Das hält alle historischen RPCs kompatibel, gibt Gemini aber
@@ -137,6 +138,21 @@ const KRITERIEN_START = "[[KI-KRITERIEN-JSON]]";
 const KRITERIEN_ENDE = "[[/KI-KRITERIEN-JSON]]";
 const KRITERIUM_STATUS = new Set(["erfuellt", "fehlt", "widersprochen"]);
 const AUSWIRKUNGEN = new Set(["ignorieren", "nachfragen", "falsch"]);
+const PUNKTE_START = "[[KI-PUNKTE-JSON]]";
+const PUNKTE_ENDE = "[[/KI-PUNKTE-JSON]]";
+const punktwert = (wert, standard) => Number.isInteger(wert) ? Math.min(20, Math.max(0, wert)) : standard;
+
+export function extrahierePunktwertung(hinweise) {
+  if (typeof hinweise !== 'string' || !hinweise.includes(PUNKTE_START)) return {aktiv:false,schwelle:5};
+  const start=hinweise.indexOf(PUNKTE_START), ende=hinweise.indexOf(PUNKTE_ENDE,start);
+  if (ende<0) throw new Error('Punktwertung ist unvollständig.');
+  let roh;
+  try { roh=JSON.parse(hinweise.slice(start+PUNKTE_START.length,ende)); }
+  catch { throw new Error('Punktwertung enthält ungültige Einstellungen.'); }
+  if (!roh || typeof roh!=='object' || Array.isArray(roh) || typeof roh.aktiv!=='boolean'
+      || !Number.isInteger(roh.schwelle) || roh.schwelle<0 || roh.schwelle>199) throw new Error('Punktwertung ist ungültig.');
+  return {aktiv:roh.aktiv,schwelle:roh.schwelle};
+}
 
 export function extrahiereBewertungskriterien(hinweise, mitInaktiven = false) {
   if (typeof hinweise !== "string") return [];
@@ -154,6 +170,9 @@ export function extrahiereBewertungskriterien(hinweise, mitInaktiven = false) {
         bezeichnung: k.bezeichnung.trim(),
         erwartung: k.erwartung.trim(),
         akzeptierte_formulierungen: typeof k.akzeptierte_formulierungen === "string" ? k.akzeptierte_formulierungen.trim() : "",
+        falsche_aussagen: typeof k.falsche_aussagen === "string" ? k.falsche_aussagen.trim().slice(0,600) : "",
+        pluspunkte: punktwert(k.pluspunkte,3),
+        minuspunkte: punktwert(k.minuspunkte,5),
         bei_fehlen: AUSWIRKUNGEN.has(k.bei_fehlen) ? k.bei_fehlen : "nachfragen",
         bei_widerspruch: AUSWIRKUNGEN.has(k.bei_widerspruch) ? k.bei_widerspruch : "falsch",
         rueckfrage: typeof k.rueckfrage === "string" ? k.rueckfrage.trim() : "",
@@ -171,6 +190,8 @@ export function extrahiereBewertungskriterien(hinweise, mitInaktiven = false) {
 
 function hinweiseOhneKriterienJson(hinweise) {
   if (typeof hinweise !== "string") return "";
+  const ps=hinweise.indexOf(PUNKTE_START), pe=hinweise.indexOf(PUNKTE_ENDE,ps);
+  if (ps>=0 && pe>=0) hinweise=hinweise.slice(0,ps)+hinweise.slice(pe+PUNKTE_ENDE.length);
   const start = hinweise.indexOf(KRITERIEN_START);
   const ende = hinweise.indexOf(KRITERIEN_ENDE, start + KRITERIEN_START.length);
   if (start < 0 || ende < 0) return hinweise.trim();
@@ -189,7 +210,7 @@ function kriterienKontext(hinweise) {
     kriterien,
     // Nur semantische Angaben gehen ans Modell. IDs werden kurz nummeriert,
     // Folgen/Rückfragetexte bleiben ausschließlich für den Server erhalten.
-    prompt: `Strukturierte Bewertungskriterien (maßgeblich; id=Position):\n${JSON.stringify(kriterien.map((k,i)=>({id:String(i+1),ziel:k.erwartung,syn:k.akzeptierte_formulierungen,g:k.gewichtung})))}${ausHinweis}\nZusätzliche Hinweise (nur Kontext): ${freieHinweise || "keine"}`,
+    prompt: `Strukturierte Bewertungskriterien (maßgeblich; id=Position; falsch=ausdrücklich NICHT richtige Aussagen):\n${JSON.stringify(kriterien.map((k,i)=>({id:String(i+1),ziel:k.erwartung,syn:k.akzeptierte_formulierungen,g:k.gewichtung,...(k.falsche_aussagen?{falsch:k.falsche_aussagen}:{})})))}${ausHinweis}\nZusätzliche Hinweise (nur Kontext): ${freieHinweise || "keine"}`,
   };
 }
 
@@ -220,6 +241,10 @@ function eigeneKriterienNachfrage(offeneKriterien) {
 /// sind vollständig durch Max' Eingabe definiert.
 export function leiteKriterienBewertungAb(kiAntwort, hinweise, mitNachbessern) {
   const kriterien = extrahiereBewertungskriterien(hinweise);
+  const punktwertung = extrahierePunktwertung(hinweise);
+  if (punktwertung.aktiv && kriterien.reduce((s,k)=>s+k.pluspunkte,0)<=punktwertung.schwelle) {
+    throw new Error('Die Punkteschwelle ist mit den aktiven Kriterien nicht erreichbar.');
+  }
   if (!kriterien.length) return null;
   const gemeldet = new Map(
     Array.isArray(kiAntwort.kriterien)
@@ -234,9 +259,11 @@ export function leiteKriterienBewertungAb(kiAntwort, hinweise, mitNachbessern) {
   }
 
   const fehlende = [];
-  let istFalsch = kiAntwort.ungueltig === true || kriterien.every(k=>gemeldet.get(k.id)==='fehlt');
+  let punkte=0;
+  let istFalsch = kiAntwort.ungueltig === true || kiAntwort.fachlicher_widerspruch === true || kriterien.every(k=>gemeldet.get(k.id)==='fehlt');
   for (const kriterium of kriterien) {
     const status = gemeldet.get(kriterium.id);
+    punkte += status==='erfuellt' ? kriterium.pluspunkte : status==='widersprochen' ? -kriterium.minuspunkte : 0;
     const auswirkung = status === "erfuellt"
       ? "ignorieren"
       : status === "fehlt"
@@ -248,6 +275,10 @@ export function leiteKriterienBewertungAb(kiAntwort, hinweise, mitNachbessern) {
 
   // Ohne zweiten Versuch (Üben oder Ergänzung) bleibt eine nachfragbare
   // Lücke fachlich unvollständig und damit falsch - nie versehentlich grün.
+  const punkteReichen = !punktwertung.aktiv || punkte>punktwertung.schwelle;
+  // Die Summe darf keine harte Fehlentscheidung überstimmen. Unterhalb
+  // der Schwelle gibt es nur bei einer echten offenen Lücke Orange.
+  if (!punkteReichen && fehlende.length===0) istFalsch=true;
   const hatOffeneLuecke = fehlende.length > 0;
   const nachbessern = !istFalsch && mitNachbessern && hatOffeneLuecke;
   return {
@@ -261,6 +292,7 @@ export function leiteKriterienBewertungAb(kiAntwort, hinweise, mitNachbessern) {
       ? saubereNachfrage(kiAntwort.nachfrage) || eigeneKriterienNachfrage(fehlende)
       : null,
     offeneKriterien: fehlende,
+    ...(punktwertung.aktiv ? {punktwertung:{punkte,schwelle:punktwertung.schwelle}} : {}),
   };
 }
 
@@ -301,7 +333,7 @@ export function baueErstversuchPrompt(kontext, freitext, mitNachbessern) {
 
   return `${SYSTEMKONTEXT}
 
-${bewertung.kriterien.length ? KOMPAKTE_REGELN : ALLGEMEINE_BEWERTUNGSREGELN}
+${bewertung.kriterien.length ? KOMPAKTE_REGELN : ALLGEMEINE_BEWERTUNGSREGELN+'\n'+ZUSATZPRUEFUNG}
 
 Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
@@ -312,7 +344,7 @@ ${statusTeil}
 ${kriterienAnweisung(bewertung.kriterien)}
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"status": "richtig" oder "nachbessern" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": "gezielte Rückfrage oder null"}`;
+{"status": "richtig" oder "nachbessern" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "fachlicher_widerspruch": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": "gezielte Rückfrage oder null"}`;
 }
 
 // Beim zweiten Versuch wird NICHT die Ergänzung allein bewertet, sondern
@@ -323,7 +355,7 @@ export function baueNachbesserungsPrompt(kontext, ergaenzung) {
   const bewertung = kriterienKontext(kontext.bewertungshinweise);
   return `${SYSTEMKONTEXT}
 
-${bewertung.kriterien.length ? KOMPAKTE_REGELN : ALLGEMEINE_BEWERTUNGSREGELN}
+${bewertung.kriterien.length ? KOMPAKTE_REGELN : ALLGEMEINE_BEWERTUNGSREGELN+'\n'+ZUSATZPRUEFUNG}
 
 Frage: ${kontext.frage_text}
 Musterantwort/Bewertungsmaßstab: ${kontext.musterantwort}
@@ -342,7 +374,7 @@ Das Feedback soll sich auf die Gesamtantwort beziehen, nicht nur auf die Ergänz
 ${kriterienAnweisung(bewertung.kriterien)}
 
 Antworte AUSSCHLIESSLICH als JSON-Objekt in genau diesem Format, ohne Markdown-Codeblock drumherum:
-{"status": "richtig" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": null}`;
+{"status": "richtig" oder "falsch", "kriterien": [{"id":"Kriterien-ID", "status":"erfuellt" oder "fehlt" oder "widersprochen"}], "ungueltig": false, "fachlicher_widerspruch": false, "feedback": "kurze, sachliche Begründung auf Deutsch, 1 Satz - kein Smalltalk, keine Anrede", "nachfrage": null}`;
 }
 
 // Ein Gemini-Aufruf, roh: liefert das geparste JSON zurück.
@@ -400,6 +432,7 @@ export function normalisiereKIBewertung(ergebnis, bewertungshinweise, mitNachbes
   // Gilt auch ohne JSON-Rubrik. Ungültig darf weder durch fehlende
   // Kriterien noch durch ein widersprüchliches Modell-Gesamturteil orange werden.
   if (ergebnis.ungueltig === true) return {status:'falsch',feedback:'Das ist keine gültige fachliche Antwort auf die Frage.',nachfrage:null};
+  if (ergebnis.fachlicher_widerspruch === true) return {status:'falsch',feedback:typeof ergebnis.feedback==='string'&&ergebnis.feedback.trim()?ergebnis.feedback:'Deine Antwort enthält zusätzlich eine fachlich falsche Aussage.',nachfrage:null};
   const strukturierteBewertung = leiteKriterienBewertungAb(ergebnis, bewertungshinweise, mitNachbessern);
   if (strukturierteBewertung) return strukturierteBewertung;
 

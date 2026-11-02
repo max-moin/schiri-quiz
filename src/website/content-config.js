@@ -1,3 +1,5 @@
+import { lokalerDokumentDownload } from "./dokument-downloads.js";
+
 const kopie = (wert) => JSON.parse(JSON.stringify(wert));
 
 export const INHALTSBEREICHE = Object.freeze(["regeln", "vorlagen", "unterlagen", "bilder", "texte"]);
@@ -113,6 +115,7 @@ export function validiereWebsiteInhalt(bereich, roh) {
       if (!istText(dokument?.titel)) fehler.push(`Unterlagen, Eintrag ${index + 1}: Titel fehlt.`);
       if (!gruppenIds.includes(dokument?.g)) fehler.push(`${name}: Anlass ist ungültig.`);
       if (!istLink(dokument?.href)) fehler.push(`${name}: Link muss vollständig mit https:// oder http:// beginnen.`);
+      if (istText(dokument?.datei) && !lokalerDokumentDownload(dokument.datei)) fehler.push(`${name}: Die Download-Datei ist nicht auf dieser Website hinterlegt.`);
     }
   }
 
@@ -175,6 +178,8 @@ function normalisiereUnterlagen(roh, fallback) {
       titel: text(dokument?.titel, "Dokument", 220),
       sub: text(dokument?.sub, "", 1200),
       href: link(dokument?.href, ""),
+      datei: lokalerDokumentDownload(dokument?.datei),
+      stand: optionalerText(dokument?.stand, "", 120),
       q: ["hier", "svfd", "sfv", "dfb"].includes(dokument?.q) ? dokument.q : "svfd",
       aktiv: dokument?.aktiv !== false,
     }))

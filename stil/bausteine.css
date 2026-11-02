@@ -162,6 +162,19 @@ body { overflow-x: hidden; }
 .lz-sub { display: block; font-size: .8rem; color: var(--muted); line-height: 1.5; margin-top: 3px; }
 .lz-rechts { flex: none; display: flex; align-items: center; gap: 9px; padding-top: 8px; }
 .lz-pfeil { color: var(--muted); font-size: .9rem; }
+.dokument-zeile { align-items: flex-start; }
+.dokument-zeile .lz-titel, .dokument-zeile .lz-sub { margin-bottom: 0; }
+.dokument-zeile .lz-titel { margin-top: 0; }
+.dokument-zeile > .abzeichen { flex-shrink: 0; }
+.dokument-aktionen { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 18px; margin-top: 8px; }
+.dokument-aktionen a { display: inline-flex; align-items: center; min-height: 44px; font-size: .82rem; text-decoration: underline; text-underline-offset: 3px; }
+.dokument-download { font-weight: 700; }
+.dokument-quelle { color: var(--muted); }
+@media (max-width: 480px) {
+  .dokument-zeile { flex-wrap: wrap; gap: 8px; }
+  .dokument-zeile .lz-text { flex-basis: calc(100% - 24px); }
+  .dokument-zeile > .abzeichen { margin-left: 18px; }
+}
 
 /* Abschnittsüberschrift innerhalb einer Liste. */
 .liste-kopf {

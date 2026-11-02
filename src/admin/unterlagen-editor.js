@@ -1,4 +1,5 @@
 import { UNTERLAGEN_STANDARD } from "../website/content-defaults.js";
+import { DOKUMENT_DOWNLOADS } from "../website/dokument-downloads.js";
 import { erstelleInhaltsSpeicher } from "./content-store.js";
 import { bereichsGeruest, bindeInhaltsAktionen, datumText, kopie, setzeStatus } from "./editor-ui.js";
 
@@ -7,7 +8,7 @@ export function erstelleUnterlagenEditor({ wurzel, client, verein, benutzer }) {
   const speicher = erstelleInhaltsSpeicher({ client, verein, benutzer, bereich: "unterlagen", fallback: UNTERLAGEN_STANDARD });
   wurzel.innerHTML = bereichsGeruest({
     titel: "Unterlagen",
-    untertitel: "Links nach Anlass gruppieren, beschreiben, sortieren oder ausblenden.",
+    untertitel: "Unterlagen sortieren und hinterlegte Dateien direkt anbieten. Der Verbandslink bleibt als Quelle erhalten. Neue Dateien müssen zunächst zur Website hinzugefügt werden.",
     kennung: "Unterlagen",
   });
   const editor = wurzel.querySelector("[data-inhalt-editor]");
@@ -29,7 +30,9 @@ export function erstelleUnterlagenEditor({ wurzel, client, verein, benutzer }) {
         <label>Anlass<select data-feld="g"></select></label>
         <label>Herkunft<select data-feld="q"><option value="svfd">Stadtverband</option><option value="sfv">Landesverband</option><option value="hier">Bei uns</option><option value="dfb">DFB</option></select></label>
         <label class="admin-breit">Kurzbeschreibung<textarea data-feld="sub" rows="3"></textarea></label>
-        <label class="admin-breit">Link<input data-feld="href" type="url" /></label>
+        <label class="admin-breit">Original / Quellenlink<input data-feld="href" type="url" /></label>
+        <label>Download auf dieser Website<select data-feld="datei"></select></label>
+        <label>Stand / Fassung<input data-feld="stand" placeholder="z. B. Saison 2026/2027" /></label>
       </div>
       <div class="admin-zeilen-aktionen">
         <label class="admin-checkbox"><input data-feld="aktiv" type="checkbox" /> Öffentlich anzeigen</label>
@@ -50,9 +53,12 @@ export function erstelleUnterlagenEditor({ wurzel, client, verein, benutzer }) {
       option.textContent = gruppe.titel;
       gruppenSelect.appendChild(option);
     });
-    for (const feld of ["titel", "g", "q", "sub", "href"]) {
+    const dateiSelect = karte.querySelector('[data-feld="datei"]');
+    dateiSelect.add(new Option("Noch keine lokale Datei – Original öffnen", ""));
+    DOKUMENT_DOWNLOADS.forEach(d => dateiSelect.add(new Option(d.titel, d.pfad)));
+    for (const feld of ["titel", "g", "q", "sub", "href", "datei", "stand"]) {
       const input = karte.querySelector(`[data-feld="${feld}"]`);
-      input.value = dokument[feld];
+      input.value = dokument[feld] || "";
       input.addEventListener("input", () => { dokument[feld] = input.value; aktualisiereKopf(); });
     }
     const aktiv = karte.querySelector('[data-feld="aktiv"]');

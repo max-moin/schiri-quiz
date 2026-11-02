@@ -81,7 +81,7 @@ export const TEXTE_STANDARD = Object.freeze({
   "spesen.haftung": "\n          <b>Ohne Gewähr.</b> Maßgeblich sind allein die gültigen Sätze des Stadtverbands\n          Fußball Dresden bzw. des Sächsischen Fußball-Verbandes.\n        ",
   "unterlagen.titel": "Unterlagen",
   "unterlagen.unter": "Die offiziellen Dokumente von Stadtverband, Landesverband und DFB – nach Anlass sortiert und schnell auffindbar.",
-  "unterlagen.erklaerung": "\n        Die Dokumente sind danach sortiert, wann du sie brauchst. Der farbige\n        Strich zeigt die Quelle; die Links führen zur jeweiligen Verbandsseite.\n      ",
+  "unterlagen.erklaerung": "\n        Die Dokumente sind danach sortiert, wann du sie brauchst. Der farbige\n        Strich zeigt die Quelle. Hinterlegte Dateien lädst du direkt hier herunter;\n        der Quellenlink führt zum Verband. Noch nicht hinterlegte Unterlagen öffnest du dort im Original.\n      ",
   "unterlagen.schluss-text": "Selten benötigte Anweisungen und Ordnungen findest du vollständig bei den Verbänden.",
   "regeln.titel": "Regelübersicht",
 });

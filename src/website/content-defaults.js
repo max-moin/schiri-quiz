@@ -733,6 +733,17 @@ export const UNTERLAGEN_STANDARD = {
   ],
   "dokumente": [
     {
+      "id": "hausregeltest-1-2026-2027",
+      "aktiv": true,
+      "g": "lernen",
+      "titel": "Hausregeltest 1 · 2026/2027",
+      "sub": "Das Aufgabenblatt direkt herunterladen. Antworten im Hausregeltest-Modus vorbereiten; weitere Tests und Vorlagen findest du beim Stadtverband.",
+      "href": "https://www.svf-dresden.de/docs/schiedsrichter/hausregeltest/",
+      "datei": "/dokumente/hausregeltest-1-2026-2027.pdf",
+      "stand": "Saison 2026/2027 · Test 1",
+      "q": "svfd"
+    },
+    {
       "id": "dokument-1",
       "aktiv": true,
       "g": "vor",
