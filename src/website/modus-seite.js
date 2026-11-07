@@ -57,6 +57,7 @@ function zeichne({woche, angemeldet}) {
     <div class="modus-liste">
       ${wochenKachel(woche,angemeldet)}
       <a class="modus-kachel" href="hausregeltest.html"><div class="modus-kopf"><span class="modus-name">${symbol('woche')}Hausregeltest</span><span class="modus-pille">2026/27</span></div><p class="modus-text">Bis 8. November vorbereiten. Ab 9. November gemeinsam überarbeiten.</p></a>
+      <a class="modus-kachel" href="szenencheck.html"><div class="modus-kopf"><span class="modus-name">${symbol('duell')}Entscheiden · Szenencheck</span><span class="modus-pille">Pilot mit Code</span></div><p class="modus-text">Videos beurteilen und im Rückblick vergleichen. Ohne Quizwertung.</p></a>
       <div class="modus-weitere" data-tour-ueben-duell>${uebenKachel(angemeldet && fertig)}
       <a class="modus-kachel" href="duell.html"><div class="modus-kopf"><span class="modus-name">${symbol('duell')}Quiz-Duell</span></div><p class="modus-text">Per Einladung gegeneinander spielen.</p></a>
       </div>
