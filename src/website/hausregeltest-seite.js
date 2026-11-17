@@ -1,5 +1,5 @@
 import {DATENBANK} from '../../verein.config.js';
-import {erstelleHrtZugriff,erstelleHrtSpeicher,ladeTextdatei,auswerterAdresse,mitExportname} from './hausregeltest.js';
+import {erstelleHrtZugriff,erstelleHrtSpeicher,ladeTextdatei,auswerterAdresse,mitExportname,abgabeMail} from './hausregeltest.js';
 
 const root=document.getElementById('hausregeltestBereich');
 // Gleiche Anmeldung wie im Wochenquiz, aber ohne die Navigation der Vereinsseite.
@@ -15,6 +15,8 @@ let exportName='';
 const editierbar=()=>['vorbereitung','endfassung'].includes(stand?.phase);
 function meldung(t,fehler=false){letzterStatus=t;letzterFehler=fehler;const el=root.querySelector('[data-status]');if(el){el.textContent=t;el.classList.toggle('fehler',fehler);}}
 function snapshot(final=false){return {p_test_id:stand.test.id,p_phase:stand.phase,p_antworten:[...antworten],p_bestaetigen:final};}
+function exportFassung(){return mitExportname(stand.bestaetigt,exportName);}
+function exportMeldung(text){root.querySelector('[data-export-status]').textContent=text;}
 function downloadStand(){
  const e=root.querySelector('[data-export]');if(!e)return;
  const f=stand?.bestaetigt;e.hidden=!f;
@@ -23,7 +25,22 @@ function downloadStand(){
   if(aktiv)li.setAttribute('aria-current','step');else li.removeAttribute('aria-current');
  });
  const finalKnopf=root.querySelector('[data-final]');if(finalKnopf)finalKnopf.disabled=Boolean(f)||!editierbar()||bestaetigungLaeuft;
- if(f){e.querySelector('[data-empfaenger]').textContent=auswerterAdresse(exportName.trim()||f.kopf.name)||'Bitte im Originalblatt nachsehen.';}
+ if(!f)return;
+ const download=e.querySelector('[data-download]');
+ const vorlage=e.querySelector('[data-mail-vorlage]');
+ const empfaenger=e.querySelector('[data-empfaenger]');
+ exportMeldung('');
+ try{
+  const lokal=exportFassung();
+  const mail=abgabeMail(lokal,stand.test.titel);
+  empfaenger.textContent=auswerterAdresse(lokal.kopf.name)||'Bitte im Originalblatt nachsehen.';
+  e.querySelector('[data-mail-betreff]').textContent=mail.betreff;
+  e.querySelector('[data-mail-text]').textContent=mail.text;
+  download.disabled=false;vorlage.hidden=false;
+ }catch(err){
+  empfaenger.textContent='Bitte den Namen prüfen.';
+  download.disabled=true;vorlage.hidden=true;exportMeldung(err.message);
+ }
 }
 function fortschritt(){
  root.querySelector('[data-fortschritt]').textContent=`${antworten.filter(x=>x.trim()).length} von ${antworten.length} beantwortet`;
@@ -34,7 +51,7 @@ function zeichne(){
  root.innerHTML=`<section class="hrt-kopf"><span class="hrt-kicker">In Ruhe vorbereiten · ohne Bewertung</span><h1>${sicher(test.titel)}</h1><ol class="hrt-phasen" aria-label="Dein Ablauf"><li ${phase==='vorbereitung'?'aria-current="step"':''}>1 · Vorbereiten</li><li ${phase==='endfassung'&&!stand.bestaetigt?'aria-current="step"':''}>2 · Besprechen</li><li ${stand.bestaetigt?'aria-current="step"':''}>3 · Textdatei</li></ol>
  <p>${phase==='vorbereitung'?`Deine Antworten bis ${datum(new Date(new Date(test.vorbereitung_bis)-1))}. Ab ${datum(test.endfassung_ab)} kannst du sie zur Besprechung überarbeiten.`:phase==='pause'?'Die Vorbereitung ist abgeschlossen. Die Überarbeitung öffnet zur Besprechung.':phase==='endfassung'?'Deine Vorantworten sind übernommen. Überarbeite sie und bestätige deine eigene Endfassung.':'Die Bearbeitungsfrist ist beendet. Bestätigte Textdateien bleiben herunterladbar.'}</p></section>
  <section class="hrt-meta hrt-panel" aria-label="Deine Angaben">
- <div><span class="hrt-feldname">Name</span><strong>${sicher(kopf.name)}</strong><label>Voller Name für die Textdatei (optional)<input data-export-name value="${sicher(exportName)}" maxlength="150" autocomplete="off" aria-describedby="hrt-name-hilfe"></label><small id="hrt-name-hilfe">Nur in deinem TXT-Download, nicht im gespeicherten Antwortstand. Nach Neuladen erneut eintragen.</small></div>
+ <div><span class="hrt-feldname">Hinterlegter Name</span><strong>${sicher(kopf.name)}</strong><label>Vollständiger Name für die Abgabe<input data-export-name value="${sicher(exportName)}" maxlength="150" autocomplete="off" aria-describedby="hrt-name-hilfe"></label><small id="hrt-name-hilfe">Steht oben nur dein Vorname oder Kürzel? Trag hier Vor- und Nachnamen ein. So stehen sie in der Textdatei und der Mailvorlage. Nach Neuladen erneut eintragen.</small></div>
  <div><span class="hrt-feldname">Verein</span><strong>${sicher(kopf.verein)}</strong></div>
  <div><span class="hrt-feldname">Einstufung</span><strong>${sicher(kopf.einstufung)||'Noch nicht hinterlegt'}</strong><small>${kopf.einstufung?'Aus deinen Vereinsdaten übernommen.':'Dein Obmann ergänzt sie in der App. Du kannst schon antworten.'}</small></div></section>
  <div class="hrt-speicherleiste"><p class="hrt-status" data-status role="status" aria-live="polite">${offen?'Antworten werden automatisch gespeichert.':'Gespeicherter Stand.'}</p>
@@ -48,7 +65,18 @@ function zeichne(){
  <dl class="hrt-kuerzel" aria-label="Abkürzungen">${[['IF','Indirekter Freistoß'],['DF','Direkter Freistoß'],['SRB','Schiedsrichterball'],['GK','Gelbe Karte'],['GRK','Gelb-rote Karte'],['RK','Rote Karte']].map(([k,v])=>`<div><dt>${k}</dt><dd>${v}</dd></div>`).join('')}</dl>
  <a href="dokumente/hausregeltest-1-2026-2027.pdf">Original-Aufgabenblatt (PDF)</a><p class="hrt-info">Dein Obmann sieht deine Antworten zur Vorbereitung. Andere Schiris sehen sie nicht. Keine KI-Bewertung und keine Musterlösungen.</p></aside>
  <div class="hrt-abschluss"><span class="hrt-info">Abgabe bis ${datum(new Date(new Date(test.abgabe_bis)-1))}</span>${phase==='endfassung'?'<button type="button" class="knopf knopf-primaer" data-final>Endfassung bestätigen</button>':''}</div>
- <section data-export class="hrt-panel hrt-erfolg" hidden><h2>Deine Textdatei ist bereit</h2><button type="button" class="knopf knopf-primaer" data-download>Textdatei herunterladen</button><p>Auswerter: <strong data-empfaenger></strong> · Zuordnung nach dem Nachnamen im Feld „Name“; bitte vor Versand am Originalblatt prüfen.</p><p>Die Datei noch selbst als Anhang per E-Mail senden. Hier wird nichts automatisch verschickt.</p></section>`;
+ <section data-export class="hrt-panel hrt-erfolg" hidden aria-labelledby="hrt-export-titel">
+ <h2 id="hrt-export-titel" tabindex="-1">Textdatei herunterladen und per E-Mail abgeben</h2>
+ <button type="button" class="knopf knopf-primaer" data-download>Textdatei herunterladen</button>
+ <p>Vorgeschlagener Auswerter: <strong data-empfaenger></strong><br>Bitte die Adresse für deinen Nachnamen am <a href="dokumente/hausregeltest-1-2026-2027.pdf">Original-Aufgabenblatt</a> prüfen.</p>
+ <div class="hrt-mail" data-mail-vorlage hidden>
+ <h3>E-Mail-Vorlage</h3>
+ <div class="hrt-mail-inhalt" data-mail-inhalt><p><strong>Betreff:</strong> <span data-mail-betreff></span></p><p class="hrt-mail-text" data-mail-text></p></div>
+ <button type="button" class="knopf" data-mail-kopieren>Mailvorlage kopieren</button>
+ </div>
+ <p class="hrt-status" data-export-status role="status"></p>
+ <p><strong>Wichtig:</strong> Häng die TXT-Datei an deine E-Mail an und sende sie selbst ab. Bestätigung und Download allein sind noch keine Abgabe.</p>
+ </section>`;
  fortschritt();downloadStand();if(letzterStatus)meldung(letzterStatus,letzterFehler);root.querySelector('[data-retry]').hidden=!speicherGestoppt;
 }
 async function laden(){
@@ -65,7 +93,8 @@ async function laden(){
    erfolg:(data,x,mehr)=>{if(n!==generation)return;speicherGestoppt=false;stand.revision=data.revision;stand.bestaetigt=mehr?null:data.bestaetigt;
     if(data.phase!==stand.phase){meldung('Die Phase hat gewechselt. Bitte Stand neu laden.',true);return;}
     meldung(mehr?'Weitere Änderungen werden gespeichert …':x.p_bestaetigen?'Endfassung bestätigt. Textdatei jetzt herunterladen.':'Gespeichert.');
-    root.querySelector('[data-retry]').hidden=true;if(!bestaetigungLaeuft||x.p_bestaetigen){bestaetigungLaeuft=false;root.querySelectorAll('textarea,[data-final]').forEach(e=>e.disabled=!editierbar());}downloadStand();},
+    root.querySelector('[data-retry]').hidden=true;if(!bestaetigungLaeuft||x.p_bestaetigen){bestaetigungLaeuft=false;root.querySelectorAll('textarea,[data-final]').forEach(e=>e.disabled=!editierbar());}downloadStand();
+    if(x.p_bestaetigen&&stand.bestaetigt)root.querySelector('#hrt-export-titel').focus();},
    fehler:e=>{if(n!==generation)return;speicherGestoppt=true;meldung(`${e.message} Deine Eingabe bleibt in diesem Fenster erhalten. Nicht ungesichert schließen.`,true);root.querySelector('[data-retry]').hidden=false;bestaetigungLaeuft=false;root.querySelectorAll('textarea,[data-final]').forEach(e=>e.disabled=!editierbar());}});
  }catch(e){if(n===generation){root.innerHTML='<h1>Hausregeltest</h1><p data-status role="status"></p><button type="button" class="knopf" data-reload>Erneut laden</button>';meldung(e.message,true);}}
 }
@@ -81,7 +110,22 @@ root.addEventListener('click',async e=>{
  if(b.hasAttribute('data-login')){await loginDialog?.oeffne({grund:'Melde dich für deinen Hausregeltest an.',gastErlaubt:false});return;}
  if(b.hasAttribute('data-reload')){if(speicher?.offen()&&!confirm('Es gibt ungespeicherte Antworten. Vor dem Neuladen bitte kopieren. Trotzdem neu laden?'))return;void laden();return;}
  if(b.hasAttribute('data-retry')){void speicher.retry();return;}
- if(b.hasAttribute('data-download')){try{ladeTextdatei(mitExportname(stand.bestaetigt,exportName));}catch(err){meldung(err.message,true);}return;}
+ if(b.hasAttribute('data-download')){try{ladeTextdatei(exportFassung());}catch(err){exportMeldung(err.message);}return;}
+ if(b.hasAttribute('data-mail-kopieren')){
+  const vorlage=root.querySelector('[data-mail-inhalt]');
+  try{
+   const mail=abgabeMail(exportFassung(),stand.test.titel);
+   await navigator.clipboard.writeText(`Betreff: ${mail.betreff}\n\n${mail.text}`);
+   if(vorlage.isConnected)exportMeldung('Mailvorlage kopiert. TXT-Datei vor dem Absenden anhängen.');
+  }catch{
+   if(vorlage.isConnected){
+    const bereich=document.createRange();bereich.selectNodeContents(vorlage);
+    const auswahl=window.getSelection();auswahl?.removeAllRanges();auswahl?.addRange(bereich);
+    exportMeldung('Automatisches Kopieren nicht möglich. Bitte Betreff und Text manuell kopieren.');
+   }
+  }
+  return;
+ }
  if(b.hasAttribute('data-ursprung')){const el=root.querySelector('#hrt-ursprung');el.hidden=!el.hidden;b.setAttribute('aria-expanded',String(!el.hidden));return;}
  if(bestaetigungLaeuft)return;
  if(b.hasAttribute('data-final')){

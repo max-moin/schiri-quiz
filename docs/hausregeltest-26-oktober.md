@@ -15,7 +15,9 @@ Website-Obmannbereich einsehbar; andere Schiris erhalten sie nicht.
 - Name, Verein und Einstufung kommen serverseitig aus den Vereinsstammdaten.
   Für Löbtauer Kickers steht im Dokument „FV Löbtauer Kickers“. Einstufung in der
   App unter Verein → Name → Info pflegen; HRT-Personendetail verlinkt direkt dorthin.
-- Der Schiri kann einen vollen Namen nur für seinen eigenen TXT-Download ergänzen.
+- Steht nur der Vorname oder ein Kürzel im Profil, trägt der Schiri zur Abgabe
+  Vor- und Nachnamen ein. Der volle Name gilt nur für den TXT-Download, den
+  Empfängervorschlag und die lokale E-Mail-Vorlage.
   Kein RPC, Browser-Speicher, gespeicherter Antwortstand oder Versionsarchiv erhält
   diesen Zusatznamen. Nach Neuladen neu eingeben. App-/Obmannexport benutzt den
   hinterlegten Anzeigenamen, nicht einen nur im Browser ergänzten Namen.
@@ -27,7 +29,10 @@ Website-Obmannbereich einsehbar; andere Schiris erhalten sie nicht.
 - Bearbeitung bis einschließlich **22. November 2026**. Danach nur lesen/exportieren.
 - Datei anschließend selbst an Auswerter senden. Download oder Bestätigung ist
   **keine** offizielle Abgabe. Empfänger wird nach letztem Namensbestandteil
-  vorgeschlagen, muss am Originalblatt geprüft werden; kein automatischer Anhang.
+  vorgeschlagen und muss am Originalblatt geprüft werden. Die Vorlage neben dem
+  Download enthält Betreff und kurze Nachricht mit demselben Namen wie die TXT.
+  Sie ist sichtbar und kopierbar, auch manuell, wenn der Browser Kopieren sperrt.
+  Kein automatischer Versand oder Anhang.
 
 ## App statt zusätzlicher Website-Freigabe
 

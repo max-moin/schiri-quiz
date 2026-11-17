@@ -33,11 +33,19 @@ export function dateiname(fassung) {
  const name=String(fassung?.kopf?.name||'Abgabe').normalize('NFKC').replace(/[^\p{L}\p{N}_-]+/gu,'_').slice(0,70);
  return `Hausregeltest_1_2026-27_${name}_v${Number(fassung.revision)||1}.txt`;
 }
-// Nur für den eigenen Download. Dieses Objekt wird nie an eine RPC übergeben.
+// Nur für den eigenen Download und die Mailvorlage. Dieses Objekt geht nie an eine RPC.
 export function mitExportname(fassung,name='') {
  const n=String(name).trim();
  if(n.length>150 || /[\r\n\u0000-\u001f\u007f]/.test(n))throw new Error('Bitte deinen Namen einzeilig mit höchstens 150 Zeichen eintragen.');
  return {...fassung,kopf:{...fassung?.kopf,...(n?{name:n}:{})}};
+}
+export function abgabeMail(fassung,titel=HAUSREGELTEST.titel) {
+ const name=fassung?.kopf?.name?.trim();
+ if(!fassung?.bestaetigt_am || !name || /[\r\n]/.test(name))throw new Error('Bitte zuerst die eigene Endfassung bestätigen.');
+ return {
+  betreff:`${titel} – ${name}`,
+  text:`Hallo,\n\nim Anhang ist mein Hausregeltest.\n\nViele Grüße\n${name}`,
+ };
 }
 export function ladeTextdatei(fassung,doc=document) {
  const url=URL.createObjectURL(new Blob([textdatei(fassung)],{type:'text/plain;charset=utf-8'}));

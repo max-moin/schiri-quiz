@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {HAUSREGELTEST,auswerterAdresse,textdatei,dateiname,mitExportname,erstelleHrtSpeicher,erstelleHrtZugriff} from '../src/website/hausregeltest.js';
+import {HAUSREGELTEST,auswerterAdresse,textdatei,dateiname,mitExportname,abgabeMail,erstelleHrtSpeicher,erstelleHrtZugriff} from '../src/website/hausregeltest.js';
 const muster={kopf:{name:'Max Müller',verein:'Löbtauer Kickers',einstufung:'Kreisliga'},antworten:Array.from({length:10},(_,i)=>`Antwort ${i+1}: ÄÖÜ\nEigene Begründung`),bestaetigt_am:'2026-11-09',revision:5};
 test('HRT hat exakt die zehn Originalfragen und getrennte Berliner Fristen',()=>{
  assert.equal(HAUSREGELTEST.fragen.length,10);
@@ -44,6 +44,15 @@ test('RPC überträgt keinen ergänzten Namen und keine manipulierbaren Kopf-Fel
   assert.deepEqual(body.p_kopf,{});assert.doesNotMatch(JSON.stringify(body),/Privater Exportname|Gefälscht|exportName/);
   assert.deepEqual(body.p_antworten,['Antwort']);
  }finally{globalThis.fetch=alt;}
+});
+test('Mailvorlage übernimmt den Namen aus der lokalen TXT-Fassung, nicht die Antwortdaten',()=>{
+ const lokal=mitExportname(muster,'  Erika Weiß-Zorn  ');
+ const mail=abgabeMail(lokal,'Hausregeltest 1');
+ assert.deepEqual(mail,{betreff:'Hausregeltest 1 – Erika Weiß-Zorn',text:'Hallo,\n\nim Anhang ist mein Hausregeltest.\n\nViele Grüße\nErika Weiß-Zorn'});
+ assert.match(textdatei(lokal),/^Name: Erika Weiß-Zorn\r\n/);
+ assert.equal(auswerterAdresse(lokal.kopf.name),'auswerter3@svf-dresden.de');
+ assert.match(abgabeMail(mitExportname(muster,'')).betreff,/Max Müller$/);
+ assert.throws(()=>abgabeMail({...lokal,bestaetigt_am:null}));
 });
 test('HRT ist ein eigener Arbeitsbereich ohne Quiz-Reiter oder native Aufklappdreiecke',()=>{
  const html=readFileSync(new URL('../hausregeltest.html',import.meta.url),'utf8');

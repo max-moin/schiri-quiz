@@ -60,6 +60,13 @@
 .hrt-info { font-size:.8rem; line-height:1.6; color:#3f574b; }
 .hrt-erfolg { border:2px solid #417456; background:#e1f0d7; }
 .hrt-erfolg h2 { font-size:1.1rem; margin-top:0; }
+.hrt-erfolg > p { overflow-wrap:anywhere; line-height:1.55; }
+.hrt-mail { border:1px solid #a8bdb0; border-radius:14px; padding:14px; background:#fffefa; }
+.hrt-mail h3 { margin:0 0 12px; font-size:1rem; }
+.hrt-mail-inhalt { margin-block:0 12px; overflow-wrap:anywhere; }
+.hrt-mail-inhalt p { margin:.45em 0; }
+.hrt-mail-text { white-space:pre-wrap; line-height:1.45; }
+.hrt-erfolg [data-export-status]:not(:empty) { margin-top:12px; }
 .hrt-abschluss { display:flex; flex-wrap:wrap; align-items:center; gap:14px; margin-top:16px; }
 .hrt-fuss { display:flex; justify-content:center; flex-wrap:wrap; gap:12px 20px; padding:18px 20px max(24px,env(safe-area-inset-bottom)); font-size:.8rem; }
 .hrt-fuss a { color:#48635c; }
