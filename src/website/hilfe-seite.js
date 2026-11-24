@@ -1,12 +1,16 @@
 // Eigene Detailansichten; bisherige geteilte #dfbnet/#sonderbericht-Links bleiben gültig.
-const themen = ['dfbnet', 'sonderbericht', 'schiri-treff'];
+const themen = ['dfbnet', 'sonderbericht', 'schiri-treff', 'nichtantritt', 'bedraengt', 'diskriminierung'];
 const titel = document.getElementById('hilfe-seitentitel');
 const uebersicht = ['hilfe-einstieg', 'hilfe-uebersicht'];
 function zeichne({ fokus = false } = {}) {
   const thema = location.hash.slice(1);
   const detail = themen.includes(thema) ? document.getElementById(thema) : null;
   for (const id of uebersicht) document.getElementById(id).hidden = Boolean(detail);
-  for (const id of themen) document.getElementById(id).hidden = !detail || id !== thema;
+  document.getElementById('hilfe-suche')?.classList.toggle('hilfe-suche-detail', Boolean(detail));
+  for (const id of themen) {
+    const bereich = document.getElementById(id);
+    if (bereich) bereich.hidden = !detail || id !== thema;
+  }
   titel.hidden = Boolean(detail);
   const zurueck = document.querySelector('.wegweiser-zurueck');
   if (zurueck) {

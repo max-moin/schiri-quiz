@@ -39,6 +39,21 @@
   </div></header>
   <main class="inhalt" id="inhalt" tabindex="-1">
     <h1 class="seiten-titel" id="hilfe-seitentitel">Hilfe</h1>
+    <section class="hilfe-leitfaden hilfe-suche" id="hilfe-suche" aria-labelledby="hilfe-suche-titel" hidden>
+      <h2 id="hilfe-suche-titel">Was ist passiert?</h2>
+      <p>Such in deinen Worten, zum Beispiel „Schiri kommt nicht“ oder „Quittung Jugendspiel“.</p>
+      <form id="hilfe-suchform" role="search" aria-label="Hilfethemen durchsuchen">
+        <label>Suchbegriff<input name="q" type="search" maxlength="160" placeholder="Thema oder Situation beschreiben"></label>
+        <div class="hilfe-filter">
+          <label>Thema<select name="thema"><option value="">Alle Themen</option></select></label>
+          <label>Rolle<select name="rolle"><option value="">Alle Rollen</option></select></label>
+          <label>Zeitpunkt<select name="phase"><option value="">Alle Zeitpunkte</option></select></label>
+        </div>
+        <button type="reset">Zurücksetzen</button>
+      </form>
+      <p id="hilfe-suchstatus" role="status"></p>
+      <ul id="hilfe-suchergebnisse" class="hilfe-suchergebnisse"></ul>
+    </section>
     <section class="hilfe-leitfaden hilfe-einstieg" id="hilfe-einstieg" aria-labelledby="einstieg-titel">
       <h2 id="einstieg-titel">Die Website kennenlernen</h2>
       <p>Schritt für Schritt – jederzeit beenden, ohne etwas abzusenden.</p>
@@ -49,7 +64,7 @@
     <section class="hilfe-themenbereich hilfe-dfbnet" aria-labelledby="hilfe-dfbnet-titel">
       <a class="hilfe-dfbnet-einstieg" href="dfbnet.html"><img src="bilder/dfbnet-logo.png" width="109" height="142" alt=""><div><h2 id="hilfe-dfbnet-titel">DFBnet</h2><p>Spielbericht, rote Karte, Ansetzungen und Beobachtung – alles an einem Ort.</p><strong>Alle DFBnet-Themen öffnen →</strong></div></a>
       <nav class="hilfe-dfbnet-direkt" aria-label="Direkt zu einem DFBnet-Thema">
-        <a href="spielbericht.html">Spielbericht</a><a href="rote-karte.html">Rote Karte & Sonderbericht</a><a href="sperrtermine.html">Sperrtermine</a><a href="schiri-beobachtung.html">Beobachtung</a><a href="spielersperren.html">Spielersperren</a>
+        <a href="spielbericht.html">Spielbericht</a><a href="#nichtantritt">Nichtantritt & Ersatz</a><a href="rote-karte.html">Rote Karte & Sonderbericht</a><a href="vorlagen.html">Absagen</a><a href="sperrtermine.html">Sperrtermine</a><a href="schiri-beobachtung.html">Beobachtung</a><a href="spielersperren.html">Spielersperren</a>
       </nav>
     </section>
     <section class="hilfe-themenbereich" aria-labelledby="hilfe-website-titel"><h2 id="hilfe-website-titel">Website & Verein</h2><p>Einrichten, mitmachen oder Unterstützung finden.</p><div class="hilfe-raster">
@@ -60,7 +75,18 @@
       <a class="funktions-kachel" href="#schiri-treff"><span class="hilfe-icon" aria-hidden="true">☷</span><strong>Unser Schiri-Treff</strong><span>Themen und Protokolle.</span></a>
       <a class="funktions-kachel" href="melden.html"><strong>Problem melden</strong><span>Technischen Fehler oder Feedback zur Website senden.</span></a>
       <a class="funktions-kachel" href="schiri-werden.html"><strong>Schiedsrichter werden</strong><span>Der Weg zur Pfeife und häufige Fragen.</span></a>
+      <a class="funktions-kachel" href="#bedraengt"><strong>Ich werde bedrängt oder bedroht</strong><span>Schutz, Unterstützung und vertrauliche Meldung.</span></a>
+      <a class="funktions-kachel" href="#diskriminierung"><strong>Beleidigung, Diskriminierung und bedrohliche Zurufe</strong><span>Was für die Einordnung zählt und wo die offiziellen Vorgaben stehen.</span></a>
     </div></section>
+    <section class="hilfe-themenbereich hilfe-praxis" aria-labelledby="hilfe-praxis-titel">
+      <h2 id="hilfe-praxis-titel">Gut vorbereitet auf den Platz</h2>
+      <p>Praktische Tipps von MEIN FUSSBALL. Die Links öffnen die offiziellen Inhalte des DFB in einem neuen Tab.</p>
+      <div class="hilfe-raster">
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.meinfussball.de/schiris/aktive/spielvorbereitung" target="_blank" rel="noopener noreferrer"><span class="hilfe-quellmarke">DFB · MEIN FUSSBALL <span aria-hidden="true">↗</span></span><strong>Spielvorbereitung</strong><span>Was du vor deinem nächsten Einsatz vorbereiten kannst.</span></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.meinfussball.de/schiris/aktive/warm-up" target="_blank" rel="noopener noreferrer"><span class="hilfe-quellmarke">DFB · MEIN FUSSBALL <span aria-hidden="true">↗</span></span><strong>Warm-up vor dem Spiel</strong><span>Hinweise zum Aufwärmen als Schiedsrichter.</span></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.meinfussball.de/schiris/aktive/fitness" target="_blank" rel="noopener noreferrer"><span class="hilfe-quellmarke">DFB · MEIN FUSSBALL <span aria-hidden="true">↗</span></span><strong>Fitness für Schiris</strong><span>Anregungen für deine körperliche Vorbereitung.</span></a>
+      </div>
+    </section>
     </div>
     <section class="hilfe-leitfaden" id="dfbnet" aria-labelledby="dfbnet-titel">
       <h2 id="dfbnet-titel">DFBnet: vor deinem Spiel</h2>
@@ -94,6 +120,45 @@
       </details>
       <p class="hilfe-quellen">Vereinsinterne Unterstützung durch Max; Formularquelle: SVF Dresden. Diese Hilfe ersetzt nicht die gültigen Verbandsanweisungen. <a href="#sonderbericht">Direktlink zu dieser bisherigen Hilfe</a></p>
     </section>
+    <section class="hilfe-leitfaden hilfe-artikel" id="nichtantritt" aria-labelledby="nichtantritt-titel">
+      <h2 id="nichtantritt-titel">Der angesetzte Schiri erscheint nicht</h2>
+      <p>Ob und wer das Spiel leiten kann, vor dem Anpfiff nach den für den Wettbewerb geltenden Vorgaben klären. Die Spielleitung vor Ort und die spätere Zuordnung im DFBnet sind zwei verschiedene Schritte.</p>
+      <ol class="hilfe-schritte">
+        <li><strong>Nichtantritt im richtigen Spiel erfassen</strong><p>Laut SFV-Anleitung öffnet die Mannschaftsverantwortung nach dem Spiel den Spielbericht in der eigenen Rolle und wählt „Nichtantreten Schiri“. Wenn die Funktion fehlt, die zuständige Stelle fragen und keine fremden Zugänge verwenden.</p></li>
+        <li><strong>Spielverlauf vervollständigen</strong><p>Im Spielverlauf die erforderlichen Karten, Wechsel und Torschützen sowie etwaige Vorkommnisse erfassen. Anschließend speichern und freigeben. Die SFV-Anleitung beschreibt danach die Bestätigung durch den Gast.</p></li>
+        <li><strong>Übernommene Spielleitung zuordnen lassen</strong><p>Wer eingesprungen ist, fragt bei der zuständigen Ansetzung nach der nachträglichen Eintragung und getrennt davon nach der Anrechnung. Spielkennung, Begegnung, Datum, Uhrzeit, Wettbewerb, Liga und eigene Funktion nennen. Bis die Zuständigkeit geklärt ist, nicht davon ausgehen, dass die Meldung automatisch Schiri-Rechte vergibt oder als Einsatz zählt.</p></li>
+      </ol>
+      <div class="hilfe-raster">
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.sfv-online.de/fileadmin/content/PDFs/DFBnet/Spielbericht_Online/Spielbericht_Online_Anleitung_ohne_Schiedsrichter.pdf"><span class="hilfe-quellmarke">SFV · PDF ↗</span><strong>Spielbericht ohne Schiedsrichter</strong><span>Offizielle Anleitung für die Mannschaftsverantwortung.</span></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.svf-dresden.de/schiedsrichter/infos-fuer-schiedsrichter/"><span class="hilfe-quellmarke">SVF Dresden ↗</span><strong>Informationen für Schiris</strong><span>Aktuelle Hinweise des zuständigen Stadtverbands.</span></a>
+      </div>
+    </section>
+    <section class="hilfe-leitfaden hilfe-artikel" id="bedraengt" aria-labelledby="bedraengt-titel">
+      <h2 id="bedraengt-titel">Ich werde bedrängt oder bedroht</h2>
+      <ol class="hilfe-schritte">
+        <li><strong>Geh aus der Situation</strong><p>Bring Abstand zwischen dich und die Person, geh zu Menschen, denen du vertraust, und bitte vor Ort um Hilfe. Bei unmittelbarer Gefahr: Polizei unter 110.</p></li>
+        <li><strong>Bleib damit nicht allein</strong><p>Sprich mit deinem Obmann oder der Ansprechperson im Verein. Wenn du minderjährig bist, hol eine erwachsene Vertrauensperson dazu. Der SVF Dresden stellt Anlaufstellen zum Kindeswohl bereit.</p></li>
+        <li><strong>Dokumentiere und melde vertraulich</strong><p>Spielkennung, Zeitpunkt, konkrete Handlungen oder Wortlaut und mögliche Zeugen notieren. Trenne eigene Wahrnehmung von Berichten anderer. Kläre mit der zuständigen Stelle, ob ein Sonderbericht nötig ist und wie er übermittelt wird. Keine Namen oder Berichte in öffentliche oder Gruppenkanäle stellen.</p></li>
+      </ol>
+      <div class="hilfe-raster">
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.svf-dresden.de/junioren/kindeswohl/"><span class="hilfe-quellmarke">SVF Dresden ↗</span><strong>Kindeswohl und Anlaufstellen</strong></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.svf-dresden.de/dokumente/sonderbericht/"><span class="hilfe-quellmarke">SVF Dresden ↗</span><strong>Formular für den Sonderbericht</strong></a>
+      </div>
+    </section>
+    <section class="hilfe-leitfaden hilfe-artikel" id="diskriminierung" aria-labelledby="diskriminierung-titel">
+      <h2 id="diskriminierung-titel">Beleidigung, Diskriminierung und bedrohliche Zurufe</h2>
+      <p>Bei einem Zuruf kommt es auf Wortlaut, Adressat, Kontext und darauf an, von wem er kommt. Ein unvollständig geschilderter Einzelfall lässt sich nicht verbindlich als Rot oder Nicht-Rot einordnen.</p>
+      <ol class="hilfe-schritte">
+        <li><strong>Persönliche Strafe und Reaktion der Spielleitung trennen</strong><p>Regel 12 behandelt anstößige, beleidigende oder schmähende Äußerungen bzw. Handlungen als Feldverweisvergehen für die dort genannten Beteiligten, etwa Spieler oder Teamoffizielle. Zuschauer erhalten keine persönliche Karte nach dieser Regel.</p></li>
+        <li><strong>Den DFB-Drei-Stufen-Plan im vorgesehenen Fall anwenden</strong><p>Der DFB beschreibt ihn für schwerwiegende oder intensive diskriminierende Vorfälle und personalisierte Bedrohungen aus dem Zuschauerbereich: Unterbrechung mit Durchsage, zeitweilige Aussetzung, als letztes Mittel Abbruch. Der Plan ist kein Automatismus für jede Beschimpfung. Die konkreten DFB-Hinweise und Sicherheitslage sind maßgeblich.</p></li>
+        <li><strong>Wahrnehmung festhalten und Unterstützung holen</strong><p>Wortlaut, Zeitpunkt, Beteiligte, Zeugen und Reaktion sachlich dokumentieren. Bei Bedrohung geht Sicherheit vor; zum nächsten Schritt siehe <a href="#bedraengt">Schutz und Meldung</a>.</p></li>
+      </ol>
+      <div class="hilfe-raster">
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.dfb.de/content/drei-stufen-plan"><span class="hilfe-quellmarke">DFB ↗</span><strong>Offizieller Drei-Stufen-Plan</strong></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://theifab.com/laws/latest/fouls-and-misconduct/"><span class="hilfe-quellmarke">IFAB ↗</span><strong>Regel 12: Fouls und unsportliches Betragen</strong></a>
+        <a class="funktions-kachel hilfe-quellkarte" href="https://www.sfv-online.de/soziales/gesellschaftliche-verantwortung/"><span class="hilfe-quellmarke">SFV ↗</span><strong>Materialien und Ansprechstellen</strong></a>
+      </div>
+    </section>
     <section class="hilfe-leitfaden" id="schiri-treff" aria-labelledby="schiri-treff-titel">
       <h2 id="schiri-treff-titel">Unser Schiri-Treff: so läuft es ab</h2>
       <ol class="hilfe-schritte">
@@ -111,5 +176,6 @@
   <script src="src/core/anmeldung.js"></script><script src="src/core/rpc.js"></script><script src="src/core/quiz-utils.js"></script><script src="src/ui/masked-input.js"></script><script src="src/ui/login-dialog.js"></script><script src="src/ui/profil-fenster.js"></script><script src="src/features/profile-requests.js"></script><script type="module" src="seite.js"></script><script type="module" src="src/website/hilfe-seite.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.112.2/dist/umd/supabase.min.js"></script>
   <script type="module" src="src/website/hilfe-redaktion.js"></script>
+  <script type="module" src="src/website/hilfe-suche-ui.js"></script>
 </body>
 </html>

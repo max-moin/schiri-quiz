@@ -42,9 +42,62 @@ function scene(x: unknown) {
   return result;
 }
 
+function v2(x: Record<string, unknown>, aktion: string): Record<string, unknown> | null {
+  if (["v2-laden", "v2-stimme", "v2-video"].includes(aktion)) {
+    const basis = params({ ...x, aktion: aktion.slice(3), code: "0000" });
+    if (!basis || (aktion === "v2-stimme" && typeof x.test !== "boolean")) return null;
+    delete basis.code;
+    return { ...basis, aktion, ...(aktion === "v2-stimme" ? { test:x.test } : {}) };
+  }
+  const passwort = clean(x.passwort, 256);
+  if (!passwort) return null;
+  const testpasswort = clean(x.testpasswort,256);
+  if (x.testpasswort != null && !testpasswort) return null;
+  const basis = { aktion, passwort, ...(["v2-verwaltung","v2-planen"].includes(aktion) && testpasswort ? {testpasswort} : {}) };
+  if (aktion === "v2-verwaltung" || aktion === "v2-upload") return basis;
+  if (aktion === "v2-planen") {
+    const rundendaten = params({ ...x, aktion:"planen" });
+    const vorschau = time(x.vorschau), aufloesung = time(x.aufloesung);
+    if (!rundendaten || !["aktuell","reserve"].includes(String(x.typ)) || typeof x.freigabe !== "boolean" ||
+      (x.typ === "reserve" && x.freigabe) || (x.vorschau != null && !vorschau) ||
+      (x.aufloesung != null && !aufloesung) || !Array.isArray(x.tester) ||
+      x.tester.length > 30 || x.tester.some(t => !id(t)) || Boolean(vorschau) !== Boolean(x.tester.length)) return null;
+    return { ...rundendaten, ...basis, typ:x.typ, freigabe:x.freigabe, tester:x.tester, vorschau, aufloesung };
+  }
+  const runde = id(x.runde);
+  if (!runde) return null;
+  const ziel = { ...basis, runde };
+  if (aktion === "v2-zurueckziehen") return ziel;
+  if (aktion === "v2-pause") return typeof x.pausiert === "boolean" ? { ...ziel, pausiert:x.pausiert } : null;
+  if (aktion === "v2-freigeben") {
+    if (typeof x.sofort !== "boolean") return null;
+    if (x.beginn == null && x.schluss == null && x.aufloesung == null) return { ...ziel, sofort:x.sofort };
+    const beginn = time(x.beginn), schluss = time(x.schluss), aufloesung = time(x.aufloesung);
+    if (!beginn || !schluss || Date.parse(beginn)>=Date.parse(schluss) || (x.aufloesung != null && !aufloesung)) return null;
+    return { ...ziel, sofort:x.sofort, beginn, schluss, aufloesung };
+  }
+  if (aktion === "v2-einordnen") {
+    if (typeof x.sofort !== "boolean" || !object(x.einordnungen) || Object.keys(x.einordnungen).length > 30) return null;
+    const einordnungen: Record<string, unknown> = {};
+    for (const [key,w] of Object.entries(x.einordnungen)) {
+      if (!id(key) || !object(w)) return null;
+      const text = clean(w.text ?? "", 1200), quelle = clean(w.quelle ?? "", 700);
+      if (text === null || quelle === null) return null;
+      if (quelle) {
+        try { const url=new URL(quelle); if (url.protocol!=="https:" || url.username || url.password) return null; }
+        catch { return null; }
+      }
+      if (text || quelle) einordnungen[key]={ text, ...(quelle ? { quelle } : {}) };
+    }
+    return { ...ziel, sofort:x.sofort, einordnungen };
+  }
+  return null;
+}
+
 function params(x: unknown): Record<string, unknown> | null {
   if (!object(x)) return null;
   const { aktion } = x;
+  if (typeof aktion === "string" && aktion.startsWith("v2-")) return v2(x, aktion);
   if (aktion === "planen" || aktion === "upload" || aktion === "verwaltung" || aktion === "zurueckziehen") {
     const passwort = clean(x.passwort, 256);
     if (!passwort) return null;
@@ -103,13 +156,16 @@ Deno.serve(async (req: Request) => {
   let p;
   try { p = params(await read(req)); } catch { return send({ fehler: "anfrage" }, 400); }
   if (!p) return send({ fehler: "anfrage" }, 400);
-  const { data, error } = await admin.rpc("szenencheck_gateway", { p });
+  const neu = String(p.aktion).startsWith("v2-");
+  const { data, error } = await admin.rpc(neu ? "szenencheck_gateway_v2" : "szenencheck_gateway", { p });
+  if (error?.code === "PGRST202" && p.aktion === "v2-laden") return send({ phase:"pilot" });
+  if (error?.code === "23P01") return send({ fehler:"ueberschneidung" }, 409);
   if (error || !data) {
     console.error("szenencheck_rpc", error?.code ?? "no_data");
     return send({ fehler: "server" }, 500);
   }
   if (data.fehler) return send(data, data.fehler === "warte" ? 429 : data.fehler === "zugang" ? 403 : 409);
-  if (p.aktion === "upload") {
+  if (p.aktion === "upload" || p.aktion === "v2-upload") {
     const pfad = `${data.verein}/${crypto.randomUUID()}.mp4`;
     const signed = await clips.createSignedUploadUrl(pfad);
     return signed.data ? send({ pfad, url: signed.data.signedUrl }) : send({ fehler: "clip" }, 502);
@@ -117,6 +173,10 @@ Deno.serve(async (req: Request) => {
   if (p.aktion === "video") {
     const signed = await clips.createSignedUrl(data.pfad, 300);
     return signed.data ? send({ url: signed.data.signedUrl }) : send({ fehler: "clip" }, 502);
+  }
+  if (p.aktion === "v2-video") {
+    const signed = await clips.createSignedUrl(data.pfad, 120);
+    return signed.data ? send({ url:signed.data.signedUrl }) : send({ fehler:"clip" }, 502);
   }
   return send(data);
 });

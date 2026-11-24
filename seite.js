@@ -235,10 +235,11 @@ function zeigeGesperrteFunktion(inhalt, funktion) {
   inhalt.append(kicker, titel, text, zurueck, versteckt);
 }
 
-void ladeFunktionsfreigaben({
+export const websiteFunktionsfreigaben = ladeFunktionsfreigaben({
   datenbank: DATENBANK,
   seitenschluessel: VEREIN.seitenschluessel,
-}).then((freigaben) => {
+});
+void websiteFunktionsfreigaben.then((freigaben) => {
   setzeFunktionsfreigaben(hauptnavigation, freigaben);
   const inhalt = document.querySelector("[data-funktionsinhalt]");
   if (!inhalt) return;

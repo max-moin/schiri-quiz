@@ -34,6 +34,19 @@ main.inhalt { scroll-margin-top:80px; }
 .hilfe-leitfaden details[open] summary::after { content:'−'; }
 .hilfe-leitfaden[hidden], .hilfe-raster[hidden] { display:none; }
 .hilfe-kategorien[hidden] { display:none; }
+.hilfe-suche-detail { display:none; }
+.hilfe-suche { border-top:4px solid #21593a; }
+.hilfe-suche form { display:grid; gap:10px; }
+.hilfe-suche label { display:grid; gap:4px; font-weight:650; }
+.hilfe-suche input, .hilfe-suche select, .hilfe-suche button { min-height:44px; max-width:100%; border:1px solid var(--border); border-radius:9px; padding:8px 12px; background:var(--card); color:var(--text); font:inherit; }
+.hilfe-suche button { justify-self:start; cursor:pointer; }
+.hilfe-filter { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 170px),1fr)); gap:10px; }
+.hilfe-suchergebnisse { display:grid; gap:8px; padding:0; list-style:none; }
+.hilfe-suchergebnisse a { display:grid; gap:3px; border:1px solid var(--border); border-radius:10px; padding:10px 13px; color:var(--text); text-decoration:none; }
+.hilfe-suchergebnisse a:hover strong { text-decoration:underline; }
+.hilfe-suchergebnisse small { color:var(--muted); }
+.hilfe-quellkarte .hilfe-quellmarke { width:fit-content; display:inline-flex; gap:8px; padding:3px 8px; margin-bottom:4px; border-radius:999px; color:#174d37; background:#e6f5ed; font-size:.75rem; font-weight:750; }
+.hilfe-artikel { border-top:4px solid #21593a; }
 .hilfe-themenbereich { margin:28px 0; padding:22px; border:1px solid #cbd7e6; border-radius:20px; background:#edf2f8; overflow-wrap:anywhere; }
 .hilfe-themenbereich + .hilfe-themenbereich { background:#eaf2ee; border-color:#c6d9cf; }
 .hilfe-themenbereich h2 { margin:0 0 8px; font:700 1.3rem var(--font-titel); }
