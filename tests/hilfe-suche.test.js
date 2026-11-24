@@ -11,6 +11,8 @@ test("alltägliche Formulierungen, Synonyme, Umlaute und Tippfehler", () => {
     ["Quittung D-Jugend","spesenrechner.html"],["religiöse Beleidigung","hilfe.html#diskriminierung"],
     ["trainer bedraengt","hilfe.html#bedraengt"],["spertermin","sperrtermine.html"],
     ["aufwaermen","https://www.meinfussball.de/schiris/aktive/warm-up"],
+    ["sonderbericht schreiben","rote-karte.html#sonderbericht-schreiben"],
+    ["sechs W Fragen","rote-karte.html#sonderbericht-schreiben"],
   ]) assert.equal(suche(frage,{}, {spesen:true})[0]?.href || "",seite,frage);
 });
 test("Regeln und Spesen erscheinen nur nach bestehender Funktionsfreigabe",()=>{

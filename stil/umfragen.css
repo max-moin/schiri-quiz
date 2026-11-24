@@ -1,0 +1,86 @@
+.umfrage-seite { --um-blau:#0b527f; --um-tinte:#14283a; --um-grau:#4b6073; --um-rand:#cfdae4; margin:0; min-height:100vh; background:#e9eff5; color:var(--um-tinte); }
+.umfrage-kopf,.umfrage-fuss { display:flex; gap:.75rem; align-items:center; justify-content:space-between; padding:.9rem max(1rem,calc((100vw - 46rem)/2)); background:#14283a; color:white; }
+.umfrage-kopf a,.umfrage-fuss a { display:inline-flex; gap:.6rem; align-items:center; color:inherit; font-weight:650; }
+.umfrage-kopf span { text-align:right; font-size:.875rem; color:#d5e6f4; }
+.umfrage-fuss { justify-content:center; flex-wrap:wrap; background:transparent; color:var(--um-blau); }
+#umfrage { max-width:48rem; margin:0 auto; padding:1.2rem 1rem; }
+.um-hero { color:#fff; background:linear-gradient(130deg,#14283a,#1a5071); border-radius:1.35rem; padding:clamp(1.15rem,4vw,2.25rem); }
+.um-hero h1 { margin:.4rem 0; font-size:clamp(1.8rem,5vw,2.7rem); line-height:1.08; letter-spacing:-.035em; }
+.um-hero p,.um-ende p { margin:.4rem 0 0; }
+.um-kicker,.um-ende-kopf { font-size:.875rem; font-weight:750; }
+.um-kicker { color:#b6e0ff; }
+.um-hinweis { margin:.85rem 0; font-size:.925rem; color:var(--um-grau); }
+.um-schritte { color:var(--um-grau); font-weight:650; font-size:.875rem; display:flex; gap:1rem; align-items:center; margin:.85rem 0; }
+.um-schritte progress { flex:1; height:.55rem; min-width:0; accent-color:var(--um-blau); }
+.um-karte { margin:.9rem 0; padding:clamp(1rem,4vw,1.7rem); background:white; border:1px solid var(--um-rand); border-radius:1.15rem; box-shadow:0 .45rem 1.3rem #14283a0c; }
+.um-karte h2 { margin:.25rem 0; line-height:1.2; }
+.um-icon { display:inline-grid; place-items:center; background:#e9f3fa; border-radius:.8rem; width:2.65rem; height:2.65rem; }
+.um-erkl { color:var(--um-grau); margin:0 0 1.1rem; }
+.um-felder { display:grid; gap:1.2rem; }
+#umfrage fieldset { margin:0; padding:0; border:0; min-width:0; }
+#umfrage legend { font-weight:750; margin-bottom:.5rem; padding:0; }
+#umfrage button:not(.um-griff) { min-height:44px; border:1px solid var(--um-rand); border-radius:.7rem; padding:.55rem .85rem; font:inherit; color:inherit; background:#f6f9fc; cursor:pointer; }
+#umfrage button[aria-pressed="true"] { background:#dbeefb; border-color:var(--um-blau); color:#0b4264; box-shadow:inset 0 0 0 1px var(--um-blau); }
+#umfrage button.um-primaer { background:var(--um-blau); color:white; border-color:var(--um-blau); }
+#umfrage button:focus-visible,#umfrage a:focus-visible,#umfrage textarea:focus-visible,#umfrage input:focus-visible { outline:3px solid #0b70af; outline-offset:3px; }
+#umfrage button:disabled { opacity:.6; cursor:wait; }
+.um-optionen,.um-aktionen,.um-ziele { display:flex; gap:.5rem; flex-wrap:wrap; }
+.um-neutral { margin:.5rem 0 0; }
+.um-label { display:grid; gap:.4rem; color:var(--um-tinte); font-weight:650; }
+.um-label textarea { width:100%; min-height:64px; border:1px solid var(--um-rand); border-radius:.7rem; background:#f7fafc; padding:.6rem; resize:vertical; font:inherit; font-weight:400; color:inherit; }
+.um-status { margin:.5rem 0; min-height:1.35rem; color:#8b3410; }
+.um-aktionen { justify-content:flex-end; }
+.um-tier { display:grid; gap:.35rem; }
+.um-lane { display:grid; grid-template-columns:8.3rem minmax(0,1fr); align-items:stretch; border:1px dashed #adbdcb; border-radius:.75rem; background:#f7fafc; min-height:56px; transition:background .15s,border-color .15s; }
+.um-lane.um-ziel { border:1px solid #0b527f; background:#dceffa; box-shadow:inset 0 0 0 1px #0b527f; }
+.um-lane-label { color:#213b4e; display:flex; flex-direction:column; justify-content:center; background:#e1e8ef; border-radius:.7rem 0 0 .7rem; padding:.35rem .6rem; line-height:1.15; }
+.um-lane-label small { color:#354c60; font-size:.79rem; }
+.um-lane[data-lane="A"] .um-lane-label { background:#c8ecd9; }
+.um-lane[data-lane="B"] .um-lane-label { background:#dcf0d4; }
+.um-lane[data-lane="C"] .um-lane-label { background:#f8eac1; }
+.um-lane[data-lane="D"] .um-lane-label { background:#f7dfcf; }
+.um-lane[data-lane="E"] .um-lane-label { background:#f4dce4; }
+.um-chips { display:flex; align-items:center; flex-wrap:wrap; gap:.28rem; padding:.26rem; min-width:0; }
+#umfrage .um-chip { background:#fff; color:var(--um-tinte); font-weight:700; box-shadow:0 1px 2px #14283a14; touch-action:none; cursor:grab; user-select:none; }
+.um-leer { color:var(--um-grau); font-size:.8125rem; margin-left:.35rem; }
+#umfrage .um-geist { pointer-events:none; position:fixed; z-index:5; transform:translate(-50%,-55%) rotate(-4deg); padding:.6rem .8rem; border:2px solid #0b527f; border-radius:.7rem; box-shadow:0 .35rem 1rem #14283a45; }
+.um-konflikte { margin:0; color:var(--um-grau); }
+.um-dialog { max-width:min(32rem,calc(100vw - 2rem)); color:var(--um-tinte); border:1px solid var(--um-rand); border-radius:1rem; padding:1.2rem; }
+.um-dialog::backdrop { background:#10233188; }
+.um-dialog h3 { margin-top:0; }
+.um-ziele { margin-bottom:.8rem; }
+.um-timeline { padding:0 1rem; }
+.um-zeitwerte { display:grid; grid-template-columns:1fr 1fr; gap:.6rem; }
+.um-zeitwerte>div { display:grid; background:#edf5fb; border-radius:.7rem; padding:.65rem; }
+.um-zeitwerte small { color:#3e5a70; font-size:.875rem; }
+.um-zeitwerte strong { font-size:1.2rem; font-variant-numeric:tabular-nums; }
+.um-rail { height:46px; position:relative; margin:.5rem 0 0; touch-action:none; cursor:pointer; }
+.um-rail::before,.um-zeitband { position:absolute; height:.55rem; top:calc(50% - .275rem); border-radius:1rem; }
+.um-rail::before { content:""; background:#d5e1eb; width:100%; }
+.um-zeitband { background:#2371a1; pointer-events:none; }
+.um-griff { position:absolute; width:44px; height:44px; border:0; padding:0; background:transparent; color:var(--um-blau); border-radius:50%; cursor:ew-resize; transform:translateX(-50%); touch-action:none; }
+.um-griff::after { content:""; position:absolute; inset:9px; border:3px solid currentColor; background:#fff; border-radius:50%; box-shadow:0 1px 3px #14283a40; }
+.um-griff-1::after { background:#d7eeff; }
+[data-gleich] .um-griff-0::after { clip-path:inset(0 0 50%); }
+[data-gleich] .um-griff-1::after { clip-path:inset(50% 0 0); }
+.um-griff:focus-visible { z-index:2; }
+.um-ticks { display:flex; justify-content:space-between; gap:.2rem; font-variant-numeric:tabular-nums; font-size:.82rem; color:var(--um-grau); }
+.um-ende { background:#edf5fb; padding:.75rem; border-radius:.7rem; margin-top:1rem; }
+.um-ende p { font-size:.93rem; }
+.um-ende-rail { margin:.55rem 0 .2rem; position:relative; border-radius:1rem; background:#d5e1eb; height:.55rem; overflow:hidden; }
+.um-ende-rail span { position:absolute; top:0; height:100%; transition:left .12s ease-out,width .12s ease-out; }
+.um-ende-rail [data-startband] { background:#2371a1; }
+.um-ende-rail [data-puffer] { background:repeating-linear-gradient(120deg,#77a7c9 0 4px,#adcfe5 4px 8px); }
+.um-label input[type="range"] { width:100%; accent-color:var(--um-blau); }
+.um-skala { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); position:relative; gap:.2rem; }
+.um-skala::before { content:""; position:absolute; left:10%; right:10%; top:21px; height:3px; background:#c5d6e3; }
+.um-skala label { position:relative; cursor:pointer; display:grid; grid-template-rows:44px auto; justify-items:center; align-items:center; text-align:center; }
+.um-skala input { position:absolute; inset:0; width:100%; height:44px; margin:0; opacity:0; cursor:pointer; }
+.um-punkt { pointer-events:none; width:2rem; height:2rem; display:grid; place-items:center; border-radius:50%; border:2px solid #aebfcd; background:#fff; font-weight:750; }
+.um-skala input:checked+.um-punkt { color:#fff; background:var(--um-blau); border-color:var(--um-blau); }
+.um-skala input:focus-visible+.um-punkt { outline:3px solid var(--um-blau); outline-offset:3px; }
+.um-skalenlabel { font-size:.82rem; line-height:1.15; overflow-wrap:anywhere; }
+.um-na { display:flex; align-items:center; gap:.45rem; margin-top:.7rem; min-height:44px; color:var(--um-grau); }
+.um-na input { accent-color:var(--um-blau); }
+@media(max-width:390px) { .um-lane { grid-template-columns:6rem minmax(0,1fr); } .umfrage-kopf span { display:none; } #umfrage { padding-inline:.65rem; } }
+@media(prefers-reduced-motion:reduce) { .um-ende-rail span,.um-lane { transition:none; } }

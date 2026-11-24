@@ -44,12 +44,16 @@ export function erstelleGuideAdapter(wurzel) {
       }
     });
   }
-  const texte=[...vorlage.querySelectorAll('p')].filter(e=>!e.closest('.rk-lang')&&!e.matches('.rk-oberzeile,.rk-untertitel'));
-  for (const [i,e] of texte.entries()) textSlot(`text-${i}`, klar(e).slice(0,80), r=>[...r.querySelectorAll('p')].filter(n=>!n.closest('.rk-lang')&&!n.matches('.rk-oberzeile,.rk-untertitel'))[i]);
-  for (const [i,e] of [...vorlage.querySelectorAll('.rk-quellen span, details summary')].entries()) {
-    textSlot(`hinweis-${i}`, klar(e).slice(0,80), r=>r.querySelectorAll('.rk-quellen span, details summary')[i]);
+  // Quellengeprüfte neue Fachkästen erhöhen oder verschieben keine der
+  // persistenten v1-Slots; ältere publizierte Redaktionen bleiben gültig.
+  const slots=(r,selektor)=>[...r.querySelectorAll(selektor)].filter(e=>!e.closest('[data-rk-fachkasten]'));
+  const texte=r=>slots(r,'p').filter(e=>!e.closest('.rk-lang')&&!e.matches('.rk-oberzeile,.rk-untertitel'));
+  const hinweise=r=>slots(r,'.rk-quellen span, details summary');
+  for (const [i,e] of texte(vorlage).entries()) textSlot(`text-${i}`, klar(e).slice(0,80), r=>texte(r)[i]);
+  for (const [i,e] of hinweise(vorlage).entries()) {
+    textSlot(`hinweis-${i}`, klar(e).slice(0,80), r=>hinweise(r)[i]);
   }
-  const links=r=>[...r.querySelectorAll('a')].filter(a=>!a.querySelector('img'));
+  const links=r=>slots(r,'a').filter(a=>!a.querySelector('img'));
   for(const [i,e] of links(vorlage).entries()) slot(`link-${i}`,'link',`Link: ${klar(e).slice(0,70)}`,r=>links(r)[i], a=>({
     titel:[...a.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join('').trim() || klar(a),
     url:a.getAttribute('href'),text:klar(a.querySelector('span')),

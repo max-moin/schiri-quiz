@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/protokoll-link", "destination": "/api/protokoll-hochladen" }
+    { "source": "/api/protokoll-link", "destination": "/api/protokoll-hochladen" },
+    { "source": "/api/umfragen", "destination": "/api/website-feedback?funktion=umfragen" }
   ]
 }

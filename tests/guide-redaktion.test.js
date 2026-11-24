@@ -25,6 +25,16 @@ test('Feste Guide-Struktur erhält Layout und schützt globale Hilfekomponenten'
  assert.doesNotMatch(a,/innerHTML\s*=|eval\(/);
  assert.match(a,/sichereBlockURL\(b\.url,true\)/);
 });
+test('Neue freigeprüfte Fachkästen ändern keine Reihenfolge der redaktionellen v1-Slots',()=>{
+ const a=lies('src/website/guide-redaktion.js');
+ const h=lies('rote-karte.html');
+ assert.match(a,/filter\(e=>!e\.closest\('\[data-rk-fachkasten\]'\)\)/);
+ assert.match(a,/texte=r=>slots\(r,'p'\)/);
+ assert.match(a,/hinweise=r=>slots\(r,'\.rk-quellen span, details summary'\)/);
+ assert.match(a,/links=r=>slots\(r,'a'\)/);
+ assert.match(h,/<details class="rk-erklaerbox" data-rk-fachkasten>/);
+ assert.match(h,/rk-bericht-check" data-rk-fachkasten/);
+});
 test('Editor-Dialoge haben Namen, Fokusrückkehr und getrennte Entwurfsprüfung',()=>{
  const editor=lies('src/admin/blockeditor.js'),login=lies('src/ui/login-dialog.js'),termine=lies('src/website/termine-seite.js');
  assert.match(editor,/aria-labelledby/);assert.match(editor,/fokusRueckkehr/);

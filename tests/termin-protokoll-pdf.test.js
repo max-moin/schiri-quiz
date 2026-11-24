@@ -39,7 +39,8 @@ test("Storage-Pfade enthalten object genau einmal und Vercel bleibt bei 12 Funct
   assert.match(storageAdresse("object/sr-protokolle/abc.pdf"), /\/storage\/v1\/object\/sr-protokolle\/abc\.pdf$/);
   assert.doesNotMatch(storageAdresse("object/sr-protokolle/abc.pdf"), /\/object\/object\//);
   const rewrites = JSON.parse(lies("vercel.json")).rewrites;
-  assert.deepEqual(rewrites, [{ source: "/api/protokoll-link", destination: "/api/protokoll-hochladen" }]);
+  assert.deepEqual(rewrites.filter(r => r.source === "/api/protokoll-link"),
+    [{ source: "/api/protokoll-link", destination: "/api/protokoll-hochladen" }]);
   const apiDir = new URL("../api/", import.meta.url);
   assert.equal(readdirSync(apiDir).filter((name) => name.endsWith(".js")).length, 12);
 });

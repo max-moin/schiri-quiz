@@ -75,6 +75,19 @@
 .rk-details-innen p { font-size:.95rem; }
 .rk-schreibfragen { display:grid; grid-template-columns:1fr 1fr; gap:8px 20px; }
 .rk-schreibfragen p { margin:12px 0 2px; }
+.rk-bericht-leitworte { list-style:none; padding:0; margin:11px 0 0; display:flex; flex-wrap:wrap; gap:6px 8px; }
+.rk-bericht-leitworte li { background:#e9f3ec; color:#174b33; border-radius:8px; padding:5px 9px; font-weight:700; font-size:.875rem; }
+.rk-bericht-hilfe { margin:16px 0 12px; padding-top:13px; border-top:1px solid #c4ced9; overflow-wrap:anywhere; }
+.rk-bericht-hilfe h4 { margin:0 0 8px; font-size:1rem; }
+.rk-bericht-hilfe p { margin:9px 0; }
+.rk-bericht-w { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%, 180px),1fr)); gap:8px; margin:9px 0 12px; }
+.rk-bericht-w > div { background:#f3f6f7; color:#182b36; border-radius:8px; padding:8px 10px; }
+.rk-bericht-w dt { font-weight:700; }
+.rk-bericht-w dd { margin:3px 0 0; }
+.rk-bericht-check { background:#edf5ef; color:#17402b; padding:13px; border:0; border-radius:8px; }
+.rk-bericht-check ul { padding-left:1.2rem; margin:6px 0; }
+.rk-bericht-check li + li { margin-top:5px; }
+.rk-bericht-hilfe .rk-bericht-quellen { font-size:.875rem; }
 .rk-quellen { border-top:1px solid #ccd4df; margin-top:32px; padding-top:24px; }
 .rk-quellen > p { color:var(--muted); font-size:.8rem; }
 .rk-quellen ul { list-style:none; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:18px 26px; }

@@ -37,6 +37,21 @@ test('Originalquellen und Einstiege bleiben erreichbar',()=>{
  assert.match(lies('hilfe.html'),/href="rote-karte.html"/);
  assert.equal(BAUM['rote-karte.html'].eltern,'dfbnet.html');
 });
+test('Sonderbericht erklärt sechs W-Fragen, Regelmaßstab und Gegenlesen',()=>{
+ const h=lies('rote-karte.html');
+ const schreiben=h.slice(h.indexOf('id="sonderbericht-schreiben"'),h.indexOf('<span class="rk-nummer" aria-hidden="true">7'));
+ const fragen=[...schreiben.matchAll(/<dt>([^<]+)<\/dt>/g)].map(m=>m[1]);
+ assert.deepEqual(fragen,['Wer?','Was?','Wann?','Wo?','Wie?','Welche Folgen?']);
+ for (const merkmal of ['Objektiv','Nachvollziehbar','Vollständig','Ich-Perspektive','Ball im Spiel','Kampf um den Ball','Ballkontrolle','keine Zwei-von-drei-Regel','Vor dem Hochladen gegenlesen','Lehrbrief 124']) assert.ok(schreiben.includes(merkmal),merkmal);
+ assert.match(schreiben,/uefa\.com[^" ]*\/dogso\//);
+ assert.match(lies('hilfe.html'),/href="rote-karte\.html#sonderbericht-schreiben"/);
+});
+test('Coaching-Regelfrage trennt taktische Anweisungen von bloßem Stehen',()=>{
+ const h=lies('rote-karte.html');
+ assert.match(h,/jeweils nur eine Person taktische Anweisungen/);
+ assert.match(h,/Der Co-Trainer darf übernehmen/);
+ assert.match(h,/Keine automatische Gelbe Karte fürs Stehen/);
+});
 test('Ansichtswechsel ist lokal, öffnet nicht alle Details und springt nicht beim Scrollen',()=>{
  const mk=(dataset={})=>({dataset,events:{},hidden:false,attrs:{},setAttribute(k,v){this.attrs[k]=v;},addEventListener(t,fn){this.events[t]=fn;}});
  const panels=PHASEN.map(id=>({...mk(),id})),buttons=PHASEN.map(id=>mk({rkPhase:id})),views=['kurz','erklaert'].map(v=>mk({rkAnsicht:v})),tools=mk(),root=mk({ansicht:'kurz'}),win=mk();
