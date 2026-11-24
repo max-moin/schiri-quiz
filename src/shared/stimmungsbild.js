@@ -1,16 +1,18 @@
 export const version = "kickers-stimmungsbild-v1";
 export const tage = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag"];
 export const tiers = ["A", "B", "C", "D", "E"];
-export const zeiten = { min: 16 * 60, max: 19 * 60, schritt: 15, dauer: 120 };
+export const zeiten = { min: 17 * 60, max: 20 * 60, schritt: 15, dauer: 120 };
+export const maxSperren = 4;
+export const raster = (von, bis) => Array.from({length: Math.floor((bis-von)/zeiten.schritt)+1}, (_, i) => von+i*zeiten.schritt);
 export const zustimmung = ["Finde ich gut", "Wäre für mich okay", "Lieber nicht", "Keine Meinung"];
 export const bewertungen = ["Gar nicht gut", "Nicht gut", "Neutral", "Gut", "Sehr gut"];
 const wahl = (key, titel, optionen, max = 1) => ({ key, titel, optionen, max, typ: max === 1 ? "wahl" : "mehrfach" });
 const text = (key, titel = "Noch etwas dazu? (freiwillig)", wenn) => ({ key, titel, typ: "text", wenn });
 const skala = (key, titel, nicht = "Kann ich nicht beurteilen", labels = bewertungen) => ({ key, titel, typ: "likert", nicht, labels });
 export const abschnitte = [
-  { icon: "📅", titel: "Feste Konflikte", info: "Welche Tage fallen für dich regelmäßig aus? Zum Beispiel wegen Training, Arbeit oder Schule.", felder: [{key:"konflikte", typ:"konflikte"}, text("konfliktText")] },
+  { icon: "📅", titel: "Wann bist du verplant?", info: "Sperre nur die Zeiten, in denen du regelmäßig nicht kannst, etwa wegen Training. Wenn ein ganzer Tag ausfällt, markiere ihn ganztägig.", felder: [{key:"konflikte", typ:"konflikte"}, text("konfliktText")] },
   { icon: "🏅", titel: "Deine Wochen-Tierliste", info: "Zieh jeden möglichen Tag in eine Stufe. A passt am besten, E am wenigsten. Gleichstände sind ausdrücklich erlaubt.", felder: [{key:"tier", typ:"tier"}, text("tierText")] },
-  { icon: "🕓", titel: "Wann kannst du starten?", info: "Beide Markierungen sind mögliche Startzeiten. Darunter siehst du das voraussichtliche Treffende bei bis zu zwei Stunden Dauer.", felder: [{key:"start", typ:"zeit"}, text("zeitText", "Besonderheiten zur Uhrzeit? (freiwillig)")] },
+  { icon: "🕓", titel: "Wann möchtest du starten?", info: "Wähle dein allgemeines Startfenster zwischen 17 und 20 Uhr. Deine Sperrzeiten gelten pro Tag zusätzlich auch während des Treffens.", felder: [{key:"start", typ:"zeit"}, text("zeitText", "Besonderheiten zur Uhrzeit? (freiwillig)")] },
   { icon: "⚽", titel: "Treff-Rhythmus und Alternativen", info: "Was würdest du gerne statt oder zusätzlich zum Schiri-Treff machen?", felder: [{key:"frequenz", typ:"frequenz"},
     wahl("ideen","Wähle bis zu zwei Ideen.",["Zusammen Fußball schauen","Gemeinsam ins Stadion","Ein Spiel aus unserer Gruppe anschauen","Sport- oder Spieleabend","Kurze Clips und Regeln besprechen","Treff gern wie bisher"], 2),
     wahl("eigeneIdee","Noch eine andere Idee?",["Eigener Vorschlag"]), text("ideeText","Was ist deine Idee? (freiwillig)", "eigeneIdee"), text("treffText")] },
@@ -36,21 +38,45 @@ export const abschnitte = [
   { icon: "📝", titel: "Was möchtest du noch sagen?", info: "Platz für alles, was noch nicht vorkam.", felder: [text("kommentar","Deine Rückmeldung (freiwillig)")] },
 ];
 export const formatZeit = m => `${Math.floor(m / 60)}:${String(m % 60).padStart(2, "0")}`;
-export const gueltigeZeit = m => Number.isInteger(m) && m >= zeiten.min && m <= zeiten.max && m % zeiten.schritt === 0;
+const imRaster = (m, min, max) => Number.isInteger(m) && m >= min && m <= max && m % zeiten.schritt === 0;
+export function normalisiereSperrzeiten(eingabe, konflikte) {
+  if (!eingabe || typeof eingabe !== "object" || Array.isArray(eingabe)) return null;
+  const out = {};
+  for (const [tag, fenster] of Object.entries(eingabe)) {
+    if (!tage.includes(tag) || konflikte.includes(tag) || !Array.isArray(fenster) || fenster.length > maxSperren) return null;
+    const grenzen = m => imRaster(m, zeiten.min, zeiten.max + zeiten.dauer);
+    if (!fenster.every(p => Array.isArray(p) && p.length === 2 && p.every(grenzen) && p[0] < p[1])) return null;
+    const kompakt = [];
+    for (const [von,bis] of [...fenster].sort((a,b) => a[0]-b[0])) {
+      const letztes = kompakt.at(-1);
+      if (letztes && von <= letztes[1]) letztes[1] = Math.max(bis,letztes[1]);
+      else kompakt.push([von,bis]);
+    }
+    if (kompakt.length) out[tag] = kompakt;
+  }
+  return out;
+}
 export function zeitVerschieben(zeit, index, wert) {
   const gerundet = Math.round(wert / zeiten.schritt) * zeiten.schritt;
   return index === 0 ? [Math.min(zeit[1], Math.max(zeiten.min, gerundet)), zeit[1]]
     : [zeit[0], Math.max(zeit[0], Math.min(zeiten.max, gerundet))];
 }
 export function normalisiereAntwort(x) {
+  const erweitert = x != null && Object.hasOwn(x,"sperrzeiten");
   if (!x || typeof x !== "object" || Array.isArray(x) || !Array.isArray(x.konflikte)
     || !x.konflikte.every(t => tage.includes(t)) || new Set(x.konflikte).size !== x.konflikte.length
     || !x.tier || typeof x.tier !== "object" || Array.isArray(x.tier)
-    || !Array.isArray(x.start) || x.start.length !== 2 || !x.start.every(gueltigeZeit) || x.start[0] > x.start[1]
+    || !Array.isArray(x.start) || x.start.length !== 2
+    || !x.start.every(m => erweitert ? imRaster(m,zeiten.min,zeiten.max) : imRaster(m,960,1140)) || x.start[0] > x.start[1]
     || !Number.isInteger(x.frequenz) || x.frequenz < 0 || x.frequenz > 10) return null;
   const frei = tage.filter(t => !x.konflikte.includes(t));
   if (Object.keys(x.tier).length !== frei.length || !frei.every(t => Object.hasOwn(x.tier,t) && tiers.includes(x.tier[t]))) return null;
   const out = { konflikte:[...x.konflikte], tier:{...x.tier}, start:[...x.start], frequenz:x.frequenz, felder:[] };
+  if (erweitert) {
+    const sperren = normalisiereSperrzeiten(x.sperrzeiten,x.konflikte);
+    if (!sperren) return null;
+    out.sperrzeiten = sperren;
+  }
   for (const f of abschnitte.flatMap(a => a.felder)) {
     const wert = x[f.key];
     if (wert === undefined || !["text","wahl","mehrfach","likert"].includes(f.typ)) continue;

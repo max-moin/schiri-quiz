@@ -13,5 +13,8 @@
 
 ## Lesart
 
+- Wöchentlich wiederkehrende Sperrzeiten je Tag ergänzen die ganztägigen Konflikte. Die Zeitachse deckt 17:00–22:00 Uhr ab; Treffstart 17:00–20:00. Beispiel „Dienstag nur bis 20 Uhr“: 20:00–22:00 sperren. Keine Angabe von Gründen nötig. Ein Treff muss für die Standardwertung volle zwei Stunden frei sein; ein genau angrenzender Termin schließt ihn nicht aus.
+- Alte Antwortdaten mit 16:00–19:00 bleiben unverändert lesbar; in einer gemischten Auswertung wird das gemeinsame 17:00–20:00 Raster verwendet. Individualansicht markiert, wenn Sperrzeiten damals nicht abgefragt wurden. Keine Migration nötig; Web und App gemeinsam aktualisieren, da die ältere App stundenweise Konflikte nicht berücksichtigt. Einen laufenden Fragebogen nicht still austauschen.
+
 - A/B/C/D/E = 5/4/3/2/1. Verfügbare Personen bei **derselben Startzeit** schlagen mehr Punkte. Erst bei gleicher Personenzahl entscheidet die Summe. Feste Konflikte bleiben ausgeschlossen, ein E-Tag ist möglich. Die App zeigt auch Gleichstände und rechnet mit Viertelstunden sowie maximal zwei Stunden bis zum Treffende.
 - Einzelantworten, Namen und kompletter Rücklauf sind nur in der geschützten Obmann-Ansicht. Der Vorstand bekommt weder Zugang zur App-Ansicht noch Freitexte; nur Max teilt die separate Zahlenausgabe. Nach Abschluss und ab fünf Rückmeldungen ist die gesamt abgegebene Zahl verfügbar. Detailzahlen nur zu festen Fragen, bei denen jede sichtbare Gruppe und ihre jeweilige Restgruppe mindestens drei Personen umfasst. Keine Terminmuster, fehlenden Namen oder Kreuztabellen exportieren.

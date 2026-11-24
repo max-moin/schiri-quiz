@@ -1,19 +1,51 @@
 import { DATENBANK } from "../../verein.config.js";
-import { abschnitte, formatZeit, normalisiereAntwort, tage, tiers, version, zeitVerschieben, zeiten } from "../shared/stimmungsbild.js";
+import { abschnitte, formatZeit, maxSperren, normalisiereAntwort, normalisiereSperrzeiten, raster, tage, tiers, version, zeitVerschieben, zeiten } from "../shared/stimmungsbild.js";
 
 const root = document.querySelector("#umfrage");
 const vorschau = new URLSearchParams(location.search).get("vorschau") === "1";
 const anmeldung = vorschau ? null : globalThis.SchiriAnmeldung.erstelleAnmeldung(DATENBANK);
 const login = anmeldung && globalThis.SchiriLoginDialog.erstelleLoginDialog({ anmeldung, maskierung:globalThis.SchiriQuizMaskedInputs });
 let person, generation = 0, stand = vorschau ? "offen" : "login", busy = false, seite = 0, messung, zug = null;
-const leer = () => ({ konflikte:undefined, tier:{}, start:[zeiten.min,zeiten.max], frequenz:5 });
+const bearbeiteteTage = new Set();
+const leer = () => ({ konflikte:undefined, sperrzeiten:{}, tier:{}, start:[zeiten.min,zeiten.max], frequenz:5 });
 let antwort = leer();
+const aktiveSperren = () => Object.fromEntries(Object.entries(antwort.sperrzeiten).filter(([tag])=>!antwort.konflikte?.includes(tag)));
 const button = (text, aktion, klasse = "") => `<button type="button" class="${klasse}" data-aktion="${aktion}">${text}</button>`;
 const platz = ["frei", ...tiers];
 const tierInfo = ["Passt am besten", "Passt gut", "Passt", "Eher ungünstig", "Am wenigsten passend"];
 const frequenz = n => n <= 2 ? "Etwa einmal im Quartal" : n <= 4 ? "Etwa alle 6–8 Wochen" : n === 5 ? "Etwa einmal im Monat" : n <= 7 ? "Etwa alle 3 Wochen" : "Etwa alle zwei Wochen";
 const endpunkt = (wert, bis) => formatZeit(wert + (bis ? zeiten.dauer : 0));
 function box(titel, html) { return `<fieldset><legend>${titel}</legend>${html}</fieldset>`; }
+const abendEnde = zeiten.max + zeiten.dauer;
+const kalenderProzent = minuten => minuten * 100 / (abendEnde - zeiten.min);
+const ticks = bis => raster(zeiten.min,bis).filter(m => m % 60 === 0).map(m=>`<span>${formatZeit(m)}</span>`).join("");
+const sperrzeitText = ([von,bis]) => `${formatZeit(von)}–${formatZeit(bis)}`;
+function wochenkalender(ganztags) {
+  const uhrzeiten = raster(zeiten.min,abendEnde);
+  return box("Deine Woche · 17:00 bis 22:00 Uhr", `<p class="um-kalender-info">Beispiel: Dienstag nur bis 20 Uhr verfügbar? Sperre 20:00–22:00. Wege und Umziehen kannst du direkt mit einrechnen.</p>
+    <div class="um-ticks" aria-hidden="true">${ticks(abendEnde)}</div>
+    <div class="um-kalender">${tage.map((tag,i)=>{
+      const block = !!ganztags?.includes(tag), sperren=antwort.sperrzeiten[tag] || [];
+      const offen = !block && bearbeiteteTage.has(tag), gueltig=sperren.filter(([a,b])=>a!==null && b!==null && a<b);
+      const balken = (block ? [[zeiten.min,abendEnde]] : gueltig).map(([a,b]) =>
+        `<i style="left:${kalenderProzent(a-zeiten.min)}%;width:${kalenderProzent(b-a)}%"></i>`).join("");
+      const optionen = wert => '<option value="">Wählen</option>'+uhrzeiten.map(m=>`<option value="${m}"${m===wert?" selected":""}>${formatZeit(m)}</option>`).join("");
+      return `<div class="um-tag">
+        <div class="um-tag-kopf"><strong>${tag}</strong><div class="um-tag-aktionen">
+          <button type="button" aria-label="${tag} ganztägig sperren" aria-pressed="${block}" data-konflikt="${tag}">Ganztägig</button>
+          <button type="button" aria-label="Sperrzeiten für ${tag}" aria-controls="um-sperren-${i}" aria-expanded="${offen}" data-tagkalender="${tag}"${block?" disabled":""}>Zeiten</button>
+        </div></div>
+        <div class="um-sperrbahn" aria-hidden="true">${balken}</div>
+        <small>${block?"Ganztägig gesperrt":gueltig.length?gueltig.map(sperrzeitText).join(" · ")+" Uhr gesperrt":"Keine Uhrzeit gesperrt"}</small>
+        <div id="um-sperren-${i}"${offen?"":" hidden"}>${offen ? sperren.map(([a,b],j)=>`<div class="um-sperrzeile" role="group" aria-label="Sperrzeit ${j+1} am ${tag}">
+          <label>Gesperrt ab <select data-sperrtag="${tag}" data-nr="${j}" data-grenze="0">${optionen(a)}</select></label>
+          <label>Gesperrt bis <select data-sperrtag="${tag}" data-nr="${j}" data-grenze="1">${optionen(b)}</select></label>
+          <button type="button" aria-label="Sperrzeit ${j+1} am ${tag} entfernen" data-entfernen="${tag}" data-nr="${j}">Entfernen</button></div>`).join("")+
+          (sperren.length < maxSperren ? `<button type="button" data-hinzufuegen="${tag}">Sperrzeit hinzufügen</button>` : "") : ""}</div>
+      </div>`;
+    }).join("")}</div>
+    <button type="button" class="um-neutral" aria-pressed="${ganztags?.length===0}" data-konflikt="kein">Kein Tag fällt komplett aus</button>`);
+}
 function haupt() {
   const badge = vorschau ? "Vorschau · nichts wird gespeichert" : "Vereinsinterne Umfrage";
   const oben = `<div class="um-hero"><span class="um-kicker">${badge}</span><h1>Schiri-Stimmungsbild</h1><p>Deine Woche, unsere Treffen und was wir im Verein besser machen können.</p></div>`;
@@ -45,9 +77,7 @@ function haupt() {
 function feld(f) {
   const wert = antwort[f.key];
   if (f.typ === "text") return f.wenn && !antwort[f.wenn] ? "" : `<label class="um-label">${f.titel}<textarea rows="2" maxlength="350" data-text="${f.key}"></textarea></label>`;
-  if (f.typ === "konflikte") return box("Wähle alle zutreffenden Tage",
-    `<div class="um-optionen">${tage.map(tag => `<button type="button" aria-pressed="${!!wert?.includes(tag)}" data-konflikt="${tag}">${tag}</button>`).join("")}</div>
-    <button type="button" class="um-neutral" aria-pressed="${wert?.length === 0}" data-konflikt="kein">Ich habe keinen festen Konflikt</button>`);
+  if (f.typ === "konflikte") return wochenkalender(wert);
   if (f.typ === "tier") return `<div class="um-tier" aria-label="Wochen-Tierliste">
     ${platz.map((s,i) => `<div class="um-lane" data-lane="${s}"><div class="um-lane-label"><strong>${i ? s : "Offen"}</strong><small>${i ? tierInfo[i-1] : "Noch nicht sortiert"}</small></div>
     <div class="um-chips">${tage.filter(t => !antwort.konflikte?.includes(t) && (antwort.tier[t] ?? "frei") === s)
@@ -58,9 +88,9 @@ function feld(f) {
     `<div class="um-zeitwerte"><div><small>Frühester Start</small><strong data-zeit="0"></strong></div><div><small>Spätester Start</small><strong data-zeit="1"></strong></div></div>
     <div class="um-timeline"><div class="um-rail" data-rail><span class="um-zeitband" data-band></span>
     ${[0,1].map(i=>`<button class="um-griff um-griff-${i}" type="button" role="slider" data-griff="${i}" aria-label="${i ? "Spätester Start" : "Frühester Start"}" aria-valuemin="${zeiten.min}" aria-valuemax="${zeiten.max}"></button>`).join("")}</div>
-    <div class="um-ticks"><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span></div></div>
+    <div class="um-ticks">${ticks(zeiten.max)}</div></div>
     <div class="um-ende"><span class="um-ende-kopf">Bis zu 2 Stunden Treff</span><p data-ende></p><div class="um-ende-rail" aria-hidden="true"><span data-startband></span><span data-puffer></span></div>
-    <div class="um-ticks"><span>16:00</span><span>17:00</span><span>18:00</span><span>19:00</span><span>20:00</span><span>21:00</span></div></div>`);
+    <div class="um-ticks">${ticks(abendEnde)}</div></div>`);
   if (f.typ === "frequenz") return box("Wie oft soll der Schiri-Treff sein?",
     `<label class="um-label"><output data-frequenz-text>${frequenz(wert)}</output><input type="range" aria-label="Gewünschte Häufigkeit" aria-valuetext="${frequenz(wert)}" min="0" max="10" step="1" value="${wert}" data-frequenz></label><div class="um-ticks"><span>0 · Quartal</span><span>5 · passt so</span><span>10 · alle 2 Wochen</span></div>`);
   if (f.typ === "likert") return box(f.titel,
@@ -180,6 +210,14 @@ root.addEventListener("input", e => {
   }
   if (e.target.matches(".um-likert input")) antwort[e.target.name] = e.target.value === "na" ? "na" : Number(e.target.value);
 });
+root.addEventListener("change", e => {
+  const {sperrtag,nr,grenze} = e.target.dataset;
+  if (!sperrtag) return;
+  const paar=antwort.sperrzeiten[sperrtag][nr];
+  paar[grenze]=e.target.value === "" ? null : Number(e.target.value);
+  refresh(`[data-sperrtag="${sperrtag}"][data-nr="${nr}"][data-grenze="${grenze}"]`,
+    paar.every(x=>x!==null) && paar[0]>=paar[1] ? "Das Ende muss nach dem Beginn liegen." : "");
+});
 async function api(aktion, weitere) {
   const r = await fetch("/api/umfragen", {method:"POST",headers:{"Content-Type":"application/json"},cache:"no-store",
     body:JSON.stringify({aktion, person:person?.id, pin:person?.pin, version, ...weitere})});
@@ -198,13 +236,30 @@ let tagDialog;
 root.addEventListener("click", async e => {
   const b=e.target.closest("button");
   if (!b || busy || unterdrueckeKlick) return;
+  if (b.dataset.tagkalender) {
+    const tag=b.dataset.tagkalender;
+    if (bearbeiteteTage.has(tag)) bearbeiteteTage.delete(tag); else bearbeiteteTage.add(tag);
+    refresh(`[data-tagkalender="${tag}"]`); return;
+  }
+  if (b.dataset.hinzufuegen) {
+    const tag=b.dataset.hinzufuegen, fenster=antwort.sperrzeiten[tag] ??= [];
+    if(fenster.length>=maxSperren)return;
+    fenster.push([null,null]);
+    refresh(`[data-sperrtag="${tag}"][data-nr="${fenster.length-1}"][data-grenze="0"]`); return;
+  }
+  if (b.dataset.entfernen) {
+    const tag=b.dataset.entfernen;
+    antwort.sperrzeiten[tag].splice(Number(b.dataset.nr),1);
+    if(!antwort.sperrzeiten[tag].length) delete antwort.sperrzeiten[tag];
+    refresh(`[data-hinzufuegen="${tag}"]`); return;
+  }
   if (b.dataset.konflikt) {
     const k=b.dataset.konflikt;
     if (k==="kein") antwort.konflikte=[];
     else {
       const t=new Set(antwort.konflikte || []);
       if(t.has(k)) t.delete(k); else { t.add(k); delete antwort.tier[k]; }
-      antwort.konflikte=t.size ? [...t] : undefined;
+      antwort.konflikte=[...t];
     }
     refresh(`[data-konflikt="${k}"]`); return;
   }
@@ -232,19 +287,24 @@ root.addEventListener("click", async e => {
   if (a==="dialog-zu") root.querySelector("dialog").close();
   if (a==="login") await login.oeffne({grund:"Melde dich für das vereinsinterne Stimmungsbild an.",gastErlaubt:false});
   if (a==="laden") await laden();
-  if (a==="reset") { antwort=leer(); seite=0; stand="offen"; refresh(); }
+  if (a==="reset") { bearbeiteteTage.clear(); antwort=leer(); seite=0; stand="offen"; refresh(); }
   if (a==="zurueck") { seite--; refresh(); }
   if (a==="weiter") {
-    if(seite===0 && !antwort.konflikte) return status("Wähle einen festen Konflikt oder bestätige ausdrücklich, dass du keinen hast.");
+    if(seite===0) {
+      if(!normalisiereSperrzeiten(aktiveSperren(),antwort.konflikte || [])) return status("Bitte vervollständige die Sperrzeiten oder entferne leere Zeilen.");
+      if(!antwort.konflikte && !Object.keys(aktiveSperren()).length) return status("Trage einen Konflikt ein oder bestätige, dass kein Tag komplett ausfällt.");
+      antwort.konflikte ??= [];
+    }
     if(seite===1 && tage.some(t=>!antwort.konflikte.includes(t) && !antwort.tier[t])) return status("Ordne alle Tage ohne festen Konflikt einer Stufe zu.");
     seite++; refresh();
   }
   if (a==="abgeben") {
-    if(!normalisiereAntwort(antwort)) return status("Bitte überprüfe deine Terminangaben.");
+    const abgabe = {...antwort,sperrzeiten:aktiveSperren()};
+    if(!normalisiereAntwort(abgabe)) return status("Bitte überprüfe deine Terminangaben.");
     if (vorschau) { stand="fertig"; antwort=leer(); refresh(); return; }
     const g=generation; busy=true; b.disabled=true;
     try {
-      const d=await api("abgeben",{antwort}); if(g!==generation)return;
+      const d=await api("abgeben",{antwort:abgabe}); if(g!==generation)return;
       if(d.stand==="fertig" || d.stand==="zu"){ stand=d.stand; antwort=leer(); refresh(); }
       else status("Die Rückmeldung wurde nicht gespeichert.");
     } catch(e) { if(g===generation) status(e.message); }
@@ -252,4 +312,4 @@ root.addEventListener("click", async e => {
   }
 });
 if(vorschau) haupt();
-else anmeldung.abonniere(p => { person=p; generation++; seite=0; antwort=leer(); busy=false; stand=p?"laden":"login"; haupt(); if(p) laden(); });
+else anmeldung.abonniere(p => { person=p; generation++; seite=0; bearbeiteteTage.clear(); antwort=leer(); busy=false; stand=p?"laden":"login"; haupt(); if(p) laden(); });
