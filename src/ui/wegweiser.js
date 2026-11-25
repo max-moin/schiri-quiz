@@ -58,7 +58,7 @@ export const BAUM = Object.freeze({
   "quiz.html": { titel: "Fragen dieser Woche", eltern: "modus.html" },
   "entscheiden.html": { titel: "Entscheiden", eltern: "modus.html" },
   "szenencheck.html": { titel: "Szenencheck", eltern: "modus.html" },
-  "umfragen.html": { titel: "Schiri-Stimmungsbild", eltern: "modus.html" },
+  "umfragen.html": { titel: "Schiri-Stimmungsbild", eltern: "melden.html" },
   "hausregeltest.html": { titel: "Hausregeltest", eltern: "modus.html" },
   "duell.html": { titel: "Quiz-Duell", eltern: "modus.html" },
 

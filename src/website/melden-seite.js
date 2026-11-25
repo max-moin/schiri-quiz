@@ -112,6 +112,7 @@ const ART_SYMBOLE = {
   // Kein Eintrag aus MELDE_ARTEN, aber dieselbe Kachelreihe: ohne Symbol
   // waere sie die einzige nackte Kachel der Gruppe.
   quizfrage: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M13.5 3.5H6.8A1.8 1.8 0 0 0 5 5.3v13.4a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8v-6.2"/><path d="M8 13.8h5.5M8 16.8h3.5"/><path d="m16.8 4.1 3.1 3.1-4.6 4.6-3.6.5.5-3.6z"/></svg>',
+  umfragen: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="m3.5 6 1.5 1.5L8 4.5m-4.5 8L5 14l3-3m-4.5 8L5 20.5l3-3M11 6h9m-9 6.5h9M11 19h9"/></svg>',
 };
 
 /**
@@ -132,6 +133,41 @@ function titelMitSymbol(schluessel, titel) {
   }
   zeile.appendChild(el("span", "melden-art-titel-wort", titel));
   return zeile;
+}
+
+let umfrageKachel, umfrageStatus, umfrageLink, umfrageLaedt = false;
+function baueUmfragenKachel() {
+  if (umfrageKachel) return umfrageKachel;
+  umfrageKachel = el("section", "melden-umfragen");
+  umfrageKachel.id = "umfragen";
+  const titel = el("h2");
+  titel.append(titelMitSymbol("umfragen", "Umfragen"));
+  umfrageStatus = absatz("melden-umfragen-status", "Umfragen werden geprüft …");
+  umfrageLink = el("a", "melden-umfragen-link", "Zur Umfrage");
+  umfrageLink.href = "umfragen.html";
+  umfrageLink.setAttribute("aria-label", "Zur Umfrage: Schiri-Stimmungsbild");
+  umfrageLink.hidden = true;
+  umfrageKachel.append(titel, umfrageStatus, umfrageLink);
+  void ladeUmfrageStatus();
+  return umfrageKachel;
+}
+
+async function ladeUmfrageStatus() {
+  if (!umfrageKachel || umfrageLaedt) return;
+  umfrageLaedt = true;
+  try {
+    const r = await fetch("/api/umfragen", {cache:"no-store", credentials:"omit"});
+    if (!r.ok) throw new Error("Umfragestatus nicht erreichbar");
+    const {offen} = await r.json();
+    if (typeof offen !== "boolean") throw new Error("Ungültiger Umfragestatus");
+    umfrageStatus.textContent = offen ? "Schiri-Stimmungsbild · Teilnahme mit Vereinszugang" : "Aktuell keine Umfragen offen.";
+    umfrageLink.hidden = !offen;
+  } catch {
+    umfrageStatus.textContent = "Umfragestatus gerade nicht verfügbar.";
+    umfrageLink.hidden = true;
+  } finally {
+    umfrageLaedt = false;
+  }
 }
 
 // ---------- Nicht angemeldet: der Weg dorthin, keine Fehlermeldung ----------
@@ -167,7 +203,7 @@ function zeichneAnmeldeAufforderung() {
     if (ergebnis?.status === "angemeldet") starte();
   });
   karte.appendChild(knopf);
-  bereich.appendChild(karte);
+  bereich.append(karte, baueUmfragenKachel());
 }
 
 // ---------- Angemeldet: erst die Art ----------
@@ -217,6 +253,7 @@ function zeichneGeruest() {
 
   bereich.append(
     baueAuswahlgruppe("Treff mitgestalten", "Für eine kurze Idee reicht ein Satz. Eine fertige Quizfrage kannst du ausführlich ausarbeiten.", "mitgestalten", true),
+    baueUmfragenKachel(),
     baueAuswahlgruppe("Rückmeldung oder Anliegen", "Regelfall, Vorfall, Gespräch oder Feedback zur Website.", "rueckmeldung")
   );
   bereich.appendChild(el("div", "melden-formular-halter"));
@@ -489,3 +526,6 @@ function starte() {
 // starte(), sonst zeichnet die Seite beim Laden zweimal.
 if (anmeldung) anmeldung.abonniere(() => starte());
 else starte();
+
+window.addEventListener("pageshow", e => { if (e.persisted) void ladeUmfrageStatus(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void ladeUmfrageStatus(); });

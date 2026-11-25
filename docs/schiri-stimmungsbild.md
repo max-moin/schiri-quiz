@@ -3,6 +3,7 @@
 - **Private Probe ohne Datenerhebung:** Lokal auf Loopback (`localhost`, `127.0.0.1`, `[::1]`) öffnet `/umfragen.html?vorschau=1` den Fragebogen ohne Anmeldung, Speicherung oder Übertragung. Auf der veröffentlichten Seite zeigt derselbe alte Vorschau-Link nur einen Hinweis und den Weg zur echten Umfrage. Im Teilnahmeweg gibt es keinen Vorschau-Link.
 - **App:** Modi → Umfragen → Beispiele. Dort namentliches Testmaterial, fehlende Antworten, Tagesverteilung, beste gemeinsame Startfenster, Likert und Vorstandszahlen ansehen.
 - **Teilnahme:** `/umfragen.html` verwendet den vorhandenen Vereinslogin. Ohne serverseitig freigegebenen Entwurf und zugelassenes aktives Konto gibt es keinen Fragebogen. Die Abgabe ist endgültig; eine Wiederholung überschreibt nichts.
+- **Einstieg auf der Website:** Ideen & Feedback → Umfragen (`/melden.html#umfragen`). Ein lesender, nicht gecachter Statusabruf über `GET /api/umfragen` liefert nur offen/geschlossen für die Kickers-Runde. Der echte Fragebogen, der Vereinslogin und der Direktlink bleiben gleich. Bei Nichtverfügbarkeit wird kein geschlossener Stand vorgetäuscht.
 - **Teilnahmeschluss:** `schliesst_am` stoppt weitere Abgaben serverseitig und zeigt dem Obmann die Runde danach als geschlossen. Manuelles Schließen ist früher möglich. Weder Fristablauf noch Schließen löschen die Einzelantworten.
 
 ## Vor einer namentlichen Erhebung

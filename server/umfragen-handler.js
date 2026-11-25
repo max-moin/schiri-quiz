@@ -26,7 +26,14 @@ export function sichereUmfrageAnfrage(b) {
 
 export default async function handler(req,res) {
   sichereApiAntwort(res);
-  if (req.method !== "POST") { res.setHeader("Allow","POST"); return res.status(405).json({fehler:"methode"}); }
+  if (req.method === "GET") {
+    try {
+      const offen = await supabaseRpc("kickers_umfrage_ist_offen", {});
+      if (typeof offen === "boolean") return res.status(200).json({offen});
+    } catch { /* Kein offener Rückschluss aus Fehlern; keine Rohdaten ausgeben. */ }
+    return res.status(503).json({fehler:"nicht_verfuegbar"});
+  }
+  if (req.method !== "POST") { res.setHeader("Allow","GET, POST"); return res.status(405).json({fehler:"methode"}); }
   if (!String(req.headers["content-type"]||"").startsWith("application/json")) return res.status(415).json({fehler:"format"});
   const p = sichereUmfrageAnfrage(req.body);
   if (!p) return res.status(400).json({fehler:"eingabe"});

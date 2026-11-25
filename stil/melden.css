@@ -46,6 +46,41 @@
   margin-top: 26px;
 }
 
+.melden-umfragen {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: .4rem .9rem;
+  margin-top: 1.1rem;
+  padding: .65rem .9rem;
+  color: var(--text);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  scroll-margin-top: 6rem;
+}
+
+.melden-umfragen h2,
+.melden-umfragen p { margin: 0; }
+.melden-umfragen-status { color: var(--muted); font-size: .95rem; }
+.melden-umfragen-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  font-weight: 650;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: .18em;
+}
+
+.melden-umfragen-link[hidden] { display: none; }
+.melden-umfragen-link:focus-visible { outline: 3px solid var(--karte-gelb); outline-offset: 2px; }
+
+@media (max-width: 540px) {
+  .melden-umfragen { grid-template-columns: minmax(0, 1fr); gap: .3rem; }
+  .melden-umfragen-link { justify-self: start; }
+}
+
 .melden-gruppenkopf {
   display: flex;
   align-items: end;

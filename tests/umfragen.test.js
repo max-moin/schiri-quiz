@@ -101,3 +101,38 @@ test("Vercel-Route nutzt den vorhandenen Dispatcher und antwortet privat statt z
   assert.equal(result.headers["Cache-Control"],"no-store");
   assert.deepEqual(result.body,{fehler:"eingabe"});
 });
+
+test("Ideenbereich fragt nur anonymen Status ab und verlinkt zur echten Teilnahme", () => {
+  const lies = pfad => readFileSync(new URL(pfad, import.meta.url), "utf8");
+  const melden = lies("../src/website/melden-seite.js");
+  assert.match(melden, /fetch\("\/api\/umfragen", \{cache:"no-store", credentials:"omit"\}\)/);
+  assert.match(melden, /Aktuell keine Umfragen offen\./);
+  assert.match(melden, /Umfragestatus gerade nicht verfügbar\./);
+  assert.match(melden, /umfrageLink\.hidden = !offen/);
+  assert.match(melden, /umfrageLink\.href = "umfragen.html";/);
+  assert.match(lies("../umfragen.html"), /melden\.html#umfragen/);
+});
+
+test("öffentliche Übersicht gibt ausschließlich den Öffnungsstatus als Boolean aus", async t => {
+  const testKey = process.env.SUPABASE_SECRET_KEY;
+  t.after(() => {
+    if (testKey === undefined) delete process.env.SUPABASE_SECRET_KEY;
+    else process.env.SUPABASE_SECRET_KEY = testKey;
+  });
+  process.env.SUPABASE_SECRET_KEY = "sb_secret_fiktives_testmaterial";
+  let datensatz = true;
+  const fetch = t.mock.method(globalThis, "fetch", async (url, init) => {
+    assert.match(url, /\/rpc\/kickers_umfrage_ist_offen$/);
+    assert.equal(init.body, "{}");
+    return new Response(JSON.stringify(datensatz));
+  });
+  for (const state of [true, false, {offen:true, personen:["intern"]}]) {
+    datensatz = state;
+    const res={headers:{},setHeader(k,v){this.headers[k]=v;},status(n){this.code=n;return this;},json(d){this.body=d;}};
+    await dispatcher({url:"/api/website-feedback?funktion=umfragen",method:"GET",headers:{}},res);
+    assert.equal(res.headers["Cache-Control"],"no-store");
+    assert.equal(res.code,typeof state==="boolean"?200:503);
+    assert.deepEqual(res.body,typeof state==="boolean"?{offen:state}:{fehler:"nicht_verfuegbar"});
+  }
+  assert.equal(fetch.mock.callCount(),3);
+});
