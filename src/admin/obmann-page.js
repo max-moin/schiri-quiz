@@ -15,6 +15,7 @@ import { erstelleBilderEditor } from "./bilder-editor.js";
 import { erstelleTexteEditor } from "./texte-editor.js";
 import { erstelleFreigabeEditor } from "./freigabe-editor.js";
 import { erstelleTerminfindungEditor } from "./terminfindung-editor.js";
+import { erstelleTerminstatusEditor } from "./terminstatus-editor.js";
 import { erstelleSoccergolfEditor } from "./soccergolf-editor.js";
 import { erstelleHausregeltestEditor } from "./hausregeltest-editor.js";
 import { erstelleFreigabenEditor } from "./freigaben-editor.js";
@@ -68,6 +69,7 @@ async function oeffneEditor() {
   if (!editorenGestartet) {
     editorenGestartet = true;
     erstelleHausregeltestEditor({wurzel:document.querySelector('[data-admin-bereich="hausregeltest"]'),client});
+    erstelleTerminstatusEditor({wurzel:document.querySelector('[data-admin-unterbereich="feste-termine"]'),client,verein:VEREIN});
     erstelleSoccergolfEditor({wurzel:document.querySelector('[data-admin-unterbereich="soccergolf"]'),client});
     erstelleFreigabenEditor({
       wurzel: document.querySelector('[data-admin-bereich="sichtbarkeit"]'),

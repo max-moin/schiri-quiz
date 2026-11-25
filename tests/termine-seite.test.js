@@ -111,10 +111,10 @@ test("Namen der Zusagen erscheinen nur für den eigenen Verein", () => {
 test("reine Informationstermine zeigen weder Antwortstatus noch Antwortbedienung", () => {
   const seite = ohneKommentare(lies("src/website/termine-seite.js"));
   const karten = ohneKommentare(lies("src/website/termine.js"));
-  assert.match(seite, /const brauchtAntwort = termin\.rueckmeldung_erforderlich === true/);
+  assert.match(seite, /const brauchtAntwort = !gestrichen && termin\.rueckmeldung_erforderlich === true/);
   assert.match(seite, /Dieser Termin dient nur zur Information/);
   assert.match(seite, /brauchtAntwort && termin\.rueckmeldung_bis/);
-  assert.match(karten, /if \(termin\.rueckmeldung_erforderlich === true\)[\s\S]*Noch keine Rückmeldung/);
+  assert.match(karten, /if \(!gestrichen && termin\.rueckmeldung_erforderlich === true\)[\s\S]*Noch keine Rückmeldung/);
   assert.doesNotMatch(seite, /rueckmeldung_erforderlich !== false/);
   assert.doesNotMatch(karten, /rueckmeldung_erforderlich !== false/);
 });

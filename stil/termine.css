@@ -97,6 +97,7 @@ a.termin:hover { background: var(--marke-lighter); }
 a.terminkarte:hover { border-color: var(--marke-hell); border-left-color: var(--green); }
 .terminkarte.zugesagt { border-left-color: var(--green); }
 .terminkarte.abgesagt { border-left-color: var(--red); }
+.terminkarte.termin-abgesagt { border-left-color: var(--red); }
 .terminkarte.vergangen { opacity: .62; border-left-color: var(--border); }
 
 .tk-oben { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; }

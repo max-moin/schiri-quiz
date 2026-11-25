@@ -91,6 +91,7 @@ export function terminAlsKalenderdatei(termin, {
     `DTSTAMP:${jetzt.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}/, "")}`,
     `SUMMARY:${kalenderText(termin.titel)}`,
   ];
+  if (termin.abgesagt_am) zeilen.push("STATUS:CANCELLED");
 
   if (termin.beginn_zeit) {
     zeilen.push(`DTSTART;TZID=Europe/Berlin:${kalenderZeit(termin.datum, termin.beginn_zeit)}`);
@@ -194,6 +195,7 @@ export function verbindeTerminSichten(oeffentlich, eigene) {
   }]));
   for (const termin of eigene) termine.set(termin.id, {
     ...termin,
+    abgesagt_am: termin.abgesagt_am || termine.get(termin.id)?.abgesagt_am,
     // Die personalisierte Sicht darf auch ein oeffentlicher Termin eines
     // anderen Vereins sein. Antworten ist dann erlaubt, interne Namen und
     // Protokolle bleiben aber auf den eigenen Verein begrenzt.
@@ -279,7 +281,8 @@ export function erstelleTerminZugriff({ adresse, oeffentlicherSchluessel }) {
 // ---------- Darstellung ----------
 
 export function terminKarte(termin, { alsLink = true } = {}) {
-  const streifen = termin.mein_status === "zu" ? " zugesagt"
+  const gestrichen = Boolean(termin.abgesagt_am);
+  const streifen = gestrichen ? " termin-abgesagt" : termin.mein_status === "zu" ? " zugesagt"
     : termin.mein_status === "ab" ? " abgesagt" : "";
   const vergangen = termin.vergangen ? " vergangen" : "";
 
@@ -290,7 +293,8 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   ].filter(Boolean).join('<span class="tk-punkt" aria-hidden="true">·</span>');
 
   const marken = [];
-  if (termin.pflicht) marken.push('<span class="wortmarke gelb">Pflicht</span>');
+  if (gestrichen) marken.push('<span class="wortmarke rot">Abgesagt</span>');
+  else if (termin.pflicht) marken.push('<span class="wortmarke gelb">Pflicht</span>');
   marken.push(`<span class="wortmarke">${sicher(ARTEN[termin.art] || ARTEN.sonstiges)}</span>`);
 
   // Der eigene Stand steht nur da, wenn es einen gibt - "noch keine
@@ -299,7 +303,7 @@ export function terminKarte(termin, { alsLink = true } = {}) {
   let stand = "";
   // Wird die Rueckmeldung spaeter abgeschaltet, darf auch ein alter eigener
   // Stand nicht mehr wie eine aktuelle Handlungsaufforderung erscheinen.
-  if (termin.rueckmeldung_erforderlich === true) {
+  if (!gestrichen && termin.rueckmeldung_erforderlich === true) {
     if (termin.mein_status === "zu") stand = '<span class="wortmarke gruen">Du bist dabei</span>';
     else if (termin.mein_status === "ab") stand = '<span class="wortmarke rot">Abgesagt</span>';
     else if (termin.mein_status === "unsicher") stand = '<span class="wortmarke gelb">Noch unsicher</span>';
@@ -312,7 +316,7 @@ export function terminKarte(termin, { alsLink = true } = {}) {
         : '<span class="wortmarke offen">Noch keine Rückmeldung</span>';
     }
   }
-  if (termin.laeuft === true) marken.unshift('<span class="wortmarke gruen">Läuft gerade</span>');
+  if (!gestrichen && termin.laeuft === true) marken.unshift('<span class="wortmarke gruen">Läuft gerade</span>');
 
   const innen = `
     <span class="tk-oben">

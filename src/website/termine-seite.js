@@ -180,11 +180,11 @@ function zeichneListe(termine, findungen, vorschlaege = []) {
   const ich = person();
   const { kuenftig, vergangen } = teileVergangenheitAb(termine);
   const hatAntworttermine = kuenftig.some((t) =>
-    t.rueckmeldung_erforderlich === true);
+    !t.abgesagt_am && t.rueckmeldung_erforderlich === true);
 
   // Seit 25.09.2026 zaehlen nur Termine, auf die man wirklich noch
   // antworten kann - nicht mehr ein laufender Termin.
-  const offen = kuenftig.filter((t) => t.mitgliedSicht
+  const offen = kuenftig.filter((t) => t.mitgliedSicht && !t.abgesagt_am
     && t.rueckmeldung_erforderlich === true && t.mein_status == null
     && t.absage_moeglich !== false
     // 26.09.2026: Ist nur noch eine Absage moeglich (Frist vorbei), steht
@@ -364,13 +364,14 @@ function zeichneDetail(termin, zusagen, protokoll = null, golfergebnis = null) {
   // Nur ein ausdrueckliches `true` schaltet die Rueckmeldung frei. Damit
   // koennen ein fehlendes Feld, alte Datensaetze oder `null` niemals
   // versehentlich eine Zu-/Absage-Abfrage einblenden.
-  const brauchtAntwort = termin.rueckmeldung_erforderlich === true;
+  const gestrichen = Boolean(termin.abgesagt_am);
+  const brauchtAntwort = !gestrichen && termin.rueckmeldung_erforderlich === true;
   const darfAntworten = Boolean(ich && termin.mitgliedSicht && brauchtAntwort);
   const darfInterneDatenSehen = Boolean(darfAntworten && termin.eigenerVerein);
   const zeit = zeitspanne(termin);
 
   const marken = [
-    termin.pflicht ? '<span class="wortmarke gelb">Pflicht</span>' : "",
+    gestrichen ? '<span class="wortmarke rot">Abgesagt</span>' : termin.pflicht ? '<span class="wortmarke gelb">Pflicht</span>' : "",
     `<span class="wortmarke hell">${sicher(ARTEN[termin.art] || ARTEN.sonstiges)}</span>`,
   ].filter(Boolean).join("");
 
@@ -392,7 +393,9 @@ function zeichneDetail(termin, zusagen, protokoll = null, golfergebnis = null) {
   // auszuformulieren ist klarer als drei ineinandergeschachtelte Fragen
   // im Markup.
   let antwort;
-  if (!brauchtAntwort) {
+  if (gestrichen) {
+    antwort = '<p class="td-abgelaufen">Dieser Termin findet nicht statt. Du musst nichts zurückmelden.</p>';
+  } else if (!brauchtAntwort) {
     antwort = '<p class="td-abgelaufen">Dieser Termin dient nur zur Information. Eine Zu- oder Absage ist nicht erforderlich.</p>';
   } else if (termin.vergangen) {
     antwort = '<p class="td-abgelaufen">Dieser Termin ist vorbei.</p>';
@@ -480,14 +483,14 @@ function zeichneDetail(termin, zusagen, protokoll = null, golfergebnis = null) {
       </header>
       <div class="td-body">
         ${zeilen}
-        <button type="button" class="td-kalender" data-kalender>
+        ${!gestrichen ? `<button type="button" class="td-kalender" data-kalender>
           <span aria-hidden="true">＋</span> Zum Kalender hinzufügen
-        </button>
+        </button>` : ""}
       ${antwort}
       ${protokollHtml}
       ${golfergebnis ? '<div data-soccergolf-ergebnis></div>' : ''}
       ${pdfHtml}
-      ${ich && termin.mitgliedSicht && !termin.vergangen ? `<section id="termin-erinnerungen" class="termin-protokoll mitteilungen-arten">
+      ${!gestrichen && ich && termin.mitgliedSicht && !termin.vergangen ? `<section id="termin-erinnerungen" class="termin-protokoll mitteilungen-arten">
         <h2>Deine Erinnerung</h2><ul class="mitteilungen-terminliste" data-termin-erinnerung-liste></ul>
         <p data-termin-erinnerung-status role="status" aria-live="polite"></p>
         <a href="mitteilungen.html">Themen und Geräte verwalten</a>
@@ -688,7 +691,7 @@ async function start() {
     let zusagen = [];
     const ich = person();
     if (ich && termin.mitgliedSicht && termin.eigenerVerein
-        && termin.rueckmeldung_erforderlich === true) {
+        && !termin.abgesagt_am && termin.rueckmeldung_erforderlich === true) {
       // Scheitert das, ist der Termin trotzdem anzeigbar - nur die
       // Namensliste fehlt dann.
       try { zusagen = await zugriff.zusagen(ich, termin.id); } catch { zusagen = []; }

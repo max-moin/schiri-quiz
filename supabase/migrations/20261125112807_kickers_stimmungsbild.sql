@@ -4,7 +4,8 @@ create table private.kickers_umfrage (
   einmalig boolean primary key default true check (einmalig),
   verein uuid not null references public.vereine(id),
   schluessel_hash bytea not null check (octet_length(schluessel_hash)=32),
-  stand text not null default 'entwurf' check (stand in ('entwurf','offen','geschlossen'))
+  stand text not null default 'entwurf' check (stand in ('entwurf','offen','geschlossen')),
+  schliesst_am timestamptz
 );
 create table private.kickers_umfrage_teilnahme (
   person uuid primary key references public.schiedsrichter(id) on delete cascade,
@@ -36,13 +37,15 @@ begin
       then return '{"fehler":"zugang"}'; end if;
     if a='obmann-oeffnen' then
       update private.kickers_umfrage set stand='offen'
-      where einmalig and stand='entwurf' and exists (
+      where einmalig and stand='entwurf' and (u.schliesst_am is null or u.schliesst_am>clock_timestamp()) and exists (
         select 1 from private.kickers_umfrage_teilnahme k join public.schiedsrichter s on s.id=k.person
         where s.verein_id=u.verein and s.aktiv);
     elsif a='obmann-schliessen' then
       update private.kickers_umfrage set stand='geschlossen' where einmalig and stand='offen';
     end if;
-    return jsonb_build_object('stand',(select stand from private.kickers_umfrage where einmalig),
+    return jsonb_build_object('stand',(select case
+      when stand='offen' and schliesst_am<=clock_timestamp() then 'geschlossen'
+      else stand end from private.kickers_umfrage where einmalig),
       'personen', coalesce((select jsonb_agg(jsonb_build_object('id',s.id,'name',s.name,'antwort',k.antwort) order by s.name,s.id)
         from private.kickers_umfrage_teilnahme k join public.schiedsrichter s on s.id=k.person
         where s.verein_id=u.verein and (s.aktiv or k.antwort is not null)),'[]'::jsonb));
@@ -69,7 +72,8 @@ begin
   if exists(select 1 from private.kickers_umfrage_teilnahme where person=m and antwort is not null) then
     return '{"stand":"fertig"}';
   end if;
-  if u.stand<>'offen' then return '{"stand":"zu"}'; end if;
+  t:=clock_timestamp();
+  if u.stand<>'offen' or u.schliesst_am<=t then return '{"stand":"zu"}'; end if;
   if a='status' then return '{"stand":"offen"}'; end if;
   if jsonb_typeof(p->'antwort') is distinct from 'object' or octet_length((p->'antwort')::text)>22000 then
     return '{"fehler":"eingabe"}';
