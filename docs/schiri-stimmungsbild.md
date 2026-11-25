@@ -1,6 +1,6 @@
 # Schiri-Stimmungsbild · Freigabe und Abnahme
 
-- **Website ohne Datenerhebung:** `/umfragen.html?vorschau=1` öffnet den echten Fragebogen zur Probe. Keine Anmeldung, Speicherung oder Übertragung der Eingaben. Die Version kann unabhängig von der Datenbank als Vorschau angesehen werden.
+- **Private Probe ohne Datenerhebung:** Lokal auf Loopback (`localhost`, `127.0.0.1`, `[::1]`) öffnet `/umfragen.html?vorschau=1` den Fragebogen ohne Anmeldung, Speicherung oder Übertragung. Auf der veröffentlichten Seite zeigt derselbe alte Vorschau-Link nur einen Hinweis und den Weg zur echten Umfrage. Im Teilnahmeweg gibt es keinen Vorschau-Link.
 - **App:** Modi → Umfragen → Beispiele. Dort namentliches Testmaterial, fehlende Antworten, Tagesverteilung, beste gemeinsame Startfenster, Likert und Vorstandszahlen ansehen.
 - **Teilnahme:** `/umfragen.html` verwendet den vorhandenen Vereinslogin. Ohne serverseitig freigegebenen Entwurf und zugelassenes aktives Konto gibt es keinen Fragebogen. Die Abgabe ist endgültig; eine Wiederholung überschreibt nichts.
 - **Teilnahmeschluss:** `schliesst_am` stoppt weitere Abgaben serverseitig und zeigt dem Obmann die Runde danach als geschlossen. Manuelles Schließen ist früher möglich. Weder Fristablauf noch Schließen löschen die Einzelantworten.

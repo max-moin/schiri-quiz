@@ -62,10 +62,34 @@ test("der Server akzeptiert keine vom Mitglied behauptete Identität, Rolle oder
   assert.equal(sichereUmfrageAnfrage({...mitglied,aktion:"obmann-stand",schluessel:"1234"}),null);
   assert.equal(sichereUmfrageAnfrage({...mitglied,antwort:{tier:Object.fromEntries(tage.map(t=>[t,"E"]))}}),null);
 });
-test("Vorschau nutzt weder Login noch das Abgabe-API", () => {
+test("öffentliche Altlinks bieten keinen Probe-Fragebogen; nur lokal ist Vorschau möglich", () => {
   const js=readFileSync(new URL("../src/website/umfragen-seite.js",import.meta.url),"utf8");
-  assert.match(js,/vorschau \? null : globalThis\.SchiriAnmeldung/);
+  assert.match(js,/willVorschau \? null : globalThis\.SchiriAnmeldung/);
   assert.match(js,/if \(vorschau\) \{ stand="fertig"; antwort=leer\(\); refresh\(\); return; \}/);
+  const rendere = (hostname, search) => {
+    const root = { innerHTML:"", addEventListener(){}, querySelectorAll(){return [];} };
+    let logins = 0;
+    const browser = {
+      SchiriAnmeldung: { erstelleAnmeldung: () => {logins++; return { abonniere: cb => cb(null) };} },
+      SchiriLoginDialog: { erstelleLoginDialog: () => ({}) },
+    };
+    const ausfuehren = new Function("document","location","globalThis","DATENBANK","abschnitte","formatZeit","raster","tage","tiers","zeiten","maxSperren",
+      js.replace(/^import .*;$/gm,""));
+    ausfuehren({ querySelector: () => root },{hostname, search},browser,{},abschnitte,String,()=>[],tage,["A","B","C","D","E"],{min:1020,max:1200,dauer:120},4);
+    return { html:root.innerHTML, logins };
+  };
+  const alt=rendere("www.schiri-loebtauer-kickers.com","?vorschau=1");
+  assert.equal(alt.logins,0);
+  assert.match(alt.html,/Zur echten Umfrage/);
+  assert.doesNotMatch(alt.html,/data-aktion="weiter"|data-konflikt/);
+  const live=rendere("www.schiri-loebtauer-kickers.com","");
+  assert.equal(live.logins,1);
+  assert.match(live.html,/Mit Vereinskennung anmelden/);
+  assert.doesNotMatch(live.html,/vorschau=1|ausprobieren/);
+  const lokal=rendere("127.0.0.1","?vorschau=1");
+  assert.equal(lokal.logins,0);
+  assert.match(lokal.html,/Vorschau · nichts wird gespeichert/);
+  assert.match(lokal.html,/Erforderlich: Sperrzeiten/);
 });
 test("Vercel-Route nutzt den vorhandenen Dispatcher und antwortet privat statt zu cachen", async () => {
   const cfg=JSON.parse(readFileSync(new URL("../vercel.json",import.meta.url),"utf8"));

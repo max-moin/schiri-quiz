@@ -2,8 +2,10 @@ import { DATENBANK } from "../../verein.config.js";
 import { abschnitte, formatZeit, maxSperren, normalisiereAntwort, normalisiereSperrzeiten, raster, tage, tiers, version, zeitVerschieben, zeiten } from "../shared/stimmungsbild.js";
 
 const root = document.querySelector("#umfrage");
-const vorschau = new URLSearchParams(location.search).get("vorschau") === "1";
-const anmeldung = vorschau ? null : globalThis.SchiriAnmeldung.erstelleAnmeldung(DATENBANK);
+const willVorschau = new URLSearchParams(location.search).get("vorschau") === "1";
+const vorschau = willVorschau && ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+const alteVorschau = willVorschau && !vorschau;
+const anmeldung = willVorschau ? null : globalThis.SchiriAnmeldung.erstelleAnmeldung(DATENBANK);
 const login = anmeldung && globalThis.SchiriLoginDialog.erstelleLoginDialog({ anmeldung, maskierung:globalThis.SchiriQuizMaskedInputs });
 let person, generation = 0, stand = vorschau ? "offen" : "login", busy = false, seite = 0, messung, zug = null;
 const bearbeiteteTage = new Set();
@@ -15,14 +17,16 @@ const platz = ["frei", ...tiers];
 const tierInfo = ["Passt am besten", "Passt gut", "Passt", "Eher ungünstig", "Am wenigsten passend"];
 const frequenz = n => n <= 2 ? "Etwa einmal im Quartal" : n <= 4 ? "Etwa alle 6–8 Wochen" : n === 5 ? "Etwa einmal im Monat" : n <= 7 ? "Etwa alle 3 Wochen" : "Etwa alle zwei Wochen";
 const endpunkt = (wert, bis) => formatZeit(wert + (bis ? zeiten.dauer : 0));
-function box(titel, html) { return `<fieldset><legend>${titel}</legend>${html}</fieldset>`; }
+function box(titel, anleitung, html) {
+  return `<fieldset class="um-frage"><legend>${titel}</legend><p class="um-bedienung">${anleitung}</p>${html}</fieldset>`;
+}
 const abendEnde = zeiten.max + zeiten.dauer;
 const kalenderProzent = minuten => minuten * 100 / (abendEnde - zeiten.min);
 const ticks = bis => raster(zeiten.min,bis).filter(m => m % 60 === 0).map(m=>`<span>${formatZeit(m)}</span>`).join("");
 const sperrzeitText = ([von,bis]) => `${formatZeit(von)}–${formatZeit(bis)}`;
 function wochenkalender(ganztags) {
   const uhrzeiten = raster(zeiten.min,abendEnde);
-  return box("Deine Woche · 17:00 bis 22:00 Uhr", `<p class="um-kalender-info">Beispiel: Dienstag nur bis 20 Uhr verfügbar? Sperre 20:00–22:00. Wege und Umziehen kannst du direkt mit einrechnen.</p>
+  return box("Deine Woche · 17:00 bis 22:00 Uhr", "Erforderlich: Sperrzeiten eintragen oder unten bestätigen, dass kein Tag komplett ausfällt.", `<p class="um-kalender-info">Beispiel: Dienstag nur bis 20 Uhr verfügbar? Tippe bei Dienstag auf „Uhrzeiten“ und sperre 20:00–22:00 Uhr.</p>
     <div class="um-ticks" aria-hidden="true">${ticks(abendEnde)}</div>
     <div class="um-kalender">${tage.map((tag,i)=>{
       const block = !!ganztags?.includes(tag), sperren=antwort.sperrzeiten[tag] || [];
@@ -33,7 +37,7 @@ function wochenkalender(ganztags) {
       return `<div class="um-tag">
         <div class="um-tag-kopf"><strong>${tag}</strong><div class="um-tag-aktionen">
           <button type="button" aria-label="${tag} ganztägig sperren" aria-pressed="${block}" data-konflikt="${tag}">Ganztägig</button>
-          <button type="button" aria-label="Sperrzeiten für ${tag}" aria-controls="um-sperren-${i}" aria-expanded="${offen}" data-tagkalender="${tag}"${block?" disabled":""}>Zeiten</button>
+          <button type="button" aria-label="Sperrzeiten für ${tag}" aria-controls="um-sperren-${i}" aria-expanded="${offen}" data-tagkalender="${tag}"${block?" disabled":""}>Uhrzeiten</button>
         </div></div>
         <div class="um-sperrbahn" aria-hidden="true">${balken}</div>
         <small>${block?"Ganztägig gesperrt":gueltig.length?gueltig.map(sperrzeitText).join(" · ")+" Uhr gesperrt":"Keine Uhrzeit gesperrt"}</small>
@@ -49,6 +53,10 @@ function wochenkalender(ganztags) {
 function haupt() {
   const badge = vorschau ? "Vorschau · nichts wird gespeichert" : "Vereinsinterne Umfrage";
   const oben = `<div class="um-hero"><span class="um-kicker">${badge}</span><h1>Schiri-Stimmungsbild</h1><p>Deine Woche, unsere Treffen und was wir im Verein besser machen können.</p></div>`;
+  if (alteVorschau) {
+    root.innerHTML = oben + '<section class="um-karte"><h2>Dieser Link war nur zum Testen</h2><p>Was du in der Testvorschau eingegeben hast, wurde nicht als Antwort gespeichert. Nutze den Teilnahmelink und melde dich mit deinem Vereinszugang an.</p><a class="um-teilnahmelink" href="./umfragen.html">Zur echten Umfrage</a></section>';
+    return;
+  }
   if (stand !== "offen") {
     const erklaerung = {
       login:"Melde dich mit deinem Vereinszugang an, um den Fragebogen zu öffnen.",
@@ -59,14 +67,14 @@ function haupt() {
     };
     root.innerHTML = oben + `<section class="um-karte"><h2 tabindex="-1">${stand === "fertig" ? (vorschau ? "Vorschau abgeschlossen" : "Danke fürs Mitmachen!") : "Teilnahme"}</h2><p role="status">${erklaerung[stand]}</p>
       ${stand === "login" ? button("Mit Vereinskennung anmelden","login","um-primaer") : stand === "fehler" ? button("Erneut prüfen","laden","um-primaer") : ""}
-      ${vorschau ? button("Noch einmal ausprobieren","reset","um-primaer") : '<p><a href="?vorschau=1">Fragebogen ohne Speicherung ausprobieren</a></p>'}</section>`;
+      ${vorschau ? button("Noch einmal ausprobieren","reset","um-primaer") : ""}</section>`;
     return;
   }
   const abschnitt = abschnitte[seite];
   root.innerHTML = oben + `<p class="um-hinweis">${vorschau ? "In dieser Vorschau verlässt keine Antwort deinen Browser." : "Max sieht deinen Namen und deine Antworten. Der Vorstand erhält nur zusammengefasste Zahlen, keine Namen oder Freitexte. Du kannst einmal teilnehmen."}</p>
     <nav class="um-schritte" aria-label="Fragebogen-Fortschritt"><span>Abschnitt ${seite+1} von ${abschnitte.length}</span><progress max="${abschnitte.length}" value="${seite+1}" aria-label="Fortschritt"></progress></nav>
     <section class="um-karte"><span class="um-icon" aria-hidden="true">${abschnitt.icon}</span>
-    <h2 tabindex="-1">${abschnitt.titel}</h2><p class="um-erkl">${abschnitt.info}</p>
+    <h2 tabindex="-1">${abschnitt.titel}</h2><p class="um-erkl">${seite === 1 ? "Ordne die Tage ein, an denen du Zeit hast. Gleichstände sind erlaubt." : abschnitt.info}</p>
     <div class="um-felder">${abschnitt.felder.map(feld).join("")}</div>
     <p class="um-status" role="status" data-status></p>
     <div class="um-aktionen">${seite > 0 ? button("Zurück","zurueck") : ""}${seite === abschnitte.length-1 ? button(vorschau ? "Vorschau abschließen" : "Verbindlich abgeben","abgeben","um-primaer") : button("Weiter","weiter","um-primaer")}</div></section>`;
@@ -76,27 +84,28 @@ function haupt() {
 
 function feld(f) {
   const wert = antwort[f.key];
-  if (f.typ === "text") return f.wenn && !antwort[f.wenn] ? "" : `<label class="um-label">${f.titel}<textarea rows="2" maxlength="350" data-text="${f.key}"></textarea></label>`;
+  if (f.typ === "text") return f.wenn && !antwort[f.wenn] ? "" : `<label class="um-frage um-label"><span class="um-fragetitel">${f.titel.replace(/ \(freiwillig\)$/, "")}</span><span class="um-bedienung">Freiwillig · Text eingeben</span><textarea rows="2" maxlength="350" data-text="${f.key}"></textarea></label>`;
   if (f.typ === "konflikte") return wochenkalender(wert);
-  if (f.typ === "tier") return `<div class="um-tier" aria-label="Wochen-Tierliste">
+  if (f.typ === "tier") return box("Wochentage zuordnen", "Erforderlich: Tippe auf jeden Tag unter „Offen“ und wähle A bis E. Ziehen geht auch.", `<div class="um-tier" aria-label="Wochen-Tierliste">
     ${platz.map((s,i) => `<div class="um-lane" data-lane="${s}"><div class="um-lane-label"><strong>${i ? s : "Offen"}</strong><small>${i ? tierInfo[i-1] : "Noch nicht sortiert"}</small></div>
     <div class="um-chips">${tage.filter(t => !antwort.konflikte?.includes(t) && (antwort.tier[t] ?? "frei") === s)
       .map(t => `<button type="button" class="um-chip" data-tag="${t}" aria-label="${t}, ${i ? "Stufe "+s : "nicht eingeordnet"}; Verschieben öffnen" aria-haspopup="dialog">${t}</button>`).join("") || '<span class="um-leer">Hier ablegen</span>'}</div></div>`).join("")}
     </div>${antwort.konflikte?.length ? `<p class="um-konflikte"><strong>Feste Konflikte:</strong> ${antwort.konflikte.join(", ")}</p>` : ""}
-    <dialog class="um-dialog" aria-labelledby="um-verschieben"><h3 id="um-verschieben">Tag verschieben</h3><div class="um-ziele">${platz.map((s,i) => `<button type="button" data-ziel="${s}">${i ? s+" · "+tierInfo[i-1] : "Nicht eingeordnet"}</button>`).join("")}</div>${button("Schließen","dialog-zu")}</dialog>`;
-  if (f.typ === "zeit") return box("Zeitfenster für den Start",
-    `<div class="um-zeitwerte"><div><small>Frühester Start</small><strong data-zeit="0"></strong></div><div><small>Spätester Start</small><strong data-zeit="1"></strong></div></div>
+    <dialog class="um-dialog" aria-labelledby="um-verschieben"><h3 id="um-verschieben">Tag verschieben</h3><div class="um-ziele">${platz.map((s,i) => `<button type="button" data-ziel="${s}">${i ? s+" · "+tierInfo[i-1] : "Nicht eingeordnet"}</button>`).join("")}</div>${button("Schließen","dialog-zu")}</dialog>`);
+  if (f.typ === "zeit") return box("Zeitfenster für den Start", "Uhrzeiten auswählen oder die Vorgabe 17–20 Uhr stehen lassen.",
+    `<div class="um-zeitwerte">${[0,1].map(i=>`<label><span>${i ? "Spätester Start" : "Frühester Start"}</span><select data-startauswahl="${i}">${raster(zeiten.min,zeiten.max).map(m=>`<option value="${m}">${formatZeit(m)} Uhr</option>`).join("")}</select></label>`).join("")}</div>
     <div class="um-timeline"><div class="um-rail" data-rail><span class="um-zeitband" data-band></span>
     ${[0,1].map(i=>`<button class="um-griff um-griff-${i}" type="button" role="slider" data-griff="${i}" aria-label="${i ? "Spätester Start" : "Frühester Start"}" aria-valuemin="${zeiten.min}" aria-valuemax="${zeiten.max}"></button>`).join("")}</div>
     <div class="um-ticks">${ticks(zeiten.max)}</div></div>
     <div class="um-ende"><span class="um-ende-kopf">Bis zu 2 Stunden Treff</span><p data-ende></p><div class="um-ende-rail" aria-hidden="true"><span data-startband></span><span data-puffer></span></div>
     <div class="um-ticks">${ticks(abendEnde)}</div></div>`);
-  if (f.typ === "frequenz") return box("Wie oft soll der Schiri-Treff sein?",
-    `<label class="um-label"><output data-frequenz-text>${frequenz(wert)}</output><input type="range" aria-label="Gewünschte Häufigkeit" aria-valuetext="${frequenz(wert)}" min="0" max="10" step="1" value="${wert}" data-frequenz></label><div class="um-ticks"><span>0 · Quartal</span><span>5 · passt so</span><span>10 · alle 2 Wochen</span></div>`);
-  if (f.typ === "likert") return box(f.titel,
+  if (f.typ === "frequenz") return box("Wie oft soll der Schiri-Treff sein?", "Regler verschieben oder „einmal im Monat“ stehen lassen.",
+    `<label class="um-label"><output data-frequenz-text>${frequenz(wert)}</output><input type="range" aria-label="Gewünschte Häufigkeit" aria-valuetext="${frequenz(wert)}" min="0" max="10" step="1" value="${wert}" data-frequenz></label><div class="um-ticks um-frequenz-ticks"><span>Seltener</span><span>Passt so</span><span>Häufiger</span></div>`);
+  if (f.typ === "likert") return box(f.titel, "Freiwillig · Eine Antwort antippen",
     `<div class="um-likert"><div class="um-skala">${f.labels.map((label,i)=>`<label title="${label}"><input type="radio" name="${f.key}" value="${i+1}" ${wert===i+1?"checked":""}><span class="um-punkt">${i+1}</span><span class="um-skalenlabel">${label}</span></label>`).join("")}</div>
     <label class="um-na"><input type="radio" name="${f.key}" value="na" ${wert==="na"?"checked":""}> ${f.nicht}</label></div>`);
-  return box(f.titel,`<div class="um-optionen">${f.optionen.map((o,i)=>`<button type="button" data-frage="${f.key}" data-option="${i}" aria-pressed="${f.typ==="mehrfach" ? !!wert?.includes(o) : wert===o}">${o}</button>`).join("")}</div>`);
+  return box(f.titel, f.typ === "mehrfach" ? `Freiwillig · Bis zu ${f.max} Antworten antippen` : "Freiwillig · Eine Antwort antippen",
+    `<div class="um-optionen">${f.optionen.map((o,i)=>`<button type="button" data-frage="${f.key}" data-option="${i}" aria-pressed="${f.typ==="mehrfach" ? !!wert?.includes(o) : wert===o}">${o}</button>`).join("")}</div>`);
 }
 function status(s) { const n = root.querySelector("[data-status]"); if (n) n.textContent = s; }
 function fokus(selector = "h2") { root.querySelector(selector)?.focus({preventScroll: selector !== "h2"}); }
@@ -109,7 +118,9 @@ function zeitAnzeigen() {
     Object.assign(root.querySelector(sel).style,{left:pct(links,ende), width:(rechts-links)/(ende-zeiten.min)*100+"%"});
   }
   for (const [i,m] of antwort.start.entries()) {
-    root.querySelector(`[data-zeit="${i}"]`).textContent = endpunkt(m,false)+" Uhr";
+    const auswahl = root.querySelector(`[data-startauswahl="${i}"]`);
+    auswahl.value = String(m);
+    for (const option of auswahl.options) option.disabled = i ? Number(option.value) < a : Number(option.value) > b;
     const griff = root.querySelector(`[data-griff="${i}"]`);
     griff.style.left = pct(m,zeiten.max);
     griff.setAttribute("aria-valuenow",m);
@@ -211,6 +222,8 @@ root.addEventListener("input", e => {
   if (e.target.matches(".um-likert input")) antwort[e.target.name] = e.target.value === "na" ? "na" : Number(e.target.value);
 });
 root.addEventListener("change", e => {
+  const startauswahl = e.target.dataset.startauswahl;
+  if (startauswahl !== undefined) { setZeit(Number(startauswahl),Number(e.target.value)); return; }
   const {sperrtag,nr,grenze} = e.target.dataset;
   if (!sperrtag) return;
   const paar=antwort.sperrzeiten[sperrtag][nr];
@@ -311,5 +324,5 @@ root.addEventListener("click", async e => {
     finally { if(g===generation) {busy=false; b.disabled=false;} }
   }
 });
-if(vorschau) haupt();
+if(willVorschau) haupt();
 else anmeldung.abonniere(p => { person=p; generation++; seite=0; bearbeiteteTage.clear(); antwort=leer(); busy=false; stand=p?"laden":"login"; haupt(); if(p) laden(); });
